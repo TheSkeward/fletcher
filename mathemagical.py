@@ -7,10 +7,11 @@ import tempfile
 async def latex_render_function(message, client, args):
     try:
         renderstring = "$$"+" ".join(args)+"$$"
+        preamble = r'\documentclass[10pt]{article}\usepackage{mathtools}\begin{document}'
         # Unclear how to sandbox this well without a function whitelist :/
         # See service file for sandboxing info
         preview_file = io.BytesIO()
-        sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file)
+        sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file, preamble=preamble)
         preview_file.seek(0)
         await message.channel.send("`"+renderstring+"`", file=discord.File(preview_file, filename="fletcher-render.png"))
     except Exception as e:
