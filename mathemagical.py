@@ -11,7 +11,7 @@ async def latex_render_function(message, client, args):
         # Unclear how to sandbox this well without a function whitelist :/
         # See service file for sandboxing info
         preview_file = io.BytesIO()
-        sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file, preamble=preamble)
+        sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file, preamble=preamble, fontsize='14pt')
         preview_file.seek(0)
         await message.channel.send("`"+renderstring+"`", file=discord.File(preview_file, filename="fletcher-render.png"))
     except Exception as e:
