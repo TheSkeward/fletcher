@@ -457,7 +457,7 @@ async def reload_function(message=None, client=client, args=[]):
         importlib.reload(mathemagical)
         ch.add_command({
             'trigger': ['!math', '!latex'],
-            'function': latex_render_function,
+            'function': mathematical.latex_render_function,
             'async': True,
             'args_num': 0,
             'args_name': [],
