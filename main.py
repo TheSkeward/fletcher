@@ -147,6 +147,7 @@ ch = None
 
 # Submodules, reloaded in reload_function so no initialization is done
 import sentinel
+import mathemagical
 import messagefuncs
 import text_manipulators
 
@@ -452,7 +453,18 @@ async def reload_function(message=None, client=client, args=[]):
             'args_name': [],
             'description': 'Send contents of message to memfrob flipped'
             })
-
+        # Math modules
+        importlib.reload(mathemagical)
+        ch.add_command({
+            'trigger': ['!math', '!latex'],
+            'function': latex_render_function,
+            'async': True,
+            'args_num': 0,
+            'args_name': [],
+            'description': 'Render arguments as LaTeX formula (does not require `$$`)'
+            })
+        if message:
+            await message.add_reaction('∞')
         ch.add_command({
             'trigger': ['!modreport', '👁‍🗨'],
             'function': modreport_function,
