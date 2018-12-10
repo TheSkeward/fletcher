@@ -60,7 +60,7 @@ Indexes:
 
 """
 
-FLETCHER_CONFIG = '/home/lin/fletcher/.fletcherrc'
+FLETCHER_CONFIG = '/pub/lin/.fletcherrc'
 
 def expand_guild_name(guild, prefix='', suffix=':', global_replace=False):
     # TODO refactor into config file
