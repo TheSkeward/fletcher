@@ -7,7 +7,7 @@ import tempfile
 async def latex_render_function(message, client, args):
     try:
         renderstring = "$$"+" ".join(args)+"$$"
-        preamble = r'\documentclass[10pt]{article}\usepackage{mathtools}\begin{document}'
+        preamble = r'\documentclass[10pt]{article}\usepackage{mathtools}\pagenumbering{gobble}\begin{document}'
         # Unclear how to sandbox this well without a function whitelist :/
         # See service file for sandboxing info
         preview_file = io.BytesIO()
