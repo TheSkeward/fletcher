@@ -36,7 +36,7 @@ async def teleport_function(message, client, args):
                 toChannel = discord.utils.get(fromChannel.guild.text_channels, name=targetChannel)
             else:
                 targetChannel = expand_guild_name(targetChannel)
-                toTule = targetChannel.split(":")
+                toTuple = targetChannel.split(":")
                 toGuild = discord.utils.get(client.guilds, name=toTuple[0].replace("_", " "))
                 toChannel = discord.utils.get(toGuild.text_channels, name=toTuple[1])
         elif channelLookupBy == "ID":
