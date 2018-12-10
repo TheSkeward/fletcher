@@ -12,7 +12,7 @@ async def latex_render_function(message, client, args):
         preview_file = io.BytesIO()
         sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file)
         preview_file.seek(0)
-        await message.channel.send("`"+renderstring+"`", file=discord.File(preview_file))
+        await message.channel.send("`"+renderstring+"`", file=discord.File(preview_file, filename="fletcher-render.png"))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
