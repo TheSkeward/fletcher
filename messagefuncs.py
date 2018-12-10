@@ -121,6 +121,8 @@ async def messagelink_function(message, client, args):
             try:
                 msg = await channel.get_message(int(args[0]))
                 break
+            except discord.Forbidden as e:
+                pass
             except discord.NotFound as e:
                 pass
         if msg and not (len(args) == 2 and args[1] == 'INTPROC'):
