@@ -11,6 +11,7 @@ async def latex_render_function(message, client, args):
         # See service file for sandboxing info
         preview_file = io.BytesIO()
         sympy.preview(renderstring, viewer="BytesIO", output="png", outputbuffer=preview_file)
+        preview_file.seek(0)
         await message.channel.send("`"+renderstring+"`", file=discord.File(preview_file))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
