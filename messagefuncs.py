@@ -2,6 +2,14 @@ import discord
 import io
 import re
 from sys import exc_info
+def expand_guild_name(guild, prefix='', suffix=':', global_replace=False):
+    # TODO refactor into config file
+    acro_mapping = [ ('acn', 'a compelling narrative'), ('ACN', 'a compelling narrative') ]
+    for k, v in acro_mapping:
+        new_guild = guild.replace(prefix+k+suffix, prefix+v+suffix)
+        if not global_replace:
+            return new_guild
+
 extract_identifiers_messagelink = re.compile('https://discordapp.com/channels/(\d+)/(\d+)/(\d+)', re.IGNORECASE)
 async def teleport_function(message, client, args):
     global config
