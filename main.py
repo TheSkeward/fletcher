@@ -464,7 +464,7 @@ async def reload_function(message=None, client=client, args=[]):
             'description': 'Render arguments as LaTeX formula (does not require `$$`)'
             })
         if message:
-            await message.add_reaction('∞')
+            await message.add_reaction('➕')
         ch.add_command({
             'trigger': ['!modreport', '👁‍🗨'],
             'function': modreport_function,
