@@ -94,13 +94,17 @@ class CommandHandler:
 
     async def command_handler(self, message):
         global sid
-        if hasattr(message.channel, 'category_id') or message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
-            sent_com_score = sid.polarity_scores(message.content)['compound']
-            print("["+str(sent_com_score)+"] "+message.content)
-            if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
-                await modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
-        else:
+        try:
+            if hasattr(message.channel, 'category_id') or message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
+                sent_com_score = sid.polarity_scores(message.content)['compound']
+                print("["+str(sent_com_score)+"] "+message.content)
+                if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
+                    await modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
+            else:
+                print("[Nil] "+message.content)
+        except AttributeError e:
             print("[Nil] "+message.content)
+            pass
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
