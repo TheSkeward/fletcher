@@ -62,14 +62,6 @@ Indexes:
 
 FLETCHER_CONFIG = '/pub/lin/.fletcherrc'
 
-def expand_guild_name(guild, prefix='', suffix=':', global_replace=False):
-    # TODO refactor into config file
-    acro_mapping = [ ('acn', 'a compelling narrative'), ('ACN', 'a compelling narrative') ]
-    for k, v in acro_mapping:
-        new_guild = guild.replace(prefix+k+suffix, prefix+v+suffix)
-        if not global_replace:
-            return new_guild
-
 # command handler class
 
 class CommandHandler:
@@ -90,6 +82,9 @@ class CommandHandler:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
                     user = await self.client.get_user_info(reaction.user_id)
+                    if user.id in config['moderation']['blacklist-user-usage'].split(','):
+                        print('Blacklisted command attempt by user')
+                        return
                     if command['async']:
                         return await command['function'](message, self.client, [reaction, user])
                         break
@@ -99,7 +94,7 @@ class CommandHandler:
 
     async def command_handler(self, message):
         global sid
-        if message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in ["Crystal Shards", "Liquid Shards", "Shard Realms"]:
+        if message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
             sent_com_score = sid.polarity_scores(message.content)['compound']
             print("["+str(sent_com_score)+"] "+message.content)
             if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
@@ -107,13 +102,17 @@ class CommandHandler:
         else:
             print("[Nil] "+message.content)
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
-            return await messagefuncs.preview_messagelink_function(message, self.client, None)
+            if message.author.id not in config['moderation']['blacklist-user-usage'].split(','):
+                return await messagefuncs.preview_messagelink_function(message, self.client, None)
         for command in self.commands:
             if message.content.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
                 args = message.content.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
+                if message.author.id in config['moderation']['blacklist-user-usage'].split(','):
+                    print('Blacklisted command attempt by user')
+                    return
                 if command['args_num'] == 0:
                     if command['async']:
                         return await command['function'](message, self.client, args)
@@ -515,7 +514,7 @@ async def load_webhooks():
                             'toWebhook': None
                             }
                     toTuple = webhook.name.split("(")[1].split(")")[0].split(":")
-                    toTuple[0] = expand_guild_name(toTuple[0])
+                    toTuple[0] = messagefuncs.expand_guild_name(toTuple[0])
                     toGuild = discord.utils.get(client.guilds, name=toTuple[0].replace("_", " "))
                     webhook_sync_registry[fromChannelName]['toChannelObject'] = discord.utils.get(toGuild.text_channels, name=toTuple[1])
                     webhook_sync_registry[fromChannelName]['toWebhook'] = discord.utils.get(await toGuild.webhooks(), channel__name=toTuple[1])
