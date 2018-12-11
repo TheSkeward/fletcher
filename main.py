@@ -82,7 +82,7 @@ class CommandHandler:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
                     user = await self.client.get_user_info(reaction.user_id)
-                    if user.id in config['moderation']['blacklist-user-usage'].split(','):
+                    if str(user.id) in config['moderation']['blacklist-user-usage'].split(','):
                         print('Blacklisted command attempt by user')
                         return
                     if command['async']:
@@ -102,7 +102,7 @@ class CommandHandler:
         else:
             print("[Nil] "+message.content)
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
-            if message.author.id not in config['moderation']['blacklist-user-usage'].split(','):
+            if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         for command in self.commands:
             if message.content.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
@@ -110,7 +110,7 @@ class CommandHandler:
                 args = message.content.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
-                if message.author.id in config['moderation']['blacklist-user-usage'].split(','):
+                if str(message.author.id) in config['moderation']['blacklist-user-usage'].split(','):
                     print('Blacklisted command attempt by user')
                     return
                 if command['args_num'] == 0:
