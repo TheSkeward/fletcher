@@ -102,7 +102,7 @@ class CommandHandler:
                     await modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
             else:
                 print("[Nil] "+message.content)
-        except AttributeError e:
+        catch AttributeError e:
             print("[Nil] "+message.content)
             pass
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
