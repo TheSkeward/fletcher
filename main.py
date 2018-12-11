@@ -95,7 +95,7 @@ class CommandHandler:
     async def command_handler(self, message):
         global sid
         try:
-            if hasattr(message.channel, 'category_id') or message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
+            if message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
                 sent_com_score = sid.polarity_scores(message.content)['compound']
                 print("["+str(sent_com_score)+"] "+message.content)
                 if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
