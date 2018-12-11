@@ -82,7 +82,7 @@ class CommandHandler:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
                     user = await self.client.get_user_info(reaction.user_id)
-                    if user.id in config['moderation']['blacklist-user-usage'].split(','):
+                    if user.name+"#"+str(user.discriminator) in config['moderation']['blacklist-user-usage'].split(','):
                         print('Blacklisted command attempt by user')
                         return
                     if command['async']:
@@ -110,7 +110,7 @@ class CommandHandler:
                 args = message.content.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
-                if message.author.id in config['moderation']['blacklist-user-usage'].split(','):
+                if message.author.name+"#"+str(message.author.discriminator) in config['moderation']['blacklist-user-usage'].split(','):
                     print('Blacklisted command attempt by user')
                     return
                 else:
@@ -565,6 +565,7 @@ async def on_message(message):
 async def on_raw_message_edit(payload):
     global webhook_sync_registry
     try:
+        # This is tricky with self-modifying bot message synchronization, TODO
         message_id = payload.message_id
         message = payload.data
         fromGuild = client.get_guild(int(message['guild_id']))
