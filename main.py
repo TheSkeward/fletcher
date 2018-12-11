@@ -113,6 +113,8 @@ class CommandHandler:
                 if message.author.id in config['moderation']['blacklist-user-usage'].split(','):
                     print('Blacklisted command attempt by user')
                     return
+                else:
+                    print("Triggered by "+str(message.author.id))
                 if command['args_num'] == 0:
                     if command['async']:
                         return await command['function'](message, self.client, args)
