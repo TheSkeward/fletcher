@@ -294,7 +294,7 @@ async def rot13_function(message, client, args):
 
 async def uwu_function(message, client, args):
     try:
-        if len(args) == 2 and type(args[1]) is discord.User:
+        if len(args) == 2 and type(args[1]) is discord.User and message.author.id == client.user.id:
             return await args[1].send("Stop it, you're making me blush </3")
         elif len(args) == 1:
             return await message.channel.send('*blush*')
