@@ -168,7 +168,7 @@ async def defect_function(message, client, args):
             else:
                 cur.execute("UPDATE sentinel SET subscribers = array_remove(subscribers, %s), lastmodified = CURRENT_TIMESTAMP WHERE id = %s;", [message.author.id, bannerId])
                 conn.commit()
-                return await message.channel.send('You defected from banner {}. It now needs {} more supporters to reach its goal.'.format(bannerInfo[2], str(bannerInfo[1] - bannerInfo[0])))
+                return await message.channel.send('You defected from banner {}. It now needs {} more supporters to reach its goal.'.format(bannerInfo[2], str(bannerInfo[1] - bannerInfo[0] + 1)))
         else:
             conn.commit()
             return await message.channel.send('You have not committed to this banner. `!pledge {}` to pledge support.'.format(" ".join(args)))
