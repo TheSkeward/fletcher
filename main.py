@@ -486,7 +486,7 @@ async def reload_function(message=None, client=client, args=[]):
             'description': 'Report message to mods. Removed immediately after.'
             })
         ch.add_command({
-            'trigger': ['<:uwu:445116031204196352>'],
+            'trigger': ['!uwu', '<:uwu:445116031204196352>'],
             'function': uwu_function,
             'async': True,
             'args_num': 0,
