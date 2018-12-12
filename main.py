@@ -281,7 +281,7 @@ async def modreport_function(message, client, args):
         for user_id in config['moderation']['mod-users'].split(','):
             modmail = await client.get_user(int(user_id)).send(report_content)
             if message.channel.is_nsfw():
-                await modmail.add_react('🕜')
+                await modmail.add_reaction('🕜')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
