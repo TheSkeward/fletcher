@@ -292,6 +292,15 @@ async def rot13_function(message, client, args):
     except Exception as e:
         return e
 
+async def uwu_function(message, client, args):
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            return await args[1].send("Stop it, you're making me blush </3")
+        elif len(args) == 1:
+            return await message.channel.send('*blush*')
+    except Exception as e:
+        return e
+
 async def memfrob_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User:
@@ -475,6 +484,14 @@ async def reload_function(message=None, client=client, args=[]):
             'args_num': 0,
             'args_name': [],
             'description': 'Report message to mods. Removed immediately after.'
+            })
+        ch.add_command({
+            'trigger': ['<:uwu:445116031204196352>'],
+            'function': uwu_function,
+            'async': True,
+            'args_num': 0,
+            'args_name': [],
+            'description': 'uwu'
             })
         if message:
             await message.add_reaction('🙉')
