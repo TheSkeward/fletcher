@@ -1,5 +1,6 @@
 from sys import exc_info
 import text_manipulators
+import datetime
 # global conn set by reload_function
 
 # Corresponds to the listbanners command
