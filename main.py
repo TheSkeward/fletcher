@@ -266,13 +266,22 @@ async def lastactive_user_function(message, client, args):
 async def modreport_function(message, client, args):
     try:
         report_content = None
+        plaintext = None
         if len(args) == 2 and type(args[1]) is discord.User:
-            report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to {}".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id, message.content)
+            plaintext = message.content
+            report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to ".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id)
             await message.remove_reaction('👁‍🗨', args[1])
         else:
-            report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} {}".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id, " ".join(args))
+            plaintext = " ".join(args)
+            report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} ".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id)
+        if message.channel.is_nsfw():
+            report_content = report_content + rot13_function(message, client, [plaintext, 'INTPROC'])
+        else:
+            report_content = report_content + plaintext
         for user_id in config['moderation']['mod-users'].split(','):
-            await client.get_user(int(user_id)).send(report_content)
+            modmail = await client.get_user(int(user_id)).send(report_content)
+            if message.channel.is_nsfw():
+                await modmail.add_react('🕜')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -281,6 +290,8 @@ async def rot13_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User:
             return await args[1].send(codecs.encode(message.content, 'rot_13'))
+        elif len(args) == 2 and args[1] == 'INTPROC':
+            return codecs.encode(args[0], 'rot_13')
         else:
             messageContent = codecs.encode(" ".join(args), 'rot_13')
             botMessage = await message.channel.send(messageContent)
