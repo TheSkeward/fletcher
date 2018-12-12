@@ -50,6 +50,7 @@ async def teleport_function(message, client, args):
             print('Opening To '+str(toChannel))
             toMessage = await toChannel.send('Opening Portal To <#{}> ({})'.format(fromChannel.id, fromChannel.guild.name))
         except discord.Forbidden as e:
+            print('[WARNING] Portal collaped half-open!')
             return await fromMessage.edit(content='Failed to open portal due to missing permissions! Access denied.')
         print('Editing From')
         embedTitle = "Portal opened to #{}".format(toChannel.name)
