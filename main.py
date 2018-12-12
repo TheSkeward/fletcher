@@ -274,11 +274,14 @@ async def modreport_function(message, client, args):
         else:
             plaintext = " ".join(args)
             report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} ".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id)
-        report_content = report_content + plaintext
+        if message.channel.is_nsfw():
+            report_content = report_content + await rot13_function(message, client, [plaintext, 'INTPROC'])
+        else:
+            report_content = report_content + plaintext
         for user_id in config['moderation']['mod-users'].split(','):
             modmail = await client.get_user(int(user_id)).send(report_content)
             if message.channel.is_nsfw():
-                await rot13_function(modmail, client, [])
+                await modmail.add_reaction('🕜')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
