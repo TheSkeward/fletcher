@@ -26,7 +26,7 @@ async def teleport_function(message, client, args):
         toChannel = None
         toGuild = None
         if targetChannel.startswith('<#'):
-            targetChannel= targetChannel[2:-1].strip()
+            targetChannel = targetChannel[2:-1].strip()
             channelLookupBy = "ID"
         elif targetChannel.startswith('#'):
             targetChannel= targetChannel[1:].strip()
@@ -41,6 +41,9 @@ async def teleport_function(message, client, args):
                 toChannel = discord.utils.get(toGuild.text_channels, name=toTuple[1])
         elif channelLookupBy == "ID":
             toChannel = client.get_channel(int(targetChannel))
+        if fromChannel.id == toChannel.id:
+            print('[WARNING] Attempt to open overlapping portal')
+            return await fromChannel.send('You cannot open an overlapping portal! Access denied.')
         print('Opening From '+str(fromChannel))
         fromMessage = await fromChannel.send('Opening Portal To <#{}> ({})'.format(toChannel.id, toChannel.guild.name))
         print('Opening To '+str(toChannel))
