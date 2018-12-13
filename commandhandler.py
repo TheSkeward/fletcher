@@ -32,6 +32,7 @@ class CommandHandler:
                         break
 
     async def command_handler(self, message):
+        global config
         global sid
         try:
             if message.channel.category_id is None or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
