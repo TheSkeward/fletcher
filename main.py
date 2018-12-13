@@ -141,7 +141,7 @@ async def reload_function(message=None, client=client, args=[]):
         global conn
         global doissetep_omega
         config.read(FLETCHER_CONFIG)
-        animat_startup('📝', message)
+        await animate_startup('📝', message)
         await load_webhooks()
         if message:
             await message.add_reaction('↔')
