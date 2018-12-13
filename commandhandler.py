@@ -3,14 +3,13 @@ import messagefuncs
 import janissary
 import re
 
-client = None
-tag_id_as_command = None
 class CommandHandler:
 
     # constructor
     def __init__(self, client):
         self.client = client
         self.commands = []
+        self.tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch|Fletcher)[, .]*?')
 
     def add_command(self, command):
         self.commands.append(command)
@@ -58,8 +57,7 @@ class CommandHandler:
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         searchString = message.content
-        if tag_id_as_command:
-            searchString = tag_id_as_command.sub(searchString, '!')
+        searchString = self.tag_id_as_command.sub(searchString, '!')
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
@@ -107,4 +105,3 @@ def autoload(ch):
         'args_name': [],
         'description': 'List commands and arguments'
         })
-    tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch|Fletcher)[, .]*?')
