@@ -170,7 +170,7 @@ async def bookmark_function(message, client, args):
         print("BMF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 # Register this module's commands
-def autoloader(ch):
+def autoload(ch):
     ch.add_command({
         'trigger': ['!teleport', '!portal'],
         'function': teleport_function,
