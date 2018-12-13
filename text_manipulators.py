@@ -2,7 +2,6 @@ import codecs
 from datetime import datetime, timedelta
 import math
 import discord
-import str
 from sys import exc_info
 
 def smallcaps(text=False):
