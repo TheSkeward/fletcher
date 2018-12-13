@@ -92,14 +92,15 @@ async def rot13_function(message, client, args):
             except discord.Forbidden as e:
                 print("Forbidden to delete message in "+str(message.channel))
     except Exception as e:
-        return e
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("R13F[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 async def memfrob_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User:
-            return await args[1].send(text_manipulators.memfrob(message.content))
+            return await args[1].send(memfrob(message.content))
         else:
-            messageContent = text_manipulators.memfrob(" ".join(args))
+            messageContent = memfrob(" ".join(args))
             botMessage = await message.channel.send(messageContent)
             await botMessage.add_reaction('🕦')
             try: 
@@ -107,7 +108,8 @@ async def memfrob_function(message, client, args):
             except discord.Forbidden as e:
                 print("Forbidden to delete message in "+str(message.channel))
     except Exception as e:
-        return e
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("MFF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
     ch.add_command({
