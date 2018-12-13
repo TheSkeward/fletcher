@@ -191,7 +191,8 @@ async def reload_function(message=None, client=client, args=[]):
             doissetep_omega.play(discord.FFmpegPCMAudio(config['audio']['instreamurl']))
         await animate_startup('✅', message)
     except Exception as e:
-        print(e)
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("RM[{}]: {}".format(exc_tb.tb_lineno, e))
         await animate_startup('🚫', message)
 
 # bot is ready
