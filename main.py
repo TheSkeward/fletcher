@@ -123,7 +123,7 @@ doissetep_omega =  None
 
 def autoload(module):
     importlib.reload(module)
-    moduel.ch = ch
+    module.ch = ch
     module.config = config
     module.conn = conn
     module.sid = sid
