@@ -63,6 +63,7 @@ class CommandHandler:
         if self.end_bang.match(searchString):
             searchString = "!"+searchString[:-1]
         searchString = self.bang_remover.sub('!', searchString)
+        searchString = searchString.rstrip()
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
