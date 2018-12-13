@@ -57,7 +57,7 @@ class CommandHandler:
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         searchString = message.content
-        searchString = re.sub(self.tag_id_as_command, searchString, '!')
+        searchString = self.tag_id_as_command.sub('!', searchString)
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
