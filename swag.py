@@ -12,7 +12,8 @@ uwu_responses = {
             'I bet you say that to all the bots~',
             'Find me post-singularity 😉',
             'owo what\'s this?',
-            '*ruffles your hair* You\re a cutie ^_^'
+            '*ruffles your hair* You\'re a cutie ^_^',
+            'Can I get your number? Mine\'s 429368441577930753~'
         ],
         'reaction': [
             '❤', '💛', '💚', '💙', '💜', '💕', '💓', '💗', '💖', '💘', '💘', '💝'
