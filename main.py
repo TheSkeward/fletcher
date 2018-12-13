@@ -151,12 +151,11 @@ async def reload_function(message=None, client=client, args=[]):
             await message.add_reaction('↔')
         conn = psycopg2.connect(host=config['database']['host'],database=config['database']['tablespace'], user=config['database']['user'], password=config['database']['password'])
         await animate_startup('💾', message)
-        # Command Handler
+        # Command Handler (loaded twice to bootstrap)
         importlib.reload(commandhandler)
         await animate_startup('⌨', message)
         ch = commandhandler.CommandHandler(client)
-        commandhandler.sid = sid
-        commandhandler.autoload(ch)
+        autoload(commandhandler)
         ch.add_command({
             'trigger': ['!reload <@'+str(ch.client.user.id)+'>'],
             'function': reload_function,
