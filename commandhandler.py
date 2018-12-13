@@ -96,7 +96,7 @@ def help_function(message, client, args):
     if len(args) > 0 and args[0] == "verbose":
         helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in ch.commands])
     else:
-        helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger']), command['description']) for command in ch.commands])
+        helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger'][:2]), command['description']) for command in ch.commands])
     return helpMessageBody
 
 def autoload(ch):
