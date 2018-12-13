@@ -3,6 +3,7 @@ import messagefuncs
 import janissary
 import re
 
+client = None
 tag_id_as_command = None
 class CommandHandler:
 
