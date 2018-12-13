@@ -64,8 +64,7 @@ class CommandHandler:
         searchString = self.bang_remover.sub('!', searchString)
         searchString = searchString.rstrip()
         for command in self.commands:
-            if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
-                print(command)
+            if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 args = searchString.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
