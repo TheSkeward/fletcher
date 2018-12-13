@@ -10,6 +10,8 @@ class CommandHandler:
         self.client = client
         self.commands = []
         self.tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*|[, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$', re.IGNORECASE)
+        self.bang_remover = re.compile('^!+')
+        self.end_bang= re.compile('!+$')
 
     def add_command(self, command):
         self.commands.append(command)
@@ -58,6 +60,9 @@ class CommandHandler:
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         searchString = message.content
         searchString = self.tag_id_as_command.sub('!', searchString)
+        if self.bang_end.match(searchString):
+            searchString = "!"+searchString[:-1]
+        searchString = self.bang_remover.sub('!', searchString)
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
