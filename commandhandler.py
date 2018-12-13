@@ -61,7 +61,7 @@ class CommandHandler:
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
-                args = message.content.split(' ')
+                args = searchString.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
                 if str(message.author.id) in config['moderation']['blacklist-user-usage'].split(','):

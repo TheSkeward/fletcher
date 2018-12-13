@@ -1,5 +1,6 @@
 import discord
 import random
+from datetime import datetime, timedelta
 # Super Waifu Animated Girlfriend
 
 uwu_responses = {
@@ -26,7 +27,8 @@ async def uwu_function(message, client, args):
                 await message.add_reaction(random.choice(uwu_responses['reaction']))
             return await message.channel.send(random.choice(uwu_responses['text']))
     except Exception as e:
-        return e
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("UWU[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
     ch.add_command({
