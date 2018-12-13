@@ -197,7 +197,7 @@ def autoload(ch):
         'description': 'Salute a sentinel'
         })
     ch.add_command({
-        'trigger': ['!defect'],
+        'trigger': ['!defect', '!leave'],
         'function': defect_function,
         'async': True,
         'args_num': 1,
