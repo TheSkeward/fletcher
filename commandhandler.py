@@ -45,7 +45,7 @@ class CommandHandler:
                     sent_com_score = -1
                 print("["+str(sent_com_score)+"] "+message.content)
                 if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
-                    await modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
+                    await janissary.modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
             else:
                 print("[Nil] "+message.content)
         except AttributeError as e:
