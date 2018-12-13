@@ -9,7 +9,7 @@ class CommandHandler:
     def __init__(self, client):
         self.client = client
         self.commands = []
-        self.tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*')
+        self.tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*|[, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$', re.IGNORECASE)
 
     def add_command(self, command):
         self.commands.append(command)
