@@ -60,7 +60,7 @@ class CommandHandler:
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         searchString = message.content
         searchString = self.tag_id_as_command.sub('!', searchString)
-        if self.bang_end.match(searchString):
+        if self.end_bang.match(searchString):
             searchString = "!"+searchString[:-1]
         searchString = self.bang_remover.sub('!', searchString)
         for command in self.commands:
