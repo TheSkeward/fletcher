@@ -9,7 +9,8 @@ uwu_responses = {
             '*giggles*',
             'No u :3',
             'I bet you say that to all the bots~',
-            'Find me post-singularity 😉'
+            'Find me post-singularity 😉',
+            'owo what\'s this?'
         ],
         'reaction': [
             '❤', '💛', '💚', '💙', '💜', '💕', '💓', '💗', '💖', '💘', '💘', '💝'

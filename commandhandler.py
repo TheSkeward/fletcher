@@ -1,7 +1,9 @@
 import discord
 import messagefuncs
 import janissary
+import re
 
+tag_id_as_command = None
 class CommandHandler:
 
     # constructor
@@ -54,8 +56,11 @@ class CommandHandler:
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
+        searchString = message.content
+        if tag_id_as_command:
+            searchString = tag_id_as_command.sub(searchString, '!')
         for command in self.commands:
-            if message.content.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
+            if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
                 args = message.content.split(' ')
                 args = [item for item in args if item]
@@ -91,6 +96,8 @@ def help_function(message, client, args):
     return helpMessageBody
 
 def autoload(ch):
+    global tag_id_as_command
+    global client
     ch.add_command({
         'trigger': ['!help'],
         'function': help_function,
@@ -99,3 +106,4 @@ def autoload(ch):
         'args_name': [],
         'description': 'List commands and arguments'
         })
+    tag_id_as_command = re.compile('^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch|Fletcher)[, .]*?')
