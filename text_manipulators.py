@@ -1,5 +1,8 @@
+import codecs
 from datetime import datetime, timedelta
 import math
+import discord
+import str
 from sys import exc_info
 
 def smallcaps(text=False):
@@ -39,7 +42,6 @@ def pretty_date(time=False):
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
     'just now', etc
     """
-    from datetime import datetime
     now = datetime.now()
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time)
@@ -76,3 +78,53 @@ def pretty_date(time=False):
         return str(int(day_diff / 30)) + " months ago"
     return str(int(day_diff / 365)) + " years ago"
 
+async def rot13_function(message, client, args):
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            return await args[1].send(codecs.encode(message.content, 'rot_13'))
+        elif len(args) == 2 and args[1] == 'INTPROC':
+            return codecs.encode(args[0], 'rot_13')
+        else:
+            messageContent = codecs.encode(" ".join(args), 'rot_13')
+            botMessage = await message.channel.send(messageContent)
+            await botMessage.add_reaction('🕜')
+            try: 
+                await message.delete()
+            except discord.Forbidden as e:
+                print("Forbidden to delete message in "+str(message.channel))
+    except Exception as e:
+        return e
+
+async def memfrob_function(message, client, args):
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            return await args[1].send(text_manipulators.memfrob(message.content))
+        else:
+            messageContent = text_manipulators.memfrob(" ".join(args))
+            botMessage = await message.channel.send(messageContent)
+            await botMessage.add_reaction('🕦')
+            try: 
+                await message.delete()
+            except discord.Forbidden as e:
+                print("Forbidden to delete message in "+str(message.channel))
+    except Exception as e:
+        return e
+
+def autoload(ch):
+    ch.add_command({
+        'trigger': ['!rot13', '🕜'],
+        'function': rot13_function,
+        'async': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Send contents of message rot13 flipped (deprecated)'
+        })
+
+    ch.add_command({
+        'trigger': ['!memfrob', '!spoiler', '🕦'],
+        'function': memfrob_function,
+        'async': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Send contents of message to memfrob flipped'
+        })

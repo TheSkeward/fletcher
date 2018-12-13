@@ -177,3 +177,38 @@ async def defect_function(message, client, args):
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         print("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+# Register functions in client
+def autoload(ch):
+    ch.add_command({
+        'trigger': ['!assemble', '!canvas'],
+        'function': sentinel.assemble_function,
+        'async': True,
+        'args_num': 2,
+        'args_name': ['int', 'string'],
+        'description': 'Create a sentinel for assembling groups'
+        })
+    ch.add_command({
+        'trigger': ['!pledge', '!join'],
+        'function': sentinel.pledge_function,
+        'async': True,
+        'args_num': 1,
+        'args_name': ['int'],
+        'description': 'Salute a sentinel'
+        })
+    ch.add_command({
+        'trigger': ['!defect'],
+        'function': sentinel.defect_function,
+        'async': True,
+        'args_num': 1,
+        'args_name': ['int'],
+        'description': 'Turn away from a sentinel'
+        })
+    ch.add_command({
+        'trigger': ['!banners'],
+        'function': sentinel.listbanners_function,
+        'async': False,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'List sentinels'
+        })

@@ -168,3 +168,38 @@ async def bookmark_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("BMF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+# Register this module's commands
+def autoloader(ch):
+    ch.add_command({
+        'trigger': ['!teleport', '!portal'],
+        'function': messagefuncs.teleport_function,
+        'async': True,
+        'args_num': 1,
+        'args_name': ['string'],
+        'description': 'Create a link bridge to another channel'
+        })
+    ch.add_command({
+        'trigger': ['!message'],
+        'function': messagefuncs.messagelink_function,
+        'async': True,
+        'args_num': 1,
+        'args_name': ['string'],
+        'description': 'Create a link to the message with ID `!message XXXXXX`'
+        })
+    ch.add_command({
+        'trigger': ['!preview'],
+        'function': messagefuncs.preview_messagelink_function,
+        'async': True,
+        'args_num': 1,
+        'args_name': ['string'],
+        'description': 'Retrieve message body by link (used internally to unwrap message links in chat)'
+        })
+    ch.add_command({
+        'trigger': ['!bookmark', '🔖', '🔗'],
+        'function': messagefuncs.bookmark_function,
+        'async': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'DM the user a bookmark to the current place in conversation',
+        })
