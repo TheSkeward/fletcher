@@ -58,6 +58,7 @@ class CommandHandler:
                 return await messagefuncs.preview_messagelink_function(message, self.client, None)
         searchString = message.content
         searchString = self.tag_id_as_command.sub(searchString, '!')
+        print(searchString)
         for command in self.commands:
             if searchString.startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 print(command)
