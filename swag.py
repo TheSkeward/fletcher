@@ -1,20 +1,29 @@
 import discord
 import random
-# Super Waifu Animeted Girlfriend
+# Super Waifu Animated Girlfriend
 
-uwu_responses = [
-        '*blush* For me?',
-        'Aww, thanks <3',
-        '*giggles*',
-        'No u :3'
-        ]
+uwu_responses = {
+        'text': [
+            '*blush* For me?',
+            'Aww, thanks ❤',
+            '*giggles*',
+            'No u :3',
+            'I bet you say that to all the bots~',
+            'Find me post-singularity 😉'
+        ],
+        'reaction': [
+            '❤', '💛', '💚', '💙', '💜', '💕', '💓', '💗', '💖', '💘', '💘', '💝'
+            ]
+        }
 
 async def uwu_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User and message.author.id == client.user.id:
             return await args[1].send("Stop it, you're making me blush </3")
         elif len(args) == 0:
-            return await message.channel.send(random.choice(uwu_responses))
+            if random.randint(0, 100) < 20:
+                await message.add_reaction(random.choice(uwu_responses['reaction']))
+            return await message.channel.send(random.choice(uwu_responses['text']))
     except Exception as e:
         return e
 
