@@ -1,0 +1,40 @@
+Hot reloads
+    - global roles for administration
+Vox Rei
+    - Music channel Now Playing / controls for queuing
+    - Talking token muter
+    - Generalize guild notifications for voice, possibly on a per-channel basis
+    - Voice notification edits rather than new messages
+on_ack_message
+    - store certain messages in db by id with run of enumed list of functions with correct param in response
+New User Management
+    - Permissions Hammer
+Temporary channels
+    - Autopick users to invite
+    - Expiration dates
+Role management
+    - Temp mute
+    - Temp bans
+    - Content-based rate limiting
+    - C O M B I N A T O R I C S
+    - Opt-in whitelist for muting all nonused channels
+    - Karma?
+Refresh for links
+    - Infer source from context (channel.history(message, context=10))
+    - 🔄
+    - Autoremove react to allow it to happen again
+    - Prepopulate for discoverability
+Scoping for commands (guild list? channel list? role list? user list?)
+<:discourse:504505876703608843> translate to !teleport to #discourse (scoped to EA Corner)
+ROT13
+    - Rename for messages
+    - emoji
+    - Spoiler images
+Sync client
+    - Builtin startup/takedown
+    - Reaction syncing
+    - Edit syntax (currently works but bumps the message, possibly not fixable with current post method [WONTFIX if so])
+    - Multi server syncing
+    - Channel, role, user tag translation
+    - Pinning
+Swap from psycopg2 to asyncpg for better scaling
