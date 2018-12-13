@@ -123,6 +123,7 @@ doissetep_omega =  None
 
 def autoload(module):
     importlib.reload(module)
+    moduel.ch = ch
     module.config = config
     module.conn = conn
     module.sid = sid
@@ -140,10 +141,10 @@ async def animate_startup(emote, message=None):
         print(emote)
 
 async def reload_function(message=None, client=client, args=[]):
+    global ch
+    global conn
+    global doissetep_omega
     try:
-        global ch
-        global conn
-        global doissetep_omega
         config.read(FLETCHER_CONFIG)
         await animate_startup('📝', message)
         await load_webhooks()
