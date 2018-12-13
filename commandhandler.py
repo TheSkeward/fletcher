@@ -91,7 +91,7 @@ def help_function(message, client, args):
 def autoload(ch):
     ch.add_command({
         'trigger': ['!help'],
-        'function': commandhandler.help_function,
+        'function': help_function,
         'async': False,
         'args_num': 0,
         'args_name': [],

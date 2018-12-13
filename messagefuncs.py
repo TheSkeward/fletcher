@@ -173,7 +173,7 @@ async def bookmark_function(message, client, args):
 def autoloader(ch):
     ch.add_command({
         'trigger': ['!teleport', '!portal'],
-        'function': messagefuncs.teleport_function,
+        'function': teleport_function,
         'async': True,
         'args_num': 1,
         'args_name': ['string'],
@@ -181,7 +181,7 @@ def autoloader(ch):
         })
     ch.add_command({
         'trigger': ['!message'],
-        'function': messagefuncs.messagelink_function,
+        'function': messagelink_function,
         'async': True,
         'args_num': 1,
         'args_name': ['string'],
@@ -189,7 +189,7 @@ def autoloader(ch):
         })
     ch.add_command({
         'trigger': ['!preview'],
-        'function': messagefuncs.preview_messagelink_function,
+        'function': preview_messagelink_function,
         'async': True,
         'args_num': 1,
         'args_name': ['string'],
@@ -197,7 +197,7 @@ def autoloader(ch):
         })
     ch.add_command({
         'trigger': ['!bookmark', '🔖', '🔗'],
-        'function': messagefuncs.bookmark_function,
+        'function': bookmark_function,
         'async': True,
         'args_num': 0,
         'args_name': [],

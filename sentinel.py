@@ -182,7 +182,7 @@ async def defect_function(message, client, args):
 def autoload(ch):
     ch.add_command({
         'trigger': ['!assemble', '!canvas'],
-        'function': sentinel.assemble_function,
+        'function': assemble_function,
         'async': True,
         'args_num': 2,
         'args_name': ['int', 'string'],
@@ -190,7 +190,7 @@ def autoload(ch):
         })
     ch.add_command({
         'trigger': ['!pledge', '!join'],
-        'function': sentinel.pledge_function,
+        'function': pledge_function,
         'async': True,
         'args_num': 1,
         'args_name': ['int'],
@@ -198,7 +198,7 @@ def autoload(ch):
         })
     ch.add_command({
         'trigger': ['!defect'],
-        'function': sentinel.defect_function,
+        'function': defect_function,
         'async': True,
         'args_num': 1,
         'args_name': ['int'],
@@ -206,7 +206,7 @@ def autoload(ch):
         })
     ch.add_command({
         'trigger': ['!banners'],
-        'function': sentinel.listbanners_function,
+        'function': listbanners_function,
         'async': False,
         'args_num': 0,
         'args_name': [],

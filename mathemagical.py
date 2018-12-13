@@ -22,7 +22,7 @@ async def latex_render_function(message, client, args):
 def autoload(ch):
     ch.add_command({
         'trigger': ['!math', '!latex'],
-        'function': mathemagical.latex_render_function,
+        'function': latex_render_function,
         'async': True,
         'args_num': 0,
         'args_name': [],
