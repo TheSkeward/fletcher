@@ -9,7 +9,7 @@ class CommandHandler:
     def __init__(self, client):
         self.client = client
         self.commands = []
-        self.tag_id_as_command = re.compile('(?:^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*)|(?:[, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$)', re.IGNORECASE)
+        self.tag_id_as_command = re.compile('(^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*)|([, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$)', re.IGNORECASE)
         self.bang_remover = re.compile('^!+')
         self.end_bang = re.compile('!+$')
 
