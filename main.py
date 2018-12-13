@@ -126,8 +126,12 @@ def autoload(module):
     module.config = config
     module.conn = conn
     module.sid = sid
-    if autoload in module:
+    try:
         module.autoload(ch)
+    except AttributeError:
+        # Ignore missing autoload
+        print('[Info] '+module.__name__+' missing autoload(ch), continuing.')
+        pass
 
 async def animate_startup(emote, message=None):
     if message:
