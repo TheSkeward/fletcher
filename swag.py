@@ -11,7 +11,8 @@ uwu_responses = {
             'No u :3',
             'I bet you say that to all the bots~',
             'Find me post-singularity 😉',
-            'owo what\'s this?'
+            'owo what\'s this?',
+            '*ruffles your hair* You\re a cutie ^_^'
         ],
         'reaction': [
             '❤', '💛', '💚', '💙', '💜', '💕', '💓', '💗', '💖', '💘', '💘', '💝'
@@ -22,7 +23,7 @@ async def uwu_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User and message.author.id == client.user.id:
             return await args[1].send("Stop it, you're making me blush </3")
-        elif len(args) == 0:
+        elif len(args) == 0 or 'fletch' in message.clean_content.lower() or message.content[0] == "!":
             if random.randint(0, 100) < 20:
                 await message.add_reaction(random.choice(uwu_responses['reaction']))
             return await message.channel.send(random.choice(uwu_responses['text']))
@@ -32,7 +33,7 @@ async def uwu_function(message, client, args):
 
 def autoload(ch):
     ch.add_command({
-        'trigger': ['!uwu', '<:uwu:445116031204196352>'],
+        'trigger': ['!uwu', '<:uwu:445116031204196352>', '!good', 'good bot', 'aww'],
         'function': uwu_function,
         'async': True,
         'args_num': 0,
