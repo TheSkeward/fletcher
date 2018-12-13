@@ -1,3 +1,5 @@
+Hey, if you're reading this, you probably care about Fletcher's development! Why not support new features, infrastructure and more at liberapay.com/novalinium?
+
 Hot reloads
     - global roles for administration
 Vox Rei
@@ -12,18 +14,24 @@ New User Management
 Temporary channels
     - Autopick users to invite
     - Expiration dates
-Role management
+Permissions management
+    - Permissions checkup
     - Temp mute
     - Temp bans
     - Content-based rate limiting
     - C O M B I N A T O R I C S
+    - HTTP 420 autopersonalize role
     - Opt-in whitelist for muting all nonused channels
+    - Diamonds aren't the only thing that's forever: permission persistence
     - Karma?
 Refresh for links
     - Infer source from context (channel.history(message, context=10))
     - 🔄
     - Autoremove react to allow it to happen again
     - Prepopulate for discoverability
+A Friend To All
+    - Rate limit usage (user? channel? role? guild?)
+    - Bans mean banned (deps on COMBO)
 Scoping for commands (guild list? channel list? role list? user list?)
 <:discourse:504505876703608843> translate to !teleport to #discourse (scoped to EA Corner)
 ROT13
@@ -38,3 +46,4 @@ Sync client
     - Channel, role, user tag translation
     - Pinning
 Swap from psycopg2 to asyncpg for better scaling
+Make a blog post with November updates ya dingus
