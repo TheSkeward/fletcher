@@ -19,7 +19,7 @@ class VersionInfo:
 
 def status_command(message, client, args):
     global versioninfo
-    return "Not much, just "+versioninfo.latest_commit_log()+". How about you?",
+    return "Not much, just "+versioninfo.latest_commit_log()+". How about you?"
 
 def autoload(ch):
     ch.add_command({
