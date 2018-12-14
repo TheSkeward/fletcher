@@ -42,3 +42,11 @@ def autoload(ch):
         'args_name': [],
         'description': 'uwu'
         })
+    ch.add_command({
+        'trigger': ['can I upload myself as a pony yet'],
+        'function': lambda (message, client, args): return "https://i.imgur.com/K4BFRec.jpg",
+        'async': False,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Well, can I?'
+        })
