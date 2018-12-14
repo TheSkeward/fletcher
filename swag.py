@@ -1,5 +1,6 @@
 import discord
 import random
+from sys import exc_info
 from datetime import datetime, timedelta
 # Super Waifu Animated Girlfriend
 
