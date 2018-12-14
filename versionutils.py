@@ -13,6 +13,6 @@ class VersionInfo:
         head = self.repo.head       # the head points to the active branch/ref
         master = head.reference     # retrieve the reference the head points to
         log_offset = -1
-        while !master.log()[log_offset].message.startswith('commit:'):
+        while not master.log()[log_offset].message.startswith('commit:'):
             log_offset = log_offset - 1
         return master.log()[log_offset].message.split(' ', 1)[1]
