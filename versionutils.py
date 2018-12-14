@@ -12,4 +12,7 @@ class VersionInfo:
     def latest_commit_log(self):
         head = self.repo.head       # the head points to the active branch/ref
         master = head.reference     # retrieve the reference the head points to
-        return master.log()[-1].message
+        log_offset = -1
+        while !master.log()[log_offset].message.startswith('commit:'):
+            log_offset = log_offset - 1
+        return master.log()[log_offset].message.split(' ', 1)[1]
