@@ -61,7 +61,7 @@ def autoload(ch):
         })
     versioninfo = versionutils.VersionInfo()
     ch.add_command({
-        'trigger': ['what\'s up'],
+        'trigger': ['!status', 'what\'s up'],
         'function': lambda message, client, args: "Not much, just "+versioninfo.latest_commit_log()+". How about you?",
         'async': False, 'args_num': 0, 'args_name': [], 'description': 'Well, can I?'
         })
