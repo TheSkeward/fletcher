@@ -16,3 +16,14 @@ class VersionInfo:
         while not master.log()[log_offset].message.startswith('commit:'):
             log_offset = log_offset - 1
         return master.log()[log_offset].message.split(' ', 1)[1]
+
+def status_command(message, client, args):
+    global versioninfo
+    return "Not much, just "+versioninfo.latest_commit_log()+". How about you?",
+
+def autoload(ch):
+    ch.add_command({
+        'trigger': ['!status', 'what\'s up'],
+        'function': status_command,
+        'async': False, 'args_num': 0, 'args_name': [], 'description': 'Tell user about the status'
+        })
