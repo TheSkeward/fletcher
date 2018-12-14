@@ -149,6 +149,7 @@ async def reload_function(message=None, client=client, args=[]):
     global versioninfo
     global doissetep_omega
     try:
+        await client.change_presence(activity=discord.Game(name='Reloading: The Game'))
         config.read(FLETCHER_CONFIG)
         await animate_startup('📝', message)
         await load_webhooks()
@@ -200,6 +201,7 @@ async def reload_function(message=None, client=client, args=[]):
         if not doissetep_omega.is_playing():
             doissetep_omega.play(discord.FFmpegPCMAudio(config['audio']['instreamurl']))
         await animate_startup('✅', message)
+        await client.change_presence(activity=discord.Game(name='liberapay.com/novalinium'))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("RM[{}]: {}".format(exc_tb.tb_lineno, e))
@@ -214,7 +216,6 @@ async def on_ready():
         print(client.user.name)
         print(client.user.id)
         print('Discord.py Version: {}'.format(discord.__version__))
-        await client.change_presence(activity=discord.Game(name='liberapay.com/novalinium'))
         doissetep_omega = await client.get_guild(int(config['audio']['guild'])).get_channel(int(config['audio']['channel'])).connect();
         loop = asyncio.get_event_loop()
         loop.add_signal_handler(signal.SIGHUP, lambda: asyncio.ensure_future(reload_function()))
