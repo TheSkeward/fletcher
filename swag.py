@@ -2,6 +2,7 @@ import discord
 import random
 from sys import exc_info
 from datetime import datetime, timedelta
+import versionutils
 # Super Waifu Animated Girlfriend
 
 uwu_responses = {
@@ -56,5 +57,11 @@ def autoload(ch):
     ch.add_command({
         'trigger': ['!fio', '!optimal'],
         'function': lambda message, client, args: 'https://www.fimfiction.net/story/62074/8/friendship-is-optimal/',
+        'async': False, 'args_num': 0, 'args_name': [], 'description': 'Well, can I?'
+        })
+    versioninfo = versionutils.VersionInfo()
+    ch.add_command({
+        'trigger': ['what\'s up'],
+        'function': lambda message, client, args: "Not much, just "+versioninfo.latest_commit_log()+". How about you?",
         'async': False, 'args_num': 0, 'args_name': [], 'description': 'Well, can I?'
         })
