@@ -1,5 +1,6 @@
 from sys import exc_info
 import text_manipulators
+from sys import exc_info
 from datetime import datetime, timedelta
 # global conn set by reload_function
 
