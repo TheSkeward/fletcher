@@ -50,9 +50,11 @@ def autoload(ch):
         })
     ch.add_command({
         'trigger': ['can i upload myself as a pony yet'],
-        'function': lambda message, client, args: "https://i.imgur.com/K4BFRec.jpg",
-        'async': False,
-        'args_num': 0,
-        'args_name': [],
-        'description': 'Well, can I?'
+        'function': lambda message, client, args: 'https://i.imgur.com/K4BFRec.jpg',
+        'async': False, 'args_num': 0, 'args_name': [], 'description': 'Well, can I?'
+        })
+    ch.add_command({
+        'trigger': ['!fio', '!optimal'],
+        'function': lambda message, client, args: 'https://www.fimfiction.net/story/62074/8/friendship-is-optimal/',
+        'async': False, 'args_num': 0, 'args_name': [], 'description': 'Well, can I?'
         })
