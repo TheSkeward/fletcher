@@ -75,6 +75,7 @@ ch = None
 
 # Submodules, loaded in reload_function so no initialization is done here
 import commandhandler
+import versionutils
 import sentinel
 import janissary
 import mathemagical
@@ -82,6 +83,7 @@ import messagefuncs
 import text_manipulators
 import swag
 
+versioninfo = versionutils.VersionInfo()
 sid = SentimentIntensityAnalyzer()
 
 webhook_sync_registry = {
@@ -127,6 +129,7 @@ def autoload(module):
     module.config = config
     module.conn = conn
     module.sid = sid
+    module.versioninfo = versioninfo
     try:
         module.autoload(ch)
     except AttributeError:
@@ -143,6 +146,7 @@ async def animate_startup(emote, message=None):
 async def reload_function(message=None, client=client, args=[]):
     global ch
     global conn
+    global versioninfo
     global doissetep_omega
     try:
         config.read(FLETCHER_CONFIG)
@@ -157,6 +161,8 @@ async def reload_function(message=None, client=client, args=[]):
         await animate_startup('⌨', message)
         ch = commandhandler.CommandHandler(client)
         autoload(commandhandler)
+        autoload(versionutils)
+        versioninfo = versionutils.VersionInfo()
         ch.add_command({
             'trigger': ['!reload <@'+str(ch.client.user.id)+'>'],
             'function': reload_function,
