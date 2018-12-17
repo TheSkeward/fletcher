@@ -2,8 +2,6 @@ import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 
-gphotos = None
-
 def authorize_googlephotos_function(message=None, client=None, args=None):
     global config
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
@@ -49,8 +47,8 @@ scopes = {}
 def autoload(ch):
     global config 
     global gphotos
-    if gphotos is not None:
-        return
+    # if gphotos is not None:
+    #     return
     if 'refresh_token' not in config['google-photos']:
         return authorize_google_photos_function()
     ch.add_command({
