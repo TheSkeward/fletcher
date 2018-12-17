@@ -92,8 +92,9 @@ class CommandHandler:
 
 def help_function(message, client, args):
     global ch
-    if message.author.guild_permissions.manage_webhooks:
+    if message.author.guild and message.author.guild_permissions.manage_webhooks:
         command_filter = True
+        command_filter = lambda c: 'admin' not in c or c.admin == False
     else:
         command_filter = lambda c: 'admin' not in c or c.admin == False
     accessible_commands = filter(command_filter, ch.commands)
