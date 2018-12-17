@@ -178,29 +178,20 @@ async def reload_function(message=None, client=client, args=[]):
         autoload(text_manipulators)
         await animate_startup('🔧', message)
         # Sentinel Module
-        importlib.reload(sentinel)
-        sentinel.conn = conn
-        sentinel.autoload(ch)
+        autoload(sentinel)
         await animate_startup('🎏', message)
         # Messages Module
-        importlib.reload(messagefuncs)
-        messagefuncs.config = config
-        messagefuncs.autoload(ch)
+        autoload(messagefuncs)
         await animate_startup('🔭', message)
         # Math modules
-        importlib.reload(mathemagical)
-        mathemagical.autoload(ch)
+        autoload(mathemagical)
         await animate_startup('➕', message)
-        importlib.reload(janissary)
-        janissary.config = config
-        janissary.autoload(ch)
+        autoload(janissary)
         # Super Waifu Animated Girlfriend (SWAG)
-        importlib.reload(swag)
-        swag.autoload(ch)
+        autoload(swag)
         await animate_startup('🙉', message)
         # Google Photos Connector (for !twilestia et al)
-        importlib.reload(googlephotos)
-        googlephotos.autoload(ch)
+        autoload(googlephotos)
         await animate_startup('📷', message)
         # Play it again, Sam
         if not doissetep_omega.is_playing():
