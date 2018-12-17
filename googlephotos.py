@@ -69,7 +69,6 @@ async def twilestia_function(message, client, args):
     try:
         image = random.choice(list(gphotos.mediaItems().search(body={"albumId":config['google-photos']['twilestia']}).execute().get("mediaItems")))
         fullSizeImage = "{}=w{}-h{}".format(image.get("baseUrl"), image.get("mediaMetadata").get("width"), image.get("mediaMetadata").get("height"))
-        print(fullSizeImage)
         async with aiohttp.ClientSession() as session:
             async with session.get(fullSizeImage) as resp:
                 buffer = io.BytesIO(await resp.read())
