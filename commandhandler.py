@@ -96,11 +96,11 @@ def help_function(message, client, args):
     try:
         if message.author.guild and message.author.guild_permissions.manage_webhooks:
             def command_filter(c):
-                return 'admin' not in c or c.admin == False
+                return 'admin' not in c.keys() or c.admin == False
         else:
             def command_filter(c):
-                return 'admin' not in c or c.admin == False
-        accessible_commands = list(filter(command_filter, ch.commands))
+                return 'admin' not in c.keys() or c.admin == False
+        accessible_commands = filter(command_filter, ch.commands)
         if len(args) > 0 and args[0] == "verbose":
             helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in accessible_commands])
         else:
