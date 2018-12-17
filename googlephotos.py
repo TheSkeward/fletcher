@@ -36,7 +36,7 @@ def login_googlephotos_function(message=None, client=None, args=None):
     flow.redirect_uri = 'https://novalinium.com/breksta-oauth'
     flow.fetch_token(authorization_response=args[0])
     credentials = flow.credentials
-    freeze = """
+    freeze = """```
 [google-photos]
 token = {}
 refresh_token = {}
@@ -44,16 +44,30 @@ token_uri = {}
 client_id = {}
 client_secret = {}
 scopes = {}
-""".format(credentials.token,credentials.refresh_token,credentials.token_uri,credentials.client_id,credentials.client_secret,credentials.scopes)
+```""".format(credentials.token,credentials.refresh_token,credentials.token_uri,credentials.client_id,credentials.client_secret,credentials.scopes)
     print(freeze)
     gphotos = build('photoslibrary', 'v1', credentials=credentials)
     return freeze
+
+def listalbums_function(message, client, args):
+    global gphotos
+    return ", ".join(album.get('title') for album in gphotos.listAlbums())
 
 def autoload(ch):
     global config 
     global gphotos
     # if gphotos is not None:
     #     return
+    ch.add_command({
+        'trigger': ['!photos_list_albums', '!pla'],
+        'function': listalbums_function,
+        'async': False,
+        'admin': True,
+        'hidden': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Google Photos Album List'
+        })
     ch.add_command({
         'trigger': ['!photos_login'],
         'function': login_googlephotos_function,
