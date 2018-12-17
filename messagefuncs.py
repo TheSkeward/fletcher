@@ -92,7 +92,7 @@ async def preview_messagelink_function(message, client, args):
             guild = client.get_guild(guild_id)
             channel = guild.get_channel(channel_id)
             target_message = await channel.get_message(message_id)
-            sent_at = target_message.created_at
+            sent_at = target_message.created_at.strftime("%A, %d. %B %Y %I:%M%p")
             content = target_message.content
             if content == "":
                 content = "*No Text*"
