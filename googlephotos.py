@@ -1,6 +1,10 @@
+import aiohttp
+import discord
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
+import io
+import random
 from sys import exc_info
 
 def authorize_googlephotos_function(message=None, client=None, args=None):
@@ -53,16 +57,41 @@ scopes = {}
 def listalbums_function(message, client, args):
     global gphotos
     try:
-        return ", ".join(album.get('title') for album in gphotos.albums().list())
+        print("LAF")
+        return "; ".join([album.get("title")+" ("+album.get("id")+")" for album in gphotos.albums().list().execute()['albums']])
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("LAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+async def twilestia_function(message, client, args):
+    global config
+    global gphotos
+    try:
+        image = random.choice(list(gphotos.mediaItems().search(body={"albumId":config['google-photos']['twilestia']}).execute().get("mediaItems")))
+        fullSizeImage = "{}=w{}-h{}".format(image.get("baseUrl"), image.get("mediaMetadata").get("width"), image.get("mediaMetadata").get("height"))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(fullSizeImage) as resp:
+                buffer = io.BytesIO(await resp.read())
+                return await message.channel.send(files=[discord.File(buffer, image.get("filename"))])
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("TCF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
     global config 
     global gphotos
     # if gphotos is not None:
     #     return
+    ch.add_command({
+        'trigger': ['!twilestia'],
+        'function': twilestia_function,
+        'async': True,
+        'admin': False,
+        'hidden': False,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Return a random twilestia image (ˢʰᶦᵖᶦᵗˡᶦᵏᵉᶠᵉᵈᵉˣ)'
+        })
     ch.add_command({
         'trigger': ['!photos_list_albums', '!pla'],
         'function': listalbums_function,
