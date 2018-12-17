@@ -52,7 +52,8 @@ scopes = {}
 
 def listalbums_function(message, client, args):
     global gphotos
-    return ", ".join(album.get('title') for album in gphotos.albums().list())
+    try:
+        return ", ".join(album.get('title') for album in gphotos.albums().list())
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("LAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
