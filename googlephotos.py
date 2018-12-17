@@ -6,7 +6,7 @@ def authorize_googlephotos_function(message=None, client=None, args=None):
     global config
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
             {'client_id': config['google-photos']['client_id']},
-            scope=['https://www.googleapis.com/auth/photoslibrary.readonly'])
+            scopes=['https://www.googleapis.com/auth/photoslibrary.readonly'])
 
     # Indicate where the API server will redirect the user after the user completes
     # the authorization flow. The redirect URI is required.
@@ -27,8 +27,8 @@ def login_googlephotos_function(message=None, client=None, args=None):
     global config
     global gphotos
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
-            {'client_id': config['google']['photos-oauth-client-id']},
-            scope=['https://www.googleapis.com/auth/photoslibrary.readonly'])
+            {'client_id': config['google-photos']['client-id']},
+            scopes=['https://www.googleapis.com/auth/photoslibrary.readonly'])
     flow.fetch_token(authorization_response=args[0])
     credentials = flow.credentials
     freeze = """
