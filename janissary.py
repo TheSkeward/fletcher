@@ -10,13 +10,13 @@ async def modping_function(message, client, args):
         if len(args) == 2 and type(args[1]) is discord.User:
             pass # Reaction
         else:
-            if message.author.guild_permissions.manage_webhooks:
+            if message.channel.permissions_for(message.author).manage_messages:
                 role_list = message.channel.guild.roles
                 role = discord.utils.get(role_list, name=" ".join(args))
                 lay_mentionable = role.mentionable
                 if not lay_mentionable:
                     await role.edit(mentionable=True)
-                mentionPing = await message.channel.send(role.mention)
+                mentionPing = await message.channel.send(message.author.name+' pinging '+role.mention)
                 if not lay_mentionable:
                     await role.edit(mentionable=False)
                 if 'snappy' in config['discord'] and config['discord']['snappy']:
