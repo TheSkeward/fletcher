@@ -133,9 +133,11 @@ def autoload(module):
     module.versioninfo = versioninfo
     try:
         module.autoload(ch)
-    except AttributeError:
+    except AttributeError as e:
         # Ignore missing autoload
         print('[Info] '+module.__name__+' missing autoload(ch), continuing.')
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("AL[{}]: {}".format(exc_tb.tb_lineno, e))
         pass
 
 async def animate_startup(emote, message=None):
