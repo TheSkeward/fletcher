@@ -92,7 +92,8 @@ async def preview_messagelink_function(message, client, args):
             guild = client.get_guild(guild_id)
             channel = guild.get_channel(channel_id)
             target_message = await channel.get_message(message_id)
-            sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p %Z")
+            # created_at is naîve, but specified as UTC by Discord API docs
+            sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
             if content == "":
                 content = "*No Text*"
