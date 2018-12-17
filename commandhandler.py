@@ -20,7 +20,7 @@ class CommandHandler:
         global config
         messageContent = str(reaction.emoji)
         for command in self.commands:
-            if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and hasattr('guild_permissions', user) and user.guild_permissions.manage_webhooks) or 'admin' not in command):
+            if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and hasattr(user, 'guild_permissions') and user.guild_permissions.manage_webhooks) or 'admin' not in command):
                 if command['args_num'] == 0:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
@@ -65,7 +65,7 @@ class CommandHandler:
         searchString = self.bang_remover.sub('!', searchString)
         searchString = searchString.rstrip()
         for command in self.commands:
-            if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and hasattr('guild_permissions', message.author) and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
+            if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and hasattr(message.author, 'guild_permissions') and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 args = searchString.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
@@ -94,7 +94,7 @@ class CommandHandler:
 def help_function(message, client, args):
     global ch
     try:
-        if hasattr('guild', message.author) and message.author.guild_permissions.manage_webhooks and len(args) > 0 and args[0] == "verbose":
+        if hasattr(message.author, 'guild_permissions') and message.author.guild_permissions.manage_webhooks and len(args) > 0 and args[0] == "verbose":
             def command_filter(c):
                 return ('hidden' not in c.keys() or c['hidden'] == False)
         else:
