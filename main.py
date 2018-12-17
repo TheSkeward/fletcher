@@ -11,6 +11,7 @@ import psycopg2
 import re
 import signal
 from sys import exc_info
+import traceback
 
 """fletcher=# \d parlay
                                       Table "public.parlay"
@@ -138,6 +139,7 @@ def autoload(module):
         print('[Info] '+module.__name__+' missing autoload(ch), continuing.')
         exc_type, exc_obj, exc_tb = exc_info()
         print("AL[{}]: {}".format(exc_tb.tb_lineno, e))
+        print(traceback.format_exc())
         pass
 
 async def animate_startup(emote, message=None):
