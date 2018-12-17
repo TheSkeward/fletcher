@@ -20,7 +20,7 @@ class CommandHandler:
         global config
         messageContent = str(reaction.emoji)
         for command in self.commands:
-            if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and user.guild_permissions.manage_webhooks) or 'admin' not in command):
+            if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and 'guild_permissions' in user and user.guild_permissions.manage_webhooks) or 'admin' not in command):
                 if command['args_num'] == 0:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
@@ -65,7 +65,7 @@ class CommandHandler:
         searchString = self.bang_remover.sub('!', searchString)
         searchString = searchString.rstrip()
         for command in self.commands:
-            if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
+            if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and 'guild_permissions' in message.author and message.author.guild_permissions.manage_webhooks) or 'admin' not in command):
                 args = searchString.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)
