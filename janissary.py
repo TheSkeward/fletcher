@@ -4,6 +4,27 @@ from sys import exc_info
 import textwrap
 import text_manipulators
 
+async def modping_function(message, client, args):
+    global config
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            pass # Reaction
+        else:
+            if message.author.guild_permissions.manage_webhooks:
+                role_list = message.channel.guild.roles
+                role = discord.utils.get(role_list, name=" ".join(args))
+                lay_mentionable = role.mentionable
+                if not lay_mentionable:
+                    await role.edit(mentionable=True)
+                mentionPing = await message.channel.send(role.mention)
+                if not lay_mentionable:
+                    await role.edit(mentionable=False)
+                if 'snappy' in config['discord'] and config['discord']['snappy']:
+                    mentionPing.delete()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("MPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 async def modreport_function(message, client, args):
     global config
     try:
@@ -124,6 +145,15 @@ async def lastactive_user_function(message, client, args):
         print("LSU[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
+    ch.add_command({
+        'trigger': ['!modping'],
+        'function': modping_function,
+        'async': True,
+        'admin': True,
+        'args_num': 1,
+        'args_name': [],
+        'description': 'Ping unpingable roles (Admin)'
+        })
     ch.add_command({
         'trigger': ['!modreport', '👁‍🗨'],
         'function': modreport_function,
