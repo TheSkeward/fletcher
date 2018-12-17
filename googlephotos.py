@@ -47,6 +47,7 @@ scopes = {}
     return freeze
 
 def autoload(ch):
+    global config 
     global gphotos
     if gphotos is not None:
         return
