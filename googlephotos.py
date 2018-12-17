@@ -46,7 +46,7 @@ scopes = {}
 
 def autoload(ch):
     global gphotos
-    if gphotos:
+    if gphotos is not None:
         return
     if 'refresh_token' not in config['google-photos']:
         return authorize_google_photos_function()
