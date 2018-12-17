@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 import discord
 from sys import exc_info
@@ -10,7 +11,14 @@ async def modping_function(message, client, args):
         if len(args) == 2 and type(args[1]) is discord.User:
             pass # Reaction
         else:
-            if message.channel.permissions_for(message.author).manage_messages:
+            if not message.channel.permissions_for(message.author).manage_messages:
+                def gaveled_by_admin_check(reaction, user):
+                    return user.guild_permissions.manage_webhooks and str(reaction.emoji) == '<:gavel:430638348189827072>'
+                try: 
+                    reaction, user = await client.wait_for('reaction_add', timeout=600.0, check=gaveled_by_admin_check)
+                except asyncio.TimeoutError:
+                    print('Timed out waiting for response')
+                    return
                 role_list = message.channel.guild.roles
                 role = discord.utils.get(role_list, name=" ".join(args))
                 lay_mentionable = role.mentionable
