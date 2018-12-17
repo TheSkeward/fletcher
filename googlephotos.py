@@ -2,7 +2,7 @@ import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 
-global gphotos = None
+gphotos = None
 
 def authorize_googlephotos_function(message=None, client=None, args=None):
     global config
