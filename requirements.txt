@@ -8,6 +8,9 @@ git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py
 gitdb2==2.0.5
 GitPython==2.1.11
 google-api-python-client==1.7.6
+google-auth==1.6.1
+google-auth-httplib2==0.0.3
+google-auth-oauthlib==0.2.0
 idna==2.8
 mpmath==1.1.0
 multidict==4.5.2
