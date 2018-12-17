@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 def authorize_googlephotos_function(message=None, client=None, args=None):
     global config
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
-            {'client_id': {'web': config['google-photos']['client_id']}},
+            {'web': config['google-photos']['client_id']},
             scopes=['https://www.googleapis.com/auth/photoslibrary.readonly'])
 
     # Indicate where the API server will redirect the user after the user completes
@@ -27,7 +27,7 @@ def login_googlephotos_function(message=None, client=None, args=None):
     global config
     global gphotos
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
-            {'client_id': {'web': config['google-photos']['client-id']}},
+            {'web': config['google-photos']['client-id']},
             scopes=['https://www.googleapis.com/auth/photoslibrary.readonly'])
     flow.fetch_token(authorization_response=args[0])
     credentials = flow.credentials
