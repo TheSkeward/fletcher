@@ -50,7 +50,7 @@ def autoload(ch):
     # if gphotos is not None:
     #     return
     if 'refresh_token' not in config['google-photos']:
-        return authorize_google_photos_function()
+        return authorize_googlephotos_function()
     ch.add_command({
         'trigger': ['!photos_login'],
         'function': login_googlephotos_function,
