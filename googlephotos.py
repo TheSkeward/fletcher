@@ -51,7 +51,7 @@ scopes = {}
 
 def listalbums_function(message, client, args):
     global gphotos
-    return ", ".join(album.get('title') for album in gphotos.albums())
+    return ", ".join(album.get('title') for album in gphotos.albums().list())
 
 def autoload(ch):
     global config 
