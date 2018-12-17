@@ -94,7 +94,7 @@ class CommandHandler:
 def help_function(message, client, args):
     global ch
     try:
-        if message.author.guild and message.author.guild_permissions.manage_webhooks and args[0] == "verbose":
+        if message.author.guild and message.author.guild_permissions.manage_webhooks and len(args) > 0 and args[0] == "verbose":
             def command_filter(c):
                 return ('hidden' not in c.keys() or c['hidden'] == False)
         else:
