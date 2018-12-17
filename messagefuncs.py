@@ -96,9 +96,9 @@ async def preview_messagelink_function(message, client, args):
             content = target_message.content
             if content == "":
                 content = "*No Text*"
-            if message.guild.id == guild_id and message.channel.id == channel_id:
+            if message.guild and message.guild.id == guild_id and message.channel.id == channel_id:
                 content = "Message from {} sent at {}:\n{}".format(target_message.author.name, sent_at, content)
-            elif message.guild.id == guild_id:
+            elif message.guild and message.guild.id == guild_id:
                 content = "Message from {} sent in <#{}> at {}:\n{}".format(target_message.author.name, channel_id, sent_at, content)
             else:
                 content = "Message from {} sent in #{} ({}) at {}:\n{}".format(target_message.author.name, channel.name, guild.name, sent_at, content)
