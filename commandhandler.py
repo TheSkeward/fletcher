@@ -2,6 +2,7 @@ import discord
 import messagefuncs
 import janissary
 import re
+from sys import exc_info
 
 class CommandHandler:
 
@@ -92,18 +93,22 @@ class CommandHandler:
 
 def help_function(message, client, args):
     global ch
-    if 'guild' in message.author and message.author.guild_permissions.manage_webhooks:
-        def command_filter(c):
-            return 'admin' not in c or c.admin == False
-    else:
-        def command_filter(c):
-            return 'admin' not in c or c.admin == False
-    accessible_commands = list(filter(command_filter, ch.commands))
-    if len(args) > 0 and args[0] == "verbose":
-        helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in accessible_commands])
-    else:
-        helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger'][:2]), command['description']) for command in accessible_commands])
-    return helpMessageBody
+    try:
+        if 'guild' in message.author and message.author.guild_permissions.manage_webhooks:
+            def command_filter(c):
+                return 'admin' not in c or c.admin == False
+        else:
+            def command_filter(c):
+                return 'admin' not in c or c.admin == False
+        accessible_commands = list(filter(command_filter, ch.commands))
+        if len(args) > 0 and args[0] == "verbose":
+            helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in accessible_commands])
+        else:
+            helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger'][:2]), command['description']) for command in accessible_commands])
+        return helpMessageBody
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("HF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
     global tag_id_as_command
