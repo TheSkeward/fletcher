@@ -93,10 +93,11 @@ class CommandHandler:
 def help_function(message, client, args):
     global ch
     if 'guild' in message.author and message.author.guild_permissions.manage_webhooks:
-        command_filter = True
-        command_filter = lambda c: 'admin' not in c or c.admin == False
+        def command_filter(c):
+            return 'admin' not in c or c.admin == False
     else:
-        command_filter = lambda c: 'admin' not in c or c.admin == False
+        def command_filter(c):
+            return 'admin' not in c or c.admin == False
     accessible_commands = filter(command_filter, ch.commands)
     if len(args) > 0 and args[0] == "verbose":
         helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in accessible_commands])
