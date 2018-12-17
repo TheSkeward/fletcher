@@ -92,10 +92,15 @@ class CommandHandler:
 
 def help_function(message, client, args):
     global ch
-    if len(args) > 0 and args[0] == "verbose":
-        helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in ch.commands])
+    if message.author.guild_permissions.manage_webhooks:
+        command_filter = True
     else:
-        helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger'][:2]), command['description']) for command in ch.commands])
+        command_filter = lambda c: 'admin' not in c or c.admin == False
+    accessible_commands = filter(command_filter, ch.commands)
+    if len(args) > 0 and args[0] == "verbose":
+        helpMessageBody = "\n".join(["`{}`: {}\nArguments ({}): {}".format("` or `".join(command['trigger']), command['description'], command['args_num'], " ".join(command['args_name'])) for command in accessible_commands])
+    else:
+        helpMessageBody = "\n".join(["`{}`: {}".format("` or `".join(command['trigger'][:2]), command['description']) for command in accessible_commands])
     return helpMessageBody
 
 def autoload(ch):
