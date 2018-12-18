@@ -84,7 +84,7 @@ async def rot13_function(message, client, args):
         elif len(args) == 2 and args[1] == 'INTPROC':
             return codecs.encode(args[0], 'rot_13')
         else:
-            messageContent = codecs.encode(" ".join(args), 'rot_13')
+            messageContent = message.author.user.name+": "+codecs.encode(" ".join(args), 'rot_13')
             botMessage = await message.channel.send(messageContent)
             await botMessage.add_reaction('🕜')
             try: 
@@ -100,7 +100,7 @@ async def memfrob_function(message, client, args):
         if len(args) == 2 and type(args[1]) is discord.User:
             return await args[1].send(memfrob(message.content))
         else:
-            messageContent = memfrob(" ".join(args))
+            messageContent = message.author.user.name+": "+memfrob(" ".join(args))
             botMessage = await message.channel.send(messageContent)
             await botMessage.add_reaction('🕦')
             try: 
