@@ -49,7 +49,7 @@ async def modreport_function(message, client, args):
             report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} ".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id)
             automod = True
         if message.channel.is_nsfw():
-            report_content = report_content + await rot13_function(message, client, [plaintext, 'INTPROC'])
+            report_content = report_content + await text_manipulators.rot13_function(message, client, [plaintext, 'INTPROC'])
         else:
             report_content = report_content + plaintext
         if automod:
