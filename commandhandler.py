@@ -39,7 +39,7 @@ class CommandHandler:
         global config
         global sid
         try:
-            if type(message.channel) is discord.DMChannel or type(message.channel) is discord.GroupChannel or message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
+            if type(message.channel) is discord.TextChannel and message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
                 sent_com_score = sid.polarity_scores(message.content)['compound']
                 if message.content == "VADER NEUTRAL":
                     sent_com_score = 0
@@ -51,9 +51,19 @@ class CommandHandler:
                 if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
                     await janissary.modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
             else:
-                print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
+                if type(message.channel) is discord.TextChannel:
+                    print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
+                elif type(message.channel) is discord.DMChannel:
+                    print("@"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
+                else:
+                    # Group Channels don't support bots so neither will we
         except AttributeError as e:
-            print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
+            if type(message.channel) is discord.TextChannel:
+                print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
+            elif type(message.channel) is discord.DMChannel:
+                print("@"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
+            else:
+                # Group Channels don't support bots so neither will we
             pass
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
