@@ -57,6 +57,7 @@ class CommandHandler:
                     print("@"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
                 else:
                     # Group Channels don't support bots so neither will we
+                    pass
         except AttributeError as e:
             if type(message.channel) is discord.TextChannel:
                 print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
@@ -64,6 +65,7 @@ class CommandHandler:
                 print("@"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
             else:
                 # Group Channels don't support bots so neither will we
+                pass
             pass
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
