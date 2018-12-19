@@ -121,6 +121,8 @@ async def load_webhooks():
                     webhook_sync_registry[fromChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
         except discord.Forbidden as e:
             print('Couldn\'t load webhooks for '+str(guild)+', ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)')
+        except AttributeError:
+            pass
     print("Webhooks loaded:")
     print("\n".join([key+" to "+webhook_sync_registry[key]['toChannelName'] for key in list(webhook_sync_registry)]))
 canticum_message = None
