@@ -115,13 +115,13 @@ async def load_webhooks():
                     fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
                     fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0])
                     fromGuild = discord.utils.get(client.guilds, name=fromTuple[0].replace("_", " "))
+                    webhook_sync_registry[toChannelName]['fromChannelName'] = fromTuple[0].replace("_", " ")+":"+fromTuple[1]
                     webhook_sync_registry[toChannelName]['fromChannelObject'] = discord.utils.get(fromGuild.text_channels, name=fromTuple[1])
                     webhook_sync_registry[toChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
         except discord.Forbidden as e:
-            print('Couldn\'t load webhooks for '+str(guild)+', ask an admin to grant additional permissions (https://novalinium.com/go/3/fletcher)')
+            print('Couldn\'t load webhooks for '+str(guild)+', ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)')
     print("Webhooks loaded:")
-    print("\n".join(list(webhook_sync_registry)))
-
+    print("\n".join([webhook_sync_registry[key]['fromChannelName']+" to "+key for key in list(webhook_sync_registry)]))
 canticum_message = None
 doissetep_omega =  None
 
