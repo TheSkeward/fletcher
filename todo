@@ -6,7 +6,10 @@ Vox Rei
     - Music channel Now Playing / controls for queuing
     - Talking token muter
     - Generalize guild notifications for voice, possibly on a per-channel basis
-    - Voice notification edits rather than new messages
+    - Voice notification edits rather than new messages (WONTFIX edits don't ping)
+S.W.A.G. Module
+    - Historical recordkeeping
+    - Markov per user
 on_ack_message
     - store certain messages in db by id with run of enumed list of functions with correct param in response
 New User Management
@@ -32,8 +35,9 @@ Refresh for links
 A Friend To All
     - Rate limit usage (user? channel? role? guild?)
     - Bans mean banned (deps on COMBO)
-Scoping for commands (guild list? channel list? role list? user list?)
-<:discourse:504505876703608843> translate to !teleport to #discourse (scoped to EA Corner)
+    - Scoping for commands (guild list? channel list? role list? user list?)
+EAC
+    - <:discourse:504505876703608843> translate to !teleport to #discourse (special SWAG case with autoselftrigger)
 ROT13
     - Rename for messages
     - emoji
@@ -45,5 +49,10 @@ Sync client
     - Multi server syncing
     - Channel, role, user tag translation
     - Pinning
-Swap from psycopg2 to asyncpg for better scaling
-Make a blog post with November updates ya dingus
+Wishlist
+    - CommandHandler Dictionary to trie
+    - Swap from psycopg2 to asyncpg for better scaling
+Liberapay + Development Transparency
+    - Make a blog post with December updates ya dingus
+    - Release a control flow diagram
+    - Open Source it (pending sandbox tantrums)
