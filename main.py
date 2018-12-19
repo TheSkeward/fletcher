@@ -157,7 +157,6 @@ async def reload_function(message=None, client=client, args=[]):
     global versioninfo
     global doissetep_omega
     try:
-        await client.change_presence(activity=discord.Game(name='Reloading: The Game'))
         config.read(FLETCHER_CONFIG)
         await animate_startup('📝', message)
         await load_webhooks()
@@ -216,9 +215,8 @@ async def on_ready():
     try:
         global doissetep_omega
         # print bot information
-        print(client.user.name)
-        print(client.user.id)
-        print('Discord.py Version: {}'.format(discord.__version__))
+        await client.change_presence(activity=discord.Game(name='Reloading: The Game'))
+        print('Discord.py Version {}, connected as {} ({})'.format(discord.__version__, client.user.name, client.user.id))
         doissetep_omega = await client.get_guild(int(config['audio']['guild'])).get_channel(int(config['audio']['channel'])).connect();
         loop = asyncio.get_event_loop()
         loop.add_signal_handler(signal.SIGHUP, lambda: asyncio.ensure_future(reload_function()))
