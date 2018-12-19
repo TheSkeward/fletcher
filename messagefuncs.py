@@ -2,9 +2,10 @@ import discord
 import io
 import re
 from sys import exc_info
+
 def expand_guild_name(guild, prefix='', suffix=':', global_replace=False):
     # TODO refactor into config file
-    acro_mapping = [ ('acn', 'a compelling narrative'), ('ACN', 'a compelling narrative') ]
+    acro_mapping = [ ('acn', 'a compelling narrative'), ('ACN', 'a compelling narrative'), ('EAC', 'EA Corner'), ('D', 'Doissetep') ]
     for k, v in acro_mapping:
         new_guild = guild.replace(prefix+k+suffix, prefix+v+suffix)
         if not global_replace:
