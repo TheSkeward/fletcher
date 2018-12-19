@@ -241,7 +241,10 @@ async def on_message(message):
                 await attachment.save(attachment_blob)
                 attachments.append(discord.File(attachment_blob, attachment.filename))
             # wait=True: blocking call for messagemap insertions to work
-            syncMessage = await webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].send(content=message.content, username=message.author.name, avatar_url=message.author.avatar_url, embeds=message.embeds, tts=message.tts, files=attachments, wait=True)
+            fromMessageName = message.author.display_name
+            if toGuild.get_member(message.author.id) is not None:
+                fromMessageName = toGuild.get_member(message.author.id).display_name
+            syncMessage = await webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].send(content=message.content, username=fromMessageName, avatar_url=message.author.avatar_url, embeds=message.embeds, tts=message.tts, files=attachments, wait=True)
             cur = conn.cursor()
             cur.execute("INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);", [message.guild.id, message.channel.id, message.id, syncMessage.guild.id, syncMessage.channel.id, syncMessage.id])
             conn.commit()
@@ -286,7 +289,10 @@ async def on_raw_message_edit(payload):
                     attachment_blob = io.BytesIO()
                     await attachment.save(attachment_blob)
                     attachments.append(discord.File(attachment_blob, attachment.filename))
-                syncMessage = await webhook_sync_registry[fromMessage.guild.name+':'+fromMessage.channel.name]['toWebhook'].send(content=fromMessage.content, username=fromMessage.author.name, avatar_url=fromMessage.author.avatar_url, embeds=fromMessage.embeds, tts=fromMessage.tts, files=attachments, wait=True)
+                fromMessageName = fromMessage.author.display_name
+                if toGuild.get_member(fromMessage.author.id) is not None:
+                    fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
+                syncMessage = await webhook_sync_registry[fromMessage.guild.name+':'+fromMessage.channel.name]['toWebhook'].send(content=fromMessage.content, username=fromMessageName, avatar_url=fromMessage.author.avatar_url, embeds=fromMessage.embeds, tts=fromMessage.tts, files=attachments, wait=True)
                 cur = conn.cursor()
                 cur.execute("UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;", [syncMessage.guild.id, syncMessage.channel.id, syncMessage.id, int(message['guild_id']), int(message['channel_id']), message_id])
                 conn.commit()
