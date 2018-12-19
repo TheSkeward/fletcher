@@ -47,13 +47,13 @@ class CommandHandler:
                     sent_com_score = 1
                 elif message.content == "VADER BAD":
                     sent_com_score = -1
-                print("["+str(sent_com_score)+"] "+message.content)
+                print("#"+message.channel.name+" <"+message.author.name+"> ["+str(sent_com_score)+"] "+message.content)
                 if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
                     await janissary.modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
             else:
-                print("[Nil] "+message.content)
+                print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
         except AttributeError as e:
-            print("[Nil] "+message.content)
+            print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
             pass
         if messagefuncs.extract_identifiers_messagelink.search(message.content):
             if str(message.author.id) not in config['moderation']['blacklist-user-usage'].split(','):
