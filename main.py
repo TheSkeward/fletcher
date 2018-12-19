@@ -106,22 +106,23 @@ async def load_webhooks():
                 # discord.py/rewrite issue #1242, PR #1745 workaround
                 if webhook.name.startswith(config['discord']['botNavel']+' ('):
                     toChannelName = guild.name+':'+str(guild.get_channel(webhook.channel_id))
-                    webhook_sync_registry[toChannelName] = {
-                            'toChannelObject': guild.get_channel(webhook.channel_id),
-                            'toWebhook': webhook,
-                            'fromChannelObject': None,
-                            'fromWebhook': None
-                            }
                     fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
                     fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0])
                     fromGuild = discord.utils.get(client.guilds, name=fromTuple[0].replace("_", " "))
-                    webhook_sync_registry[toChannelName]['fromChannelName'] = fromTuple[0].replace("_", " ")+":"+fromTuple[1]
-                    webhook_sync_registry[toChannelName]['fromChannelObject'] = discord.utils.get(fromGuild.text_channels, name=fromTuple[1])
-                    webhook_sync_registry[toChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
+                    fromChannelName = fromTuple[0].replace("_", " ")+":"+fromTuple[1]
+                    webhook_sync_registry[fromChannelName] = {
+                            'toChannelObject': guild.get_channel(webhook.channel_id),
+                            'toWebhook': webhook,
+                            'toChannelName': toChannelName,
+                            'fromChannelObject': None,
+                            'fromWebhook': None
+                            }
+                    webhook_sync_registry[fromChannelName]['fromChannelObject'] = discord.utils.get(fromGuild.text_channels, name=fromTuple[1])
+                    webhook_sync_registry[fromChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
         except discord.Forbidden as e:
             print('Couldn\'t load webhooks for '+str(guild)+', ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)')
     print("Webhooks loaded:")
-    print("\n".join([webhook_sync_registry[key]['fromChannelName']+" to "+key for key in list(webhook_sync_registry)]))
+    print("\n".join([key+" to "+webhook_sync_registry[key]['toChannelName'] for key in list(webhook_sync_registry)]))
 canticum_message = None
 doissetep_omega =  None
 
@@ -240,7 +241,7 @@ async def on_message(message):
                 await attachment.save(attachment_blob)
                 attachments.append(discord.File(attachment_blob, attachment.filename))
             # wait=True: blocking call for messagemap insertions to work
-            syncMessage = await webhook_sync_registry[message.guild.name+':'+message.channel.name]['fromWebhook'].send(content=message.content, username=message.author.name+" ("+message.guild.name+")", avatar_url=message.author.avatar_url, embeds=message.embeds, tts=message.tts, files=attachments, wait=True)
+            syncMessage = await webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].send(content=message.content, username=message.author.name+" ("+message.guild.name+")", avatar_url=message.author.avatar_url, embeds=message.embeds, tts=message.tts, files=attachments, wait=True)
             cur = conn.cursor()
             cur.execute("INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);", [message.guild.id, message.channel.id, message.id, syncMessage.guild.id, syncMessage.channel.id, syncMessage.id])
             conn.commit()
@@ -285,7 +286,7 @@ async def on_raw_message_edit(payload):
                     attachment_blob = io.BytesIO()
                     await attachment.save(attachment_blob)
                     attachments.append(discord.File(attachment_blob, attachment.filename))
-                syncMessage = await webhook_sync_registry[fromMessage.guild.name+':'+fromMessage.channel.name]['fromWebhook'].send(content=fromMessage.content, username=fromMessage.author.name+" ("+message.guild.name+")", avatar_url=fromMessage.author.avatar_url, embeds=fromMessage.embeds, tts=fromMessage.tts, files=attachments, wait=True)
+                syncMessage = await webhook_sync_registry[fromMessage.guild.name+':'+fromMessage.channel.name]['toWebhook'].send(content=fromMessage.content, username=fromMessage.author.name+" ("+message.guild.name+")", avatar_url=fromMessage.author.avatar_url, embeds=fromMessage.embeds, tts=fromMessage.tts, files=attachments, wait=True)
                 cur = conn.cursor()
                 cur.execute("UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;", [syncMessage.guild.id, syncMessage.channel.id, syncMessage.id, int(message['guild_id']), int(message['channel_id']), message_id])
                 conn.commit()
