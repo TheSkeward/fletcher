@@ -242,8 +242,8 @@ async def on_message(message):
                 attachments.append(discord.File(attachment_blob, attachment.filename))
             # wait=True: blocking call for messagemap insertions to work
             fromMessageName = message.author.display_name
-            if toGuild.get_member(message.author.id) is not None:
-                fromMessageName = toGuild.get_member(message.author.id).display_name
+            if webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].guild.get_member(message.author.id) is not None:
+                fromMessageName = webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].guild.get_member(message.author.id).display_name
             syncMessage = await webhook_sync_registry[message.guild.name+':'+message.channel.name]['toWebhook'].send(content=message.content, username=fromMessageName, avatar_url=message.author.avatar_url, embeds=message.embeds, tts=message.tts, files=attachments, wait=True)
             cur = conn.cursor()
             cur.execute("INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);", [message.guild.id, message.channel.id, message.id, syncMessage.guild.id, syncMessage.channel.id, syncMessage.id])
