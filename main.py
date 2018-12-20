@@ -202,6 +202,8 @@ async def reload_function(message=None, client=client, args=[]):
         # Play it again, Sam
         if not doissetep_omega.is_playing():
             doissetep_omega.play(discord.FFmpegPCMAudio(config['audio']['instreamurl']))
+        # Reset canticum_message when reloaded [workaround for https://todo.sr.ht/~nova/fletcher/6]
+        canticum_message = None
         await animate_startup('✅', message)
         await client.change_presence(activity=discord.Game(name='liberapay.com/novalinium'))
     except Exception as e:
