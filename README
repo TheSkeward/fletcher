@@ -50,15 +50,16 @@ the bot can self-report loaded commands with the `!help' command, as well as
 some additional information with the `verbose' parameter.
 
 Development:
-Development can be tracked via the `todo' file in this directory, and on the
-author's blog (https://novalinium.com/blog). Most announcements take place on a
-Discord that this bot was built for, email the author if you would like access
-to the announcements Discord. Development and hosting costs are generously
-supported through Liberapay (https://liberapay.com/novalinium/): it takes time
-and resources to support this bot, and Liberapay helps make this possible.
+Development can be tracked via the project issue tracker at
+https://todo.sr.ht/~nova/fletcher, and on the author's blog at
+https://novalinium.com/blog. Most announcements take place on a Discord that
+this bot was built for, email the author if you would like access to the
+announcements Discord. Development and hosting costs are generously supported
+through Liberapay (https://liberapay.com/novalinium/): it takes time and
+resources to support this bot, and Liberapay helps make this possible.
 
 If you have feature requests or would like to contribute to the project,
-patches are accepted by email.
+patches are accepted by email or through the project issue tracker.
 
 Caveats:
 Warning! This project DOES NOT provide all files needed to self-host. It is
