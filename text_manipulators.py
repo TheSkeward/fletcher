@@ -47,7 +47,8 @@ async def scramble_function(message, client, args):
         output_image_blob = io.BytesIO()
         output_image.save(output_image_blob, format="PNG")
         output_image_blob.seek(0)
-        return await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+        output_message = await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+        output_message.add_reaction('🔞')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("SIF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
