@@ -272,6 +272,8 @@ async def on_raw_message_edit(payload):
         # This is tricky with self-modifying bot message synchronization, TODO
         message_id = payload.message_id
         message = payload.data
+        if 'guild_id' not in message:
+            return # No DM processing pls
         fromGuild = client.get_guild(int(message['guild_id']))
         fromChannel = fromGuild.get_channel(int(message['channel_id']))
         if fromGuild.name+':'+fromChannel.name in webhook_sync_registry:
