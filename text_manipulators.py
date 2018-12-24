@@ -1,3 +1,4 @@
+import asyncio
 import codecs
 from datetime import datetime, timedelta
 import discord
@@ -28,14 +29,16 @@ async def scramble_function(message, client, args):
     try:
         input_image_blob = io.BytesIO()
         await message.attachments[0].save(input_image_blob)
-        if len(args) == 2 and type(args[1]) is discord.User:
-            pass
-        else:
+        if len(args) != 2 or type(args[1]) is not discord.User:
             try:
                 await message.delete()
             except discord.Forbidden as e:
                 print("Forbidden to delete message in "+str(message.channel))
                 pass
+        if len(args) == 2 and type(args[1]) is discord.User:
+            output_message = await args[1].send(content='Scrambling image... ('+str(input_image_blob.getbuffer().nbytes)+' bytes loaded)')
+        else:
+            output_message = await message.channel.send(content='Scrambling image...('+str(input_image_blob.getbuffer().nbytes)+' bytes loaded)')
         input_image_blob.seek(0)
         input_image = Image.open(input_image_blob)
         if input_image.size == (1, 1):
@@ -45,15 +48,15 @@ async def scramble_function(message, client, args):
         region_lists = create_region_lists(input_image, key_image,
                                            number_of_regions)
         random.seed(input_image.size)
+        print('Shuffling scramble blob')
         shuffle(region_lists)
         output_image = swap_pixels(input_image, region_lists)
         output_image_blob = io.BytesIO()
-        output_image.save(output_image_blob, format="PNG")
+        print('Saving scramble blob')
+        output_image.save(output_image_blob, format="PNG", optimize=True)
         output_image_blob.seek(0)
-        if len(args) == 2 and type(args[1]) is discord.User:
-            output_message = await args[1].send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
-        else:
-            output_message = await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+        await output_message.delete()
+        output_message = await output_message.channel.send(content='Scrambled for '+message.author.display_name, files=[discord.File(output_image_blob, message.attachments[0].filename)])
         await output_message.add_reaction('🔞')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
