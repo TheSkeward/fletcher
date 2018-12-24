@@ -19,16 +19,16 @@ async def modping_function(message, client, args):
                 except asyncio.TimeoutError:
                     print('Timed out waiting for response')
                     return
-                role_list = message.channel.guild.roles
-                role = discord.utils.get(role_list, name=" ".join(args))
-                lay_mentionable = role.mentionable
-                if not lay_mentionable:
-                    await role.edit(mentionable=True)
-                mentionPing = await message.channel.send(message.author.name+' pinging '+role.mention)
-                if not lay_mentionable:
-                    await role.edit(mentionable=False)
-                if 'snappy' in config['discord'] and config['discord']['snappy']:
-                    mentionPing.delete()
+            role_list = message.channel.guild.roles
+            role = discord.utils.get(role_list, name=" ".join(args))
+            lay_mentionable = role.mentionable
+            if not lay_mentionable:
+                await role.edit(mentionable=True)
+            mentionPing = await message.channel.send(message.author.name+' pinging '+role.mention)
+            if not lay_mentionable:
+                await role.edit(mentionable=False)
+            if 'snappy' in config['discord'] and config['discord']['snappy']:
+                mentionPing.delete()
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
