@@ -28,11 +28,14 @@ async def scramble_function(message, client, args):
     try:
         input_image_blob = io.BytesIO()
         await message.attachments[0].save(input_image_blob)
-        try:
-            await message.delete()
-        except discord.Forbidden as e:
-            print("Forbidden to delete message in "+str(message.channel))
+        if len(args) == 2 and type(args[1]) is discord.User:
             pass
+        else:
+            try:
+                await message.delete()
+            except discord.Forbidden as e:
+                print("Forbidden to delete message in "+str(message.channel))
+                pass
         input_image_blob.seek(0)
         input_image = Image.open(input_image_blob)
         if input_image.size == (1, 1):
@@ -47,7 +50,10 @@ async def scramble_function(message, client, args):
         output_image_blob = io.BytesIO()
         output_image.save(output_image_blob, format="PNG")
         output_image_blob.seek(0)
-        output_message = await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+        if len(args) == 2 and type(args[1]) is discord.User:
+            output_message = await args[1].send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+        else:
+            output_message = await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
         await output_message.add_reaction('🔞')
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -176,7 +182,7 @@ def pretty_date(time=False):
 
 async def rot13_function(message, client, args):
     try:
-        if len(args) == 2 and type(args[1]) is discord.User:
+        if len(args) == 2 and type(args[1]) is discord.user:
             return await args[1].send(codecs.encode(message.content, 'rot_13'))
         elif len(args) == 2 and args[1] == 'INTPROC':
             return codecs.encode(args[0], 'rot_13')
