@@ -19,15 +19,17 @@ class CommandHandler:
     async def reaction_handler(self, reaction):
         global config
         messageContent = str(reaction.emoji)
+        user = await self.client.get_user_info(reaction.user_id)
         for command in self.commands:
             if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and command['admin'] and hasattr(user, 'guild_permissions') and user.guild_permissions.manage_webhooks) or 'admin' not in command or not command['admin']):
+                print(command)
                 if command['args_num'] == 0:
                     channel = self.client.get_channel(reaction.channel_id)
                     message = await channel.get_message(reaction.message_id)
-                    user = await self.client.get_user_info(reaction.user_id)
                     if str(user.id) in config['moderation']['blacklist-user-usage'].split(','):
                         print('Blacklisted command attempt by user')
                         return
+                    print(command['function'])
                     if command['async']:
                         return await command['function'](message, self.client, [reaction, user])
                         break
@@ -78,6 +80,7 @@ class CommandHandler:
         searchString = searchString.rstrip()
         for command in self.commands:
             if searchString.lower().startswith(tuple(command['trigger'])) and (('admin' in command and command['admin'] and hasattr(message.author, 'guild_permissions') and message.author.guild_permissions.manage_webhooks) or 'admin' not in command or not command['admin']):
+                print(command)
                 args = searchString.split(' ')
                 args = [item for item in args if item]
                 args.pop(0)

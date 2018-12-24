@@ -1,7 +1,10 @@
 import codecs
 from datetime import datetime, timedelta
-import math
 import discord
+import io
+import math
+import random
+from PIL import Image
 from sys import exc_info
 
 def smallcaps(text=False):
@@ -19,6 +22,99 @@ def convert_hex_to_ascii(h):
 
     chars_in_reverse.reverse()
     return ''.join(chars_in_reverse)
+
+
+async def scramble_function(message, client, args):
+    try:
+        input_image_blob = io.BytesIO()
+        await message.attachments[0].save(input_image_blob)
+        try:
+            await message.delete()
+        except discord.Forbidden as e:
+            print("Forbidden to delete message in "+str(message.channel))
+            pass
+        input_image_blob.seek(0)
+        input_image = Image.open(input_image_blob)
+        if input_image.size == (1, 1):
+            raise ValueError("input image must contain more than 1 pixel")
+        number_of_regions = 1 # number_of_colours(input_image)
+        key_image = None
+        region_lists = create_region_lists(input_image, key_image,
+                                           number_of_regions)
+        random.seed(input_image.size)
+        shuffle(region_lists)
+        output_image = swap_pixels(input_image, region_lists)
+        output_image_blob = io.BytesIO()
+        output_image.save(output_image_blob, format="PNG")
+        output_image_blob.seek(0)
+        return await message.channel.send(files=[discord.File(output_image_blob, message.attachments[0].filename)])
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("SIF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+def number_of_colours(image):
+    return len(set(list(image.getdata())))
+
+
+def create_region_lists(input_image, key_image, number_of_regions):
+    template = create_template(input_image, key_image, number_of_regions)
+    number_of_regions_created = len(set(template))
+    region_lists = [[] for i in range(number_of_regions_created)]
+    for i in range(len(template)):
+        region = template[i]
+        region_lists[region].append(i)
+    odd_region_lists = [region_list for region_list in region_lists
+                        if len(region_list) % 2]
+    for i in range(len(odd_region_lists) - 1):
+        odd_region_lists[i].append(odd_region_lists[i + 1].pop())
+    return region_lists
+
+
+def create_template(input_image, key_image, number_of_regions):
+    width, height = input_image.size
+    return [0] * (width * height)
+
+def no_small_pixel_regions(pixel_regions, number_of_regions_created):
+    counts = [0 for i in range(number_of_regions_created)]
+    for value in pixel_regions:
+        counts[value] += 1
+    if all(counts[i] >= 256 for i in range(number_of_regions_created)):
+        return True
+
+
+def shuffle(region_lists):
+    for region_list in region_lists:
+        length = len(region_list)
+        for i in range(length):
+            j = random.randrange(length)
+            region_list[i], region_list[j] = region_list[j], region_list[i]
+
+
+def measure(pixel):
+    '''Return a single value roughly measuring the brightness.
+
+    Not intended as an accurate measure, simply uses primes to prevent two
+    different colours from having the same measure, so that an image with
+    different colours of similar brightness will still be divided into
+    regions.
+    '''
+    if type(pixel) is int:
+        return pixel
+    else:
+        r, g, b = pixel[:3]
+        return r * 2999 + g * 5869 + b * 1151
+
+
+def swap_pixels(input_image, region_lists):
+    pixels = list(input_image.getdata())
+    for region in region_lists:
+        for i in range(0, len(region) - 1, 2):
+            pixels[region[i]], pixels[region[i+1]] = (pixels[region[i+1]],
+                                                      pixels[region[i]])
+    scrambled_image = Image.new(input_image.mode, input_image.size)
+    scrambled_image.putdata(pixels)
+    return scrambled_image
+
 
 def memfrob(plain=""):
     plain = list(plain)
@@ -91,6 +187,7 @@ async def rot13_function(message, client, args):
                 await message.delete()
             except discord.Forbidden as e:
                 print("Forbidden to delete message in "+str(message.channel))
+                pass
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("R13F[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -107,6 +204,7 @@ async def memfrob_function(message, client, args):
                 await message.delete()
             except discord.Forbidden as e:
                 print("Forbidden to delete message in "+str(message.channel))
+                pass
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MFF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -128,4 +226,14 @@ def autoload(ch):
         'args_num': 0,
         'args_name': [],
         'description': 'Send contents of message to memfrob flipped'
+        })
+
+    ch.add_command({
+        'trigger': ['!scramble', '🔞'],
+        'function': scramble_function,
+        'admin': True,
+        'async': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Send contents of image deep fried'
         })
