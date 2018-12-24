@@ -231,7 +231,6 @@ def autoload(ch):
     ch.add_command({
         'trigger': ['!scramble', '🔞'],
         'function': scramble_function,
-        'admin': True,
         'async': True,
         'args_num': 0,
         'args_name': [],
