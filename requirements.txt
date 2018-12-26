@@ -11,7 +11,9 @@ google-api-python-client==1.7.6
 google-auth==1.6.1
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.2.0
+html5lib==1.0.1
 idna==2.8
+lxml==4.2.5
 mpmath==1.1.0
 multidict==4.5.2
 nltk==3.4
