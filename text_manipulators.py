@@ -205,9 +205,9 @@ async def rot13_function(message, client, args):
 async def memfrob_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User:
-            return await args[1].send(memfrob(message.content))
+            return await args[1].send(memfrob(message.content).replace("\n"," "))
         else:
-            messageContent = message.author.name+": "+memfrob(" ".join(args))
+            messageContent = message.author.name+": "+memfrob("\n".join(args))
             botMessage = await message.channel.send(messageContent)
             await botMessage.add_reaction('🕦')
             try: 
