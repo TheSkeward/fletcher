@@ -168,7 +168,7 @@ def autoload(ch):
         'async': True,
         'args_num': 0,
         'args_name': [],
-        'description': 'Report message to mods. Removed immediately after.'
+        'description': 'Report message to mods. Removed immediately after (if reaction).'
         })
     ch.add_command({
         'trigger': ['!lastactive_channel', '!lastactivity_channel', '!lsc'],
