@@ -205,7 +205,7 @@ async def rot13_function(message, client, args):
 async def memfrob_function(message, client, args):
     try:
         if len(args) == 2 and type(args[1]) is discord.User:
-            return await args[1].send(memfrob(message.content).replace("\n"," "))
+            return await args[1].send(memfrob(message.content.split(': ', 1)[1]).replace("\n"," "))
         else:
             messageContent = message.author.name+": "+memfrob("\n".join(args))
             botMessage = await message.channel.send(messageContent)
