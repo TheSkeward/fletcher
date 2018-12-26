@@ -211,5 +211,5 @@ def autoload(ch):
         'async': False,
         'args_num': 0,
         'args_name': [],
-        'description': 'List sentinels'
+        'description': 'List recent sentinels'
         })
