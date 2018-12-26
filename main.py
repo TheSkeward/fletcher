@@ -7,6 +7,7 @@ import importlib
 import io
 import math
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import os
 import psycopg2
 import re
 import signal
@@ -59,7 +60,7 @@ Indexes:
 
 """
 
-FLETCHER_CONFIG = '/pub/lin/.fletcherrc'
+FLETCHER_CONFIG = os.getenv('FLETCHER_CONFIG', './.fletcherrc')
 
 
 config = configparser.ConfigParser()
