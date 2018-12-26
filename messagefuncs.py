@@ -198,7 +198,7 @@ def autoload(ch):
         'description': 'Retrieve message body by link (used internally to unwrap message links in chat)'
         })
     ch.add_command({
-        'trigger': ['🔖', '🔗', '!bookmark']
+        'trigger': ['🔖', '🔗', '!bookmark'],
         'function': bookmark_function,
         'async': True,
         'args_num': 0,
