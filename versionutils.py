@@ -1,5 +1,10 @@
+import aiohttp
+import discord
 from git import Repo
+from io import StringIO
+from lxml import html
 import os
+from sys import exc_info
 
 # rorepo is a Repo instance pointing to the git-python repository.
 # For all you know, the first argument to Repo is a path to the repository
@@ -12,13 +17,44 @@ class VersionInfo:
     def latest_commit_log(self):
         return list(self.repo.iter_commits('master', max_count=1))[0].message.strip()
 
-def status_command(message, client, args):
+def status_function(message, client, args):
     global versioninfo
     return "Not much, just "+VersionInfo().latest_commit_log()+". How about you?"
 
+# From aiohttp Client Reference docs
+async def fetch(client, url):
+    request_headers = {
+            'User-Agent': ('Fletcher/0.1 (operator@noblejury.com)')
+            }
+    async with client.get(url, headers=request_headers) as resp:
+        assert resp.status == 200
+        return await resp.text()
+
+async def buglist_function(message, client, args):
+    try:
+        source_url = 'https://todo.sr.ht/~nova/fletcher/'+args[0]
+        async with aiohttp.ClientSession() as session:
+            request_body = await fetch(session, source_url)
+            # The HTML on this page does not lend itself to parsing :( Might be worth contributing a patch to upstream, if for no other reason than to get OpenGraph tags working (https://git.sr.ht/~sircmpwn/todo.sr.ht)
+            root = html.document_fromstring(request_body)
+            # -18 to chop " -- sr.ht todo"
+            await message.channel.send(embed=discord.Embed(title=root.xpath('//title')[0].text[:-18], url=source_url).add_field(
+                name="Status", value=root.xpath('//dt[.="Status"]/following-sibling::dd/strong')[0].text.strip(), inline=True).add_field(
+                name="Submitter", value=root.xpath('//dt[.="Submitter"]/following-sibling::dd/a')[0].text.strip(), inline=True).add_field(
+                name="Updated", value=root.xpath('//dt[.="Updated"]/following-sibling::dd/span')[0].text.strip(), inline=True).set_footer(
+                icon_url="https://download.lin.anticlack.com/fletcher/sr.ht.favicon.png",text="On behalf of {}".format(message.author.display_name)))
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("BLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 def autoload(ch):
     ch.add_command({
+        'trigger': ['!issue'],
+        'function': buglist_function,
+        'async': True, 'args_num': 1, 'args_name': [], 'description': 'Show Fletcher issue information'
+        })
+    ch.add_command({
         'trigger': ['!status', 'what\'s up'],
-        'function': status_command,
+        'function': status_function,
         'async': False, 'args_num': 0, 'args_name': [], 'description': 'Tell user about the status'
         })

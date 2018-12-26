@@ -23,13 +23,14 @@ host and will not disclose user information inappropriately).
 Functionality at time of writing includes:
 - Teleports between channels, including across servers
 - One or two way synchronization between channels, including across servers
-- Spoiler codes (ROT13 [classic] and memfrob [wider character support and name
-  obfuscation])
+- Spoiler codes for text (ROT13 [classic] and memfrob [wider character support
+  and name obfuscation]) and images
 - Channel activity checks
 - User activity checks
 - Voice channel updates
 - Moderation reports (automated and manual)
 - Moderation role ping bypasss
+- Issue tracker integration
 And a few more fun modules:
 - Collective action coordination
 - Music relay
@@ -47,7 +48,9 @@ Documentation:
 Documentation for this code is in progress, but the author strives to make the
 code readable without much trouble. This area is under development. Currently,
 the bot can self-report loaded commands with the `!help' command, as well as
-some additional information with the `verbose' parameter.
+some additional information with the `verbose' parameter. In addition, a
+command flow diagram is included in commandflow.dot, as well as a PNG (Warning:
+large file) at https://novalinium.com/rationality/fletcher.png.
 
 Development:
 Development can be tracked via the project issue tracker at

@@ -15,7 +15,9 @@ digraph fletcher {
     Database -> Sync [ label = "Synchronized messages stored for\npersistent responsive history" ];
     CommandHandler -> VersionUtils;
     Git -> VersionUtils;
+    LXML.HTML -> VersionUtils;
     VersionUtils -> StatusCommand [ label = "Tell user what the last commit message was" ];
+    VersionUtils -> Issue [ label = "Get info from the issue tracker based on issue number" ];
     CommandHandler -> TextManipulators;
     PIL -> TextManipulators [ label = "For image scrambled" ];
     TextManipulators -> Memfrob [ label = "AKA spoiler, flips bytes in\na message and deletes original" ];
