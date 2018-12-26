@@ -185,7 +185,6 @@ def pretty_date(time=False):
 
 async def rot13_function(message, client, args):
     try:
-        print(args)
         if len(args) == 2 and type(args[1]) is discord.User:
             return await args[1].send(codecs.encode(message.content, 'rot_13'))
         elif len(args) == 2 and args[1] == 'INTPROC':
