@@ -10,11 +10,15 @@ class CommandHandler:
     def __init__(self, client):
         self.client = client
         self.commands = []
+        self.join_handlers = {}
         self.tag_id_as_command = re.compile('(?:^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*)|(?:[, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$)', re.IGNORECASE)
         self.bang_remover = re.compile('^!+')
 
     def add_command(self, command):
         self.commands.append(command)
+
+    def add_join_handler(self, func_name, func):
+        self.join_handlers[func_name] = func
 
     async def reaction_handler(self, reaction):
         global config
@@ -36,6 +40,12 @@ class CommandHandler:
                     else:
                         return await message.channel.send(str(command['function'](message, self.client, [reaction, user])))
                         break
+
+    async def join_handler(self, member):
+        if "Guild "+str(member.guild.id) in config and config["Guild "+str(member.guild.id)]['on_member_join']:
+            member_join_action = config["Guild "+str(member.guild.id)]['on_member_join']
+            if member_join_action in join_handlers:
+                return await join_handler[member_join_action](member, self.client, config["Guild "+str(member.guild.id)])
 
     async def command_handler(self, message):
         global config

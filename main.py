@@ -78,6 +78,7 @@ ch = None
 # Submodules, loaded in reload_function so no initialization is done here
 import commandhandler
 import versionutils
+import greeting
 import sentinel
 import janissary
 import mathemagical
@@ -184,6 +185,9 @@ async def reload_function(message=None, client=client, args=[]):
         # Utility text manipulators Module
         autoload(text_manipulators)
         await animate_startup('🔧', message)
+        # Greeting module
+        autoload(greeting)
+        await animate_startup('👋', message)
         # Sentinel Module
         autoload(sentinel)
         await animate_startup('🎏', message)
@@ -387,14 +391,10 @@ async def on_voice_state_update(member, before, after):
             await canticum_message.delete()
         canticum_message = await canticum.send("<@&"+str(config['audio']['notificationrole'])+">: "+str(member.name)+" is in voice ("+str(after.channel.name)+") in "+str(member.guild.name))
 
-## on new member
-#@client.event
-#async def on_member_join(member):
-#    # if the message is from the bot itself ignore it
-#    if member == client.user:
-#        pass
-#    else:
-#        yield # check if the guild requires containment and contain if so
+# on new member
+@client.event
+async def on_member_join(member):
+    await ch.join_handler(member)
 
 # start bot
 client.run(token)
