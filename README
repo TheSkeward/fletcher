@@ -31,6 +31,7 @@ Functionality at time of writing includes:
 - Moderation reports (automated and manual)
 - Moderation role ping bypasss
 - Issue tracker integration
+- Role assignment on join to a server
 And a few more fun modules:
 - Collective action coordination
 - Music relay

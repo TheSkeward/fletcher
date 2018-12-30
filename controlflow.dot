@@ -2,7 +2,7 @@ digraph fletcher {
     rankdir=LR;
     size="8,5"
         graph [ dpi = 600 ];
-    node [shape = doublecircle]; Initialize OnReady OnMessage OnEdit OnDelete OnReact OnVoiceUpdate;
+    node [shape = doublecircle]; Initialize OnReady OnMessage OnEdit OnDelete OnReact OnVoiceUpdate OnMemberJoin;
     node [shape = circle];
     Initialize -> OnReady [ label = "Connect to Discord WebSocket Gateway" ];
     OnReady -> Reload [ label = "Reload config files,\nhotpatch modules,\nand rebuild CommandHandler" ];
@@ -23,6 +23,8 @@ digraph fletcher {
     TextManipulators -> Memfrob [ label = "AKA spoiler, flips bytes in\na message and deletes original" ];
     TextManipulators -> Rot13 [ label = "Adds 13 to letters, classic spoiler" ];
     TextManipulators -> Scramble [ label = "Send contents of image deep fried" ];
+    CommandHandler -> Greeting;
+    Greeting -> RandomizeRole [ label = "Pick role from list and assign to incoming members" ];
     CommandHandler -> Sentinel;
     TextManipulators -> Sentinel [ label = "Provides smallcaps function" ];
     Database -> Sentinel [ label = "Sentinels are stored in the database" ];
@@ -72,4 +74,5 @@ digraph fletcher {
     Initialize -> OnReact;
     OnReact -> CommandHandler;
     OnVoiceUpdate -> NotifyCanticum;
+    OnMemberJoin -> Greeting
 }
