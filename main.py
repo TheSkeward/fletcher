@@ -259,6 +259,7 @@ async def on_message(message):
         # Eat from PMs
         pass
     if message.author == client.user:
+        print(config['discord']['botNavel']+": "+message.content)
         return
 
     # try to evaluate with the command handler
