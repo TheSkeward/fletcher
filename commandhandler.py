@@ -45,7 +45,7 @@ class CommandHandler:
         if "Guild "+str(member.guild.id) in config and config["Guild "+str(member.guild.id)]['on_member_join']:
             member_join_action = config["Guild "+str(member.guild.id)]['on_member_join']
             if member_join_action in self.join_handlers.keys():
-                return await self.join_handler[member_join_action](member, self.client, config["Guild "+str(member.guild.id)])
+                return await self.join_handlers[member_join_action](member, self.client, config["Guild "+str(member.guild.id)])
 
     async def command_handler(self, message):
         global config
