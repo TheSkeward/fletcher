@@ -29,9 +29,9 @@ Functionality at time of writing includes:
 - User activity checks
 - Voice channel updates
 - Moderation reports (automated and manual)
-- Moderation role ping bypasss
+- Moderation role ping bypass
 - Issue tracker integration
-- Role assignment on join to a server
+- Management of new server members (role assignment, rules acknowledgement)
 And a few more fun modules:
 - Collective action coordination
 - Music relay

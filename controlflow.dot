@@ -25,6 +25,7 @@ digraph fletcher {
     TextManipulators -> Scramble [ label = "Send contents of image deep fried" ];
     CommandHandler -> Greeting;
     Greeting -> RandomizeRole [ label = "Pick role from list and assign to incoming members" ];
+    Greeting -> Lockout [ label = "Strip all permissions from incoming members and require them to agree to rules." ];
     CommandHandler -> Sentinel;
     TextManipulators -> Sentinel [ label = "Provides smallcaps function" ];
     Database -> Sentinel [ label = "Sentinels are stored in the database" ];
