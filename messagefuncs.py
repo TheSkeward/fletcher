@@ -91,6 +91,9 @@ async def preview_messagelink_function(message, client, args):
             channel_id = int(urlParts[1])
             message_id = int(urlParts[2])
             guild = client.get_guild(guild_id)
+            if guild is None:
+                print("PMF: Fletcher is not in guild ID "+str(guild_id))
+                return
             channel = guild.get_channel(channel_id)
             target_message = await channel.get_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
