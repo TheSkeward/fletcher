@@ -5,6 +5,88 @@ from sys import exc_info
 import textwrap
 import text_manipulators
 
+async def addrole_function(message, client, args):
+    global config
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            pass # Reaction
+        else:
+            role_list = message.channel.guild.roles
+            argString = " ".join(args)
+            roleProperties = {
+                    "name": None,
+                    "colour": None,
+                    "mentionable": True
+                    }
+            if " with " in argString:
+                roleProperties["name"] = argString.split(" with")[0]
+                argString = argString.split(" with")[1].lower().replace("color", "colour").replace("pingable", "mentionable")
+                it = iter(argString.trim().replace(" and ", "").replace(", ", "").split(" "))
+                for prop, val in zip(it, it):
+                    if prop == "colour":
+                        roleProperties["colour"] = discord.Colour.from_rgb(int(val[0-1]), int(val[2-3]), int(val[4-5]))
+                    elif (prop == "mentionable" and val in ["no", "false"]) or (prop == "not" and val == "mentionable"):
+                        roleProperties["mentionable"] = False
+            else:
+                roleProperties["name"] = argString
+
+            role = discord.utils.get(role_list, name=roleProperties["name"])
+            if role is not None:
+                err = "Role already exists!"
+                if not role.mentionable or message.channel.permissions_for(message.author).manage_messages:
+                    if role in message.author.roles.get_roles():
+                        err = err + " `!revoke "+role.name+" from me` to remove this role from yourself."
+                    else:
+                        err = err + " `!assign "+role.name+" to me` to add this role to yourself."
+                else:
+                    if role in message.author.roles.get_roles():
+                        err = err + " An administrator can `!revoke "+role.name+" from @"+str(message.author.id)+"` to remove this role from you."
+                    else:
+                        err = err + " An administrator can `!assign "+role.name+" to @"+str(message.author.id)+"` to add this role to you."
+                return await message.channel.send(err)
+            else:
+                role = await message.channel.guild.create_role(name=roleProperties["name"], colour=roleProperties["colour"], mentionable=True, reason="Role added on behalf of "+str(message.author))
+                await message.channel.send("Role "+role.mention+" successfully created.")
+                await role.edit(mentionable=roleProperties["mentionable"])
+                if 'snappy' in config['discord'] and config['discord']['snappy']:
+                    await message.delete()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("ARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+async def delrole_function(message, client, args):
+    global config
+    try:
+        if len(args) == 2 and type(args[1]) is discord.User:
+            pass # Reaction
+        else:
+            role_list = message.channel.guild.roles
+            argString = " ".join(args)
+            roleProperties = {
+                    "name": None
+                    }
+            roleProperties["name"] = argString
+
+            role = discord.utils.get(role_list, name=roleProperties["name"])
+            if role is not None:
+                if message.channel.permissions_for(message.author).manage_messages:
+                    await role.delete(reason="On behalf of "+str(message.author))
+                    await message.channel.send("Role `@"+roleProperties["name"]+"` deleted.")
+                else:
+                    await message.channel.send("You do not have permission to delete role `@"+roleProperties["name"]+"`.")
+            else:
+                err = "Role `@"+roleProperties["name"]+"` does not exist!"
+                if message.channel.permissions_for(message.author).manage_messages:
+                    err = err + " `!addrole "+role.name+"` to add this role."
+                else:
+                    err = err + " An administrator can `!addrole "+role.name+"` to add this role."
+                await message.channel.send(err)
+                if 'snappy' in config['discord'] and config['discord']['snappy']:
+                    await message.delete()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("DRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 async def modping_function(message, client, args):
     global config
     try:
@@ -153,6 +235,24 @@ async def lastactive_user_function(message, client, args):
         print("LSU[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 def autoload(ch):
+    ch.add_command({
+        'trigger': ['!roleadd', '!addrole'],
+        'function': addrole_function,
+        'async': True,
+        'admin': True,
+        'args_num': 1,
+        'args_name': [],
+        'description': 'Add role (self-assignable by default)'
+        })
+    ch.add_command({
+        'trigger': ['!roledel', '!delrole'],
+        'function': delrole_function,
+        'async': True,
+        'admin': True,
+        'args_num': 1,
+        'args_name': [],
+        'description': 'Delete role'
+        })
     ch.add_command({
         'trigger': ['!modping'],
         'function': modping_function,
