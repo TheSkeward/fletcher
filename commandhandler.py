@@ -11,11 +11,15 @@ class CommandHandler:
         self.client = client
         self.commands = []
         self.join_handlers = {}
+        self.remove_handlers = {}
         self.tag_id_as_command = re.compile('(?:^(?:Oh)?\s*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*)|(?:[, .]*(?:<@'+str(client.user.id)+'>|Fletch[er]*)[, .]*$)', re.IGNORECASE)
         self.bang_remover = re.compile('^!+')
 
     def add_command(self, command):
         self.commands.append(command)
+
+    def add_remove_handler(self, func_name, func):
+        self.remove_handlers[func_name] = func
 
     def add_join_handler(self, func_name, func):
         self.join_handlers[func_name] = func
@@ -48,11 +52,19 @@ class CommandHandler:
                         return await message.channel.send(str(command['function'](message, self.client, [reaction, user])))
                         break
 
+    async def remove_handler(self, member):
+        if "Guild "+str(member.guild.id) in config and config["Guild "+str(member.guild.id)]['on_member_remove']:
+            member_remove_actions = config["Guild "+str(member.guild.id)]['on_member_remove'].split(',')
+            for member_remove_action in member_remove_actions:
+                if member_remove_action in self.remove_handlers.keys():
+                    return await self.remove_handlers[member_remove_action](member, self.client, config["Guild "+str(member.guild.id)])
+
     async def join_handler(self, member):
         if "Guild "+str(member.guild.id) in config and config["Guild "+str(member.guild.id)]['on_member_join']:
-            member_join_action = config["Guild "+str(member.guild.id)]['on_member_join']
-            if member_join_action in self.join_handlers.keys():
-                return await self.join_handlers[member_join_action](member, self.client, config["Guild "+str(member.guild.id)])
+            member_join_actions = config["Guild "+str(member.guild.id)]['on_member_join'].split(',')
+            for member_join_action in member_join_actions:
+                if member_join_action in self.join_handlers.keys():
+                    return await self.join_handlers[member_join_action](member, self.client, config["Guild "+str(member.guild.id)])
 
     async def command_handler(self, message):
         global config
