@@ -3,6 +3,37 @@ import discord
 import io
 import random
 from sys import exc_info
+from datetime import datetime
+# global conn set by reload_function
+
+async def restoreroles_function(member, client, config):
+    try:
+        global conn
+        cur = conn.cursor()
+        cur.execute("SELECT roles FROM permaRoles WHERE userid = %s AND guild = %s);", [member.id, member.guild.id])
+        roles = cur.fetchone()[0]
+        cur.execute("DELETE FROM permaRoles WHERE userid = %s AND guild = %s);", [member.id, member.guild.id])
+        conn.commit()
+        # Silently drop deleted roles
+        roles = filter(None, [member.guild.get_role(role) for role in roles])
+        await member.add_roles(role, reason='Restoring Previous Roles', atomic=False)
+    except Exception as e:
+        if cur is not None:
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("RRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+async def saveroles_function(member, client, config):
+    try:
+        global conn
+        cur = conn.cursor()
+        cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated) VALUES (%s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in roles], datetime.now()])
+        conn.commit()
+    except Exception as e:
+        if cur is not None:
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        print("SRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 async def lockout_function(member, client, config):
     try:
@@ -50,6 +81,14 @@ async def randomize_role_function(member, client, config):
 
 # Register functions in client
 def autoload(ch):
+    ch.add_remove_handler(
+            'save_roles',
+            saverole_function
+            )
+    ch.add_join_handler(
+            'restore_roles',
+            restorerole_function
+            )
     ch.add_join_handler(
             'lockout',
             lockout_function

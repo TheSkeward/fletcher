@@ -58,6 +58,17 @@ fletcher=# \d messagemap
 Indexes:
     "messagemap_idx" btree (fromguild, fromchannel, frommessage)
 
+fletcher=# \d permaRoles
+                            Table "public.permaroles"
+ Column  |            Type             | Collation | Nullable |      Default
+---------+-----------------------------+-----------+----------+-------------------
+ userid  | bigint                      |           | not null |
+ guild   | bigint                      |           | not null |
+ roles   | bigint[]                    |           |          |
+ updated | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "permaroles_idx" btree (userid, guild)
+
 """
 
 FLETCHER_CONFIG = os.getenv('FLETCHER_CONFIG', './.fletcherrc')
@@ -395,6 +406,11 @@ async def on_voice_state_update(member, before, after):
 @client.event
 async def on_member_join(member):
     await ch.join_handler(member)
+
+# on departing member
+@client.event
+async def on_member_remove(member):
+    await ch.remove_handler(member)
 
 # start bot
 client.run(token)
