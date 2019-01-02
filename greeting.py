@@ -10,7 +10,7 @@ async def restorerole_function(member, client, config):
     try:
         global conn
         cur = conn.cursor()
-        cur.execute("SELECT roles FROM permaRoles WHERE userid = %s AND guild = %s);", [member.id, member.guild.id])
+        cur.execute("SELECT roles FROM permaRoles WHERE userid = %s AND guild = %s;", [member.id, member.guild.id])
         roles = cur.fetchone()
         if roles is not None:
             roles = roles[0]
