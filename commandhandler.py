@@ -146,3 +146,7 @@ def autoload(ch):
         'args_name': [],
         'description': 'List commands and arguments'
         })
+    if client is not None:
+        print("Channels Loaded:")
+        for channel in client.get_all_channels():
+            print(str(channel.guild)+" "+str(channel))
