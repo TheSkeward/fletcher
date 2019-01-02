@@ -134,10 +134,23 @@ def help_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("HF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+def dumpconfig_function(message, client, args):
+    print("Channels Loaded:")
+    for channel in client.get_all_channels():
+        print(str(channel.guild)+" "+str(channel))
 
 def autoload(ch):
     global tag_id_as_command
     global client
+    ch.add_command({
+        'trigger': ['!dumpconfig'],
+        'function': dumpconfig_function,
+        'async': False,
+        'admin': True,
+        'args_num': 0,
+        'args_name': [],
+        'description': 'Output current config'
+        })
     ch.add_command({
         'trigger': ['!help'],
         'function': help_function,
@@ -146,7 +159,3 @@ def autoload(ch):
         'args_name': [],
         'description': 'List commands and arguments'
         })
-    if client is not None:
-        print("Channels Loaded:")
-        for channel in client.get_all_channels():
-            print(str(channel.guild)+" "+str(channel))
