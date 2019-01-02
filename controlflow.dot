@@ -26,6 +26,8 @@ digraph fletcher {
     CommandHandler -> Greeting;
     Greeting -> RandomizeRole [ label = "Pick role from list and assign to incoming members" ];
     Greeting -> Lockout [ label = "Strip all permissions from incoming members and require them to agree to rules." ];
+    Greeting -> RestoreRole [ label = "Restore roles on rejoin." ];
+    Greeting -> SaveRole [ label = "Save roles for rejoin reasons." ];
     CommandHandler -> Sentinel;
     TextManipulators -> Sentinel [ label = "Provides smallcaps function" ];
     Database -> Sentinel [ label = "Sentinels are stored in the database" ];
@@ -75,5 +77,5 @@ digraph fletcher {
     Initialize -> OnReact;
     OnReact -> CommandHandler;
     OnVoiceUpdate -> NotifyCanticum;
-    OnMemberJoin -> Greeting
+    OnMemberJoin -> Greeting;
 }

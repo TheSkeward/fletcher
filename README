@@ -31,7 +31,8 @@ Functionality at time of writing includes:
 - Moderation reports (automated and manual)
 - Moderation role ping bypass
 - Issue tracker integration
-- Management of new server members (role assignment, rules acknowledgement)
+- Management of new server members (role assignment, rules acknowledgement,
+  auto role save and restore)
 And a few more fun modules:
 - Collective action coordination
 - Music relay
