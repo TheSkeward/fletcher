@@ -6,7 +6,7 @@ from sys import exc_info
 from datetime import datetime
 # global conn set by reload_function
 
-async def restoreroles_function(member, client, config):
+async def restorerole_function(member, client, config):
     try:
         global conn
         cur = conn.cursor()
@@ -23,7 +23,7 @@ async def restoreroles_function(member, client, config):
         exc_type, exc_obj, exc_tb = exc_info()
         print("RRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
-async def saveroles_function(member, client, config):
+async def saverole_function(member, client, config):
     try:
         global conn
         cur = conn.cursor()
