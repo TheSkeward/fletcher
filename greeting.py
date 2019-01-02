@@ -11,24 +11,32 @@ async def restorerole_function(member, client, config):
         global conn
         cur = conn.cursor()
         cur.execute("SELECT roles FROM permaRoles WHERE userid = %s AND guild = %s);", [member.id, member.guild.id])
-        roles = cur.fetchone()[0]
-        cur.execute("DELETE FROM permaRoles WHERE userid = %s AND guild = %s);", [member.id, member.guild.id])
+        roles = cur.fetchone()
+        if roles is not None:
+            roles = roles[0]
+            cur.execute("DELETE FROM permaRoles WHERE userid = %s AND guild = %s;", [member.id, member.guild.id])
         conn.commit()
+        if roles is None:
+            return
         # Silently drop deleted roles
         roles = filter(None, [member.guild.get_role(role) for role in roles])
+        print("RPR: Restoring roles {} for {} in {}".format(",".join(roles), member.id, member.guild.id))
         await member.add_roles(role, reason='Restoring Previous Roles', atomic=False)
     except Exception as e:
         if cur is not None:
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        print("RRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        print("RPR[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 async def saverole_function(member, client, config):
     try:
         global conn
-        cur = conn.cursor()
-        cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated) VALUES (%s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in roles], datetime.now()])
-        conn.commit()
+        if len(member.roles):
+            roles = [role.id for role in member.roles]
+            print("SRF: Storing roles {} for {} in {}".format(",".join(roles), member.id, member.guild.id))
+            cur = conn.cursor()
+            cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated) VALUES (%s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in member.roles], datetime.now()])
+            conn.commit()
     except Exception as e:
         if cur is not None:
             conn.rollback()
