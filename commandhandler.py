@@ -24,12 +24,19 @@ class CommandHandler:
         global config
         messageContent = str(reaction.emoji)
         user = await self.client.get_user_info(reaction.user_id)
+        channel = self.client.get_channel(reaction.channel_id)
+        message = await channel.get_message(reaction.message_id)
+        if type(channel) is discord.TextChannel:
+            print("#"+channel.name+" <"+user.name+"> reacting with "+messageContent+" to "+str(message.id))
+        elif type(message.channel) is discord.DMChannel:
+            print("@"+channel.recipient.name+" <"+user.name+"> reacting with "+messageContent+" to "+str(message.id))
+        else:
+            # Group Channels don't support bots so neither will we
+            pass
         for command in self.commands:
             if messageContent.startswith(tuple(command['trigger'])) and (('admin' in command and command['admin'] and hasattr(user, 'guild_permissions') and user.guild_permissions.manage_webhooks) or 'admin' not in command or not command['admin']):
                 print(command)
                 if command['args_num'] == 0:
-                    channel = self.client.get_channel(reaction.channel_id)
-                    message = await channel.get_message(reaction.message_id)
                     if str(user.id) in config['moderation']['blacklist-user-usage'].split(','):
                         print('Blacklisted command attempt by user')
                         return
@@ -59,14 +66,14 @@ class CommandHandler:
                     sent_com_score = 1
                 elif message.content == "VADER BAD":
                     sent_com_score = -1
-                print("#"+message.channel.name+" <"+message.author.name+"> ["+str(sent_com_score)+"] "+message.content)
+                print(str(message.id)+" #"+message.guild.name+":"+message.channel.name+" <"+message.author.name+"> ["+str(sent_com_score)+"] "+message.content)
                 if sent_com_score <= float(config['moderation']['sent-com-score-threshold']) and message.webhook_id is None and message.guild.name in config['moderation']['guilds'].split(','):
                     await janissary.modreport_function(message, self.client, ("\n[Sentiment Analysis Combined Score "+str(sent_com_score)+'] '+message.content).split(' '))
             else:
                 if type(message.channel) is discord.TextChannel:
-                    print("#"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
+                    print(str(message.id)+" #"+message.guild.name+":"+message.channel.name+" <"+message.author.name+"> [Nil] "+message.content)
                 elif type(message.channel) is discord.DMChannel:
-                    print("@"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
+                    print(str(message.id)+" @"+message.channel.recipient.name+" <"+message.author.name+"> [Nil] "+message.content)
                 else:
                     # Group Channels don't support bots so neither will we
                     pass

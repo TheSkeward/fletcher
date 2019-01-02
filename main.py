@@ -361,7 +361,6 @@ async def on_raw_reaction_add(reaction):
     else:
         # try to evaluate with the command handler
         try:
-            print(reaction.emoji)
             await ch.reaction_handler(reaction)
 
         # message doesn't contain a command trigger
