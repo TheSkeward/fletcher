@@ -33,7 +33,7 @@ async def saverole_function(member, client, config):
         global conn
         if len(member.roles):
             roles = [role.id for role in member.roles]
-            print("SRF: Storing roles {} for {} in {}".format(",".join(roles), member.id, member.guild.id))
+            print("SRF: Storing roles {} for {} in {}".format(",".join([str(role) for role in roles]), member.id, member.guild.id))
             cur = conn.cursor()
             cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated) VALUES (%s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in member.roles], datetime.now()])
             conn.commit()
