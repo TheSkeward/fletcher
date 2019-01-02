@@ -10,10 +10,11 @@ async def restorerole_function(member, client, config):
     try:
         global conn
         cur = conn.cursor()
-        cur.execute("SELECT roles FROM permaRoles WHERE userid = %s AND guild = %s;", [member.id, member.guild.id])
+        cur.execute("SELECT nickname, roles FROM permaRoles WHERE userid = %s AND guild = %s;", [member.id, member.guild.id])
         roles = cur.fetchone()
         if roles is not None:
-            roles = roles[0]
+            name = roles[0]
+            roles = roles[1]
             cur.execute("DELETE FROM permaRoles WHERE userid = %s AND guild = %s;", [member.id, member.guild.id])
         conn.commit()
         if roles is None:
@@ -21,7 +22,7 @@ async def restorerole_function(member, client, config):
         # Silently drop deleted roles
         roles = list(filter(None, [member.guild.get_role(role) for role in roles]))
         print("RPR: Restoring roles {} for {} in {}".format(",".join([str(role) for role in roles]), member.id, member.guild.id))
-        await member.add_roles(*roles, reason='Restoring Previous Roles', atomic=False)
+        await member.edit(nick=name, roles=roles, reason='Restoring Previous Roles')
     except Exception as e:
         if cur is not None:
             conn.rollback()
@@ -35,7 +36,7 @@ async def saverole_function(member, client, config):
             roles = [role.id for role in member.roles]
             print("SRF: Storing roles {} for {} in {}".format(",".join([str(role) for role in roles]), member.id, member.guild.id))
             cur = conn.cursor()
-            cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated) VALUES (%s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in member.roles], datetime.now()])
+            cur.execute("INSERT INTO permaRoles (userid, guild, roles, updated, nickname) VALUES (%s, %s, %s, %s, %s);", [member.id, member.guild.id, [role.id for role in member.roles], datetime.now(), member.display_name])
             conn.commit()
     except Exception as e:
         if cur is not None:
