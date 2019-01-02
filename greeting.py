@@ -21,7 +21,7 @@ async def restorerole_function(member, client, config):
         # Silently drop deleted roles
         roles = filter(None, [member.guild.get_role(role) for role in roles])
         print("RPR: Restoring roles {} for {} in {}".format(",".join([str(role) for role in roles]), member.id, member.guild.id))
-        await member.add_roles(role, reason='Restoring Previous Roles', atomic=False)
+        await member.add_roles(roles, reason='Restoring Previous Roles', atomic=False)
     except Exception as e:
         if cur is not None:
             conn.rollback()
