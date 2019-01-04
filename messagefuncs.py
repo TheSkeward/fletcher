@@ -58,10 +58,10 @@ async def teleport_function(message, client, args):
         if toGuild:
             embedTitle = embedTitle+" ({})".format(toChannel.guild.name)
         if str(toChannel) == "hell":
-            inPortalColor = "red"
+            inPortalColor = ["red", discord.Colour.from_rgb(194,0,11)]
         else:
-            inPortalColor = "blue"
-        embedPortal = discord.Embed(title=embedTitle, description="https://discordapp.com/channels/{}/{}/{} {}".format(toChannel.guild.id, toChannel.id, toMessage.id, " ".join(args[1:])), color=discord.Colour.from_rgb(62,189,236)).set_footer(icon_url="https://download.lin.anticlack.com/fletcher/"+inPortalColor+"-portal.png",text="On behalf of {}".format(message.author.nick or message.author))
+            inPortalColor = ["blue", discord.Colour.from_rgb(62,189,236)]
+        embedPortal = discord.Embed(title=embedTitle, description="https://discordapp.com/channels/{}/{}/{} {}".format(toChannel.guild.id, toChannel.id, toMessage.id, " ".join(args[1:])), color=inPortalColor[1]).set_footer(icon_url="https://download.lin.anticlack.com/fletcher/"+inPortalColor[0]+"-portal.png",text="On behalf of {}".format(message.author.nick or message.author))
         tmp = await fromMessage.edit(content=None,embed=embedPortal)
         print('Editing To')
         embedTitle = "Portal opened from #{}".format(fromChannel.name)
