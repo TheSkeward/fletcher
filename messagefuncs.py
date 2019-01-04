@@ -46,7 +46,7 @@ async def teleport_function(message, client, args):
             print('[WARNING] Attempt to open overlapping portal')
             return await fromChannel.send('You cannot open an overlapping portal! Access denied.')
         print('Opening From '+str(fromChannel))
-        fromMessage = await fromChannel.send('Opening Portal To <#{}> ({})'.format(toChannel.id, toChannel.guild.name))
+        fromMessage = await fromChannel.send('Portal Opening From <#{}> ({})'.format(toChannel.id, toChannel.guild.name))
         try:
             print('Opening To '+str(toChannel))
             toMessage = await toChannel.send('Opening Portal To <#{}> ({})'.format(fromChannel.id, fromChannel.guild.name))
@@ -57,7 +57,7 @@ async def teleport_function(message, client, args):
         embedTitle = "Portal opened to #{}".format(toChannel.name)
         if toGuild:
             embedTitle = embedTitle+" ({})".format(toChannel.guild.name)
-        if str(toChannel) == "hell":
+        if toChannel.name == "hell":
             inPortalColor = ["red", discord.Colour.from_rgb(194,0,11)]
         else:
             inPortalColor = ["blue", discord.Colour.from_rgb(62,189,236)]
