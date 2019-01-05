@@ -102,7 +102,7 @@ async def modping_function(message, client, args):
                     print('Timed out waiting for response')
                     return
             role_list = message.channel.guild.roles
-            role = discord.utils.get(role_list, name=" ".join(args))
+            role = discord.utils.get(role_list, name=" ".join(args).lstrip("@"))
             lay_mentionable = role.mentionable
             if not lay_mentionable:
                 await role.edit(mentionable=True)
