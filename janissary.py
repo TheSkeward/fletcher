@@ -97,6 +97,7 @@ async def modping_function(message, client, args):
                 def gaveled_by_admin_check(reaction, user):
                     return user.guild_permissions.manage_webhooks and str(reaction.emoji) == '<:gavel:430638348189827072>'
                 try: 
+                    await modreport_function(message, client, ("\nRole ping requested for "+" ".join(args).lstrip("@")).split(' '))
                     reaction, user = await client.wait_for('reaction_add', timeout=600.0, check=gaveled_by_admin_check)
                 except asyncio.TimeoutError:
                     print('Timed out waiting for response')
