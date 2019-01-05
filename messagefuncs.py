@@ -45,11 +45,11 @@ async def teleport_function(message, client, args):
         if fromChannel.id == toChannel.id:
             print('[WARNING] Attempt to open overlapping portal')
             return await fromChannel.send('You cannot open an overlapping portal! Access denied.')
-        print('Opening From '+str(fromChannel))
-        fromMessage = await fromChannel.send('Portal Opening From <#{}> ({})'.format(toChannel.id, toChannel.guild.name))
+        print('Entering in '+str(fromChannel))
+        fromMessage = await fromChannel.send('Opening Portal To <#{}> ({})'.format(toChannel.id, toChannel.guild.name))
         try:
-            print('Opening To '+str(toChannel))
-            toMessage = await toChannel.send('Opening Portal To <#{}> ({})'.format(fromChannel.id, fromChannel.guild.name))
+            print('Exiting in '+str(toChannel))
+            toMessage = await toChannel.send('Portal Opening From <#{}> ({})'.format(fromChannel.id, fromChannel.guild.name))
         except discord.Forbidden as e:
             print('[WARNING] Portal collaped half-open!')
             return await fromMessage.edit(content='Failed to open portal due to missing permissions! Access denied.')
