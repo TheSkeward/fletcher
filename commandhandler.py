@@ -70,12 +70,12 @@ class CommandHandler:
         global config
         global sid
         try:
-            if "Guild "+str(message.guild.id) in config and 'blacklist-category' in config["Guild "+str(message.guild.id)]:
-                blacklist_category = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-category'].split(',')]
+            if "Guild "+str(message.guild.id) in config and 'automod-blacklist-category' in config["Guild "+str(message.guild.id)]:
+                blacklist_category = [int(i) for i in config["Guild "+str(message.guild.id)]['automod-blacklist-category'].split(',')]
             else:
                 blacklist_category = []
-            if "Guild "+str(message.guild.id) in config and 'blacklist-channel' in config["Guild "+str(message.guild.id)]:
-                blacklist_channel = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-channel'].split(',')]
+            if "Guild "+str(message.guild.id) in config and 'automod-blacklist-channel' in config["Guild "+str(message.guild.id)]:
+                blacklist_channel = [int(i) for i in config["Guild "+str(message.guild.id)]['automod-blacklist-channel'].split(',')]
             else:
                 blacklist_channel = []
             if type(message.channel) is discord.TextChannel and message.channel.category_id not in blacklist_category and message.channel.id not in blacklist_channel:
