@@ -98,10 +98,9 @@ async def modping_function(message, client, args):
                     return user.guild_permissions.manage_webhooks and str(reaction.emoji) == '<:gavel:430638348189827072>'
                 try: 
                     await modreport_function(message, client, ("\nRole ping requested for "+" ".join(args).lstrip("@")).split(' '))
-                    reaction, user = await client.wait_for('reaction_add', timeout=600.0, check=gaveled_by_admin_check)
+                    reaction, user = await client.wait_for('reaction_add', timeout=6000.0, check=gaveled_by_admin_check)
                 except asyncio.TimeoutError:
-                    print('Timed out waiting for response')
-                    return
+                    raise Exception('Timed out waiting for approval')
             role_list = message.channel.guild.roles
             role = discord.utils.get(role_list, name=" ".join(args).lstrip("@"))
             lay_mentionable = role.mentionable
@@ -123,7 +122,11 @@ async def modreport_function(message, client, args):
         plaintext = None
         automod = None
         if len(args) == 2 and type(args[1]) is discord.User:
-            await message.remove_reaction('👁‍🗨', args[1])
+            try:
+                await message.remove_reaction('👁‍🗨', args[1])
+            except discord.Forbidden as e:
+                print("MRF: Forbidden from removing modreport reaction")
+                pass
             plaintext = message.content
             report_content = "Mod Report: #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to ".format(message.channel.name, message.channel.guild.name, message.channel.guild.id, message.channel.id, message.id)
             automod = False
@@ -135,14 +138,21 @@ async def modreport_function(message, client, args):
             report_content = report_content + await text_manipulators.rot13_function(message, client, [plaintext, 'INTPROC'])
         else:
             report_content = report_content + plaintext
-        if automod:
-            users = config['moderation']['mod-users'].split(',')
+        if "Guild "+str(message.guild.id) in config:
+            scoped_config = config["Guild "+str(message.guild.id)]
         else:
-            users = config['moderation']['manual-mod-users'].split(',')
-        for user_id in users:
-            modmail = await client.get_user(int(user_id)).send(report_content)
-            if message.channel.is_nsfw():
-                await modmail.add_reaction('🕜')
+            raise Exception("No guild-specific configuration for moderation on guild "+str(message.guild))
+        if "moderation" in scoped_config and scoped_config["moderation"] == "On":
+            if automod:
+                users = scoped_config['mod-users'].split(',')
+            else:
+                users = scoped_config['manual-mod-users'].split(',')
+            for user_id in users:
+                modmail = await client.get_user(int(user_id)).send(report_content)
+                if message.channel.is_nsfw():
+                    await modmail.add_reaction('🕜')
+        else:
+            raise Exception("Moderation disabled on guild "+str(message.guild))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         print("MRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
