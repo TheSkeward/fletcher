@@ -70,7 +70,15 @@ class CommandHandler:
         global config
         global sid
         try:
-            if type(message.channel) is discord.TextChannel and message.guild.get_channel(message.channel.category_id).name not in config['moderation']['blacklist-category'].split(','):
+            if "Guild "+str(message.guild.id) in config and 'blacklist-category' in config["Guild "+str(message.guild.id)]:
+                blacklist_category = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-category'].split(',')[]
+            else:
+                blacklist_category = []
+            if "Guild "+str(message.guild.id) in config and 'blacklist-channel' in config["Guild "+str(message.guild.id)]:
+                blacklist_channel = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-channel'].split(',')]
+            else:
+                blacklist_channel = []
+            if type(message.channel) is discord.TextChannel and message.channel.category_id not in blacklist_category and message.channel.id not in blacklist_channel:
                 sent_com_score = sid.polarity_scores(message.content)['compound']
                 if message.content == "VADER NEUTRAL":
                     sent_com_score = 0
