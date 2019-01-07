@@ -71,7 +71,7 @@ class CommandHandler:
         global sid
         try:
             if "Guild "+str(message.guild.id) in config and 'blacklist-category' in config["Guild "+str(message.guild.id)]:
-                blacklist_category = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-category'].split(',')[]
+                blacklist_category = [int(i) for i in config["Guild "+str(message.guild.id)]['blacklist-category'].split(',')]
             else:
                 blacklist_category = []
             if "Guild "+str(message.guild.id) in config and 'blacklist-channel' in config["Guild "+str(message.guild.id)]:
