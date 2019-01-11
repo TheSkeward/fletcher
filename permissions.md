@@ -10,7 +10,8 @@ This is for temporary channel functionality that's planned as well as some addit
 
 ## Manage Messages
 
-Lets it delete webhook messages which is important if the Discord-Discord sync gets used, if not there's no need for it.
+Spoilers are autoremoved using this permission. Also, if the bot is in `snappy` mode, then commands get removed in a few other places including teleports.
+Lets it delete webhook messages which is vital if the Discord-Discord sync gets used.
 
 ## Manage Emojis
 
