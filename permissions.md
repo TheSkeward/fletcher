@@ -63,4 +63,4 @@ Mostly for Discord radio stuff, it can be added later if needed
 
 ## Use External Emojis
 
-Not currently used, but it might be in future for better emoji reacts as buttons.
+Used for the rot13 unspoil button.
