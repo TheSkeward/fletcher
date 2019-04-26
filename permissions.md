@@ -2,65 +2,53 @@
 
 ## Manage Roles
 
-this is for persistent roles, so that if someone leaves and rejoins the server they automatically get their roles readded
+This is for persistent roles, so that if someone leaves and rejoins the server they automatically get their roles readded (if enabled with Save/Restore Roles Join Behavior).
 
-## Manage Channels, Manage Nicknames
+## Manage Channels
 
-This is for temporary channel functionality that's planned as well as some additional role functionality that's planned. Basically, allowing roles to have more granular permissions, as well as some fancy slow-moding and word banning. Not strictly necessary since it isn't currently used.
+This is required for the `!snooze` and `!part` self-managed permissions system.
 
-## Manage Messages
+## Kick Members
 
-Spoilers are autoremoved using this permission. Also, if the bot is in `snappy` mode, then commands get removed in a few other places including teleports.
-Lets it delete webhook messages which is vital if the Discord-Discord sync gets used.
+This is required for the `!kick` command, which kicks a user with a message sent to them, with no risk of accidentally deleting their messages from the server..
 
-## Manage Emojis
+## Manage Nicknames
 
-Planned feature based on creating custom combinations of emoji, it can be added later if needed
-
-## Create Instant Invite
-
-planned feature for allowing single-time invites to be granted by people on the server, which is currently not possible since invites are all or nothing, it can be added later if needed
-
-## Change Nickname
-
-Cosmetic stuff, not necessary with current functionality though it may be used in future
+The Save/Restore Roles Join Behavior uses this to restore nickname along with roles. As of writing, the two must be granted together.
 
 ## Manage Webhooks
 
 This is for the Discord-Discord sync, it's used to scan the list for any webhooks that belong to it.
 
-## View Audit Log
+## Read Messages
 
-Not currently used, and it keeps its own audit log.
-
-## Read Messages, Read Message History
-
- It's quite difficult to run a bot without these, but read message history could be removed at the cost of losing link previews. Read messages is vital.
+Allow triggering commands in channels. Read messages is vital.
 
 ## Send Messages
 
 Without this, the bot can only respond in PMs, which breaks notably teleports.
 
-## Send TTS Messages
+## Manage Messages
 
-Not necessary, not planned to be used.
+Spoilers are autoremoved using this permission. Also, if the bot is in `snappy` mode, then command triggers get removed in a few other places including teleports.
+Lets it delete webhook messages which is vital if the Discord-Discord sync gets used.
 
 ## Embed Links
 
-Needed for teleports and most functionality.
+Needed for teleports and most functionality involving messages.
 
 ## Attach Files
 
-Only used for !scramble ing images
+Used for !scramble ing images and message previews.
+
+## Read Message History
+
+Link previews depend on this to scan history for the message in question. Discord-Discord sync requires it for old message edits.
 
 ## Add Reactions
 
 Many functions react to their own messages so folks can easily respond without having to search for emoji. Not strictly necessary, but !spoiler and !rot13 get harder to use.
 
-## Connect, Speak, Mute Members, Deafen Memebers, Move Members, Use Voice Activity, Priority Speaker
-
-Mostly for Discord radio stuff, it can be added later if needed
-
 ## Use External Emojis
 
-Used for the rot13 unspoil button.
+Used for the rot13 unspoil button, and in future other buttons.
