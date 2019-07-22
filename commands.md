@@ -19,19 +19,19 @@
 ## ROT-13 (`!rot13`):
 #### varargs
  delete message and replace with ROT-13 flip. Classic spoiler command, especially to preserve spoilers on copy. Prepopulates with :clock1830: reaction.
-#### :clock1830: (:clock1830:, first suggestion when you type 13)
+#### 🕜 (`:clock1830:`, first suggestion when you type 13)
  DMs user with ROT-13 of target message. Does not support embeds.
 
 ## Spoiler (`!spoiler`):
 #### varargs
  delete message and replace with modified memfrob flip. Newer spoiler command, usable similar to Rot-13, but with improved number and Unicode obfuscation. Prepopulates with :seenoevil: reaction.
-#### :seenoevil: (:seenoevil:)
+#### 🙈 (`:seenoevil:`)
  DM user with modified memfrob flip of target message. Does not support embeds.
 
 ## Scramble (`!scramble`):
 #### 0-args
- this command requires a picture uploaded by user beforehand, scrambles image reversibly. Does not support GIFs or large images. Prepopulates with :mag_right:.
-#### :mag_right: (:mag_right:)
+ this command requires a picture uploaded by user beforehand, scrambles image reversibly. Does not support GIFs or large images. Prepopulates with `:mag_right:`.
+#### 🔎 (`:mag_right:`)
  DM user with unscrambled image.
 
 ## (S) Zalgo (`!zalgo`):
@@ -74,14 +74,14 @@ Ex:
 #### 1 or 2-args (name, number)
  Add a reaction to the last non-self post with the name specified. Works with animated and external emoji. User can then add that reaction, regardless of whether they have Nitro. If more than one react exists with the name specified, the numbers specified as the second argument is added.
 
-## Table it (`!table`):
-#### :ping_pong: (:ping_pong:, first suggestion for table)
+## Table it:
+#### 🏓 (`:ping_pong:`, first suggestion for table)
  DMs user after 24 hours to ask them to pick up a conversation again. Messages immediately with the content of the target message to save it for later.
 
 ## Assemble (`!assemble`):
 #### 3-args (short name, users required, long name)
  Creates a banner for triggering collective action when support reaches critical mass. The short name must be one word, no spaces. Usable via `!assemble` or `!canvas`.
-Ex:
+Ex
 
 ```
 [11:44] #general <Cain> !canvas sierra 5 Sierra Roadtrip!
@@ -147,7 +147,7 @@ MET: 2018-12-12 15:32 (yesterday)
 ## Moderator Report (`!modreport`):
 #### 0 or 1-args (message to mods)
  message mod(s) on duty. See admin documentation for details on configuring who this message is sent to.
-#### 👁 🗨 (:eye_in_speech_bubble:)
+#### 👁 🗨 (`:eye_in_speech_bubble:`)
  same as above but auto-removed to make semi-anonymous, even if Fletcher is not configured snappy.
 
 ## Part (`!part`):
@@ -180,8 +180,8 @@ Ex:
 
 ## Shindan (`!shindan`):
 #### 1-args (link)
- display information about a Shindan quiz. prepopulates a :name_badge: reaction.
-#### :name_badge: (:name_badge:)
+ display information about a Shindan quiz. prepopulates a 📛 reaction.
+#### 📛 (`:name_badge:`)
  run Shindan with your username.
 
 ## SCP (`!scp`):
