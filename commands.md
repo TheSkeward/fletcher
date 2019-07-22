@@ -44,11 +44,11 @@
 Ex:
 
 ```
-		[11:44] #general <Cain> And you can quote me on that
-		[11:45] #general <Cain> !blockquote
-		[11:46] #general <Fletcher>
-			| And you can quote me on that
-			| (S) Cain
+[11:44] #general <Cain> And you can quote me on that
+[11:45] #general <Cain> !blockquote
+[11:46] #general <Fletcher>
+| And you can quote me on that
+| (S) Cain
 ```
 
 #### 1-args (explicit body text)
@@ -60,14 +60,14 @@ Ex:
 Ex:
 
 ```
-		[11:44] #general <Cain> Point A: Alpha
-		[11:45] #general <Cain> Point B: Beta
-		[11:46] #general <Cain> !blockquote <<2 optionalTitle
-		[11:47] #general <Fletcher>
-			| optionalTitle
-			| Point A: Alpha
-			| Point B: Beta
-			| (S) Cain
+[11:44] #general <Cain> Point A: Alpha
+[11:45] #general <Cain> Point B: Beta
+[11:46] #general <Cain> !blockquote <<2 optionalTitle
+[11:47] #general <Fletcher>
+| optionalTitle
+| Point A: Alpha
+| Point B: Beta
+| (S) Cain
 ```
 
 ## (S) X-React (`!xreact`):
@@ -84,8 +84,8 @@ Ex:
 Ex:
 
 ```
-	[11:44] #general <Cain> !canvas sierra 5 Sierra Roadtrip!
-	[11:45] #general <Fletcher> Banner created! '!pledge sierra' to commit to this pledge.
+[11:44] #general <Cain> !canvas sierra 5 Sierra Roadtrip!
+[11:45] #general <Fletcher> Banner created! '!pledge sierra' to commit to this pledge.
 ```
 
 ## Pledge (`!pledge`):
@@ -94,10 +94,10 @@ Ex:
 Ex:
 
 ```
-		[12:15] #general <Abel> !pledge sierra
-		[12:16] #general <Fletcher> You pledged your support for banner sierra (one of 4 supporters). It needs 1 more supporter to reach its goal.
-		[12:17] #general <Baker> !pledge sierra
-		[12:18] #general <Fletcher> Critical mass reached for banner sierra! Paging supporters: @Cain, @David, @Ellie, @Abel, @Baker. Now it's up to you to fulfill your goal :)
+[12:15] #general <Abel> !pledge sierra
+[12:16] #general <Fletcher> You pledged your support for banner sierra (one of 4 supporters). It needs 1 more supporter to reach its goal.
+[12:17] #general <Baker> !pledge sierra
+[12:18] #general <Fletcher> Critical mass reached for banner sierra! Paging supporters: @Cain, @David, @Ellie, @Abel, @Baker. Now it's up to you to fulfill your goal :)
 ```
 
 ## Defect (`!defect`):
@@ -110,16 +110,16 @@ Ex:
 Ex:
 
 ```
-		[11:00] #general <Cain> !banners
-		[11:01] #general <Fletcher> Banner List:
-			EA READING GROUP for reading if goal of 5 members is reached
-			1 supporter · goal is 5
-			MADE: 2018-12-06 01:12 (1 week ago)
-			—————
-			DC Dinner 119 Dinner party in January? Tentatively hosted in Rockville
-			5 supporters · goal is 4
-			MADE: 2018-12-12 15:28 (yesterday)
-			MET: 2018-12-12 15:32 (yesterday)
+[11:00] #general <Cain> !banners
+[11:01] #general <Fletcher> Banner List:
+EA READING GROUP for reading if goal of 5 members is reached
+1 supporter · goal is 5
+MADE: 2018-12-06 01:12 (1 week ago)
+—————
+DC Dinner 119 Dinner party in January? Tentatively hosted in Rockville
+5 supporters · goal is 4
+MADE: 2018-12-12 15:28 (yesterday)
+MET: 2018-12-12 15:32 (yesterday)
 ```
 
 ## Teleport (`!teleport`):
@@ -170,8 +170,8 @@ Ex:
 Ex:
 
 ```
-			[11:45] #general <Cain> !pick 2 of apple banana, cherry, durian
-			[11:46] #general <Fletcher> I'd say banana, cherry.
+[11:45] #general <Cain> !pick 2 of apple banana, cherry, durian
+[11:46] #general <Fletcher> I'd say banana, cherry.
 ```
 
 ## Roll (`!roll`):
@@ -200,8 +200,8 @@ Ex:
 Ex:
 
 ```
-		!ghreport Title of issue
-		Body Text
+!ghreport Title of issue
+Body Text
 ```
 
 Report an issue to the repository associated with this server.
