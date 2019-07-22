@@ -29,6 +29,7 @@
 * (S) Blockquote (`!blockquote`):
 	* 0-args, "blockquote" the last message sent by calling user in the channel. Does not include images.
 	* Ex:
+
 ```
 		[11:14] #general <Cain> And you can quote me on that
 		[11:45] #general <Cain> !blockquote
@@ -36,10 +37,12 @@
 			| And you can quote me on that
 			| (S) Cain
 ```
+
 	* 1-args (explicit body text): similar to the last, but the quoted text is specified in the same message. If multi-line, note that the text on the first line becomes the title of the embed.
 	* 1-args (link): take message body from link ( you can get a message link with the :link: reaction or the :bookmark: reaction)
 	* 1 or 2-args (history), you can create an embed longer than 2000 characters by sending multiple messages before a blockquote for up to 6000 characters.
 	* Ex:
+
 ```
 		[11:44] #general <Cain> Point A: Alpha
 		[11:45] #general <Cain> Point B: Beta
@@ -50,6 +53,7 @@
 			| Point B: Beta
 			| (S) Cain
 ```
+
 * (S) X-React (`!xreact1):
 	* 1 or 2-args (name, number), Add a reaction to the last non-self post with the name specified. Works with animated and external emoji. User can then add that reaction, regardless of whether they have Nitro. If more than one react exists with the name specified, the numbers specified as the second argument is added.
 
