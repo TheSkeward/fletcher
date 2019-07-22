@@ -31,12 +31,11 @@
 	* Ex:
 
 ```
-		[11:14] #general <Cain> And you can quote me on that
+		[11:44] #general <Cain> And you can quote me on that
 		[11:45] #general <Cain> !blockquote
 		[11:46] #general <Fletcher>
 			| And you can quote me on that
 			| (S) Cain
-```
 
 	* 1-args (explicit body text): similar to the last, but the quoted text is specified in the same message. If multi-line, note that the text on the first line becomes the title of the embed.
 	* 1-args (link): take message body from link ( you can get a message link with the :link: reaction or the :bookmark: reaction)
@@ -52,7 +51,6 @@
 			| Point A: Alpha
 			| Point B: Beta
 			| (S) Cain
-```
 
 * (S) X-React (`!xreact1):
 	* 1 or 2-args (name, number), Add a reaction to the last non-self post with the name specified. Works with animated and external emoji. User can then add that reaction, regardless of whether they have Nitro. If more than one react exists with the name specified, the numbers specified as the second argument is added.
@@ -64,6 +62,7 @@
 	* 3-args (short name, users required, long name), Creates a banner for triggering collective action when support reaches critical mass. The short name must be one word, no spaces. Usable via `!assemble` or `!canvas`.
 	* Ex:
 
+```
 	[11:44] #general <Cain> !canvas sierra 5 Sierra Roadtrip!
 	[11:45] #general <Fletcher> Banner created! '!pledge sierra' to commit to this pledge.
 
@@ -71,6 +70,7 @@
 	* 1-args (short name), pledge support for a banner when it hits critical mass.
 	* Ex:
 
+```
 		[12:15] #general <Abel> !pledge sierra
 		[12:16] #general <Fletcher> You pledged your support for banner sierra (one of 4 supporters). It needs 1 more supporter to reach its goal.
 		[12:17] #general <Baker> !pledge sierra
@@ -83,6 +83,7 @@
 	* 0-args, lists currently active banners. Note that banners are global, not server-specific.
 	* Ex:
 
+```
 		[11:00] #general <Cain> !banners
 		[11:01] #general <Fletcher> Banner List:
 			EA READING GROUP for reading if goal of 5 members is reached
@@ -128,6 +129,7 @@
 	* 2-args (# of choices), pick # of the comma-separated choices
 		* Ex:
 
+```
 			[11:45] #general <Cain> !pick 2 of apple banana, cherry, durian
 			[11:46] #general <Fletcher> I'd say banana, cherry.
 
@@ -150,6 +152,7 @@
 * GitHub Report (`!ghreport`):
 	* Ex:
 
+```
 		!ghreport Title of issue
 		Body Text
 
