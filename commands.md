@@ -18,8 +18,8 @@
 
 ## ROT-13 (`!rot13`):
 #### varargs
- delete message and replace with ROT-13 flip. Classic spoiler command, especially to preserve spoilers on copy. Prepopulates with :clock1830: reaction.
-#### 🕜 (`:clock1830:`, first suggestion when you type 13)
+ delete message and replace with ROT-13 flip. Classic spoiler command, especially to preserve spoilers on copy. Prepopulates with :clock1330: reaction.
+#### 🕜 (`:clock1330:`, first suggestion when you type 13)
  DMs user with ROT-13 of target message. Does not support embeds.
 
 ## Spoiler (`!spoiler`):
