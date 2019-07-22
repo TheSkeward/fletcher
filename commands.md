@@ -140,7 +140,7 @@ MET: 2018-12-12 15:32 (yesterday)
 #### 🔗 (:link:)
  same as 🔖 without message preview. Useful for getting a message link for copy on mobile.
 
-## Math (`!math`):
+## Math (`!math` or `!latex`):
 #### 1-args (mathexpression)
  render math in LaTeX format. mathexpression is wrapped in $$.
 
