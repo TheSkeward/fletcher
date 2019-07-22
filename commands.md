@@ -30,11 +30,11 @@
 	* 0-args, "blockquote" the last message sent by calling user in the channel. Does not include images.
 	* Ex:
 
-	[11:14] #general <Cain> And you can quote me on that
+<pre><code>	[11:14] #general <Cain> And you can quote me on that
 	[11:45] #general <Cain> !blockquote
 	[11:46] #general <Fletcher>
 		| And you can quote me on that
-		| (S) Cain
+		| (S) Cain</code></pre>
 
 	* 1-args (explicit body text): similar to the last, but the quoted text is specified in the same message. If multi-line, note that the text on the first line becomes the title of the embed.
 	* 1-args (link): take message body from link ( you can get a message link with the :link: reaction or the :bookmark: reaction)
