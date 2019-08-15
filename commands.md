@@ -140,6 +140,10 @@ MET: 2018-12-12 15:32 (yesterday)
 #### 🔗 (:link:)
  same as 🔖 without message preview. Useful for getting a message link for copy on mobile.
 
+## Paste (`!paste`):
+#### 0-args
+ sends a message to the channel with the last message DMed by Fletcher to the calling user. This is often used in conjunction with 🔗 (:link:) to paste the last copied link.
+
 ## Math (`!math` or `!latex`):
 #### 1-args (mathexpression)
  render math in LaTeX format. mathexpression is wrapped in $$.
@@ -195,6 +199,10 @@ Ex:
 ## Twilestia (`!twilestia`):
 #### 0-args
  prints a random Celestia×Twilight Sparkle image
+
+## Danbooru (`!dan`):
+#### 1-args (tag)
+ prints a random image from Safebooru with the given tag
 
 ## GitHub Report (`!ghreport`):
 Ex:
