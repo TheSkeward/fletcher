@@ -201,8 +201,8 @@ Ex:
  prints a random Celestia×Twilight Sparkle image
 
 ## Danbooru (`!dan`):
-#### 1-args (tag)
- prints a random image from Safebooru with the given tag
+#### 1+-args (tag tag ...)
+ prints a random image from Danbooru with the given tag(s). If channel is a DM or a SFW channel, an implicit rating:safe is added to the search.
 
 ## GitHub Report (`!ghreport`):
 Ex:
