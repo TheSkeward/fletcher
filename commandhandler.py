@@ -848,6 +848,13 @@ def load_user_config(ch):
     load_react_notifications(ch)
     load_tuppers(ch)
 
+def preference_function(message, client, args):
+    global ch
+    if len(args) > 1:
+        value = args[1]
+    else:
+        value = None
+    return ch.user_config(message.author.id, message.guild.id, args[0], value)
 
 def autoload(ch):
     global tag_id_as_command
@@ -866,7 +873,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!preference"],
-            "function": lambda message, client, args: ch.user_config(message.author.id, message.guild.id, **args),
+            "function": preference_function,
             "async": False,
             "args_num": 1,
             "args_name": ['key', '[value]'],
