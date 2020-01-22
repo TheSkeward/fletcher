@@ -18,7 +18,7 @@ def time_at_place(message, client, args):
             location = geolocator.geocode(" ".join(args))
             tz = pytz.timezone(tzwheremst.tzNameAt(location.latitude, location.longitude))
         elif ch.user_config(message.author.id, message.guild.id, 'tz'):
-            tz = pytz.timezone(ch.user_config(message.author, message.guild, 'tz'))
+            tz = pytz.timezone(ch.user_config(message.author.id, message.guild.id, 'tz'))
         else:
             tz = pytz.utc
         now = datetime.now(tz)
