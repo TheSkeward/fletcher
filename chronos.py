@@ -9,12 +9,13 @@ tzwheremst = None
 logger = logging.getLogger("fletcher")
 
 def time_at_place(message, client, args):
+    global ch
     try:
         if len(args) > 0:
             location = geolocator.geocode(" ".join(args))
             tz = pytz.timezone(tzwheremst.tzNameAt(location[0], location[1]))
         elif client.user_config(message.author.id, message.guild.id, 'tz'):
-            tz = pytz.timezone(client.user_config(message.author, message.guild, 'tz'))
+            tz = pytz.timezone(ch.user_config(message.author, message.guild, 'tz'))
         else:
             tz = pytz.utc
         now = datetime.now(tz)
