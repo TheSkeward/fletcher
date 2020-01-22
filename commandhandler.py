@@ -641,13 +641,19 @@ class CommandHandler:
         
         
     @lru_cache(maxsize=256)
-    def user_config(self, user, guild, key):
+    def user_config(self, user, guild, key, value=None):
         cur = conn.cursor()
-        cur.execute(
-            "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
-            [user, guild, key]
-        )
-        value = cur.fetchone()
+        if not value:
+            cur.execute(
+                "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
+                [user, guild, key]
+            )
+            value = cur.fetchone()
+        else:
+            cur.execute(
+                "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s, %s) ON CONFLICT UPDATE SET value = value;",
+                [user, guild, key, value]
+            )
         conn.commit()
         return value
 
@@ -855,6 +861,16 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Output current config",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!preference"],
+            "function": lambda message, client, args: ch.user_config(message.author.id, message.guild.id, **args),
+            "async": False,
+            "args_num": 1,
+            "args_name": ['key', '[value]'],
+            "description": "Set or get user preference for this guild",
         }
     )
     ch.add_command(
