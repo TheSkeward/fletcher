@@ -651,7 +651,7 @@ class CommandHandler:
             value = cur.fetchone()
         else:
             cur.execute(
-                "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT UPDATE SET value = value;",
+                "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT DO UPDATE SET value = value;",
                 [user, guild, key, value]
             )
         conn.commit()
