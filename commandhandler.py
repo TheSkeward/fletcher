@@ -649,6 +649,8 @@ class CommandHandler:
                 [user, guild, key]
             )
             value = cur.fetchone()
+            if value:
+                value = value[0]
         else:
             cur.execute(
                 "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
