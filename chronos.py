@@ -24,7 +24,7 @@ def time_at_place(message, client, args):
         now = datetime.now(tz)
         return f'The time is {now.strftime("%Y-%m-%d %H:%M")}.'
     except pytz.UnknownTimeZoneError as e:
-        return f'Error: {e}'
+        return f'Error: {type(e).__name__} for {e}'
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TAP[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
