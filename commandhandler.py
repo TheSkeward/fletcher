@@ -867,6 +867,6 @@ def autoload(ch):
             "description": "List commands and arguments",
         }
     )
-    ch.user_config.clear_cache()
+    ch.user_config.cache_clear()
     load_user_config(ch)
     load_hotwords(ch)
