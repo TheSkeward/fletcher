@@ -24,7 +24,8 @@ def time_at_place(message, client, args):
         logger.error(f"TAP[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 def autoload(ch):
-    geolocator = Nominatim(user_agent=ch.config.get("discord", dict()).get("botLogName", "botLogName"))
+    global config
+    geolocator = Nominatim(user_agent=config.get("discord", dict()).get("botLogName", "botLogName"))
     tzwhere = tzwhere.tzwhere()
     ch.add_command(
         {
