@@ -11,6 +11,8 @@ logger = logging.getLogger("fletcher")
 
 def time_at_place(message, client, args):
     global ch
+    global geolocator
+    global tzwheremst
     try:
         if len(args) > 0:
             location = geolocator.geocode(" ".join(args))
@@ -27,6 +29,8 @@ def time_at_place(message, client, args):
 
 def autoload(ch):
     global config
+    global geolocator
+    global tzwheremst
     geolocator = Nominatim(user_agent=config.get("discord", dict()).get("botLogName", "botLogName"))
     tzwheremst = tzwhere.tzwhere()
     ch.add_command(
