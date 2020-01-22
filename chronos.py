@@ -5,14 +5,14 @@ import pytz
 from tzwhere import tzwhere
 
 geolocator = None
-tzwhere = None
+tzwheremst = None
 logger = logging.getLogger("fletcher")
 
 def time_at_place(message, client, args):
     try:
         if len(args) > 0:
             location = geolocator.geocode(" ".join(args))
-            tz = pytz.timezone(tzwhere.tzNameAt(location[0], location[1]))
+            tz = pytz.timezone(tzwheremst.tzNameAt(location[0], location[1]))
         elif client.user_config(message.author.id, message.guild.id, 'tz'):
             tz = pytz.timezone(client.user_config(message.author, message.guild, 'tz'))
         else:
@@ -26,7 +26,7 @@ def time_at_place(message, client, args):
 def autoload(ch):
     global config
     geolocator = Nominatim(user_agent=config.get("discord", dict()).get("botLogName", "botLogName"))
-    tzwhere = tzwhere.tzwhere()
+    tzwheremst = tzwhere.tzwhere()
     ch.add_command(
         {
             "trigger": ["!now"],
