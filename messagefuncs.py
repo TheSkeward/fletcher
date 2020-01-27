@@ -209,7 +209,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|scrying/predict)\?[^ ]+)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+)",
     re.IGNORECASE,
 )
 
