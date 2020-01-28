@@ -232,6 +232,8 @@ async def preview_messagelink_function(message, client, args):
             previewable_parts = extract_previewable_link.search(in_content).groups()
         except AttributeError:
             previewable_parts = []
+        attachments = []
+        embed = None
         if len(urlParts) == 3:
             guild_id = int(urlParts[0])
             channel_id = int(urlParts[1])
@@ -270,8 +272,6 @@ async def preview_messagelink_function(message, client, args):
                     sent_at,
                     content,
                 )
-            attachments = []
-            embed = None
             if target_message.channel.is_nsfw() and not message.channel.is_nsfw():
                 content = extract_links.sub(r"<\g<0>>", content)
             if len(target_message.attachments) > 0:
