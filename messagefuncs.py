@@ -209,7 +209,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+)",
+        "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+|https?://todo.sr.ht/~nova/fletcher/\d+)",
     re.IGNORECASE,
 )
 
@@ -271,6 +271,7 @@ async def preview_messagelink_function(message, client, args):
                     content,
                 )
             attachments = []
+            embed = None
             if target_message.channel.is_nsfw() and not message.channel.is_nsfw():
                 content = extract_links.sub(r"<\g<0>>", content)
             if len(target_message.attachments) > 0:
@@ -313,9 +314,16 @@ async def preview_messagelink_function(message, client, args):
                     )
                 ]
                 content = "FlightRising Preview"
+            elif "todo.sr.ht" in previewable_parts[0]:
+                import versionutils
+
+                embed = await versionutils.buglist_function(
+                        message, client, [previewable_parts[0].split("/")[-1], "INTPROC"]
+                    )
+                content = "Todo Preview"
         # TODO 🔭 to preview?
         if content:
-            return await sendWrappedMessage(content, message.channel, files=attachments)
+            return await sendWrappedMessage(content, message.channel, files=attachments, embed=embed)
     except discord.Forbidden as e:
         await message.author.send(
             f"Tried unrolling message link in your message https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
