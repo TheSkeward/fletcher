@@ -638,6 +638,8 @@ def join_rank_function(message, client, args):
                 pass
         else:
             member = message.author
+        if not message.guild:
+            return 'This command ranks you in a server, and so cannot be used outside of one.'
         sorted_member_list = sorted(
             message.guild.members, key=lambda member: member.joined_at
         )
