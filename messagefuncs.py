@@ -71,12 +71,12 @@ def xchannel(targetChannel, currentGuild):
     return toChannel
 
 
-async def sendWrappedMessage(msg, target, files=[]):
+async def sendWrappedMessage(msg, target, files=[], embed=None):
     msg_chunks = textwrap.wrap(msg, 2000, replace_whitespace=False)
     last_chunk = msg_chunks.pop()
     for chunk in msg_chunks:
         await target.send(chunk)
-    await target.send(last_chunk, files=files)
+    await target.send(last_chunk, files=files, embed=embed)
 
 
 extract_identifiers_messagelink = re.compile(
