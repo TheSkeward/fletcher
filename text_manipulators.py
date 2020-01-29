@@ -839,7 +839,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!smallcaps"],
-            "function": lambda message, client, args: smallcaps(" ".join(args)),
+            "function": lambda message, client, args: smallcaps(" ".join(args).lower()),
             "async": False,
             "args_num": 1,
             "args_name": [],
@@ -850,7 +850,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!smoltext"],
-            "function": lambda message, client, args: smoltext(" ".join(args)),
+            "function": lambda message, client, args: smoltext(" ".join(args).lower()),
             "async": False,
             "args_num": 1,
             "args_name": [],
