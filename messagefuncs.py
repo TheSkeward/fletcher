@@ -100,7 +100,11 @@ async def teleport_function(message, client, args):
             )
             raise Exception("Forbidden teleport")
         toChannelName = args[0].strip()
-        toChannel = xchannel(toChannelName, fromGuild)
+        toChannel = None
+        try:
+            toChannel = xchannel(toChannelName, fromGuild)
+        except ValueError:
+            pass
         if toChannel is None:
             await fromChannel.send(
                 "Could not find channel {}, please check for typos.".format(
