@@ -184,7 +184,7 @@ class CommandHandler:
                 logger.debug(scoped_command)
                 logger.debug(args)
                 if (
-                    messageContent.startswith(tuple(command["trigger"]))
+                    messageContent.startswith(tuple(scoped_command["trigger"]))
                     and allowCommand(scoped_command, message, user=user)
                     and command["args_num"] == 0
                 ):
