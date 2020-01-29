@@ -186,7 +186,7 @@ class CommandHandler:
                 if (
                     messageContent.startswith(tuple(scoped_command["trigger"]))
                     and allowCommand(scoped_command, message, user=user)
-                    and command["args_num"] == 0
+                    and scoped_command["args_num"] == 0
                 ):
                     if str(user.id) in config["moderation"][
                         "blacklist-user-usage"
