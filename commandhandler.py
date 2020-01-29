@@ -193,7 +193,7 @@ class CommandHandler:
                     ].split(","):
                         raise Exception("Blacklisted command attempt by user")
                     logger.debug(scoped_command["function"])
-                    if command["async"]:
+                    if scoped_command["async"]:
                         return await scoped_command["function"](message, self.client, args)
                     else:
                         return await message.channel.send(
