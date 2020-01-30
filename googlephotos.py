@@ -71,7 +71,7 @@ def listalbums_function(message, client, args):
     try:
         return "\n".join(
             [
-                f'{album.get("title")} ({album.get("id")})'
+                f'{album.get("title")} ({album.get("id")}) <{album.get("productUrl")}>'
                 for album in gphotos.albums().list().execute()["albums"]
             ]
         )
