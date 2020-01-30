@@ -69,7 +69,7 @@ scopes = {credentials.scopes}
 def listalbums_function(message, client, args):
     global gphotos
     try:
-        return "; ".join(
+        return "\n".join(
             [
                 f'{album.get("title")} ({album.get("id")})'
                 for album in gphotos.albums().list().execute()["albums"]
@@ -207,6 +207,7 @@ def autoload(ch):
             "function": listalbums_function,
             "async": False,
             "admin": "global",
+            "long_run": True,
             "hidden": True,
             "args_num": 0,
             "args_name": [],
