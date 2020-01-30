@@ -72,7 +72,7 @@ def listalbums_function(message, client, args):
         return "\n".join(
             [
                 f'{album.get("title")} ({album.get("id")}) <{album.get("productUrl")}>'
-                for album in gphotos.albums().list(body={"pageSize": 50}).execute()["albums"]
+                for album in gphotos.albums().list(pageSize=50).execute()["albums"]
             ]
         )
     except Exception as e:
