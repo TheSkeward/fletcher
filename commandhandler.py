@@ -196,12 +196,10 @@ class CommandHandler:
                     if scoped_command["async"]:
                         return await scoped_command["function"](message, self.client, args)
                     else:
-                        return await message.channel.send(
-                            str(
-                                scoped_command["function"](
-                                    message, self.client, [reaction, user, "add"]
-                                )
-                            )
+                        args = [reaction, user, "add"]
+                        return await messagefuncs.sendWrappedMessage(
+                            str(scoped_command["function"](message, self.client, args)),
+                            message.channel
                         )
             for command in self.commands:
                 if (
@@ -218,8 +216,9 @@ class CommandHandler:
                     if command["async"]:
                         return await command["function"](message, self.client, args)
                     else:
-                        return await message.channel.send(
-                            str(command["function"](message, self.client, args))
+                        return await messagefuncs.sendWrappedMessage(
+                            str(command["function"](message, self.client, args)),
+                            message.channel
                         )
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
@@ -323,8 +322,9 @@ class CommandHandler:
                     if command["async"]:
                         return await command["function"](message, self.client, args)
                     else:
-                        return await message.channel.send(
-                            str(command["function"](message, self.client, args))
+                        return await messagefuncs.sendWrappedMessage(
+                            str(command["function"](message, self.client, args)),
+                            message.channel
                         )
             for command in self.commands:
                 if (
@@ -342,8 +342,9 @@ class CommandHandler:
                     if command["async"]:
                         return await command["function"](message, self.client, args)
                     else:
-                        return await message.channel.send(
-                            str(command["function"](message, self.client, args))
+                        return await messagefuncs.sendWrappedMessage(
+                            str(command["function"](message, self.client, args)),
+                            message.channel
                         )
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
@@ -578,8 +579,9 @@ class CommandHandler:
                         await command["function"](message, self.client, args)
                         break
                     else:
-                        await message.channel.send(
-                            str(command["function"](message, self.client, args))
+                        await messagefuncs.sendWrappedMessage(
+                            str(command["function"](message, self.client, args)),
+                            message.channel
                         )
                         break
                 else:
@@ -588,8 +590,9 @@ class CommandHandler:
                             await command["function"](message, self.client, args)
                             break
                         else:
-                            await message.channel.send(
-                                str(command["function"](message, self.client, args))
+                            await messagefuncs.sendWrappedMessage(
+                                str(command["function"](message, self.client, args)),
+                                message.channel
                             )
                             break
                     else:
