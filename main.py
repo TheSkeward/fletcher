@@ -297,8 +297,7 @@ def autoload(module, choverride):
 async def animate_startup(emote, message=None):
     if message:
         await message.add_reaction(emote)
-    else:
-        logger.info(emote)
+    logger.info(emote)
 
 
 async def reload_function(message=None, client=client, args=[]):
