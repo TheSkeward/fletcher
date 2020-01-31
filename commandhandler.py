@@ -378,6 +378,9 @@ class CommandHandler:
                 else:
                     logger.error(f"Unknown member_join_action [{member_join_action}]")
 
+    async def channel_update_handler(self, before, after):
+        pass # Stub
+
     async def reload_handler(self):
         try:
             # Trigger reload handlers
