@@ -767,7 +767,7 @@ def autoload(ch):
             "async": True,
             "args_num": 0,
             "long_run": True,
-            "args_name": [],
+            "args_name": ['Up to 16 characters', 'Up to 13 characters', 'Up to 27 characters'],
             "description": "Retrowave Text Generator. Arguments are bucketed in batches of three, with 16 characters for the top row, 13 for the middle row, and 27 for the bottom row. Non alphanumeric characters are stripped. To set your own divisions, add slashes.",
         }
     )
