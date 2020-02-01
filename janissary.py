@@ -1090,7 +1090,7 @@ async def copy_permissions_function(message, client, args):
 
 async def copy_emoji_function(message, client, args):
     try:
-        emoji_query = args[0].strip(":")
+        emoji_query = args.pop(0).strip(":")
         if ":" in emoji_query:
             emoji_query = emoji_query.split(":")
             emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0])
@@ -1098,10 +1098,14 @@ async def copy_emoji_function(message, client, args):
         else:
             filter_query = lambda m: m.name == emoji_query
         emoji = list(filter(filter_query, client.emojis))
-        if len(args) >= 2:
-            emoji = emoji[int(args[1])]
+        if len(args) and args[0].isnumeric():
+            emoji = emoji[int(args.pop(0))]
         else:
             emoji = emoji[0]
+        if len(args):
+            emoji_name = args.pop(0)
+        else:
+            emoji_name = emoji.name
         if emoji:
             target = await message.channel.send(f"Add reaction {emoji}?")
             await target.add_reaction("✅")
@@ -1117,7 +1121,7 @@ async def copy_emoji_function(message, client, args):
                 await message.remove_reaction("✅", client.user)
                 pass
             custom_emoji = await message.guild.create_custom_emoji(
-                name=emoji.name,
+                name=emoji_name,
                 image=(await emoji.url.read()),
                 reason=f"Synced from {emoji.guild} for {message.author.name}",
             )
