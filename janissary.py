@@ -1091,7 +1091,13 @@ async def copy_permissions_function(message, client, args):
 async def copy_emoji_function(message, client, args):
     try:
         emoji_query = args[0].strip(":")
-        emoji = list(filter(lambda m: m.name == emoji_query, client.emojis))
+        if ":" in emoji_query:
+            emoji_query = emoji_query.split(":")
+            emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0])
+            filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
+        else:
+            filter_query = lambda m: m.name == emoji_query
+        emoji = list(filter(filter_query, client.emojis))
         if len(args) >= 2:
             emoji = emoji[int(args[1])]
         else:
@@ -1163,6 +1169,7 @@ async def add_inbound_sync_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def names_sync_aware_function(message, client, args):
@@ -1228,6 +1235,17 @@ async def voice_opt_out(message, client, args):
         exc_type, exc_bj, exc_tb = exc_info()
         logger.error(f"VOO[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+async def error_report_function(error_str, guild, client):
+    global ch
+    automod = None
+    scoped_config = ch.scope_config(guild=message.guild)
+    if automod:
+        users = scoped_config["mod-users"].split(",")
+    else:
+        users = str(guild.owner.id)
+    users = list(expand_target_list(users, guild))
+    for target in users:
+        modmail = await messagefuncs.sendWrappedMessage(report_content, target)
 
 async def delete_my_message_function(message, client, args):
     global config
@@ -1475,7 +1493,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!copy_emoji"],
+            "trigger": ["!copy_emoji", "!esteal"],
             "function": copy_emoji_function,
             "async": True,
             "admin": "server",
