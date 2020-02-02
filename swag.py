@@ -415,7 +415,9 @@ async def flightrising_function(message, client, args):
                     f'https://www1.flightrising.com{request_body["dragon_url"]}'
                 )
         file_name = "flightrising.png"
-        if guild_config.get('fr-spoiler-regex') and re.search(guild_config.get("fr-spoiler-regex"), data):
+        spoiler_regex = guild_config.get('fr-spoiler-regex')
+        logger.debug(f'Spoiler Regex: {spoiler_regex}')
+        if spoiler_regex and re.search(spoiler_regex, url):
             file_name = "SPOILER_flightrising.png"
         return discord.File(input_image_blob, "flightrising.png")
     except Exception as e:
