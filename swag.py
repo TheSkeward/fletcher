@@ -390,7 +390,7 @@ async def pick_function(message, client, args):
 async def flightrising_function(message, client, args):
     global ch
     try:
-        guild_config = ch.scoped_config(guild=message.guild)
+        guild_config = ch.scope_config(guild=message.guild)
         url = args[0]
         input_image_blob = None
         if url.endswith('.png'):
