@@ -416,10 +416,9 @@ async def flightrising_function(message, client, args):
                 )
         file_name = "flightrising.png"
         spoiler_regex = guild_config.get('fr-spoiler-regex')
-        logger.debug(f'Spoiler Regex: {spoiler_regex}')
         if spoiler_regex and re.search(spoiler_regex, url):
             file_name = "SPOILER_flightrising.png"
-        return discord.File(input_image_blob, "flightrising.png")
+        return discord.File(input_image_blob, file_name)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
