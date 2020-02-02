@@ -388,7 +388,9 @@ async def pick_function(message, client, args):
 
 
 async def flightrising_function(message, client, args):
+    global ch
     try:
+        guild_config = ch.scoped_config(guild=message.guild)
         url = args[0]
         input_image_blob = None
         if url.endswith('.png'):
@@ -412,6 +414,9 @@ async def flightrising_function(message, client, args):
                 input_image_blob = await netcode.simple_get_image(
                     f'https://www1.flightrising.com{request_body["dragon_url"]}'
                 )
+        file_name = "flightrising.png"
+        if guild_config.get('fr-spoiler-regex') and re.search(guild_config.get("fr-spoiler-regex"), data):
+            file_name = "SPOILER_flightrising.png"
         return discord.File(input_image_blob, "flightrising.png")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
