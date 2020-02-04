@@ -2,6 +2,7 @@ from sys import exc_info
 import logging
 from geopy.geocoders import Nominatim
 import pytz
+import discord
 from tzwhere import tzwhere
 from datetime import datetime
 
