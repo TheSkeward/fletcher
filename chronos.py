@@ -35,7 +35,7 @@ def get_tz(message=None, user=None, guild=None):
     if message:
         user = message.author
         guild = message.guild
-    if user and isinstance(user, discord.User):
+    if user and isinstance(user, discord.User) or isinstance(user, discord.Member):
         user = user.id
     if guild and isinstance(guild, discord.Guild):
         guild = guild.id
