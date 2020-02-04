@@ -143,7 +143,7 @@ async def wiki_otd_function(message, client, args):
         async with session.get(url) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
-            titlebar = root.xpath(f'//a[@href="/wiki/{date}"]')[1].getparent().getparent()
+            titlebar = root.xpath(f'//div[@id="toc"]/following::a[@href="/wiki/{date}"]')[1].getparent().getparent()
             embedPreview = discord.Embed(
                 title=titlebar
                 .text_content()
