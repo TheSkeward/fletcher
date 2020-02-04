@@ -139,6 +139,7 @@ async def wiki_otd_function(message, client, args):
             date = "_".join(args)
         else:
             date = chronos.get_now(message=message).strftime("%B_%w")
+        logger.debug(f'WOTD: chronos thinks today is {date}')
         async with session.get(url) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
