@@ -1,5 +1,6 @@
 import aiohttp
 from collections import Counter
+import chronos
 import discord
 import ephem
 import io
@@ -128,6 +129,48 @@ async def retrowave_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("RWF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
+async def wiki_otd_function(message, client, args):
+    try:
+        url = "https://en.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/All"
+        if len(args):
+            date = "_".join(args)
+        else:
+            date = chronos.get_now(message=message).strftime("%B_%w")
+        async with session.get(url) as resp:
+            request_body = (await resp.read()).decode("UTF-8")
+            root = html.document_fromstring(request_body)
+            titlebar = root.xpath(f'//a[@href="{date}"]')[1].getparent().getparent()
+            embedPreview = discord.Embed(
+                title=titlebar
+                .text_content()
+                .strip(),
+                url=url,
+            ).set_thumbnail(
+                    url=titlebar.getnext().xpath('//img')[0].attrib["src"]
+            ).set_footer(
+                icon_url=message.author.avatar_url,
+                text="Wikipedia \"On This Day {}\" on behalf of {}".format(
+                    date.replace("_", " "), message.author.display_name
+                ),
+            )
+            for li in titlebar.getnext().getnext():
+                embedPreview.add_field(
+                        name=li[0].text_content().strip(),
+                        value=" ".join([el.text_content() for el in li[1:]]),
+                        inline=False
+                        )
+            embedPreview.add_field(
+                    name="Birthdays",
+                    value=titlebar.getnext().getnext().getnext().text_content().strip(),
+                    inline=False
+                    )
+            resp = await message.channel.send(embed=embedPreview)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("WOTD[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
 
@@ -888,6 +931,17 @@ def autoload(ch):
             "long_run": False,
             "args_name": [],
             "description": "Next new moon time",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!onthisday"],
+            "function": wiki_otd_function,
+            "async": True,
+            "args_num": 0,
+            "long_run": False,
+            "args_name": ['Month Day# (January 1)'],
+            "description": "Wikipedia On This Day",
         }
     )
     if session:

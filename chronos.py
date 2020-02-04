@@ -29,6 +29,24 @@ def time_at_place(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TAP[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+def get_tz(message=None, user=None, guild=None):
+    global ch
+    if message:
+        user = message.author
+        guild = message.guild
+    if user and isinstance(user, discord.User):
+        user = user.id
+    if guild and isinstance(guild, discord.Guild):
+        guild = guild.id
+    if ch.user_config(user, guild, 'tz'):
+        tz = pytz.timezone(ch.user_config(message.author.id, message.guild.id, 'tz'))
+    else:
+        tz = pytz.utc
+    return tz
+
+def get_now(message=None, user=None, guild=None):
+    return datetime.now(get_tz(message=message, user=user, guild=guild))
+
 def autoload(ch):
     global config
     global geolocator
