@@ -142,14 +142,14 @@ async def wiki_otd_function(message, client, args):
         async with session.get(url) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
-            titlebar = root.xpath(f'//a[@href="{date}"]')[1].getparent().getparent()
+            titlebar = root.xpath(f'//a[@href="/wiki/{date}"]')[1].getparent().getparent()
             embedPreview = discord.Embed(
                 title=titlebar
                 .text_content()
                 .strip(),
                 url=url,
             ).set_thumbnail(
-                    url=titlebar.getnext().xpath('//img')[0].attrib["src"]
+                    url=f'https:{titlebar.getnext().xpath("//img")[0].attrib["src"]}'
             ).set_footer(
                 icon_url=message.author.avatar_url,
                 text="Wikipedia \"On This Day {}\" on behalf of {}".format(
