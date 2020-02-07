@@ -703,7 +703,7 @@ async def help_function(message, client, args):
             public = True
 
         globalAdmin = message.author.id in config["discord"].get("globalAdmin", "").split(",")
-        serverAdmin = globalAdmin or isinstance(message.channel, discord.DMChannel) or message.author.guild_permissions.manage_webhooks
+        serverAdmin = globalAdmin or type(message.channel) is discord.DMChannel or message.author.guild_permissions.manage_webhooks
         channelAdmin = globalAdmin or serverAdmin or message.author.manage_webhooks
         if serverAdmin and public:
             target = message.channel
