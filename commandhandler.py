@@ -680,6 +680,7 @@ class CommandHandler:
 
 async def help_function(message, client, args):
     global ch
+    global config
     try:
         arg = None
         verbose = False
@@ -700,27 +701,25 @@ async def help_function(message, client, args):
                 break
         if message.content.startswith("!man"):
             public = True
-        target = message.channel
-        if (
-            (not hasattr(message.author, "guild_permissions"))
-            or (not message.author.guild_permissions.manage_webhooks)
-            or (message.author.guild_permissions.manage_webhooks and not public)
-        ):
+
+        globalAdmin = message.author.id in config["discord"].get("globalAdmin", "").split(",")
+        serverAdmin = globalAdmin or isinstance(discord.DMChannel, message.channel) or message.author.guild_permissions.manage_webhooks
+        channelAdmin = globalAdmin or serverAdmin or message.author.manage_webhooks
+        if serverAdmin and public:
+            target = message.channel
+        else:
             target = message.author
+
         if len(args) == 0:
             arg = None
-        if (
-            hasattr(message.author, "guild_permissions")
-            and message.author.guild_permissions.manage_webhooks
-            and len(args) > 0
-            and verbose
-        ):
 
+        if globalAdmin:
+            def command_filter(c):
+                return True
+        elif serverAdmin:
             def command_filter(c):
                 return "hidden" not in c.keys() or c["hidden"] == False
-
         else:
-
             def command_filter(c):
                 return ("admin" not in c.keys() or c["admin"] == False) and (
                     "hidden" not in c.keys() or c["hidden"] == False
