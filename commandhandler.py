@@ -713,7 +713,7 @@ async def help_function(message, client, args):
         if len(args) == 0:
             arg = None
 
-        if globalAdmin:
+        if globalAdmin and verbose:
             def command_filter(c):
                 return True
         elif serverAdmin:
