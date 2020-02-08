@@ -161,12 +161,12 @@ async def wiki_otd_function(message, client, args):
                 embedPreview.add_field(
                         name=li[0].text_content().strip(),
                         value=" ".join([el.text_content() for el in li[1:]]),
-                        inline=False
+                        inline=True
                         )
             embedPreview.add_field(
                     name="Birthdays",
                     value=titlebar.getnext().getnext().getnext().text_content().strip(),
-                    inline=False
+                    inline=True
                     )
             resp = await message.channel.send(embed=embedPreview)
     except Exception as e:
@@ -618,7 +618,7 @@ async def lifx_function(message, client, args):
                 embedPreview.add_field(
                     name=light["label"],
                     value=light["status"],
-                    inline=False,
+                    inline=True,
                 )
             resp = await message.channel.send(embed=embedPreview)
     except Exception as e:
