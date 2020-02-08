@@ -590,6 +590,43 @@ async def scp_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def lifx_function(message, client, args):
+    global ch
+    try:
+        guild_config = ch.scope_config(guild=message.guild)
+        if 'lifx-token' not in guild_config:
+            await message.author.send("No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration.")
+            return await message.add_reaction("🚫")
+        selector = args[1] if len(args) > 1 and re.match(r'all|group|group_id|location|location_id|scene_id', args[1]) else guild_config.get("lifx-selector", "all")
+        async with session.put(
+             f"https://api.lifx.com/v1/lights/{selector}/state",
+             headers={
+                 "Authorization": f"Bearer {guild_config.get('lifx-token')}"
+                 },
+             data={"color": args[0]}
+        ) as resp:
+            request_body = await resp.json()
+            if 'error' in request_body:
+                 return await message.channel.send(f"LIFX Error: {request_body['error']}")
+                 await message.add_reaction("🚫")
+            embedPreview = discord.Embed(title="Updated Lights")
+            embedPreview.set_footer(
+                icon_url="http://download.nova.anticlack.com/fletcher/favicon_lifx_32x32.png",
+                text=f"On behalf of {message.author.display_name}",
+            )
+            for light in request_body["results"]:
+                embedPreview.add_field(
+                    name=light["label"],
+                    value=light["status"],
+                    inline=False,
+                )
+            resp = await message.channel.send(embed=embedPreview)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("LFX[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def qdb_add_function(message, client, args):
     try:
         global conn
@@ -940,9 +977,20 @@ def autoload(ch):
             "function": wiki_otd_function,
             "async": True,
             "args_num": 0,
-            "long_run": False,
+            "long_run": True,
             "args_name": ['Month Day# (January 1)'],
             "description": "Wikipedia On This Day",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!lifx"],
+            "function": lifx_function,
+            "async": True,
+            "args_num": 1,
+            "long_run": True,
+            "args_name": ['Color', '[Selector]'],
+            "description": "Set color of LIFX bulbs",
         }
     )
     if session:
