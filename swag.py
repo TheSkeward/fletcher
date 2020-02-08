@@ -597,19 +597,28 @@ async def lifx_function(message, client, args):
         if 'lifx-token' not in guild_config:
             await message.author.send("No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration.")
             return await message.add_reaction("🚫")
-        selector = args[1] if len(args) > 1 and re.match(r'all|group|group_id|location|location_id|scene_id', args[1]) else guild_config.get("lifx-selector", "all")
+        selector = None
+        color = ""
+        for arg in args:
+            if args.startswith(('all', 'group', 'location', 'scene')):
+                selector = arg
+            else:
+                color = f"{color} {arg}"
+        if not selector:
+            selector = guild_config.get("lifx-selector", "all")
+        color = color.strip()
         async with session.put(
              f"https://api.lifx.com/v1/lights/{selector}/state",
              headers={
                  "Authorization": f"Bearer {guild_config.get('lifx-token')}"
                  },
-             data={"color": args[0]}
+             data={"color": color}
         ) as resp:
             request_body = await resp.json()
             if 'error' in request_body:
                  return await message.channel.send(f"LIFX Error: {request_body['error']}")
                  await message.add_reaction("🚫")
-            embedPreview = discord.Embed(title="Updated Lights")
+            embedPreview = discord.Embed(title="Updated Lights: Color set to {color}")
             embedPreview.set_footer(
                 icon_url="http://download.nova.anticlack.com/fletcher/favicon_lifx_32x32.png",
                 text=f"On behalf of {message.author.display_name}",
