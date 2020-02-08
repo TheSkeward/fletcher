@@ -602,7 +602,6 @@ async def lifx_function(message, client, args):
                 "color": ""
                 }
         for arg in args:
-            arg = arg.lower()
             if arg.startswith(('all', 'group', 'location', 'scene', 'label')):
                 selector = arg
             elif arg in ["on", "off"]:
