@@ -600,7 +600,7 @@ async def lifx_function(message, client, args):
         selector = None
         color = ""
         for arg in args:
-            if arg.startswith(('all', 'group', 'location', 'scene')):
+            if arg.startswith(('all'|'group', 'location', 'scene', 'label')):
                 selector = arg
             else:
                 color = f"{color} {arg}"
@@ -616,7 +616,7 @@ async def lifx_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             if 'error' in request_body:
-                 return await message.channel.send(f"LIFX Error: {request_body['error']}")
+                 return await message.channel.send(f"LIFX Error: {request_body['error']} (color sent was `{color}`, selector was `selector`")
                  await message.add_reaction("🚫")
             embedPreview = discord.Embed(title=f"Updated Lights: Color set to {color}")
             embedPreview.set_footer(
