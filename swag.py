@@ -618,7 +618,7 @@ async def lifx_function(message, client, args):
             if 'error' in request_body:
                  return await message.channel.send(f"LIFX Error: {request_body['error']}")
                  await message.add_reaction("🚫")
-            embedPreview = discord.Embed(title="Updated Lights: Color set to {color}")
+            embedPreview = discord.Embed(title=f"Updated Lights: Color set to {color}")
             embedPreview.set_footer(
                 icon_url="http://download.nova.anticlack.com/fletcher/favicon_lifx_32x32.png",
                 text=f"On behalf of {message.author.display_name}",
