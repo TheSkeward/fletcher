@@ -612,6 +612,10 @@ async def lifx_function(message, client, args):
         if not selector:
             selector = guild_config.get("lifx-selector", "all")
         data["color"] = data["color"].strip()
+        if data["color"] == "":
+            del data["color"]
+        if not ("color" in data or "power" in data):
+             return await message.channel.send("LIFX Parsing Error: specify either a color parameter or a power parameter (on|off).")
         async with session.put(
              f"https://api.lifx.com/v1/lights/{selector}/state",
              headers={
