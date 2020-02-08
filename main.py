@@ -15,8 +15,12 @@ import os
 import psycopg2
 import re
 import sentry_sdk
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
-sentry_sdk.init("https://7654ff657b6447d78c3eee40151c9414@sentry.io/1842241")
+sentry_sdk.init(
+        dsn="https://7654ff657b6447d78c3eee40151c9414@sentry.io/1842241",
+        integrations=[AioHttpIntegration()]
+        )
 import signal
 import traceback
 
