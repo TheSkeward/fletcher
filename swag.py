@@ -598,21 +598,26 @@ async def lifx_function(message, client, args):
             await message.author.send("No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration.")
             return await message.add_reaction("🚫")
         selector = None
-        color = ""
+        data = {
+                color: ""
+                }
         for arg in args:
+            arg = arg.lower()
             if arg.startswith(('all', 'group', 'location', 'scene', 'label')):
                 selector = arg
+            elif arg in ["on", "off"]:
+                data['power'] = arg
             else:
-                color = f"{color} {arg}"
+                data["color"] = f"{data['color']} {arg}"
         if not selector:
             selector = guild_config.get("lifx-selector", "all")
-        color = color.strip()
+        data["color"] = data["color"].strip()
         async with session.put(
              f"https://api.lifx.com/v1/lights/{selector}/state",
              headers={
                  "Authorization": f"Bearer {guild_config.get('lifx-token')}"
                  },
-             data={"color": color}
+             data=data
         ) as resp:
             request_body = await resp.json()
             if 'error' in request_body:
