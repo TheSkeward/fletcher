@@ -600,7 +600,7 @@ async def lifx_function(message, client, args):
         selector = None
         color = ""
         for arg in args:
-            if args.startswith(('all', 'group', 'location', 'scene')):
+            if arg.startswith(('all', 'group', 'location', 'scene')):
                 selector = arg
             else:
                 color = f"{color} {arg}"
