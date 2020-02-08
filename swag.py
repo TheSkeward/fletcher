@@ -599,7 +599,7 @@ async def lifx_function(message, client, args):
             return await message.add_reaction("🚫")
         selector = None
         data = {
-                color: ""
+                "color": ""
                 }
         for arg in args:
             arg = arg.lower()
