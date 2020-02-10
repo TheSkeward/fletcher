@@ -1093,7 +1093,7 @@ async def copy_emoji_function(message, client, args):
         emoji_query = args.pop(0).strip(":")
         if ":" in emoji_query:
             emoji_query = emoji_query.split(":")
-            emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0])
+            emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
             filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
         else:
             filter_query = lambda m: m.name == emoji_query

@@ -608,13 +608,13 @@ async def reaction_request_function(message, client, args):
         else:
             if ":" in emoji_query:
                 emoji_query = emoji_query.split(":")
-                emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0])
+                emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
                 filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
             else:
                 filter_query = lambda m: m.name == emoji_query
             emoji = list(filter(filter_query, client.emojis)).pop(0)
-            if len(args) >= 2 and args[1].isnumeric():
-                target = await message.channel.fetch_message(int(args[1]))
+        if len(args) >= 2 and args[-1].isnumeric() and int(args[1]) >= 1000000:
+            target = await message.channel.fetch_message(int(args[-1]))
         if emoji:
             if target is None:
                 async for historical_message in message.channel.history(
@@ -643,7 +643,7 @@ async def reaction_request_function(message, client, args):
     except IndexError as e:
         await message.add_reaction("🚫")
         await message.author.send(
-            f"XRF: Couldn't find reaction with name {emoji_query}, please check spelling or name"
+            f"XRF: Couldn't find reaction with name {emoji_query}, please check spelling or name {e}"
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
