@@ -605,11 +605,16 @@ async def reaction_request_function(message, client, args):
         if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000:
             emoji = list(filter(lambda m: m.name == emoji_query, client.emojis))
             emoji = emoji[int(args[1])]
-        elif len(args) >= 2 and args[1].isnumeric():
-            emoji = discord.utils.get(client.emojis, name=emoji_query)
-            target = await message.channel.fetch_message(int(args[1]))
         else:
-            emoji = discord.utils.get(client.emojis, name=emoji_query)
+            if ":" in emoji_query:
+                emoji_query = emoji_query.split(":")
+                emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0])
+                filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
+            else:
+                filter_query = lambda m: m.name == emoji_query
+            emoji = list(filter(filter_query, client.emojis)).pop(0)
+            if len(args) >= 2 and args[1].isnumeric():
+                target = await message.channel.fetch_message(int(args[1]))
         if emoji:
             if target is None:
                 async for historical_message in message.channel.history(
