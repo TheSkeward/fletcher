@@ -1010,6 +1010,28 @@ def autoload(ch):
             "description": "Set color of LIFX bulbs",
         }
     )
+    ch.add_command(
+        {
+            "trigger": ["!mycolor", "!mycolour"],
+            "function": lambda message, client, args: "Your color is #%06x"
+            % message.author.colour.value,
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Get Current Color",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!color"],
+            "function": lambda message, client, args: "Current color is #%06x"
+            % message.mentions[0].colour.value,
+            "async": False,
+            "args_num": 1,
+            "args_name": ['User mention'],
+            "description": "Get Current Color for @ed user",
+        }
+    )
     if session:
         session.close()
     session = aiohttp.ClientSession(
