@@ -126,9 +126,15 @@ async def teleport_function(message, client, args):
             )
             raise Exception("Attempt to open portal to forbidden channel")
         logger.debug("Entering in " + str(fromChannel))
-        fromMessage = await fromChannel.send(
-            "Opening Portal To <#{}> ({})".format(toChannel.id, toGuild.name)
-        )
+        try:
+            fromMessage = await fromChannel.send(
+                    "Opening Portal To <#{}> ({})".format(toChannel.id, toGuild.name)
+            )
+        except discord.Forbidden as e:
+            await message.author.send(
+                content="Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied."
+            )
+            raise Exception("Portal failed to open!")
         try:
             logger.debug("Exiting in " + str(toChannel))
             toMessage = await toChannel.send(

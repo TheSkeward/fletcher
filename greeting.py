@@ -334,7 +334,9 @@ async def alphabetize_channels(guild, client, config):
                 continue
             channels = category_tuple[1]
             az_channels = sorted(channels, key=lambda channel: channel.name)
+            logger.debug(f'Alphabetizing {category_tuple[0].name}')
             for channel in az_channels:
+                logger.debug(f'#{channel.name} {channel.position} -> {position}')
                 if channel.position != position:
                     logger.info(
                         f"Moving {channel} to {position} from {channel.position}"
