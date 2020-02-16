@@ -125,7 +125,10 @@ class CommandHandler:
             global config
             messageContent = str(reaction.emoji)
             channel = self.client.get_channel(reaction.channel_id)
-            user = channel.guild.get_member(reaction.user_id)
+            try:
+                user = channel.guild.get_member(reaction.user_id)
+            except AttributeError:
+                user = self.client.get_user(reaction.user_id)
             message = await channel.fetch_message(reaction.message_id)
             args = [reaction, user, "add"]
             try:
@@ -147,6 +150,7 @@ class CommandHandler:
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
+                        "REACTION_IDENTIFIER": messageContent
                     },
                 )
             elif type(message.channel) is discord.DMChannel:
@@ -158,6 +162,7 @@ class CommandHandler:
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
+                        "REACTION_IDENTIFIER": messageContent
                     },
                 )
             else:
@@ -704,7 +709,7 @@ async def help_function(message, client, args):
 
         globalAdmin = message.author.id in config["discord"].get("globalAdmin", "").split(",")
         serverAdmin = globalAdmin or type(message.channel) is discord.DMChannel or message.author.guild_permissions.manage_webhooks
-        channelAdmin = globalAdmin or serverAdmin or message.author.manage_webhooks
+        channelAdmin = globalAdmin or serverAdmin or message.channel.permissions_for(message.author).manage_webhooks
         if serverAdmin and public:
             target = message.channel
         else:
@@ -830,20 +835,22 @@ Indexes:
 
 def load_user_config(ch):
     def load_tuppers(ch):
+        if ch.config is None:
+            return
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'tupper';"
+            "SELECT t.user_id, t.guild_id, t.key, t.value prefix, n.value nick, a.value avatar FROM user_preferences t RIGHT JOIN user_preferences a ON t.user_id = a.user_id AND t.guild_id = a.guild_id AND a.key = 'tupper-avatar-' || t.value RIGHT JOIN user_preferences n ON t.user_id = n.user_id AND t.guild_id = n.guild_id AND n.key = 'tupper-nick-' || t.value WHERE t.key = 'tupper';"
         )
         tuptuple = cur.fetchone()
         while tuptuple:
             if not ch.config.get("sync"):
                 ch.config["sync"] = {}
-            ignorekey = f"tupper-ignore-{tuptuple[0]}"
+            ignorekey = f"tupper-ignore-{tuptuple[1]}"
             if not ch.config["sync"].get(ignorekey, ""):
                 ch.config["sync"][ignorekey] = ""
             ch.config["sync"][
                 ignorekey
-            ] += f'{ch.config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
+            ] = f'{ch.config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
             tuptuple = cur.fetchone()
         conn.commit()
 
