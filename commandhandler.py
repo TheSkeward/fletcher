@@ -628,7 +628,7 @@ class CommandHandler:
                 if "blacklist_guild" not in command:
                     command["blacklist_guild"] = []
                 command["blacklist_guild"].append(guild_id)
-                logger.debug(f"Blacklisting {command} on guild {guild}")
+                logger.debug(f"Blacklisting {command} on guild {guild_id}")
 
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
         global config
