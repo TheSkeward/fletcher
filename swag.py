@@ -472,7 +472,6 @@ async def flightrising_function(message, client, args):
 async def vine_function(message, client, args):
     global ch
     try:
-        guild_config = ch.scope_config(guild=message.guild)
         url = args[0]
         input_image_blob = None
         file_name = None
@@ -829,6 +828,9 @@ def join_rank_function(message, client, args):
         else:
             member_display = member.display_name
         return f"{member_display} is the {ordinal(member_rank)} member to join this server.\n{member_element}"
+        guild_config = ch.scope_config(guild=message.guild)
+    except ValueError as e:
+        return "This command must be run on a server (you're always #1 to me <3)"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("JRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
