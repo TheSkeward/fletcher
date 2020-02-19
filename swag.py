@@ -796,7 +796,11 @@ def join_rank_function(message, client, args):
         else:
             member_element = "Your element has yet to be discovered!"
 
-        return f"{member.mention} is the {ordinal(member_rank)} member to join this server.\n{member_element}"
+        if guild_config.get("rank-loudness", "quiet") == "loud":
+            member_display = member.mention
+        else:
+            member_display = member.display_name
+        return f"{member_display} is the {ordinal(member_rank)} member to join this server.\n{member_element}"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("JRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
