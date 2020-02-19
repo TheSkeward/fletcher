@@ -935,6 +935,6 @@ def autoload(ch):
         }
     )
     ch.user_config.cache_clear()
-    if config and client:
+    if config and ch.client:
         load_user_config(ch)
         load_guild_config(ch)
