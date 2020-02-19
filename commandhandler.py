@@ -808,7 +808,7 @@ def load_guild_config(ch):
             for guild in ch.client.guilds:
                 guild_config = ch.scope_config(guild=guild)
                 if guild_config.get("hotwords"):
-                    hotwords = ujson.loads(guild_config.get("hotwords"))
+                    hotwords = ujson.loads(guild_config.get("hotwords", "{}"))
                     for word in hotwords.keys():
                         target_emoji = hotwords[word]["target_emoji"]
                         if len(target_emoji) > 1:
