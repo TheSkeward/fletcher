@@ -794,29 +794,31 @@ def dumpconfig_function(message, client, args):
         logger.debug(str(channel.guild) + " " + str(channel))
 
 
-def load_hotwords(ch):
-    try:
-        for guild in client.guilds:
-            guild_config = self.scope_config(guild=guild)
-            if guild_config.get("hotwords"):
-                hotwords = ujson.loads(guild_config.get("hotwords"))
-                for word in hotwords.keys():
-                    target_emoji = hotwords[word]["target_emoji"]
-                    if len(target_emoji) > 1:
-                        target_emoji = discord.utils.get(
-                            guild.emojis, name=target_emoji
-                        )
-                    flags = None
-                    if hotwords[word]["insensitive"]:
-                        flags = re.IGNORECASE
-                    hotwords[word] = {
-                        "target_emoji": target_emoji,
-                        "regex": hotwords[word]["regex"],
-                        "compiled_regex": re.compile(hotwords[word]["regex"], flags),
-                    }
-                regex_cache[guild.id] = hotwords.values()
-    except NameError:
-        pass
+def load_guild_config(ch):
+    def load_hotwords(ch):
+        try:
+            for guild in client.guilds:
+                guild_config = ch.scope_config(guild=guild)
+                if guild_config.get("hotwords"):
+                    hotwords = ujson.loads(guild_config.get("hotwords"))
+                    for word in hotwords.keys():
+                        target_emoji = hotwords[word]["target_emoji"]
+                        if len(target_emoji) > 1:
+                            target_emoji = discord.utils.get(
+                                guild.emojis, name=target_emoji
+                            )
+                        flags = None
+                        if hotwords[word]["insensitive"]:
+                            flags = re.IGNORECASE
+                        hotwords[word] = {
+                            "target_emoji": target_emoji,
+                            "regex": hotwords[word]["regex"],
+                            "compiled_regex": re.compile(hotwords[word]["regex"], flags),
+                        }
+                    regex_cache[guild.id] = hotwords.values()
+        except NameError:
+            pass
+    load_hotwords(ch)
 
 
 """
@@ -835,22 +837,21 @@ Indexes:
 
 def load_user_config(ch):
     def load_tuppers(ch):
-        if hasattr(ch, "config"):
-            return
+        global config
         cur = conn.cursor()
         cur.execute(
             "SELECT t.user_id, t.guild_id, t.key, t.value prefix, n.value nick, a.value avatar FROM user_preferences t RIGHT JOIN user_preferences a ON t.user_id = a.user_id AND t.guild_id = a.guild_id AND a.key = 'tupper-avatar-' || t.value RIGHT JOIN user_preferences n ON t.user_id = n.user_id AND t.guild_id = n.guild_id AND n.key = 'tupper-nick-' || t.value WHERE t.key = 'tupper';"
         )
         tuptuple = cur.fetchone()
         while tuptuple:
-            if not ch.config.get("sync"):
-                ch.config["sync"] = {}
+            if not config.get("sync"):
+                config["sync"] = {}
             ignorekey = f"tupper-ignore-{tuptuple[1]}"
-            if not ch.config["sync"].get(ignorekey, ""):
-                ch.config["sync"][ignorekey] = ""
-            ch.config["sync"][
+            if not config["sync"].get(ignorekey, ""):
+                config["sync"][ignorekey] = ""
+            config["sync"][
                 ignorekey
-            ] = f'{ch.config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
+            ] = f'{config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
             tuptuple = cur.fetchone()
         conn.commit()
 
@@ -917,5 +918,6 @@ def autoload(ch):
         }
     )
     ch.user_config.cache_clear()
-    load_user_config(ch)
-    load_hotwords(ch)
+    if config:
+        load_user_config(ch)
+        load_guild_config(ch)
