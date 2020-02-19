@@ -106,10 +106,10 @@ async def warm_post_cache(tags):
         logger.error(f"WPC[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
-def autounload(ch):
+async def autounload(ch):
     global session
     if session:
-        session.close()
+        await session.close()
 
 def autoload(ch):
     global config

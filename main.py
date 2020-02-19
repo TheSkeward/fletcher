@@ -272,7 +272,7 @@ canticum_message = None
 doissetep_omega = None
 
 
-def autoload(module, choverride):
+async def autoload(module, choverride):
     if choverride:
         ch = choverride
     else:
@@ -282,7 +282,7 @@ def autoload(module, choverride):
     global sid
     global versioninfo
     try:
-        module.autounload(ch)
+        await module.autounload(ch)
     except AttributeError as e:
         # ignore missing autounload
         logger.info(f"{module.__name__} missing autounload(ch), continuing.")
@@ -365,8 +365,8 @@ async def reload_function(message=None, client=client, args=[]):
         importlib.reload(commandhandler)
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
-        autoload(commandhandler, ch)
-        autoload(versionutils, ch)
+        await autoload(commandhandler, ch)
+        await autoload(versionutils, ch)
         versioninfo = versionutils.VersionInfo()
         ch.add_command(
             {
@@ -381,36 +381,36 @@ async def reload_function(message=None, client=client, args=[]):
         )
         ch.webhook_sync_registry = webhook_sync_registry
         # Utility text manipulators Module
-        autoload(text_manipulators, ch)
+        await autoload(text_manipulators, ch)
         await animate_startup("🔧", message)
         # Schedule Module
-        autoload(schedule, ch)
+        await autoload(schedule, ch)
         await animate_startup("📅", message)
         # Greeting module
-        autoload(greeting, ch)
+        await autoload(greeting, ch)
         await animate_startup("👋", message)
         # Sentinel Module
-        autoload(sentinel, ch)
+        await autoload(sentinel, ch)
         await animate_startup("🎏", message)
         # Messages Module
-        autoload(messagefuncs, ch)
+        await autoload(messagefuncs, ch)
         await animate_startup("🔭", message)
         # Math Module
-        autoload(mathemagical, ch)
+        await autoload(mathemagical, ch)
         await animate_startup("➕", message)
-        autoload(janissary, ch)
+        await autoload(janissary, ch)
         # Super Waifu Animated Girlfriend (SWAG)
-        autoload(swag, ch)
+        await autoload(swag, ch)
         await animate_startup("🙉", message)
         # Photos Connectors (for !twilestia et al)
-        autoload(googlephotos, ch)
-        autoload(danbooru, ch)
+        await autoload(googlephotos, ch)
+        await autoload(danbooru, ch)
         await animate_startup("📷", message)
         # GitHub Connector
-        autoload(github, ch)
+        await autoload(github, ch)
         await animate_startup("🐙", message)
         # Time Module
-        autoload(chronos, ch)
+        await autoload(chronos, ch)
         await animate_startup("🕰️", message)
         # Play it again, Sam
         await doissetep_omega_autoconnect()

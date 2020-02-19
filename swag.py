@@ -809,10 +809,10 @@ def join_rank_function(message, client, args):
         return message.add_reaction("🚫")
 
 
-def autounload(ch):
+async def autounload(ch):
     global session
     if session:
-        session.close()
+        await session.close()
 
 def autoload(ch):
     global session
@@ -1046,8 +1046,6 @@ def autoload(ch):
             "description": "Get Current Color for @ed user",
         }
     )
-    if session:
-        session.close()
     session = aiohttp.ClientSession(
         headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
     )
