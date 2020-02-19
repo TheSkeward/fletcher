@@ -835,7 +835,7 @@ Indexes:
 
 def load_user_config(ch):
     def load_tuppers(ch):
-        if ch.config is None:
+        if hasattr(ch, "config"):
             return
         cur = conn.cursor()
         cur.execute(
