@@ -414,7 +414,7 @@ async def reload_function(message=None, client=client, args=[]):
         # Trigger reload handlers
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
-        commandhandler.load_blacklists(ch)
+        commandhandler.load_guild_config(ch)
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         await load_webhooks()
