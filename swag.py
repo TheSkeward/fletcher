@@ -745,7 +745,9 @@ async def qdb_search_function(message, client, args):
 
 
 def join_rank_function(message, client, args):
+    global ch
     try:
+        guild_config = ch.scope_config(guild=message.guild)
         if len(message.mentions):
             member = message.mentions[0]
         elif len(args):
