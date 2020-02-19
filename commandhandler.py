@@ -205,7 +205,7 @@ class CommandHandler:
                             str(scoped_command["function"](message, self.client, args)),
                             message.channel
                         )
-            for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), self.commands):
+            for command in filter(lambda command: not hasattr(message, "guild") or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
                 if (
                     messageContent.startswith(tuple(command["trigger"]))
                     and allowCommand(command, message, user=user)
@@ -329,7 +329,7 @@ class CommandHandler:
                             str(command["function"](message, self.client, args)),
                             message.channel
                         )
-            for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), self.commands):
+            for command in filter(lambda command: not hasattr(message, "guild") or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
                 if (
                     messageContent.startswith(tuple(command["trigger"]))
                     and allowCommand(command, message, user=user)
@@ -556,7 +556,7 @@ class CommandHandler:
             )
             if not continue_flag:
                 return
-        for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), self.commands):
+        for command in filter(lambda command: not hasattr(message, "guild") or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
             if searchString.lower().startswith(
                 tuple(command["trigger"])
             ) and allowCommand(command, message):
