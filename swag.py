@@ -123,7 +123,7 @@ async def retrowave_function(message, client, args):
                 root.xpath('//a[@class="download-button"]')[0].attrib["href"]
             ) as resp:
                 buffer = io.BytesIO(await resp.read())
-            return await message.channel.send(
+            return await message.channel.send(f"On behalf of {message.author.display_name}",
                 files=[discord.File(buffer, "retrowave.jpg")]
             )
     except Exception as e:
@@ -627,7 +627,8 @@ async def lifx_function(message, client, args):
                  return await message.channel.send(f"LIFX Error: {request_body['error']} (data sent was `{data}`, selector was `selector`")
                  await message.add_reaction("🚫")
             embedPreview = discord.Embed(title=f"Updated Lights: {data}")
-            dataStr = f"{data}"
+            dataStr = data["color"].replace(" ", "%20")
+            logger.debug(f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png")
             embedPreview.set_image(url=f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png")
             embedPreview.set_footer(
                 icon_url="http://download.nova.anticlack.com/fletcher/favicon_lifx_32x32.png",
