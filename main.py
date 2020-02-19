@@ -281,6 +281,15 @@ def autoload(module, choverride):
     global conn
     global sid
     global versioninfo
+    try:
+        module.autounload(ch)
+    except attributeerror as e:
+        # ignore missing autounload
+        logger.info(f"{module.__name__} missing autounload(ch), continuing.")
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(f"al[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.debug(traceback.format_exc())
+        pass
     importlib.reload(module)
     module.ch = ch
     module.config = config
@@ -289,11 +298,11 @@ def autoload(module, choverride):
     module.versioninfo = versioninfo
     try:
         module.autoload(ch)
-    except AttributeError as e:
-        # Ignore missing autoload
+    except attributeerror as e:
+        # ignore missing autoload
         logger.info(f"{module.__name__} missing autoload(ch), continuing.")
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.debug(f"AL[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.debug(f"al[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         logger.debug(traceback.format_exc())
         pass
 

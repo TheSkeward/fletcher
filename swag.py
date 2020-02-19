@@ -809,6 +809,11 @@ def join_rank_function(message, client, args):
         return message.add_reaction("🚫")
 
 
+def autounload(ch):
+    global session
+    if session:
+        session.close()
+
 def autoload(ch):
     global session
     ch.add_command(

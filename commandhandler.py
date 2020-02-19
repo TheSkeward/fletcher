@@ -187,7 +187,6 @@ class CommandHandler:
                 scoped_command = self.message_reaction_handlers[message.channel.id]
             if scoped_command:
                 logger.debug(scoped_command)
-                logger.debug(args)
                 if (
                     messageContent.startswith(tuple(scoped_command["trigger"]))
                     and allowCommand(scoped_command, message, user=user)
@@ -206,7 +205,7 @@ class CommandHandler:
                             str(scoped_command["function"](message, self.client, args)),
                             message.channel
                         )
-            for command in self.commands:
+            for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), commands):
                 if (
                     messageContent.startswith(tuple(command["trigger"]))
                     and allowCommand(command, message, user=user)
@@ -313,7 +312,6 @@ class CommandHandler:
             if self.message_reaction_remove_handlers.get(message.id):
                 command = self.message_reaction_remove_handlers[message.id]
                 logger.debug(command)
-                logger.debug(args)
                 if (
                     messageContent.startswith(tuple(command["trigger"]))
                     and allowCommand(command, message, user=user)
@@ -331,7 +329,7 @@ class CommandHandler:
                             str(command["function"](message, self.client, args)),
                             message.channel
                         )
-            for command in self.commands:
+            for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), commands):
                 if (
                     messageContent.startswith(tuple(command["trigger"]))
                     and allowCommand(command, message, user=user)
@@ -558,7 +556,7 @@ class CommandHandler:
             )
             if not continue_flag:
                 return
-        for command in self.commands:
+        for command in filter(lambda command: message.guild.id not in command.get("blacklist_guild", []), commands):
             if searchString.lower().startswith(
                 tuple(command["trigger"])
             ) and allowCommand(command, message):
@@ -621,6 +619,15 @@ class CommandHandler:
             )
             if not continue_flag:
                 return
+
+    def blacklist_command(self, command_name, guild_id):
+        for command in self.commands:
+            if ("!"+command_name).lower().startswith(
+                tuple(command["trigger"])
+                ):
+                if "blacklist_guild" not in command:
+                    command["blacklist_guild"] = []
+                command["blacklist_guild"].push(guild_id)
 
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
         global config
@@ -796,6 +803,7 @@ def dumpconfig_function(message, client, args):
 
 def load_guild_config(ch):
     def load_hotwords(ch):
+        global regex_cache
         try:
             for guild in client.guilds:
                 guild_config = ch.scope_config(guild=guild)
@@ -818,6 +826,13 @@ def load_guild_config(ch):
                     regex_cache[guild.id] = hotwords.values()
         except NameError:
             pass
+    def load_blacklists(ch):
+        global config
+        for guild in client.guilds:
+            guild_config = ch.scope_config(guild=guild)
+            if guild_config.get("blacklist-commands"):
+                for command_name in guild_config.get("blacklist-commands").split(","):
+                    ch.blacklist_command(command_name, guild.id)
     load_hotwords(ch)
 
 
