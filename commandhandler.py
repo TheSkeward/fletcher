@@ -833,6 +833,7 @@ def load_guild_config(ch):
             if guild_config.get("blacklist-commands"):
                 for command_name in guild_config.get("blacklist-commands").split(","):
                     ch.blacklist_command(command_name, guild.id)
+    load_blacklists(ch)
     load_hotwords(ch)
 
 
