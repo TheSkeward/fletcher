@@ -628,6 +628,7 @@ class CommandHandler:
                 if "blacklist_guild" not in command:
                     command["blacklist_guild"] = []
                 command["blacklist_guild"].push(guild_id)
+                logger.debug(f"Blacklisting {command} on guild {guild}")
 
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
         global config
@@ -831,11 +832,11 @@ def load_guild_config(ch):
         except NameError:
             pass
     def load_blacklists(ch):
-        global config
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
             if guild_config.get("blacklist-commands"):
                 for command_name in guild_config.get("blacklist-commands").split(","):
+                    command_name = command_name.strip()
                     ch.blacklist_command(command_name, guild.id)
     load_blacklists(ch)
     load_hotwords(ch)

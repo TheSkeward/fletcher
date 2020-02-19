@@ -286,9 +286,6 @@ async def autoload(module, choverride):
     except AttributeError as e:
         # ignore missing autounload
         logger.info(f"{module.__name__} missing autounload(ch), continuing.")
-        exc_type, exc_obj, exc_tb = exc_info()
-        logger.debug(f"al[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-        logger.debug(traceback.format_exc())
         pass
     importlib.reload(module)
     module.ch = ch
@@ -416,6 +413,8 @@ async def reload_function(message=None, client=client, args=[]):
         await doissetep_omega_autoconnect()
         # Trigger reload handlers
         await ch.reload_handler()
+        # FIXME there should be some way to defer this, or maybe autoload another time
+        commandhandler.load_blacklists(ch)
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         await load_webhooks()
