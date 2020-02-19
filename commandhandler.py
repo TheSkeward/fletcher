@@ -901,6 +901,7 @@ def preference_function(message, client, args):
 def autoload(ch):
     global tag_id_as_command
     global client
+    global config
     ch.add_command(
         {
             "trigger": ["!dumpconfig"],
