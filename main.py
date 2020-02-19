@@ -283,7 +283,7 @@ def autoload(module, choverride):
     global versioninfo
     try:
         module.autounload(ch)
-    except attributeerror as e:
+    except AttributeError as e:
         # ignore missing autounload
         logger.info(f"{module.__name__} missing autounload(ch), continuing.")
         exc_type, exc_obj, exc_tb = exc_info()
@@ -298,7 +298,7 @@ def autoload(module, choverride):
     module.versioninfo = versioninfo
     try:
         module.autoload(ch)
-    except attributeerror as e:
+    except AttributeError as e:
         # ignore missing autoload
         logger.info(f"{module.__name__} missing autoload(ch), continuing.")
         exc_type, exc_obj, exc_tb = exc_info()
