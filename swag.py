@@ -469,6 +469,32 @@ async def flightrising_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def vine_function(message, client, args):
+    global ch
+    try:
+        guild_config = ch.scope_config(guild=message.guild)
+        url = args[0]
+        input_image_blob = None
+        file_name = None
+        async with session.get(
+            f"https://archive.vine.co/posts/{url}.json",
+        ) as resp:
+            if resp.status != 200:
+                if not (len(args) == 2 and args[1] == "INTPROC"):
+                    await message.channel.send(
+                        f"Couldn't find that Vine page ({url})"
+                    )
+                return
+            request_body = await resp.json()
+            input_image_blob = await netcode.simple_get_image(request_body["videoUrl"])
+            file_name = f"{request_body['postId']}.mp4"
+        return discord.File(input_image_blob, file_name)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("VF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def scp_function(message, client, args):
     try:
         url = None
