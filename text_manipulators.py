@@ -633,7 +633,11 @@ async def reaction_request_function(message, client, args):
                 )
             except asyncio.TimeoutError:
                 pass
-            await target.remove_reaction(emoji, client.user)
+            try:
+                await target.remove_reaction(emoji, client.user)
+            except discord.NotFound:
+                # Message deleted before we could remove the reaction
+                pass
         try:
             if config["discord"].get("snappy"):
                 await message.delete()
