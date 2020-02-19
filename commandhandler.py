@@ -805,7 +805,7 @@ def load_guild_config(ch):
     def load_hotwords(ch):
         global regex_cache
         try:
-            for guild in client.guilds:
+            for guild in ch.client.guilds:
                 guild_config = ch.scope_config(guild=guild)
                 if guild_config.get("hotwords"):
                     hotwords = ujson.loads(guild_config.get("hotwords"))
@@ -828,7 +828,7 @@ def load_guild_config(ch):
             pass
     def load_blacklists(ch):
         global config
-        for guild in client.guilds:
+        for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
             if guild_config.get("blacklist-commands"):
                 for command_name in guild_config.get("blacklist-commands").split(","):
@@ -934,6 +934,6 @@ def autoload(ch):
         }
     )
     ch.user_config.cache_clear()
-    if config:
+    if config and client:
         load_user_config(ch)
         load_guild_config(ch)
