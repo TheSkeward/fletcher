@@ -238,8 +238,8 @@ async def shindan_function(message, client, args):
 
 
 pick_regexes = {
-    "no_commas": re.compile(r"[\s]\s*(?:and|or|but|nor|for|so|yet)?\s*"),
-    "has_commas": re.compile(r"[,]\s*(?:and|or|but|nor|for|so|yet)?\s*"),
+    "no_commas": re.compile(r"[\s]\s*(?:and|or|but|nor|for|so|yet)?\s+"),
+    "has_commas": re.compile(r"[,]\s*(?:and|or|but|nor|for|so|yet)?,\s*"),
 }
 
 
