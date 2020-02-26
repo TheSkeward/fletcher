@@ -1567,6 +1567,18 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["!topic"],
+            "function": lambda message, client, args: '#'+message.channel.name+' topic: '+message.channel.topic,
+            "async": False,
+            "hidden": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Get channel topic",
+        }
+    )
+
     for guild in ch.client.guilds:
         if ch.scope_config(guild=guild).get("role-message"):
             logger.debug(f"Adding role emoji handler for {guild}")
