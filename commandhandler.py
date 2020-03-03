@@ -820,6 +820,8 @@ def load_guild_config(ch):
                             target_emoji = discord.utils.get(
                                 guild.emojis, name=target_emoji
                             )
+                            if not target_emoji:
+                                target_emoji = hotwords[word]["target_emoji"]
                         flags = 0
                         if hotwords[word].get("insensitive"):
                             flags = re.IGNORECASE
