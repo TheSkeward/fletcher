@@ -4,3 +4,4 @@ Fletcher documentation is currently a work in progress. Please refer to the sour
 - [Permissions Explanation](permissions.md)
 - [Bridging Channels](bridge.md)
 - [Join/Remove User Handlers](join-behavior.md)
+- [Customization](hotwords.md)
