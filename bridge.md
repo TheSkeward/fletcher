@@ -8,9 +8,9 @@ Discord-Discord sync requires the *Read Messages*, *Read Message History*, and *
 For a full discussion of the permissions that Fletcher requires, see [Permissions granted via the OAuth screen](permissions.md).
 
 ## Fletcher Configuration
-In the each guild configuration file, set the `synchronize` preference to `on`. Fletcher must be reloaded or restarted for these changes to take effect.
+In the each server configuration file, set the `synchronize` preference to `on`. Fletcher must be reloaded or restarted for these changes to take effect.
 
-Configuration example: this is a fletcherrc configuration entry for a guild that has synchronization scanning on.
+Configuration example: this is a fletcherrc configuration entry for a server that has synchronization scanning on.
 
 ```
 [Guild 000000000000000001]
@@ -27,6 +27,6 @@ botNavel = ƒ
 ```
  
 ## Channel Configuration
-In this configuration, we will refer to #aleph and #beta on guild Guild.
+In this configuration, we will refer to #aleph and #beta on server Guild.
 
-In the settings for #aleph, navigate to Webhooks. Create a webhook with the name `botNavel (GuildName:TargetChannelName)` (i.e. `ƒ (Guild:beta)`). Repeat this for the corresponding channel for the reverse sync. Reload the server, and test that the sync now works.
+In the settings for #aleph, navigate to Webhooks. Create a webhook with the name `botNavel (ServerName:TargetChannelName)` (i.e. `ƒ (Guild:beta)`). Repeat this for the corresponding channel for the reverse sync. Reload the server, and test that the sync now works.
