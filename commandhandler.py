@@ -958,7 +958,7 @@ def load_user_config(ch):
 def preference_function(message, client, args):
     global ch
     if len(args) > 1:
-        value = args[1]
+        value = " ".join(args[1:])
     else:
         value = None
     return ch.user_config(message.author.id, message.guild.id, args[0], value)
