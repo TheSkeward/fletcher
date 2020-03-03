@@ -851,7 +851,9 @@ def load_guild_config(ch):
                 for command_name in guild_config.get("blacklist-commands").split(","):
                     command_name = command_name.strip()
                     ch.blacklist_command(command_name, guild.id)
+    logger.debug('LBL')
     load_blacklists(ch)
+    logger.debug('LGHW')
     load_hotwords(ch)
 
 
@@ -901,35 +903,36 @@ def load_user_config(ch):
             while hottuple:
                 [user_id, guild_id, hotword_json] = hottuple
                 guild_config = ch.scope_config(guild=guild_id, mutable=True)
-                if guild_config:
-                    try:
-                        hotwords = ujson.loads(hotword_json)
-                    except ValueError as e:
-                        continue
-                    if not guild_config.get("hotwords_loaded"):
-                        guild_config["hotwords_loaded"] = ""
-                    for word in hotwords.keys():
-                        target_emoji = hotwords[word]["target_emoji"]
-                        if len(target_emoji) > 1:
-                            target_emoji = discord.utils.get(
-                                guild.emojis, name=target_emoji
-                            )
-                            if not target_emoji:
-                                target_emoji = hotwords[word]["target_emoji"]
-                        flags = 0
-                        if hotwords[word].get("insensitive"):
-                            flags = re.IGNORECASE
-                        hotwords[word] = {
-                            "target_emoji": target_emoji,
-                            "regex": hotwords[word]["regex"],
-                            "compiled_regex": re.compile(hotwords[word]["regex"], flags),
-                            "user_restriction": [user_id],
-                        }
-                        guild_config["hotwords_loaded"] += f', {user_id}:{word}'
-                    if not regex_cache.get(guild_id):
-                        regex_cache[guild_id] = []
-                    regex_cache[guild_id].append(hotwords.values())
+                try:
+                    hotwords = ujson.loads(hotword_json)
+                except ValueError as e:
+                    hottuple = cur.fetchone()
+                    continue
+                if not guild_config.get("hotwords_loaded"):
+                    guild_config["hotwords_loaded"] = ""
+                for word in hotwords.keys():
+                    target_emoji = hotwords[word]["target_emoji"]
+                    if len(target_emoji) > 1:
+                        target_emoji = discord.utils.get(
+                            guild.emojis, name=target_emoji
+                        )
+                        if not target_emoji:
+                            target_emoji = hotwords[word]["target_emoji"]
+                    flags = 0
+                    if hotwords[word].get("insensitive"):
+                        flags = re.IGNORECASE
+                    hotwords[word] = {
+                        "target_emoji": target_emoji,
+                        "regex": hotwords[word]["regex"],
+                        "compiled_regex": re.compile(hotwords[word]["regex"], flags),
+                        "user_restriction": [user_id],
+                    }
+                    guild_config["hotwords_loaded"] += f', {user_id}:{word}'
+                if not regex_cache.get(guild_id):
+                    regex_cache[guild_id] = []
+                regex_cache[guild_id].append(hotwords.values())
                 hottuple = cur.fetchone()
+            conn.commit()
         except NameError:
             pass
         except Exception as e:
@@ -952,8 +955,11 @@ def load_user_config(ch):
             subtuple = cur.fetchone()
         conn.commit()
 
+    logger.debug('LRN')
     load_react_notifications(ch)
+    logger.debug('LT')
     load_tuppers(ch)
+    logger.debug('LUHW')
     load_hotwords(ch)
 
 def preference_function(message, client, args):
