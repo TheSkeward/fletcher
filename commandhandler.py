@@ -895,7 +895,7 @@ def load_user_config(ch):
         try:
             cur = conn.cursor()
             cur.execute(
-                "SELECT user_id, guild_id, value FROM user_preferences WHERE t.key = 'hotwords';"
+                "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'hotwords';"
             )
             hottuple = cur.fetchone()
             while hottuple:
