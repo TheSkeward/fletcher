@@ -607,7 +607,7 @@ class CommandHandler:
                         )
                         break
         if guild_config.get("hotwords"):
-            for hotword in regex_cache.get(message.guild.id, []):
+            for hotword in filter(lambda hw: len(hw.get("user_restriction", [])) == 0 or message.author.id in hw.get("user_restriction", []), regex_cache.get(message.guild.id, [])):
                 if hotword["compiled_regex"].search(message.content):
                     await message.add_reaction(hotword["target_emoji"])
         if channel_config.get("regex") == "post-command" and (
@@ -834,6 +834,7 @@ def load_guild_config(ch):
                             "target_emoji": target_emoji,
                             "regex": hotwords[word]["regex"],
                             "compiled_regex": re.compile(hotwords[word]["regex"], flags),
+                            "user_restriction": hotwords[word].get("user_restriction", [])
                         }
                         guild_config["hotwords_loaded"] += word + ", "
                     guild_config["hotwords_loaded"] = guild_config["hotwords_loaded"].rstrip(", ")
@@ -904,7 +905,6 @@ def load_user_config(ch):
                     try:
                         hotwords = ujson.loads(hotword_json)
                     except ValueError as e:
-                        logger.error(e)
                         continue
                     if not guild_config.get("hotwords_loaded"):
                         guild_config["hotwords_loaded"] = ""
@@ -923,7 +923,7 @@ def load_user_config(ch):
                             "target_emoji": target_emoji,
                             "regex": hotwords[word]["regex"],
                             "compiled_regex": re.compile(hotwords[word]["regex"], flags),
-                            "user_restriction": user_id
+                            "user_restriction": [user_id],
                         }
                         guild_config["hotwords_loaded"] += f', {user_id}:{word}'
                     if not regex_cache.get(guild_id):
