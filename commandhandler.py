@@ -929,6 +929,7 @@ def load_user_config(ch):
                     if not regex_cache.get(guild_id):
                         regex_cache[guild_id] = []
                     regex_cache[guild_id].append(hotwords.values())
+                hottuple = cur.fetchone()
         except NameError:
             pass
         except Exception as e:
