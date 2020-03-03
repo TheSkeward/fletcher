@@ -797,9 +797,8 @@ async def help_function(message, client, args):
 
 
 def dumpconfig_function(message, client, args):
-    logger.debug("Channels Loaded:")
-    for channel in client.get_all_channels():
-        logger.debug(str(channel.guild) + " " + str(channel))
+    guild_config = ch.scope_config(guild=message.guild)
+    return ujson.dumps(guild_config)
 
 
 def load_guild_config(ch):
@@ -807,30 +806,36 @@ def load_guild_config(ch):
         global regex_cache
         try:
             for guild in ch.client.guilds:
-                guild_config = ch.scope_config(guild=guild)
+                guild_config = ch.scope_config(guild=guild, mutable=True)
                 if guild_config.get("hotwords", "").startswith("{"):
                     try:
                         hotwords = ujson.loads(guild_config.get("hotwords", "{}"))
                     except ValueError as e:
                         logger.error(e)
                         continue
+                    guild_config["hotwords_loaded"] = ""
                     for word in hotwords.keys():
                         target_emoji = hotwords[word]["target_emoji"]
                         if len(target_emoji) > 1:
                             target_emoji = discord.utils.get(
                                 guild.emojis, name=target_emoji
                             )
-                        flags = None
-                        if hotwords[word]["insensitive"]:
+                        flags = 0
+                        if hotwords[word].get("insensitive"):
                             flags = re.IGNORECASE
                         hotwords[word] = {
                             "target_emoji": target_emoji,
                             "regex": hotwords[word]["regex"],
                             "compiled_regex": re.compile(hotwords[word]["regex"], flags),
                         }
+                        guild_config["hotwords_loaded"] += word + ", "
+                    guild_config["hotwords_loaded"] = guild_config["hotwords_loaded"].rstrip(", ")
                     regex_cache[guild.id] = hotwords.values()
         except NameError:
             pass
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.error(f"HF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
     def load_blacklists(ch):
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
