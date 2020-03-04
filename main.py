@@ -367,7 +367,7 @@ async def reload_function(message=None, client=client, args=[]):
         versioninfo = versionutils.VersionInfo()
         ch.add_command(
             {
-                "trigger": ["!reload <@" + str(ch.client.user.id) + ">"],
+                "trigger": [f"!reload <@!{ch.client.user.id}>"],
                 "function": reload_function,
                 "async": True,
                 "admin": "global",
