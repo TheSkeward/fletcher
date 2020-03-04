@@ -1,4 +1,13 @@
+(A) Requires elevated (admin) privileges.
 (S) In snappy mode, prompt is removed for this command. This is configurable behavior per-server.
+
+## Set Preference (`!preference`):
+#### 0-args
+ Output full config 
+#### 1-args/`!man`
+ list specific info for 1 command
+#### Flag verbose
+ list arguments for commands
 
 ## Help (`!help`):
 #### 0-args
