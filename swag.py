@@ -246,7 +246,7 @@ pick_regexes = {
 async def roll_function(message, client, args):
     usage_message = "Usage: !roll `number of probability objects`d`number of sides`"
     def drop_lowest(arr):
-        return sorted(arr)[1]
+        return sorted(arr)[1:]
     try:
         if len(args):
             if len(args) == 1:
