@@ -245,6 +245,8 @@ pick_regexes = {
 
 async def roll_function(message, client, args):
     usage_message = "Usage: !roll `number of probability objects`d`number of sides`"
+    def drop_lowest(arr):
+        return sorted(arr)[1]
     try:
         if len(args):
             if len(args) == 1:
@@ -253,20 +255,23 @@ async def roll_function(message, client, args):
                 elif args[0].startswith("coin"):
                     args[0] = [0, 2]
                 elif args[0].startswith("D&D"):
-                    def drop_lowest(arr):
-                        return sorted(arr)[1]
-                    if args[1].startswith("7drop1"):
-                        result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
-                    else:
-                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
                     response = f"Stats: {result}"
-                    await messagefuncs.sendWrappedMessage(response, message.channel)
+                    return await messagefuncs.sendWrappedMessage(response, message.channel)
                 elif args[0].isnumeric():
                     args[0] = [args[0], 0]
                 else:
                     args = [[0, 0]]
             elif len(args) == 2:
-                args = [args[0], args[1]]
+                if args[0].startswith("D&D"):
+                    if args[1].startswith("7drop1"):
+                        result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
+                    else:
+                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    response = f"Stats: {result}"
+                    return await messagefuncs.sendWrappedMessage(response, message.channel)
+                else:
+                    args = [args[0], args[1]]
             else:
                 raise ValueError("Sorry, that doesn't seem like input!")
         else:
