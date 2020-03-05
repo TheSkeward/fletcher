@@ -252,6 +252,15 @@ async def roll_function(message, client, args):
                     args[0] = args[0].lower().split("d")
                 elif args[0].startswith("coin"):
                     args[0] = [0, 2]
+                elif args[0].startswith("D&D"):
+                    def drop_lowest(arr):
+                        return sorted(arr)[1]
+                    if args[1].startswith("7drop1"):
+                        result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
+                    else:
+                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    response = f"Stats: {result}"
+                    await messagefuncs.sendWrappedMessage(response, message.channel)
                 elif args[0].isnumeric():
                     args[0] = [args[0], 0]
                 else:
