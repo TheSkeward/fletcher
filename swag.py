@@ -900,6 +900,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!dumpling"],
+            "function": lambda message, client, args: "🥟",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Domp",
+            "hidden": True,
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!fio", "!optimal"],
             "function": lambda message, client, args: "https://www.fimfiction.net/story/62074/8/friendship-is-optimal/",
             "async": False,
