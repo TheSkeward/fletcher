@@ -408,7 +408,7 @@ async def pick_function(message, client, args):
             if ch.scope_config(guild=guild).get(f"pick-list-{args[0][5:]}"):
                 args = (
                     ch.scope_config(guild=guild)
-                    .get(f"pick-list-{args[0][5:]}")
+                    .get(f"pick-list-{args[0][5:]}", "")
                     .split(" ")
                 )
             args = pick_lists.get(args[0][5:]).split(" ")
