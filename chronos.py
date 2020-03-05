@@ -41,6 +41,10 @@ def get_tz(message=None, user=None, guild=None):
         guild = guild.id
     if ch.user_config(user, guild, 'tz'):
         tz = pytz.timezone(ch.user_config(message.author.id, message.guild.id, 'tz'))
+    elif ch.scoped_config(guild=guild, channel=message.channel).get('tz'):
+        tz = pytz.timezone(ch.scoped_config(guild=guild, channel=message.channel).get('tz'))
+    elif ch.scoped_config(guild=guild).get('tz'):
+        tz = pytz.timezone(ch.scoped_config(guild=guild).get('tz'))
     else:
         tz = pytz.utc
     return tz
