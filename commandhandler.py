@@ -801,11 +801,12 @@ async def help_function(message, client, args):
 
 
 def dumpconfig_function(message, client, args):
+    global config
     if message.guild:
-        config = ch.scope_config(guild=message.guild)
+        dconfig = ch.scope_config(guild=message.guild)
     else:
-        config = ch.config
-    return '```json\n'+ujson.dumps(guild_config, ensure_ascii=False, indent=4)+'```'
+        dconfig = config
+    return '```json\n'+ujson.dumps(config, ensure_ascii=False, indent=4)+'```'
 
 
 def load_guild_config(ch):
