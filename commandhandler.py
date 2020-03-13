@@ -807,7 +807,7 @@ def dumpconfig_function(message, client, args):
     else:
         dconfig = config
     if args[0]:
-        return '```json\n'+uconnfig.dumps(dconfig.get(" ".join(args)), ensure_ascii=False, indent=4)+'```'
+        return '```json\n'+ujson.dumps(dconfig.get(" ".join(args)), ensure_ascii=False, indent=4)+'```'
     else:
         return '```json\n'+ujson.dumps(config, ensure_ascii=False, indent=4)+'```'
 
