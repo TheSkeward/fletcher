@@ -652,9 +652,8 @@ class CommandHandler:
             channel = ""
         try:
             if mutable:
-                ret = config.get(f"Guild {guild}{channel}")
-                if ret:
-                    return ret
+                if config.get(f"Guild {guild}{channel}"):
+                    return config.get(f"Guild {guild}{channel}")
                 else:
                     config[f"Guild {guild}{channel}"] = []
                     return config.get(f"Guild {guild}{channel}")
@@ -802,8 +801,11 @@ async def help_function(message, client, args):
 
 
 def dumpconfig_function(message, client, args):
-    guild_config = ch.scope_config(guild=message.guild)
-    return ujson.dumps(guild_config)
+    if message.guild:
+        config = ch.scope_config(guild=message.guild)
+    else:
+        config = ch.config
+    return '```json\n'+ujson.dumps(guild_config, ensure_ascii=False, indent=4)+'```'
 
 
 def load_guild_config(ch):
@@ -818,7 +820,8 @@ def load_guild_config(ch):
                     except ValueError as e:
                         logger.error(e)
                         continue
-                    guild_config["hotwords_loaded"] = ""
+                    if not guild_config.get("hotwords_loaded"):
+                        guild_config["hotwords_loaded"] = ""
                     for word in hotwords.keys():
                         target_emoji = hotwords[word]["target_emoji"]
                         if len(target_emoji) > 1:
@@ -834,11 +837,15 @@ def load_guild_config(ch):
                             "target_emoji": target_emoji,
                             "regex": hotwords[word]["regex"],
                             "compiled_regex": re.compile(hotwords[word]["regex"], flags),
+                            "owner": "guild",
                             "user_restriction": hotwords[word].get("user_restriction", [])
                         }
-                        guild_config["hotwords_loaded"] += word + ", "
-                    guild_config["hotwords_loaded"] = guild_config["hotwords_loaded"].rstrip(", ")
-                    regex_cache[guild.id] = hotwords.values()
+                        guild_config["hotwords_loaded"] += ", " + word
+                    guild_config["hotwords_loaded"] = guild_config["hotwords_loaded"].lstrip(", ")
+                    if not regex_cache.get(guild.id):
+                        regex_cache[guild.id] = []
+                    logger.debug(f'Extending regex_cache[{guild.id}] with {hotwords.values()}')
+                    regex_cache[guild.id].extend(hotwords.values())
         except NameError:
             pass
         except Exception as e:
@@ -902,10 +909,13 @@ def load_user_config(ch):
             hottuple = cur.fetchone()
             while hottuple:
                 [user_id, guild_id, hotword_json] = hottuple
+                logger.debug(f'Loading {user_id} on {guild_id}: {hotword_json}')
                 guild_config = ch.scope_config(guild=guild_id, mutable=True)
                 try:
                     hotwords = ujson.loads(hotword_json)
                 except ValueError as e:
+                    exc_type, exc_obj, exc_tb = exc_info()
+                    logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
                     hottuple = cur.fetchone()
                     continue
                 if not guild_config.get("hotwords_loaded"):
@@ -914,7 +924,7 @@ def load_user_config(ch):
                     target_emoji = hotwords[word]["target_emoji"]
                     if len(target_emoji) > 1:
                         target_emoji = discord.utils.get(
-                            guild.emojis, name=target_emoji
+                            ch.client.emojis, name=target_emoji
                         )
                         if not target_emoji:
                             target_emoji = hotwords[word]["target_emoji"]
@@ -925,16 +935,17 @@ def load_user_config(ch):
                         "target_emoji": target_emoji,
                         "regex": hotwords[word]["regex"],
                         "compiled_regex": re.compile(hotwords[word]["regex"], flags),
+                        "owner": user_id,
                         "user_restriction": [user_id],
                     }
                     guild_config["hotwords_loaded"] += f', {user_id}:{word}'
+                    logger.debug(f'Loaded {word} for {user_id} on {guild_id}')
                 if not regex_cache.get(guild_id):
                     regex_cache[guild_id] = []
-                regex_cache[guild_id].append(hotwords.values())
+                logger.debug(f'Extending regex_cache[{guild_id}] with {hotwords.values()}')
+                regex_cache[guild_id].extend(hotwords.values())
                 hottuple = cur.fetchone()
             conn.commit()
-        except NameError:
-            pass
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -968,7 +979,7 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
-    return ch.user_config(message.author.id, message.guild.id, args[0], value)
+    return '```'+ch.user_config(message.author.id, message.guild.id, args[0], value)+'```'
 
 def autoload(ch):
     global tag_id_as_command
