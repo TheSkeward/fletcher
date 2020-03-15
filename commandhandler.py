@@ -435,7 +435,8 @@ class CommandHandler:
             if not continue_flag:
                 return
         args = list(filter("".__ne__, searchString.split(" ")))
-        args.pop(0)
+        if len(args):
+            args.pop(0)
         for command in self.get_command(searchString, message, mode="keyword_trie", min_args=len(args)):
             await self.run_command(command, message, args, message.author)
             # Run at most one command
