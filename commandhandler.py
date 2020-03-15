@@ -134,7 +134,7 @@ class CommandHandler:
                     args = [reaction, user, "add"]
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
-                await self.run_command(scoped_command, message, args, user)
+                await self.run_command(command, message, args, user)
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
                 in self.webhook_sync_registry.keys()
@@ -223,7 +223,7 @@ class CommandHandler:
             if self.message_reaction_remove_handlers.get(message.id):
                 command = self.message_reaction_remove_handlers[message.id]
                 if self.allowCommand(command, message, user=user) and command.get("remove"):
-                    await self.run_command(scoped_command, message, args, user)
+                    await self.run_command(command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
                 if self.allowCommand(command, message, user=user) and command.get("remove"):
                     await self.run_command(command, message, args, user)
