@@ -744,7 +744,7 @@ def dumpconfig_function(message, client, args):
 class Hotword:
     def __init__(self, ch, word, hotword, owner):
         if hotword.get("target_emoji"):
-            if hotword["target_emoji"] not in UNICODE_EMOJI:
+            if len(hotword["target_emoji"]) > 2 and hotword["target_emoji"] not in UNICODE_EMOJI:
                 intended_target_emoji = None
                 if type(owner) == discord.Member:
                     intended_target_emoji = discord.utils.get(
