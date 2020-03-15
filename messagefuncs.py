@@ -76,7 +76,7 @@ async def sendWrappedMessage(msg, target, files=[], embed=None):
     last_chunk = msg_chunks.pop()
     for chunk in msg_chunks:
         await target.send(chunk)
-    await target.send(last_chunk, files=files, embed=embed)
+    return await target.send(last_chunk, files=files, embed=embed)
 
 
 extract_identifiers_messagelink = re.compile(
