@@ -454,8 +454,8 @@ def pretty_date(time=False):
 async def rot13_function(message, client, args):
     global config
     try:
-        if len(args) == 3 and type(args[1]) is discord.Member:
-            if message.author.id == 429368441577930753:
+        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
+            if message.author.id == client.user.id:
                 if message.content.startswith("Mod Report"):
                     return await args[1].send(
                         codecs.encode(message.content.split("\n", 1)[1], "rot_13")
@@ -489,9 +489,9 @@ async def rot13_function(message, client, args):
         elif len(args) == 2 and args[1] == "INTPROC":
             return codecs.encode(args[0], "rot_13")
         else:
-            if len(args) == 3 and type(args[1]) is discord.Member and args[1].bot:
+            if len(args) == 3 and type(args[1]) in [discord.Member, discord.User] and args[1].bot:
                 return logger.debug("Ignoring bot reaction")
-            elif len(args) == 3 and type(args[1]) is discord.Member and not args[1].bot:
+            elif len(args) == 3 and type(args[1]) in [discord.Member, discord.User] and not args[1].bot:
                 logger.debug(args[1])
             messageContent = (
                 "**"
