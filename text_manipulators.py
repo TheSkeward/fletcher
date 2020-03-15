@@ -458,7 +458,7 @@ async def rot13_function(message, client, args):
             if message.author.id == client.user.id:
                 if message.content.startswith("Mod Report"):
                     return await args[1].send(
-                        codecs.encode(message.content.split("\n", 1)[1], "rot_13")
+                        codecs.encode(message.content.split(" via reaction to ", 1)[1], "rot_13")
                     )
                 else:
                     return await args[1].send(
