@@ -641,16 +641,16 @@ class CommandHandler:
             accessible_commands = ch.commands
         if mode == "keyword":
             def query_filter(c):
-                return any(target_trigger in trigger for trigger in c["trigger"]) and min_args <= c["args_num"] <= max_args
+                return any(target_trigger in trigger for trigger in c["trigger"]) and min_args <= c.get("args_num", 0) <= max_args
         if mode == "keyword_trie":
             def query_filter(c):
-                return target_trigger.startswith(c["trigger"]) and min_args <= c["args_num"] <= max_args
+                return target_trigger.startswith(c["trigger"]) and min_args <= c.get("args_num", 0) <= max_args
         elif mode == "description":
             def query_filter(c):
-                return any(target_trigger in trigger for trigger in c["trigger"]) or target_trigger in c["description"].lower() and min_args <= c["args_num"] <= max_args
+                return any(target_trigger in trigger for trigger in c["trigger"]) or target_trigger in c["description"].lower() and min_args <= c.get("args_num", 0) <= max_args
         else: # if mode == "exact":
             def query_filter(c):
-                return target_trigger in c["trigger"] and min_args <= c["args_num"] <= max_args
+                return target_trigger in c["trigger"] and min_args <= c.get("args_num", 0) <= max_args
         try:
             return list(filter(query_filter, accessible_commands))
         except IndexError:
