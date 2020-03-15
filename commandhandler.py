@@ -202,7 +202,10 @@ class CommandHandler:
             global config
             messageContent = str(reaction.emoji)
             channel = self.client.get_channel(reaction.channel_id)
-            user = channel.guild.get_member(reaction.user_id)
+            if type(channel) == discord.DMChannel:
+                user = self.client.get_user(reaction.user_id)
+            else:
+                user = channel.guild.get_member(reaction.user_id)
             message = await channel.fetch_message(reaction.message_id)
             args = [reaction, user, "remove"]
             try:
@@ -210,7 +213,7 @@ class CommandHandler:
                 channel_config = self.scope_config(
                     guild=message.guild, channel=message.channel
                 )
-            except ValueError as e:
+            except (AttributeError, ValueError) as e:
                 if "guild" in str(e):
                     # DM configuration, default to none
                     guild_config = dict()
