@@ -629,7 +629,7 @@ class CommandHandler:
         except IndexError:
             return []
 
-    def get_command(ch, target_trigger, message, mode="exact", insensitive=True, min_args=0, max_args=99999):
+    def get_command(ch, target_trigger, message=None, mode="exact", insensitive=True, min_args=0, max_args=99999):
         if insensitive:
             target_trigger = target_trigger.lower()
         if message:
@@ -742,6 +742,7 @@ class Hotword:
     def __init__(self, ch, word, hotword, owner):
         if hotword.get("target_emoji"):
             if len(hotword["target_emoji"]) > 1:
+                intended_target_emoji = None
                 if type(owner) == discord.Member:
                     intended_target_emoji = discord.utils.get(
                         owner.guild.emojis, name=hotword["target_emoji"]
