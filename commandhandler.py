@@ -635,7 +635,7 @@ class CommandHandler:
         if insensitive:
             target_trigger = target_trigger.lower()
         if message:
-            accessible_commands = ch.accessible_commands(ch, message)
+            accessible_commands = ch.accessible_commands(message)
         else:
             accessible_commands = ch.commands
         if mode == "keyword":
