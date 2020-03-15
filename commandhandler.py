@@ -9,75 +9,11 @@ import re
 from sys import exc_info
 import textwrap
 import ujson
-from functools import lru_cache
+from functools import lru_cache, partial
 
 logger = logging.getLogger("fletcher")
 
 regex_cache = dict()
-
-
-def allowCommand(command, message, user=None):
-    global config
-    if not user:
-        user = message.author
-    if "admin" in command:
-        # Global admin commands use builtin global admin list
-        if command["admin"] == "global" and user.id in [
-            int(admin.strip()) for admin in config["discord"]["globalAdmin"].split(",")
-        ]:
-            return True
-        # Guild admin commands
-        if type(message.channel) == discord.TextChannel:
-            # Server-specific
-            if (
-                str(command["admin"]).startswith("server:")
-                and message.guild.id
-                in [
-                    int(guild.strip())
-                    for guild in command["admin"].split(":")[1].split(",")
-                ]
-                and user.guild_permissions.manage_webhooks
-            ):
-                return True
-            # Channel-specific
-            elif (
-                str(command["admin"]).startswith("channel:")
-                and message.channel.id
-                in [
-                    int(channel.strip())
-                    for channel in command["admin"].split(":")[1].split(",")
-                ]
-                and user.permissions_in(message.channel).manage_webhooks
-            ):
-                return True
-            # Any server
-            elif command["admin"] in ["server", True] and (
-                message.author.guild_permissions.manage_webhooks
-                or (
-                    config["discord"].get("globalAdminIsServerAdmin")
-                    and user.id
-                    in [
-                        int(admin.strip())
-                        for admin in config["discord"]["globalAdmin"].split(",")
-                    ]
-                )
-            ):
-                return True
-            # Any channel
-            elif (
-                command["admin"] == "channel"
-                and user.permissions_in(message.channel).manage_webhooks
-            ):
-                return True
-        # Unprivileged
-        if command["admin"] == False:
-            return True
-        else:
-            # Invalid config
-            return False
-    else:
-        # No admin set == Unprivileged
-        return True
 
 
 class CommandHandler:
@@ -103,6 +39,8 @@ class CommandHandler:
 
     def add_command(self, command):
         command["module"] = inspect.stack()[1][1]
+        if type(command["trigger"]) != tuple:
+            command["trigger"] = tuple(command["trigger"])
         self.commands.append(command)
 
     def add_remove_handler(self, func_name, func):
@@ -188,42 +126,14 @@ class CommandHandler:
             if scoped_command:
                 logger.debug(scoped_command)
                 if (
-                    messageContent.startswith(tuple(scoped_command["trigger"]))
-                    and allowCommand(scoped_command, message, user=user)
+                    messageContent.startswith(scoped_command["trigger"])
+                    and self.allowCommand(scoped_command, message, user=user)
                     and scoped_command["args_num"] == 0
                 ):
-                    if str(user.id) in config["moderation"][
-                        "blacklist-user-usage"
-                    ].split(","):
-                        raise Exception("Blacklisted command attempt by user")
-                    logger.debug(scoped_command["function"])
-                    if scoped_command["async"]:
-                        return await scoped_command["function"](message, self.client, args)
-                    else:
-                        args = [reaction, user, "add"]
-                        return await messagefuncs.sendWrappedMessage(
-                            str(scoped_command["function"](message, self.client, args)),
-                            message.channel
-                        )
-            for command in filter(lambda command: type(message.channel) is discord.DMChannel or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
-                if (
-                    messageContent.startswith(tuple(command["trigger"]))
-                    and allowCommand(command, message, user=user)
-                    and command["args_num"] == 0
-                ):
-                    logger.debug(command)
-                    if str(user.id) in config["moderation"][
-                        "blacklist-user-usage"
-                    ].split(","):
-                        raise Exception("Blacklisted command attempt by user")
-                    logger.debug(command["function"])
-                    if command["async"]:
-                        return await command["function"](message, self.client, args)
-                    else:
-                        return await messagefuncs.sendWrappedMessage(
-                            str(command["function"](message, self.client, args)),
-                            message.channel
-                        )
+                    args = [reaction, user, "add"]
+                    await self.run_command(scoped_command, message, args, user)
+            for command in self.get_command(messageContent, message, max_args=0):
+                    await self.run_command(scoped_command, message, args, user)
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
                 in self.webhook_sync_registry.keys()
@@ -311,44 +221,11 @@ class CommandHandler:
                     )
             if self.message_reaction_remove_handlers.get(message.id):
                 command = self.message_reaction_remove_handlers[message.id]
-                logger.debug(command)
-                if (
-                    messageContent.startswith(tuple(command["trigger"]))
-                    and allowCommand(command, message, user=user)
-                    and command["args_num"] == 0
-                ):
-                    if str(user.id) in config["moderation"][
-                        "blacklist-user-usage"
-                    ].split(","):
-                        raise Exception("Blacklisted command attempt by user")
-                    logger.debug(command["function"])
-                    if command["async"]:
-                        return await command["function"](message, self.client, args)
-                    else:
-                        return await messagefuncs.sendWrappedMessage(
-                            str(command["function"](message, self.client, args)),
-                            message.channel
-                        )
-            for command in filter(lambda command: type(message.channel) is discord.DMChannel or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
-                if (
-                    messageContent.startswith(tuple(command["trigger"]))
-                    and allowCommand(command, message, user=user)
-                    and command["args_num"] == 0
-                    and command.get("remove")
-                ):
-                    logger.debug(command)
-                    if str(user.id) in config["moderation"][
-                        "blacklist-user-usage"
-                    ].split(","):
-                        raise Exception("Blacklisted command attempt by user")
-                    logger.debug(command["function"])
-                    if command["async"]:
-                        return await command["function"](message, self.client, args)
-                    else:
-                        return await messagefuncs.sendWrappedMessage(
-                            str(command["function"](message, self.client, args)),
-                            message.channel
-                        )
+                if self.allowCommand(command, message, user=user) and command.get("remove"):
+                    await self.run_command(scoped_command, message, args, user)
+            for command in self.get_command(messageContent, message, max_args=0):
+                if self.allowCommand(command, message, user=user) and command.get("remove"):
+                    await self.run_command(scoped_command, message, args, user)
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"RXH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -556,60 +433,17 @@ class CommandHandler:
             )
             if not continue_flag:
                 return
-        for command in filter(lambda command: type(message.channel) is discord.DMChannel or (message.guild.id not in command.get("blacklist_guild", [])), self.commands):
-            if searchString.lower().startswith(
-                tuple(command["trigger"])
-            ) and allowCommand(command, message):
-                tt = None
-                if "long_run" in command:
-                    if command["long_run"] == "author":
-                        await message.author.trigger_typing()
-                    elif command["long_run"]:
-                        await message.channel.trigger_typing()
-                logger.debug("[CH] Triggered " + str(command))
-                args = searchString.split(" ")
-                args = [item for item in args if item]
-                args.pop(0)
-                if str(message.author.id) in config.get("moderation", dict()).get(
-                    "blacklist-user-usage", ""
-                ).split(","):
-                    await message.add_reaction("💔")
-                    await message.channel.send(
-                        "I'll only talk to you when you stop being mean to me, "
-                        + message.author.display_name
-                        + "!"
-                    )
-                    raise Exception("Blacklisted command attempt by user")
-                if command["args_num"] == 0:
-                    if command["async"]:
-                        await command["function"](message, self.client, args)
-                        break
-                    else:
-                        await messagefuncs.sendWrappedMessage(
-                            str(command["function"](message, self.client, args)),
-                            message.channel
-                        )
-                        break
-                else:
-                    if len(args) >= command["args_num"]:
-                        if command["async"]:
-                            await command["function"](message, self.client, args)
-                            break
-                        else:
-                            await messagefuncs.sendWrappedMessage(
-                                str(command["function"](message, self.client, args)),
-                                message.channel
-                            )
-                            break
-                    else:
-                        await message.channel.send(
-                            f'command "{command["trigger"][0]}" requires {command["args_num"]} argument(s) "{", ".join(command["args_name"])}"'
-                        )
-                        break
+        args = filter("".__ne__, searchString.split(" "))
+        args.pop(0)
+        for command in self.get_command(searchString, message, mode="keyword_trie", min_args=len(args)):
+            await self.run_command(command, message, args, message.author)
+            # Run at most one command
+            break
         if guild_config.get("hotwords"):
-            for hotword in filter(lambda hw: len(hw.get("user_restriction", [])) == 0 or message.author.id in hw.get("user_restriction", []), regex_cache.get(message.guild.id, [])):
-                if hotword["compiled_regex"].search(message.content):
-                    await message.add_reaction(hotword["target_emoji"])
+            for hotword in filter(lambda hw: len(hw.user_restriction) == 0 or message.author.id in hw.user_restriction, regex_cache.get(message.guild.id, [])):
+                if hotword.compiled_regex.search(message.content):
+                    for command in hotword.target:
+                        await self.run_command(command, message, args, message.author)
         if channel_config.get("regex") == "post-command" and (
             channel_config.get("regex-tyranny", "On") == "Off"
             or not message.channel.permissions_for(message.author).manage_messages
@@ -620,15 +454,33 @@ class CommandHandler:
             if not continue_flag:
                 return
 
+    async def run_command(self, command, message, args, user):
+        if command.get("long_run") == "author":
+            await user.trigger_typing()
+        elif command.get("long_run"):
+            await message.channel.trigger_typing()
+        logger.debug(f"[CH] Triggered {command}")
+        if str(user.id) in self.scoped_config()["moderation"][
+            "blacklist-user-usage"
+        ].split(","):
+            raise Exception(f"Blacklisted command attempt by user {user}")
+        if command["async"]:
+            await command["function"](message, self.client, args)
+        else:
+            await messagefuncs.sendWrappedMessage(
+                str(command["function"](message, self.client, args)),
+                message.channel
+            )
+
     def blacklist_command(self, command_name, guild_id):
-        for command in self.commands:
-            if ("!"+command_name).lower().startswith(
-                tuple(command["trigger"])
-                ):
-                if "blacklist_guild" not in command:
-                    command["blacklist_guild"] = []
-                command["blacklist_guild"].append(guild_id)
-                logger.debug(f"Blacklisting {command} on guild {guild_id}")
+        command = self.get_command("!"+command_name)
+        if len(command):
+            if "blacklist_guild" not in command:
+                command["blacklist_guild"] = []
+            command["blacklist_guild"].append(guild_id)
+            logger.debug(f"Blacklisting {command} on guild {guild_id}")
+        else:
+            logger.error(f"Couldn't find {command_name} for blacklisting on guild {guild_id}")
 
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
         global config
@@ -638,7 +490,7 @@ class CommandHandler:
             elif message:
                 guild = message.guild
             else:
-                raise ValueError("No message, channel or guild specified")
+                return config
         if channel is None:
             if message:
                 channel = message.channel
@@ -693,11 +545,116 @@ class CommandHandler:
         conn.commit()
         return value
 
+    def is_admin(self, message, user=None):
+        global config
+        if not user:
+            user = message.author
+        globalAdmin = user.id in config["discord"].get("globalAdmin", "").split(",")
+        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or type(message.channel) is discord.DMChannel or user.guild_permissions.manage_webhooks
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or user.permissions_in(message.channel).manage_webhooks
+        return {
+                'global': globalAdmin,
+                'server': serverAdmin,
+                'channel': channelAdmin
+                }
+    def allowCommand(self, command, message, user=None):
+        global config
+        if not user:
+            user = message.author
+        admin = self.is_admin(message, user=user)
+        if "admin" in command:
+            if command["admin"] == "global" and admin['global']:
+                return True
+            # Guild admin commands
+            if type(message.channel) != discord.DMChannel:
+                # Server-specific
+                if (
+                    str(command["admin"]).startswith("server:")
+                    and message.guild.id
+                    in [
+                        int(guild.strip())
+                        for guild in command["admin"].split(":")[1].split(",")
+                    ]
+                    and admin['server']
+                ):
+                    return True
+                # Channel-specific
+                elif (
+                    str(command["admin"]).startswith("channel:")
+                    and message.channel.id
+                    in [
+                        int(channel.strip())
+                        for channel in command["admin"].split(":")[1].split(",")
+                    ]
+                    and admin['channel']
+                ):
+                    return True
+                # Any server
+                elif command["admin"] in ["server", True] and admin['server']:
+                    return True
+                # Any channel
+                elif command["admin"] == "channel" and admin['channel']:
+                    return True
+            # Unprivileged
+            if command["admin"] == False:
+                return True
+            else:
+                # Invalid config
+                return False
+        else:
+            # No admin set == Unprivileged
+            return True
 
+
+
+    def accessible_commands(self, message):
+        global config
+        if str(message.author.id) in config["moderation"][
+                "blacklist-user-usage"
+                ].split(","):
+            return []
+        admin = self.is_admin(message)
+        if admin['global'] and verbose:
+            def command_filter(c):
+                return True
+        elif admin['server']:
+            def command_filter(c):
+                return (type(message.channel) is discord.DMChannel or message.guild.id not in c.get("blacklist_guild", [])) and not c.get("hidden", False)
+        else:
+            def command_filter(c):
+                return (type(message.channel) is discord.DMChannel or message.guild.id not in c.get("blacklist_guild", [])) and not c.get("admin", False) and not c.get("hidden", False)
+    
+        try:
+            return list(filter(command_filter, self.commands))
+        except IndexError:
+            return []
+
+    def get_command(ch, target_trigger, message, mode="exact", insensitive=True, min_args=0, max_args=99999):
+        if insensitive:
+            target_trigger = target_trigger.lower()
+        if message:
+            accessible_commands = accessible_commands(ch, message)
+        else:
+            accessible_commands = ch.commands
+        if mode == "keyword":
+            def query_filter(c):
+                return any(target_trigger in trigger for trigger in c["trigger"]) and min_args <= c["args"] <= max_args
+        if mode == "keyword_trie":
+            def query_filter(c):
+                return trigger.starts_with(c["trigger"]) and min_args <= c["args"] <= max_args
+        elif mode == "description":
+            def query_filter(c):
+                return any(target_trigger in trigger for trigger in c["trigger"]) or target_trigger in c["description"].lower() and min_args <= c["args"] <= max_args
+        else: # if mode == "exact":
+            def query_filter(c):
+                return target_trigger in c["trigger"] and min_args <= c["args"] <= max_args
+        try:
+            return list(filter(query_filter, accessible_commands))
+        except IndexError:
+            return []
 
 async def help_function(message, client, args):
     global ch
-    global config
     try:
         arg = None
         verbose = False
@@ -716,13 +673,11 @@ async def help_function(message, client, args):
             else:
                 arg = args[0]
                 break
+
         if message.content.startswith("!man"):
             public = True
 
-        globalAdmin = message.author.id in config["discord"].get("globalAdmin", "").split(",")
-        serverAdmin = globalAdmin or type(message.channel) is discord.DMChannel or message.author.guild_permissions.manage_webhooks
-        channelAdmin = globalAdmin or serverAdmin or message.channel.permissions_for(message.author).manage_webhooks
-        if serverAdmin and public:
+        if ch.is_admin(message)['server'] and public:
             target = message.channel
         else:
             target = message.author
@@ -730,50 +685,20 @@ async def help_function(message, client, args):
         if len(args) == 0:
             arg = None
 
-        if globalAdmin and verbose:
-            def command_filter(c):
-                return True
-        elif serverAdmin:
-            def command_filter(c):
-                return "hidden" not in c.keys() or c["hidden"] == False
-        else:
-            def command_filter(c):
-                return ("admin" not in c.keys() or c["admin"] == False) and (
-                    "hidden" not in c.keys() or c["hidden"] == False
-                )
-
-        accessible_commands = filter(command_filter, ch.commands)
         if arg:
             keyword = " ".join(args).strip().lower()
             if keyword.startswith("!"):
-
-                def query_filter(c):
-                    for trigger in c["trigger"]:
-                        if keyword in trigger:
-                            return True
-                    return False
-
+                accessible_commands = ch.get_commands(keyword, message, mode="keyword")
             else:
+                accessible_commands = ch.get_commands(keyword, message, mode="description")
 
-                def query_filter(c):
-                    for trigger in c["trigger"]:
-                        if keyword in trigger:
-                            return True
-                    if keyword in c["description"].lower():
-                        return True
-                    return False
-
-            try:
-                accessible_commands = list(filter(query_filter, accessible_commands))
-            except IndexError:
-                accessible_commands = []
             # Set verbose if filtered list
             if len(accessible_commands) < 5:
                 verbose = True
                 public = True
         else:
             try:
-                accessible_commands = list(accessible_commands)
+                accessible_commands = ch.accessible_commands(message)
             except IndexError:
                 accessible_commands = []
         if target == message.author and len(accessible_commands):
@@ -798,6 +723,7 @@ async def help_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"HF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 def dumpconfig_function(message, client, args):
@@ -811,6 +737,48 @@ def dumpconfig_function(message, client, args):
     else:
         return '```json\n'+ujson.dumps(config, ensure_ascii=False, indent=4)+'```'
 
+
+class Hotword:
+    def __init__(self, ch, word, hotword, owner):
+        if hotword.get("target_emoji"):
+            if len(hotword["target_emoji"]) > 1:
+                intended_target_emoji = discord.utils.get(
+                    guild.emojis, name=hotword["target_emoji"]
+                ) or discord.utils.get(
+                        ch.client.emojis, name=hotword["target_emoji"]
+                        )
+                if intended_target_emoji:
+                    async def add_emoji(message, client, args):
+                        await message.add_reaction(intended_target_emoji)
+                    self.target = [add_emoji]
+                else:
+                    raise ValueError('Target emoji not found')
+            else:
+                async def add_emoji(message, client, args):
+                    await message.add_reaction(hotword["target_emoji"])
+                self.target = [add_emoji]
+        elif owner == "guild" and hotword.get("target_function"):
+            self.target = partial(ch.get_command, target_function_name)
+        else:
+            raise ValueError('No valid target')
+        flags = 0
+        if hotwords[word].get("insensitive"):
+            flags = re.IGNORECASE
+        self.user_restriction = hotword.get("user_restriction", [])
+        if type(owner) is not str:
+            self.user_restriction.extend(owner)
+        self.regex = hotword["regex"]
+        self.compiled_regex = re.compile(hotword["regex"], flags)
+        self.owner = owner
+
+    def __iter__(self):
+        return {
+                'regex': self.regex,
+                'compiled_regex': self.compiled_regex,
+                'owner': self.owner,
+                'user_restriction': self.user_restriction,
+                'target': self.target
+                }
 
 def load_guild_config(ch):
     def load_hotwords(ch):
@@ -827,23 +795,12 @@ def load_guild_config(ch):
                     if not guild_config.get("hotwords_loaded"):
                         guild_config["hotwords_loaded"] = ""
                     for word in hotwords.keys():
-                        target_emoji = hotwords[word]["target_emoji"]
-                        if len(target_emoji) > 1:
-                            target_emoji = discord.utils.get(
-                                guild.emojis, name=target_emoji
-                            )
-                            if not target_emoji:
-                                target_emoji = hotwords[word]["target_emoji"]
-                        flags = 0
-                        if hotwords[word].get("insensitive"):
-                            flags = re.IGNORECASE
-                        hotwords[word] = {
-                            "target_emoji": target_emoji,
-                            "regex": hotwords[word]["regex"],
-                            "compiled_regex": re.compile(hotwords[word]["regex"], flags),
-                            "owner": "guild",
-                            "user_restriction": hotwords[word].get("user_restriction", [])
-                        }
+                        try:
+                            hotword = Hotword(ch, word, hotwords[word], "guild")
+                        except ValueError as e:
+                            logger.error(f'Parsing {word} failed: {e}')
+                            continue
+                        hotwords[word] = hotword
                         guild_config["hotwords_loaded"] += ", " + word
                     guild_config["hotwords_loaded"] = guild_config["hotwords_loaded"].lstrip(", ")
                     if not regex_cache.get(guild.id):
@@ -858,10 +815,9 @@ def load_guild_config(ch):
     def load_blacklists(ch):
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
-            if guild_config.get("blacklist-commands"):
-                for command_name in guild_config.get("blacklist-commands").split(","):
-                    command_name = command_name.strip()
-                    ch.blacklist_command(command_name, guild.id)
+            for command_name in guild_config.get("blacklist-commands", "").split(","):
+                command_name = command_name.strip()
+                ch.blacklist_command(command_name, guild.id)
     logger.debug('LBL')
     load_blacklists(ch)
     logger.debug('LGHW')
@@ -925,25 +881,13 @@ def load_user_config(ch):
                 if not guild_config.get("hotwords_loaded"):
                     guild_config["hotwords_loaded"] = ""
                 for word in hotwords.keys():
-                    target_emoji = hotwords[word]["target_emoji"]
-                    if len(target_emoji) > 1:
-                        target_emoji = discord.utils.get(
-                            ch.client.emojis, name=target_emoji
-                        )
-                        if not target_emoji:
-                            target_emoji = hotwords[word]["target_emoji"]
-                    flags = 0
-                    if hotwords[word].get("insensitive"):
-                        flags = re.IGNORECASE
-                    hotwords[word] = {
-                        "target_emoji": target_emoji,
-                        "regex": hotwords[word]["regex"],
-                        "compiled_regex": re.compile(hotwords[word]["regex"], flags),
-                        "owner": user_id,
-                        "user_restriction": [user_id],
-                    }
-                    guild_config["hotwords_loaded"] += f', {user_id}:{word}'
-                    logger.debug(f'Loaded {word} for {user_id} on {guild_id}')
+                    try:
+                        hotword = Hotword(ch, word, hotwords[word], ch.client.get_user(user_id))
+                    except ValueError as e:
+                        logger.error(f'Parsing {word} for {user_id} failed: {e}')
+                        continue
+                    hotwords[word] = hotword
+                    guild_config["hotwords_loaded"] += ", " + word
                 if not regex_cache.get(guild_id):
                     regex_cache[guild_id] = []
                 logger.debug(f'Extending regex_cache[{guild_id}] with {hotwords.values()}')
