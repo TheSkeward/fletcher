@@ -229,7 +229,7 @@ class CommandHandler:
                     await self.run_command(command, message, args, user)
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"RXH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+            logger.error(f"RRH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def remove_handler(self, member):
         if self.scope_config(guild=member.guild).get("on_member_remove"):
