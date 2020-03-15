@@ -119,6 +119,7 @@ class CommandHandler:
                     await message.guild.get_member(user_id).send(
                         f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {messageContent} to https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
                     )
+            args = [reaction, user, "add"]
             scoped_command = None
             if self.message_reaction_handlers.get(message.id) and self.message_reaction_handlers.get(message.id).get("scope", "message") != "channel":
                 scoped_command = self.message_reaction_handlers[message.id]
@@ -131,7 +132,6 @@ class CommandHandler:
                     and self.allowCommand(scoped_command, message, user=user)
                     and scoped_command["args_num"] == 0
                 ):
-                    args = [reaction, user, "add"]
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
                 await self.run_command(command, message, args, user)
@@ -556,8 +556,8 @@ class CommandHandler:
         if not user:
             user = message.author
         globalAdmin = user.id in config["discord"].get("globalAdmin", "").split(",")
-        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or type(message.channel) is discord.DMChannel or user.guild_permissions.manage_webhooks
-        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or user.permissions_in(message.channel).manage_webhooks
+        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or (type(message.channel) is not discord.DMChannel and user.guild_permissions.manage_webhooks)
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or (type(message.channel) is not discord.DMChannel and user.permissions_in(message.channel).manage_webhooks)
         return {
                 'global': globalAdmin,
                 'server': serverAdmin,
