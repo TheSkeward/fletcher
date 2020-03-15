@@ -476,7 +476,7 @@ class CommandHandler:
     def blacklist_command(self, command_name, guild_id):
         command = self.get_command("!"+command_name)
         if len(command):
-            if "blacklist_guild" not in command:
+            if not command.get("blacklist_guild"):
                 command["blacklist_guild"] = []
             command["blacklist_guild"].append(guild_id)
             logger.debug(f"Blacklisting {command} on guild {guild_id}")
