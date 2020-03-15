@@ -643,7 +643,7 @@ class CommandHandler:
                 return any(target_trigger in trigger for trigger in c["trigger"]) and min_args <= c["args_num"] <= max_args
         if mode == "keyword_trie":
             def query_filter(c):
-                return target_trigger.starts_with(c["trigger"]) and min_args <= c["args_num"] <= max_args
+                return target_trigger.startswith(c["trigger"]) and min_args <= c["args_num"] <= max_args
         elif mode == "description":
             def query_filter(c):
                 return any(target_trigger in trigger for trigger in c["trigger"]) or target_trigger in c["description"].lower() and min_args <= c["args_num"] <= max_args
