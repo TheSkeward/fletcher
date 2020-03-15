@@ -75,7 +75,7 @@ class CommandHandler:
                 channel_config = self.scope_config(
                     guild=message.guild, channel=message.channel
                 )
-            except ValueError as e:
+            except (AttributeError, ValueError) as e:
                 if "guild" in str(e):
                     # DM configuration, default to none
                     guild_config = dict()
