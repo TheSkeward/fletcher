@@ -742,7 +742,7 @@ def dumpconfig_function(message, client, args):
 class Hotword:
     def __init__(self, ch, word, hotword, owner):
         if hotword.get("target_emoji"):
-            if hotword["target_emoji"] in UNICODE_EMOJI:
+            if hotword["target_emoji"] not in UNICODE_EMOJI:
                 intended_target_emoji = None
                 if type(owner) == discord.Member:
                     intended_target_emoji = discord.utils.get(
@@ -888,7 +888,7 @@ def load_user_config(ch):
                     guild_config["hotwords_loaded"] = ""
                 for word in hotwords.keys():
                     try:
-                        hotword = Hotword(ch, word, hotwords[word], ch.client.get_user(user_id))
+                        hotword = Hotword(ch, word, hotwords[word], ch.client.get_guild(guild_id).get_member(user_id))
                     except ValueError as e:
                         logger.error(f'Parsing {word} for {user_id} failed: {e}')
                         continue
