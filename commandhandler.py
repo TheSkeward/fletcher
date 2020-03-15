@@ -134,7 +134,7 @@ class CommandHandler:
                     args = [reaction, user, "add"]
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
-                    await self.run_command(scoped_command, message, args, user)
+                await self.run_command(scoped_command, message, args, user)
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
                 in self.webhook_sync_registry.keys()
@@ -226,7 +226,7 @@ class CommandHandler:
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
                 if self.allowCommand(command, message, user=user) and command.get("remove"):
-                    await self.run_command(scoped_command, message, args, user)
+                    await self.run_command(command, message, args, user)
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"RXH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
