@@ -822,7 +822,8 @@ def load_guild_config(ch):
             guild_config = ch.scope_config(guild=guild)
             for command_name in guild_config.get("blacklist-commands", "").split(","):
                 command_name = command_name.strip()
-                ch.blacklist_command(command_name, guild.id)
+                if command_name:
+                    ch.blacklist_command(command_name, guild.id)
     logger.debug('LBL')
     load_blacklists(ch)
     logger.debug('LGHW')
