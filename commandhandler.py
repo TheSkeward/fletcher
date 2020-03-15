@@ -742,11 +742,14 @@ class Hotword:
     def __init__(self, ch, word, hotword, owner):
         if hotword.get("target_emoji"):
             if len(hotword["target_emoji"]) > 1:
-                intended_target_emoji = discord.utils.get(
-                    guild.emojis, name=hotword["target_emoji"]
-                ) or discord.utils.get(
+                if type(owner) == discord.Member:
+                    intended_target_emoji = discord.utils.get(
+                        owner.guild.emojis, name=hotword["target_emoji"]
+                    )
+                if not intended_target_emoji:
+                    intended_target_emoji = discord.utils.get(
                         ch.client.emojis, name=hotword["target_emoji"]
-                        )
+                    )
                 if intended_target_emoji:
                     async def add_emoji(message, client, args):
                         await message.add_reaction(intended_target_emoji)
