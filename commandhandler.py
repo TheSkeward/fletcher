@@ -979,4 +979,5 @@ def autoload(ch):
     ch.user_config.cache_clear()
     if config and ch.client:
         load_user_config(ch)
-        load_guild_config(ch)
+        if len(ch.commands) > 3:
+            load_guild_config(ch)
