@@ -461,7 +461,7 @@ class CommandHandler:
         elif command.get("long_run"):
             await message.channel.trigger_typing()
         logger.debug(f"[CH] Triggered {command}")
-        if str(user.id) in self.scoped_config()["moderation"][
+        if str(user.id) in self.scope_config()["moderation"][
             "blacklist-user-usage"
         ].split(","):
             raise Exception(f"Blacklisted command attempt by user {user}")
