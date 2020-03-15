@@ -767,7 +767,7 @@ class Hotword:
         else:
             raise ValueError('No valid target')
         flags = 0
-        if hotwords[word].get("insensitive"):
+        if hotword.get("insensitive"):
             flags = re.IGNORECASE
         self.user_restriction = hotword.get("user_restriction", [])
         if type(owner) is not str:
