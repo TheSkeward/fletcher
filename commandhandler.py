@@ -440,7 +440,7 @@ class CommandHandler:
         args = list(filter("".__ne__, searchString.split(" ")))
         if len(args):
             args.pop(0)
-        for command in self.get_command(searchString, message, mode="keyword_trie", min_args=len(args)):
+        for command in self.get_command(searchString, message, mode="keyword_trie", max_args=len(args)):
             await self.run_command(command, message, args, message.author)
             # Run at most one command
             break
@@ -939,6 +939,9 @@ def preference_function(message, client, args):
     else:
         value = None
     return '```'+ch.user_config(message.author.id, message.guild.id, args[0], value)+'```'
+
+async def autounload(ch):
+    pass
 
 def autoload(ch):
     global tag_id_as_command
