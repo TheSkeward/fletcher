@@ -146,6 +146,11 @@ class CommandHandler:
                 message.guild.name + ":" + message.channel.name
                 in self.webhook_sync_registry.keys()
             ):
+                if reaction.emoji.is_custom_emoji():
+                    processed_emoji = self.client.get_emoji(reaction.emoji.id)
+                else:
+                    processed_emoji = reaction.emoji.name
+                logger.debug(f'RXH: syncing reaction {processed_emoji}')
                 cur = conn.cursor()
                 cur.execute(
                     "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
@@ -157,11 +162,7 @@ class CommandHandler:
                     fromGuild = self.client.get_guild(metuple[0])
                     fromChannel = fromGuild.get_channel(metuple[1])
                     fromMessage = await fromChannel.fetch_message(metuple[2])
-                    if reaction.emoji.is_custom_emoji():
-                        processed_emoji = self.client.get_emoji(reaction.emoji.id)
-                    else:
-                        processed_emoji = reaction.emoji.name
-                    logger.debug(f"RXH: Syncing {processed_emoji} to {fromMessage}")
+                    logger.debug(f"RXH: -> {fromMessage}")
                     syncReaction = await fromMessage.add_reaction(processed_emoji)
                     cur = conn.cursor()
                     cur.execute(
@@ -185,7 +186,7 @@ class CommandHandler:
                     toGuild = self.client.get_guild(metuple[0])
                     toChannel = toGuild.get_channel(metuple[1])
                     toMessage = await toChannel.fetch_message(metuple[2])
-                    logger.debug(f"RXH: Syncing {reaction.emoji} to {toMessage}")
+                    logger.debug(f"RXH: -> {toMessage}")
                     syncReaction = await toMessage.add_reaction(reaction.emoji)
                     cur = conn.cursor()
                     cur.execute(
