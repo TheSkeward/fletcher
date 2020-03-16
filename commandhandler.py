@@ -561,10 +561,13 @@ class CommandHandler:
     def is_admin(self, message, user=None):
         global config
         if not user:
-            user = message.author
+            try:
+                user = message.guild.get_member(message.author.id) or message.author
+            except AttributeError:
+                user = message.author
         globalAdmin = user.id in [int(i.strip()) for i in config["discord"].get("globalAdmin", "").split(",")]
-        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or (type(message.channel) is not discord.DMChannel and user.guild_permissions.manage_webhooks)
-        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or (type(message.channel) is not discord.DMChannel and user.permissions_in(message.channel).manage_webhooks)
+        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or (type(user) is not discord.Member and user.guild_permissions.manage_webhooks)
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or (type(user) is not discord.Member  and user.permissions_in(message.channel).manage_webhooks)
         return {
                 'global': globalAdmin,
                 'server': serverAdmin,
@@ -620,13 +623,13 @@ class CommandHandler:
 
 
 
-    def accessible_commands(self, message):
+    def accessible_commands(self, message, user=None):
         global config
         if str(message.author.id) in config["moderation"][
                 "blacklist-user-usage"
                 ].split(","):
             return []
-        admin = self.is_admin(message)
+        admin = self.is_admin(message, user=user)
         if admin['global']:
             def command_filter(c):
                 return True
@@ -642,11 +645,11 @@ class CommandHandler:
         except IndexError:
             return []
 
-    def get_command(ch, target_trigger, message=None, mode="exact", insensitive=True, min_args=0, max_args=99999):
+    def get_command(ch, target_trigger, message=None, mode="exact", insensitive=True, min_args=0, max_args=99999, user=None):
         if insensitive:
             target_trigger = target_trigger.lower()
         if message:
-            accessible_commands = ch.accessible_commands(message)
+            accessible_commands = ch.accessible_commands(message, user=user)
         else:
             accessible_commands = ch.commands
         if mode == "keyword":
