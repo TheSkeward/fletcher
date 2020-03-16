@@ -1135,6 +1135,7 @@ async def copy_emoji_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def clear_inbound_sync_function(message, client, args):
@@ -1150,6 +1151,7 @@ async def clear_inbound_sync_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"CISF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def add_inbound_sync_function(message, client, args):
@@ -1203,6 +1205,7 @@ async def names_sync_aware_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"NSAF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def delete_all_invites(message, client, args):
@@ -1213,6 +1216,7 @@ async def delete_all_invites(message, client, args):
     except Exception as e:
         exc_type, exc_bj, exc_tb = exc_info()
         logger.error(f"DAI[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def voice_opt_out(message, client, args):
@@ -1238,6 +1242,7 @@ async def voice_opt_out(message, client, args):
     except Exception as e:
         exc_type, exc_bj, exc_tb = exc_info()
         logger.error(f"VOO[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 async def error_report_function(error_str, guild, client):
     global ch
@@ -1264,6 +1269,7 @@ async def delete_my_message_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"DMMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 async def set_slowmode_function(message, client, args):
