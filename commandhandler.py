@@ -694,9 +694,9 @@ async def help_function(message, client, args):
         if arg:
             keyword = " ".join(args).strip().lower()
             if keyword.startswith("!"):
-                accessible_commands = ch.get_commands(keyword, message, mode="keyword")
+                accessible_commands = ch.get_command(keyword, message, mode="keyword")
             else:
-                accessible_commands = ch.get_commands(keyword, message, mode="description")
+                accessible_commands = ch.get_command(keyword, message, mode="description")
 
             # Set verbose if filtered list
             if len(accessible_commands) < 5:
