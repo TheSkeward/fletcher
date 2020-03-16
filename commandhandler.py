@@ -1,5 +1,7 @@
 from datetime import datetime
 from emoji import UNICODE_EMOJI
+import asyncio
+from aiohttp import web
 import discord
 import logging
 import messagefuncs
@@ -15,7 +17,7 @@ from functools import lru_cache, partial
 logger = logging.getLogger("fletcher")
 
 regex_cache = dict()
-
+remote_command_runner = None
 
 class CommandHandler:
 
@@ -58,6 +60,13 @@ class CommandHandler:
 
     def add_message_reaction_handler(self, message_id, func):
         self.message_reaction_handlers[int(message_id)] = func
+
+    async def web_handler(self, request):
+        json = await request.json()
+        channel_config = ch.scope_config(guild=json['guild_id'], channel=json['channel_id'])
+        if request.remote == channel_config.get('remote_ip', None):
+            channel = self.client.get_guild(guild_id).get_channel(channel_id)
+            await messagefuncs.sendWrappedMessage(json['message'], channel)
 
     async def reaction_handler(self, reaction):
         try:
@@ -825,7 +834,7 @@ def load_guild_config(ch):
     def load_blacklists(ch):
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
-            for command_name in guild_config.get("blacklist-commands", "").split(","):
+            for command_name in filter(None.__ne__, guild_config.get("blacklist-commands", "").split(",")):
                 command_name = command_name.strip()
                 if command_name:
                     ch.blacklist_command(command_name, guild.id)
@@ -941,6 +950,8 @@ def preference_function(message, client, args):
     return '```'+ch.user_config(message.author.id, message.guild.id, args[0], value)+'```'
 
 async def autounload(ch):
+    if remote_command_runner:
+        await remote_command_runner.cleanup()
     pass
 
 def autoload(ch):
@@ -984,3 +995,10 @@ def autoload(ch):
         load_user_config(ch)
         if len(ch.commands) > 3:
             load_guild_config(ch)
+            app = web.Application(logger=logger)
+            ch.app = app
+            app.router.add_post('/', ch.web_handler)
+            remote_command_runner = web.AppRunner(app)
+            asyncio.create_task(remote_command_runner.setup())
+            site = web.TCPSite(runner, config.get("webconsole", {}).get("hostname", '::'), config.get("webconsole", {}).get("port", 25585))
+            asyncio.create_task(site.start())
