@@ -975,7 +975,6 @@ async def doissetep_omega_autoconnect():
             logger.exception(e)
 
 
-loop = asyncio.get_event_loop()
-
 # start bot
-loop.run_until_complete(client.start(token))
+discord_co = client.start(token)
+loop.run_until_complete(discord_co)
