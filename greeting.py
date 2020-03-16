@@ -332,7 +332,7 @@ async def alphabetize_channels(guild, client, config):
             if category_tuple[0] and category_tuple[0].name in config.get("azsort-exclude", "").split(","):
                 position += len(category_tuple[1])
                 continue
-            channels = category_tuple[1]
+            channels = list(filter(lambda channel: type(channel) == discord.TextChannel, category_tuple[1]))
             az_channels = sorted(channels, key=lambda channel: channel.name)
             logger.debug(f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}')
             for channel in az_channels:
@@ -342,7 +342,11 @@ async def alphabetize_channels(guild, client, config):
                         f"Moving {channel} to {position} from {channel.position}"
                     )
                     if channel.position != 0:
-                        await channel.edit(position=position, reason="Alphabetizing")
+                        try:
+                            await channel.edit(position=position, reason="Alphabetizing")
+                        except discord.InvalidArgument as e:
+                            # Ignore issues with position being too high for voice channels
+                            pass
                 position += 1
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
