@@ -563,3 +563,6 @@ def autoload(ch):
             "description": "Subscribe to reaction notifications on this message",
         }
     )
+
+async def autounload(ch):
+    pass

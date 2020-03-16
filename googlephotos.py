@@ -249,3 +249,6 @@ def autoload(ch):
         logger.debug("GPAL: length(twilestia_list)=" + str(len(twilestia_list)))
     except Exception:
         twilestia_list = []
+
+async def autounload(ch):
+    pass

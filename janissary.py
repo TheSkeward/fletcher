@@ -1612,3 +1612,6 @@ def autoload(ch):
                     "description": "Assign roles based on emoji for a given message",
                 },
             )
+
+async def autounload(ch):
+    pass

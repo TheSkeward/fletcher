@@ -91,3 +91,6 @@ def autoload(ch):
             "description": "Render arguments as LaTeX formula (does not require `$$` in `!math` mode)",
         }
     )
+
+async def autounload(ch):
+    pass

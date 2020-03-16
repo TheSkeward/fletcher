@@ -69,3 +69,6 @@ def autoload(ch):
             "description": "Current time (at optional location)",
         }
     )
+
+async def autounload(ch):
+    pass

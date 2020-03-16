@@ -336,3 +336,6 @@ def autoload(ch):
             "description": "List recent sentinels",
         }
     )
+
+async def autounload(ch):
+    pass

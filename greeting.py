@@ -363,3 +363,6 @@ def autoload(ch):
     ch.add_join_handler("chanban", chanban_join_function)
     ch.add_reload_handler("chanban", chanban_reload_function)
     ch.add_reload_handler("azsort", alphabetize_channels)
+
+async def autounload(ch):
+    pass

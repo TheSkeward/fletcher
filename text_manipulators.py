@@ -911,3 +911,6 @@ def autoload(ch):
             "description": "OCR",
         }
     )
+
+async def autounload(ch):
+    pass

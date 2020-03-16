@@ -137,3 +137,6 @@ def autoload(ch):
             "long_run": True,
         }
     )
+
+async def autounload(ch):
+    pass
