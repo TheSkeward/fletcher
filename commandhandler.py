@@ -75,7 +75,7 @@ class CommandHandler:
             channel = self.client.get_channel(reaction.channel_id)
             user = reaction.member
             message = await channel.fetch_message(reaction.message_id)
-            admin = self.is_admin(user)
+            admin = self.is_admin(message, user)
             args = [reaction, user, "add"]
             try:
                 guild_config = self.scope_config(guild=message.guild)
