@@ -976,5 +976,6 @@ async def doissetep_omega_autoconnect():
 
 
 # start bot
+loop = asyncio.get_running_loop()
 discord_co = client.start(token)
 loop.run_until_complete(discord_co)
