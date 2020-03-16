@@ -73,11 +73,9 @@ class CommandHandler:
             global config
             messageContent = str(reaction.emoji)
             channel = self.client.get_channel(reaction.channel_id)
-            try:
-                user = channel.guild.get_member(reaction.user_id)
-            except AttributeError:
-                user = self.client.get_user(reaction.user_id)
+            user = reaction.member
             message = await channel.fetch_message(reaction.message_id)
+            admin = self.is_admin(user)
             args = [reaction, user, "add"]
             try:
                 guild_config = self.scope_config(guild=message.guild)
@@ -118,7 +116,7 @@ class CommandHandler:
                 pass
             if (
                 channel_config.get("blacklist-emoji")
-                and not message.channel.permissions_for(message.author).manage_messages
+                and not admin['channel']
                 and messageContent in channel_config.get("blacklist-emoji")
             ):
                 logger.info("Emoji removed by blacklist")
