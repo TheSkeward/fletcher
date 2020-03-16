@@ -555,7 +555,7 @@ class CommandHandler:
         global config
         if not user:
             user = message.author
-        globalAdmin = user.id in config["discord"].get("globalAdmin", "").split(",")
+        globalAdmin = user.id in [int(i.strip()) for i in config["discord"].get("globalAdmin", "").split(",")]
         serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or (type(message.channel) is not discord.DMChannel and user.guild_permissions.manage_webhooks)
         channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or (type(message.channel) is not discord.DMChannel and user.permissions_in(message.channel).manage_webhooks)
         return {
@@ -620,7 +620,7 @@ class CommandHandler:
                 ].split(","):
             return []
         admin = self.is_admin(message)
-        if admin['global'] and verbose:
+        if admin['global']:
             def command_filter(c):
                 return True
         elif admin['server']:

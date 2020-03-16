@@ -26,7 +26,7 @@ def expand_guild_name(
     )
     new_guild = guild
     for k, v in acro_mapping.items():
-        regex = re.compile(f"{prefix}{k}{suffix}|^{k}$", re.IGNORECASE)
+        regex = re.compile(f"^{prefix}{k}{suffix}|^{k}$", re.IGNORECASE)
         new_guild = regex.sub(prefix + v + suffix, new_guild)
         if not global_replace and new_guild != guild:
             logger.debug(f"Replacement found {k} -> {v}")
