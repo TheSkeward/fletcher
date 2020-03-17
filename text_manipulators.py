@@ -5,6 +5,7 @@ import asyncio
 import aiohttp
 import codecs
 import discord
+import hashlib
 import io
 import logging
 import math
@@ -845,6 +846,16 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["!md5"],
+            "function": lambda message, client, args: hashlib.md5(" ".join(args).encode('utf-8')).hexdigest(),
+            "async": False,
+            "args_num": 1,
+            "args_name": [],
+            "description": "MD5 of args",
+        }
+    )
     ch.add_command(
         {
             "trigger": ["!smallcaps"],
