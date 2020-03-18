@@ -499,9 +499,9 @@ class CommandHandler:
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
         global config
         if guild is None:
-            if channel:
+            if channel and type(channel) != discord.DMChannel:
                 guild = channel.guild
-            elif message:
+            elif message and type(channel) != discord.DMChannel:
                 guild = message.guild
             else:
                 return config
