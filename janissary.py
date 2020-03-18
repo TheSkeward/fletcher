@@ -1234,10 +1234,11 @@ async def voice_opt_out(message, client, args):
         for voice_channel in filter(
             lambda channel: isinstance(channel, discord.VoiceChannel), guild.channels
         ):
-            logger.debug(f"{voice_channel}")
-            await voice_channel.set_permissions(
-                message.author, connect=False, read_messages=False
-            )
+            if voice_channel.permissions_for(message.author).connect:
+                await voice_channel.set_permissions(
+                        message.author, connect=False, read_messages=False
+                        )
+                logger.debug(f"Removed {message.author} from {voice_channel}")
         await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_bj, exc_tb = exc_info()
