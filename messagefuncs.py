@@ -252,7 +252,7 @@ async def preview_messagelink_function(message, client, args):
             if guild is None:
                 logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
                 await message.author.send(
-                    f"Tried unrolling message link in your message https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
+                    f"Tried unrolling message link in your message <https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
                 )
                 return
             channel = guild.get_channel(channel_id)
