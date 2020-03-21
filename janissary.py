@@ -641,29 +641,41 @@ async def lockout_user_function(message, client, args):
                 or not filter_id
             ):
                 for channel in channels:
-                    logMessage = (
-                        str(member)
-                        + " from non-category channel "
-                        + str(channel)
-                        + " in "
-                        + str(member.guild)
-                    )
-                    logger.debug("LUF: " + logMessage)
-                    log = log + "\n" + logMessage
                     if mode == "reset":
                         await channel.set_permissions(
                             member,
                             overwrite=None,
                             reason="Admin reset lockout obo " + message.author.name,
                         )
-                    else:
-                        await channel.set_permissions(
-                            member,
-                            read_messages=False,
-                            read_message_history=False,
-                            send_messages=False,
-                            reason="Admin requested lockout obo " + message.author.name,
+                        logMessage = (
+                            str(member)
+                            + " from non-category channel "
+                            + str(channel)
+                            + " in "
+                            + str(member.guild)
                         )
+                        logger.debug("LUF: " + logMessage)
+                        log = log + "\n" + logMessage
+                    else:
+                        try:
+                            await channel.set_permissions(
+                                member,
+                                read_messages=False,
+                                read_message_history=False,
+                                send_messages=False,
+                                reason="Admin requested lockout obo " + message.author.name,
+                            )
+                            logMessage = (
+                                str(member)
+                                + " from non-category channel "
+                                + str(channel)
+                                + " in "
+                                + str(member.guild)
+                            )
+                            logger.debug("LUF: " + logMessage)
+                            log = log + "\n" + logMessage
+                        except discord.Forbidden as e:
+                            message.author.send(f'Forbidden to set permissions on {channel}')
         await messagefuncs.sendWrappedMessage(log, message.author)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
