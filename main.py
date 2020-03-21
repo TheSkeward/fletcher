@@ -359,6 +359,7 @@ async def reload_function(message=None, client=client, args=[]):
         )
         await animate_startup("💾", message)
         # Command Handler (loaded twice to bootstrap)
+        await commandhandler.autounload(ch)
         importlib.reload(commandhandler)
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
@@ -974,8 +975,7 @@ async def doissetep_omega_autoconnect():
         except AttributeError as e:
             logger.exception(e)
 
+loop = asyncio.get_event_loop()
 
 # start bot
-loop = asyncio.get_event_loop()
-discord_co = client.start(token)
-loop.run_until_complete(discord_co)
+loop.run_until_complete(client.start(token))
