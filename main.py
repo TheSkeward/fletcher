@@ -359,7 +359,7 @@ async def reload_function(message=None, client=client, args=[]):
         )
         await animate_startup("💾", message)
         # Command Handler (loaded twice to bootstrap)
-        await commandhandler.autounload(ch)
+        await commandhandler.autounload(globals()["ch"])
         importlib.reload(commandhandler)
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
