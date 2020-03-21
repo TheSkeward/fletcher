@@ -67,7 +67,7 @@ class CommandHandler:
         json = await request.json()
         channel_config = ch.scope_config(guild=json['guild_id'], channel=json['channel_id'])
         if request.remote == channel_config.get('remote_ip', None):
-            channel = self.client.get_guild(guild_id).get_channel(channel_id)
+            channel = self.client.get_guild(json['guild_id']).get_channel(json['channel_id'])
             await messagefuncs.sendWrappedMessage(json['message'], channel)
             return web.Response(status=200)
         return web.Response(status=400)
@@ -955,15 +955,37 @@ def preference_function(message, client, args):
         value = None
     return '```'+ch.user_config(message.author.id, message.guild.id, args[0], value)+'```'
 
+async def dumptasks_function(message, client, args):
+    tasks = await client.loop.all_tasks()
+    await message.author.send(f'{tasks}')
+
 async def autounload(ch):
-    if ch.runner:
+    try:
         await ch.runner.cleanup()
+    except Exception as e:
+        logger.debug(e)
+    try:
+        await ch.site.stop()
+    except Exception as e:
+        logger.debug(e)
     pass
 
 def autoload(ch):
     global tag_id_as_command
     global client
     global config
+    ch.add_command(
+        {
+            "trigger": ["!dumptasks"],
+            "function": dumptasks_function,
+            "async": True,
+            "hidden": True,
+            "admin": "global",
+            "args_num": 0,
+            "args_name": [],
+            "description": "Dump current task stack",
+        }
+    )
     ch.add_command(
         {
             "trigger": ["!dumpconfig"],
@@ -1001,7 +1023,7 @@ def autoload(ch):
         load_user_config(ch)
         if len(ch.commands) > 3:
             load_guild_config(ch)
-            client.loop.create_task(run_web_api(config))
+            ch.client.loop.create_task(run_web_api(config))
 
 async def run_web_api(config):
     app = Application()
@@ -1012,3 +1034,4 @@ async def run_web_api(config):
     ch.runner = runner
     site = web.TCPSite(runner, config.get("webconsole", {}).get("hostname", '::'), config.get("webconsole", {}).get("port", 25585))
     await site.start()
+    ch.site = site
