@@ -1023,9 +1023,9 @@ def autoload(ch):
         load_user_config(ch)
         if len(ch.commands) > 3:
             load_guild_config(ch)
-            ch.client.loop.create_task(run_web_api(config))
+            ch.client.loop.create_task(run_web_api(config, ch))
 
-async def run_web_api(config):
+async def run_web_api(config, ch):
     app = Application()
     app.router.add_post('/', ch.web_handler)
 
