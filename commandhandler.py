@@ -999,6 +999,18 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!dumpbridges"],
+            "function": lambda message, client, args: ", ".join(ch.webhook_sync_registry.keys()),
+            "async": False,
+            "hidden": True,
+            "admin": "global",
+            "args_num": 0,
+            "args_name": [],
+            "description": "Output all bridges",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!dumpconfig"],
             "function": dumpconfig_function,
             "async": False,
