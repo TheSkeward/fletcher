@@ -146,7 +146,7 @@ class CommandHandler:
                 ):
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
-                if not scoped_command.get("remove", False):
+                if not command.get("remove", False):
                     await self.run_command(command, message, args, user)
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
