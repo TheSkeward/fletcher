@@ -975,11 +975,6 @@ async def autounload(ch):
         await ch.runner.cleanup()
     except Exception as e:
         logger.debug(e)
-    try:
-        await ch.site.stop()
-    except Exception as e:
-        logger.debug(e)
-    pass
 
 def autoload(ch):
     global tag_id_as_command
