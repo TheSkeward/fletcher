@@ -495,10 +495,8 @@ async def on_message(message):
             else:
                 return
         if (
-            message.guild is not None
-            and (
+            message.guild is not None and self.webhook_sync_registry.get(
                 message.guild.name + ":" + message.channel.name
-                in webhook_sync_registry.keys()
             )
             and not (
                 config.get("sync", {}).get(f"tupper-ignore-{message.author.id}", "")

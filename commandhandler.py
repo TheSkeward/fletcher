@@ -103,7 +103,7 @@ class CommandHandler:
                         "REACTION_IDENTIFIER": messageContent
                     },
                 )
-            elif type(message.channel) is discord.DMChannel:
+            elif type(channel) is discord.DMChannel:
                 logger.info(
                     f"@{channel.recipient.name} <{user.name}:{user.id}> reacting with {messageContent} to {message.id}",
                     extra={
@@ -134,8 +134,8 @@ class CommandHandler:
             scoped_command = None
             if self.message_reaction_handlers.get(message.id) and self.message_reaction_handlers.get(message.id).get("scope", "message") != "channel":
                 scoped_command = self.message_reaction_handlers[message.id]
-            elif self.message_reaction_handlers.get(message.channel.id) and self.message_reaction_handlers.get(message.channel.id).get("scope", "message") == "channel":
-                scoped_command = self.message_reaction_handlers[message.channel.id]
+            elif self.message_reaction_handlers.get(channel.id) and self.message_reaction_handlers.get(channel.id).get("scope", "message") == "channel":
+                scoped_command = self.message_reaction_handlers[channel.id]
             if scoped_command:
                 logger.debug(scoped_command)
                 if (
@@ -146,11 +146,11 @@ class CommandHandler:
                 ):
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
+                logger.debug(command.get("remove", False))
                 if not command.get("remove", False):
                     await self.run_command(command, message, args, user)
-            if message.guild is not None and (
-                message.guild.name + ":" + message.channel.name
-                in self.webhook_sync_registry.keys()
+            if type(channel) is discord.TextChannel and self.webhook_sync_registry.get(
+                channel.guild.name + ":" + channel.name
             ):
                 if reaction.emoji.is_custom_emoji():
                     processed_emoji = self.client.get_emoji(reaction.emoji.id)
