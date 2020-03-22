@@ -516,6 +516,8 @@ class CommandHandler:
             guild = guild.id
         if channel and type(channel) is not int:
             channel = channel.id
+        if guild and channel and self.get_guild(guild).get_channel(channel).category_id:
+            category = self.get_guild(guild).get_channel(channel).category_id
         if channel:
             channel = f" - {int(channel)}"
         else:
@@ -524,11 +526,16 @@ class CommandHandler:
             if mutable:
                 if config.get(f"Guild {guild}{channel}"):
                     return config.get(f"Guild {guild}{channel}")
+                elif category and config.get(f"Guild {guild} - {int(category)}"):
+                    return config.get(f"Guild {guild} - {int(category)}")
                 else:
                     config[f"Guild {guild}{channel}"] = []
                     return config.get(f"Guild {guild}{channel}")
             else:
-                return dict(config.get(f"Guild {guild}{channel}"))
+                if not config.get(f"Guild {guild}{channel}") and category and config.get(f"Guild {guild} - {int(category)}"):
+                    return dict(config.get(f"Guild {guild} - {int(category)}"))
+                else:
+                    return dict(config.get(f"Guild {guild}{channel}"))
         except TypeError:
             return dict()
         
