@@ -1605,7 +1605,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["📍]"],
+            "trigger": ["📍"],
             "function": pin_message_function,
             "async": True,
             "hidden": False,
