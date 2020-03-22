@@ -120,3 +120,6 @@ def autoload(ch):
             "description": "Tell user about the status",
         }
     )
+
+async def autounload(ch):
+    pass
