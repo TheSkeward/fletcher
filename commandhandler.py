@@ -518,6 +518,8 @@ class CommandHandler:
             channel = channel.id
         if guild and channel and self.get_guild(guild).get_channel(channel).category_id:
             category = self.get_guild(guild).get_channel(channel).category_id
+        else:
+            category = None
         if channel:
             channel = f" - {int(channel)}"
         else:
