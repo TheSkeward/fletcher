@@ -1309,7 +1309,7 @@ async def unpin_message_function(message, client, args):
         scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
         if scoped_config.get('allow_unprivileged_unpins', False) == 'On' or (scoped_config.get('allow_unprivileged_selfunpins', False) == 'On' and message.author == args[1]) or ch.is_admin(message, user=args[1])['channel']:
             try:
-                await message.pin()
+                await message.unpin()
             except discord.HTTPException:
                 await args[1].send('Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.')
             except discord.Forbidden:
