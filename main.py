@@ -495,7 +495,7 @@ async def on_message(message):
             else:
                 return
         if (
-            message.guild is not None and self.webhook_sync_registry.get(
+            message.guild is not None and webhook_sync_registry.get(
                 message.guild.name + ":" + message.channel.name
             )
             and not (
