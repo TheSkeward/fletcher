@@ -516,8 +516,8 @@ class CommandHandler:
             guild = guild.id
         if channel and type(channel) is not int:
             channel = channel.id
-        if guild and channel and self.get_guild(guild).get_channel(channel).category_id:
-            category = self.get_guild(guild).get_channel(channel).category_id
+        if guild and channel and self.client.get_guild(guild).get_channel(channel).category_id:
+            category = self.client.get_guild(guild).get_channel(channel).category_id
         else:
             category = None
         if channel:
