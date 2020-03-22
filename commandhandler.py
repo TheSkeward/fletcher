@@ -141,11 +141,13 @@ class CommandHandler:
                 if (
                     messageContent.startswith(scoped_command["trigger"])
                     and self.allowCommand(scoped_command, message, user=user)
+                    and not scoped_command.get("remove", False)
                     and scoped_command["args_num"] == 0
                 ):
                     await self.run_command(scoped_command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
-                await self.run_command(command, message, args, user)
+                if not scoped_command.get("remove", False):
+                    await self.run_command(command, message, args, user)
             if message.guild is not None and (
                 message.guild.name + ":" + message.channel.name
                 in self.webhook_sync_registry.keys()
