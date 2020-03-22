@@ -557,6 +557,16 @@ def autoload(ch):
             "trigger": ["📡"],
             "function": subscribe_function,
             "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Subscribe to reaction notifications on this message",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["📡"],
+            "function": subscribe_function,
+            "async": True,
             "remove": True,
             "args_num": 0,
             "args_name": [],
