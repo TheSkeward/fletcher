@@ -582,8 +582,8 @@ class CommandHandler:
             except AttributeError:
                 user = message.author
         globalAdmin = user.id in [int(i.strip()) for i in config["discord"].get("globalAdmin", "").split(",")]
-        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
-        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "")) or serverAdmin or (type(user) is discord.Member  and user.permissions_in(message.channel).manage_webhooks)
+        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or serverAdmin or (type(user) is discord.Member  and user.permissions_in(message.channel).manage_webhooks)
         return {
                 'global': globalAdmin,
                 'server': serverAdmin,
