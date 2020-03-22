@@ -419,6 +419,7 @@ async def reload_function(message=None, client=client, args=[]):
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         await load_webhooks()
+        ch.webhook_sync_registry = webhook_sync_registry
         if message:
             await message.add_reaction("↔")
         await animate_startup("✅", message)
