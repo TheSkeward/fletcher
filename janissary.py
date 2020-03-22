@@ -1303,6 +1303,23 @@ async def set_slowmode_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def pin_message_function(message, client, args):
+    global ch
+    try:
+        scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
+        if scoped_config.get('allow_unprivileged_pins', False) == 'On' or ch.is_admin(message, user=args[1])['channel']:
+            try:
+                await message.pin()
+            except discord.HTTPException:
+                await args[1].send('Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.')
+            except discord.Forbidden:
+                await args[1].send('I don\'t have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.')
+        else:
+            await args[1].send('Server is not configured to allow you to pin messages in this channel. Ask an admin to set `allow_unprivileged_pins` to `On` to use this feature.')
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 def autoload(ch):
     ch.add_command(
         {
@@ -1583,6 +1600,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ['Seconds'],
             "description": "Set channel slow-mode time",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["📍]"],
+            "function": pin_message_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Pin message as a non-admin (if enabled in this channel)",
         }
     )
 
