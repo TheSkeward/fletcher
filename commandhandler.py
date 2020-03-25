@@ -462,7 +462,7 @@ class CommandHandler:
             for hotword in filter(lambda hw: len(hw.user_restriction) == 0 or message.author.id in hw.user_restriction, regex_cache.get(message.guild.id, [])):
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
-                        await self.run_command(command, message, args, message.author)
+                        await command(message, args, message.author)
         if channel_config.get("regex") == "post-command" and (
             channel_config.get("regex-tyranny", "On") == "Off"
             or not message.channel.permissions_for(message.author).manage_messages
