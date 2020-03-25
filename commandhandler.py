@@ -796,8 +796,12 @@ class Hotword:
                 self.target = [add_emoji]
         elif hotword.get("dm_me"):
             async def dm_me(owner, message, client, args):
-                await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}',
-                        client.get_user(owner.id))
+                try:
+                    await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}',
+                            client.get_user(owner.id))
+
+                except AttributeError:
+                    logger.debug(f'Couldn\'t send message because owner couln\'t be dereferenced for {word} in {message.guild}')
             self.target = [partial(dm_me, self.owner)]
         elif owner == "guild" and hotword.get("target_function"):
             self.target = [partial(ch.get_command, target_function_name)]
