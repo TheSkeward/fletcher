@@ -459,7 +459,7 @@ class CommandHandler:
             # Run at most one command
             break
         if guild_config.get("hotwords_loaded"):
-            for hotword in filter(lambda hw: len(hw.user_restriction) == 0 or message.author.id in hw.user_restriction, regex_cache.get(message.guild.id, [])):
+            for hotword in filter(lambda hw: type(hw) is Hotword and len(hw.user_restriction) == 0 or message.author.id in hw.user_restriction, regex_cache.get(message.guild.id, [])):
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
                         await command(message, self.client, args)
