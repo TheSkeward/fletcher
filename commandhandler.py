@@ -934,8 +934,9 @@ def load_user_config(ch):
                     guild_config["hotwords_loaded"] += ", " + word
                 if not regex_cache.get(guild_id):
                     regex_cache[guild_id] = []
-                logger.debug(f'Extending regex_cache[{guild_id}] with {hotwords.values()}')
-                regex_cache[guild_id].extend(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
+                add_me = list(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
+                logger.debug(f'Extending regex_cache[{guild_id}] with {add_me}')
+                regex_cache[guild_id].extend(add_me)
                 hottuple = cur.fetchone()
             conn.commit()
         except Exception as e:
