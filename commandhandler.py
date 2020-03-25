@@ -795,7 +795,7 @@ class Hotword:
                 self.target = [add_emoji]
         elif hotword.get("dm_me"):
             async def dm_me(message, client, args):
-                await client.get_user(owner.id).send(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}')
+                await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}', client.get_user(owner.id))
             self.target = [dm_me]
         elif owner == "guild" and hotword.get("target_function"):
             self.target = [partial(ch.get_command, target_function_name)]
