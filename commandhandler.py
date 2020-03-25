@@ -926,9 +926,11 @@ def load_user_config(ch):
                         hotword = Hotword(ch, word, hotwords[word], ch.client.get_guild(guild_id).get_member(user_id))
                     except ValueError as e:
                         logger.error(f'Parsing {word} for {user_id} failed: {e}')
+                        del(hotwords[word])
                         continue
                     except AttributeError as e:
                         logger.info(f'Parsing {word} for {user_id} failed: User is not on server {e}')
+                        del(hotwords[word])
                         continue
                     hotwords[word] = hotword
                     guild_config["hotwords_loaded"] += ", " + word
