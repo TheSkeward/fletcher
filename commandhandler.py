@@ -772,6 +772,7 @@ def dumpconfig_function(message, client, args):
 
 class Hotword:
     def __init__(self, ch, word, hotword, owner):
+        self.owner = owner
         if hotword.get("target_emoji"):
             if len(hotword["target_emoji"]) > 2 and hotword["target_emoji"] not in UNICODE_EMOJI:
                 intended_target_emoji = None
@@ -794,9 +795,10 @@ class Hotword:
                     await message.add_reaction(hotword["target_emoji"])
                 self.target = [add_emoji]
         elif hotword.get("dm_me"):
-            async def dm_me(message, client, args):
-                await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}', client.get_user(owner.id))
-            self.target = [dm_me]
+            async def dm_me(owner, message, client, args):
+                await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}',
+                        client.get_user(owner.id))
+            self.target = [partial(dm_me, self.owner)]
         elif owner == "guild" and hotword.get("target_function"):
             self.target = [partial(ch.get_command, target_function_name)]
         else:
@@ -809,7 +811,6 @@ class Hotword:
             self.user_restriction.append(owner.id)
         self.regex = hotword["regex"]
         self.compiled_regex = re.compile(hotword["regex"], flags)
-        self.owner = owner
 
     def __iter__(self):
         return {
