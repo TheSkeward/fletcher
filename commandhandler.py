@@ -764,7 +764,7 @@ def dumpconfig_function(message, client, args):
         dconfig = ch.scope_config(guild=message.guild)
     else:
         dconfig = config
-    if args[0]:
+    if len(args) == 1:
         return '```json\n'+ujson.dumps(dconfig.get(" ".join(args)), ensure_ascii=False, indent=4)+'```'
     else:
         return '```json\n'+ujson.dumps(config, ensure_ascii=False, indent=4)+'```'
