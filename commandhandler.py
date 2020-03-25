@@ -805,7 +805,7 @@ class Hotword:
         if hotword.get("insensitive"):
             flags = re.IGNORECASE
         self.user_restriction = hotword.get("user_restriction", [])
-        if type(owner) is not str:
+        if type(owner) is not str and hotword.get("target_emoji"):
             self.user_restriction.append(owner.id)
         self.regex = hotword["regex"]
         self.compiled_regex = re.compile(hotword["regex"], flags)
