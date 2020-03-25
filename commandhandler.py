@@ -458,7 +458,7 @@ class CommandHandler:
             await self.run_command(command, message, args, message.author)
             # Run at most one command
             break
-        if guild_config.get("hotwords"):
+        if regex_cache.get(message.guild.id):
             for hotword in filter(lambda hw: len(hw.user_restriction) == 0 or message.author.id in hw.user_restriction, regex_cache.get(message.guild.id, [])):
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
