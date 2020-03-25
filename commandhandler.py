@@ -926,18 +926,16 @@ def load_user_config(ch):
                         hotword = Hotword(ch, word, hotwords[word], ch.client.get_guild(guild_id).get_member(user_id))
                     except ValueError as e:
                         logger.error(f'Parsing {word} for {user_id} failed: {e}')
-                        del(hotwords[word])
                         continue
                     except AttributeError as e:
                         logger.info(f'Parsing {word} for {user_id} failed: User is not on server {e}')
-                        del(hotwords[word])
                         continue
                     hotwords[word] = hotword
                     guild_config["hotwords_loaded"] += ", " + word
                 if not regex_cache.get(guild_id):
                     regex_cache[guild_id] = []
                 logger.debug(f'Extending regex_cache[{guild_id}] with {hotwords.values()}')
-                regex_cache[guild_id].extend(hotwords.values())
+                regex_cache[guild_id].extend(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
                 hottuple = cur.fetchone()
             conn.commit()
         except Exception as e:
