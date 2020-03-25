@@ -927,6 +927,9 @@ def load_user_config(ch):
                     except ValueError as e:
                         logger.error(f'Parsing {word} for {user_id} failed: {e}')
                         continue
+                    except ValueError as e:
+                        logger.info(f'Parsing {word} for {user_id} failed: User is not on server {e}')
+                        continue
                     hotwords[word] = hotword
                     guild_config["hotwords_loaded"] += ", " + word
                 if not regex_cache.get(guild_id):
