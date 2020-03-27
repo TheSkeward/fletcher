@@ -139,7 +139,7 @@ class CommandHandler:
             if scoped_command:
                 logger.debug(scoped_command)
                 if (
-                    messageContent.startswith(scoped_command["trigger"])
+                    messageContent.startswith(tuple(scoped_command["trigger"]))
                     and self.allowCommand(scoped_command, message, user=user)
                     and not scoped_command.get("remove", False)
                     and scoped_command["args_num"] == 0
@@ -799,7 +799,6 @@ class Hotword:
                 try:
                     await messagefuncs.sendWrappedMessage(f'Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}',
                             client.get_user(owner.id))
-
                 except AttributeError:
                     logger.debug(f'Couldn\'t send message because owner couln\'t be dereferenced for {word} in {message.guild}')
             self.target = [partial(dm_me, self.owner)]
