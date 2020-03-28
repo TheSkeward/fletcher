@@ -211,7 +211,7 @@ async def ocr_function(message, client, args):
         elif len(args) == 3 and type(args[1]) is discord.Member:
             await messagefuncs.sendWrappedMessage(output_message, args[1])
         else:
-            await messagefuncs.sendWrappedMessage(output_message, message.author)
+            await messagefuncs.sendWrappedMessage(output_message, message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("OCR[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
