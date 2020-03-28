@@ -526,6 +526,7 @@ def autoload(ch):
             "trigger": ["!preview"],
             "function": preview_messagelink_function,
             "async": True,
+            "hidden": True,
             "args_num": 1,
             "long_run": True,
             "args_name": ["string"],
