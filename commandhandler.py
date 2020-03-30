@@ -43,7 +43,7 @@ class CommandHandler:
         self.bang_remover = re.compile("^!+")
 
     def add_command(self, command):
-        command["module"] = inspect.stack()[1][1]
+        command["module"] = inspect.stack()[1][1].split("/")[-1].rstrip(".py")
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
         self.commands.append(command)
