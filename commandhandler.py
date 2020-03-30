@@ -738,7 +738,7 @@ async def help_function(message, client, args):
         if len(args) > 0 and len(accessible_commands) and verbose:
             helpMessageBody = "\n".join(
                 [
-                    f'`{"` or `".join(command["trigger"])}`: {command["description"]}\nMinimum Arguments ({command["args_num"]}): {" ".join(command["args_name"])}'
+                    f'__{command["module"]}__ `{"` or `".join(command["trigger"])}`: {command["description"]}\nMinimum Arguments ({command["args_num"]}): {" ".join(command["args_name"])}'
                     for command in accessible_commands
                 ]
             )
@@ -747,7 +747,7 @@ async def help_function(message, client, args):
         else:
             helpMessageBody = "\n".join(
                 [
-                    f'`{"` or `".join(command["trigger"][:2])}`: {command["description"]}'
+                    f'__{command["module"]}__ `{"` or `".join(command["trigger"][:2])}`: {command["description"]}'
                     for command in accessible_commands
                 ]
             )
