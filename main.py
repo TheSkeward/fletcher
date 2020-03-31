@@ -173,10 +173,10 @@ async def load_webhooks():
             ):
                 logger.debug(f"LWH: Querying {guild.name}")
                 for webhook in await guild.webhooks():
-                    logger.debug(f"LWH: * {webhook.name}")
                     if webhook.name.startswith(
                         config.get("discord", dict()).get("botNavel", "botNavel") + " ("
                     ):
+                        logger.debug(f"LWH: * {webhook.name}")
                         toChannelName = (
                             guild.name
                             + ":"
@@ -192,9 +192,13 @@ async def load_webhooks():
                         fromChannelName = (
                             fromTuple[0].replace("_", " ") + ":" + fromTuple[1]
                         )
-                        webhook_sync_registry[
-                            f"{fromGuild.id}:{webhook.id}"
-                        ] = fromChannelName
+                        try:
+                            webhook_sync_registry[
+                                    f"{fromGuild.id}:{webhook.id}"
+                                    ] = fromChannelName
+                        except AttributeError:
+                            logger.debug(f"LWH: fromGuild.id not defined")
+                            continue
                         webhook_sync_registry[fromChannelName] = {
                             "toChannelObject": guild.get_channel(webhook.channel_id),
                             "toWebhook": webhook,
