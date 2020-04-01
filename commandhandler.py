@@ -57,11 +57,13 @@ class CommandHandler:
     def add_reload_handler(self, func_name, func):
         self.reload_handlers[func_name] = func
 
-    def add_message_reaction_remove_handler(self, message_id, func):
-        self.message_reaction_remove_handlers[int(message_id)] = func
+    def add_message_reaction_remove_handler(self, message_ids, func):
+        for message_id in message_ids.split(","):
+            self.message_reaction_remove_handlers[int(message_id)] = func
 
-    def add_message_reaction_handler(self, message_id, func):
-        self.message_reaction_handlers[int(message_id)] = func
+    def add_message_reaction_handler(self, message_ids, func):
+        for message_id in message_ids.split(","):
+            self.message_reaction_handlers[int(message_id)] = func
 
     async def web_handler(self, request):
         json = await request.json()
