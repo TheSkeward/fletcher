@@ -147,10 +147,10 @@ class CommandHandler:
                     and scoped_command["args_num"] == 0
                 ):
                     await self.run_command(scoped_command, message, args, user)
-            for command in self.get_command(messageContent, message, max_args=0):
-                logger.debug(command.get("remove", False))
-                if not command.get("remove", False):
-                    await self.run_command(command, message, args, user)
+            else:
+                for command in self.get_command(messageContent, message, max_args=0):
+                    if not command.get("remove", False):
+                        await self.run_command(command, message, args, user)
             if type(channel) is discord.TextChannel and self.webhook_sync_registry.get(
                 channel.guild.name + ":" + channel.name
             ):
