@@ -937,11 +937,14 @@ async def sudo_function(message, client, args):
 async def role_message_function(message, client, args, remove=False):
     try:
         guild_config = ch.scope_config(guild=message.guild)
-        role = discord.utils.get(
-            message.guild.roles, name=guild_config.get(f"role-message-{args[0].emoji}")
-        )
+        if guild_config.get(f"role-message-{args[0].emoji}").isnumeric():
+            role = message.guild.get_role(int(guild_config.get(f"role-message-{args[0].emoji}")))
+        else:
+            role = discord.utils.get(
+                message.guild.roles, name=guild_config.get(f"role-message-{args[0].emoji}")
+            )
         if not role:
-            raise Exception("Matching role not found for reaction to role-message")
+            raise Exception(f"Matching role not found for reaction role-message-{args[0].emoji} to role-message {guild_config.get(f'role-message-{args[0].emoji}')}")
         if not remove:
             await message.guild.get_member(args[1].id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
