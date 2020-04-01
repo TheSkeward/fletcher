@@ -241,7 +241,7 @@ class CommandHandler:
                     )
             if self.message_reaction_remove_handlers.get(message.id):
                 command = self.message_reaction_remove_handlers[message.id]
-                if self.allowCommand(command, message, user=user) and command.get("remove"):
+                if self.allowCommand(command, message, user=user):
                     await self.run_command(command, message, args, user)
             for command in self.get_command(messageContent, message, max_args=0):
                 if self.allowCommand(command, message, user=user) and command.get("remove"):
