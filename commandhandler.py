@@ -421,14 +421,13 @@ class CommandHandler:
                 pass
             pass
         if config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", ""):
-            logger.debug('Nickmask detected')
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.guild.id}", "")
                     .split(",")
                 ):
-                if message.content.startswith(prefix) and config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", ""):
-                    content = message.clean_content
+                if message.content.startswith(prefix) and config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", ""):
+                    content = message.clean_content[len(prefix):]
                     attachments = []
                     if len(message.attachments) > 0:
                         plural = ""
@@ -441,11 +440,11 @@ class CommandHandler:
                             attachments.append(
                                 discord.File(attachment_blob, attachment.filename)
                             )
-                    fromMessageName = config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "")
-                    webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
+                    fromMessageName = config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "")
+                    webhook = webhooks_cache.get("sync", {}).get(f"{message.guild.id}:{message.channel.id}")
                     if not webhook:
                         try:
-                            webhooks = await message.webhooks()
+                            webhooks = await message.channel.webhooks()
                         except discord.Forbidden:
                             await message.author.send(f'Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.')
                             continue
@@ -453,12 +452,12 @@ class CommandHandler:
                             webhook = discord.utils.get(webhooks, name=config.get("discord", dict()).get("botNavel", "botNavel"))
                         if not webhook:
                             webhook = await message.channel.create_webhook(name=config.get("discord", dict()).get("botNavel", "botNavel"), reason='Autocreating for nickmask')
-                        webhook_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
+                        webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
 
                     await webhook.send(
                         content=content,
                         username=fromMessageName,
-                        avatar_url=config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
+                        avatar_url=config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
                         embeds=message.embeds,
                         tts=message.tts,
                         files=attachments,
@@ -948,17 +947,18 @@ def load_user_config(ch):
             if not config.get("sync"):
                 config["sync"] = {}
             ignorekey = f"tupper-ignore-{tuptuple[1]}"
+            replacekey = f"tupper-replace-{tuptuple[1]}"
             if not config["sync"].get(ignorekey, ""):
                 config["sync"][ignorekey] = ""
             config["sync"][
                 ignorekey
             ] = f'{config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
             config["sync"][
-                f'{ignorekey}-{tuptuple[0]}-{tuptuple[3]}-nick'
+                f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-nick'
             ] = tuptuple[4]
             if tuptuple[5]:
                 config["sync"][
-                        f'{ignorekey}-{tuptuple[0]}-{tuptuple[3]}-avatar'
+                        f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-avatar'
                         ] = tuptuple[5]
             tuptuple = cur.fetchone()
         conn.commit()
