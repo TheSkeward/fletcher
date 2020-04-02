@@ -421,6 +421,7 @@ class CommandHandler:
                 pass
             pass
         if config.get("sync", {}).get(f"tupper-ignore-{message.author.id}", ""):
+            logger.debug('Nickmask detected')
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.author.id}", "")
@@ -454,7 +455,7 @@ class CommandHandler:
                             webhook = await message.channel.create_webhook(name=config.get("discord", dict()).get("botNavel", "botNavel"), reason='Autocreating for nickmask')
                         webhook_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
 
-                    return await webhook.send(
+                    await webhook.send(
                         content=content,
                         username=fromMessageName,
                         avatar_url=config.get(f"tupper-replace-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
@@ -462,6 +463,12 @@ class CommandHandler:
                         tts=message.tts,
                         files=attachments,
                     )
+                    try:
+                        return await message.delete()
+                    except discord.NotFound:
+                        return
+                    except discord.Forbidden:
+                        return await message.author.send(f'Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.')
         if (
             messagefuncs.extract_identifiers_messagelink.search(message.content)
             or messagefuncs.extract_previewable_link.search(message.content)
