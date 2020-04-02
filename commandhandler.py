@@ -420,14 +420,14 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
-        if config.get("sync", {}).get(f"tupper-ignore-{message.author.id}", ""):
+        if config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", ""):
             logger.debug('Nickmask detected')
             for prefix in tuple(
                     config.get("sync", {})
-                    .get(f"tupper-ignore-{message.author.id}", "")
+                    .get(f"tupper-ignore-{message.guild.id}", "")
                     .split(",")
                 ):
-                if message.content.startswith(prefix) and config.get(f"tupper-replace-{message.author.id}-{prefix}-nick", ""):
+                if message.content.startswith(prefix) and config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", ""):
                     content = message.clean_content
                     attachments = []
                     if len(message.attachments) > 0:
@@ -441,7 +441,7 @@ class CommandHandler:
                             attachments.append(
                                 discord.File(attachment_blob, attachment.filename)
                             )
-                    fromMessageName = config.get(f"tupper-replace-{message.author.id}-{prefix}-nick", "")
+                    fromMessageName = config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "")
                     webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
                     if not webhook:
                         try:
@@ -458,7 +458,7 @@ class CommandHandler:
                     await webhook.send(
                         content=content,
                         username=fromMessageName,
-                        avatar_url=config.get(f"tupper-replace-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
+                        avatar_url=config.get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
                         embeds=message.embeds,
                         tts=message.tts,
                         files=attachments,
