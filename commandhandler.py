@@ -19,6 +19,7 @@ from functools import lru_cache, partial
 logger = logging.getLogger("fletcher")
 
 regex_cache = dict()
+webhooks_cache = dict()
 remote_command_runner = None
 
 class CommandHandler:
@@ -303,6 +304,7 @@ class CommandHandler:
     async def command_handler(self, message):
         global config
         global sid
+        global webhook_cache
 
         try:
             guild_config = self.scope_config(guild=message.guild)
@@ -418,6 +420,48 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
+        if config.get("sync", {}).get(f"tupper-ignore-{message.author.id}", ""):
+            for prefix in tuple(
+                    config.get("sync", {})
+                    .get(f"tupper-ignore-{message.author.id}", "")
+                    .split(",")
+                ):
+                if message.content.startswith(prefix) and config.get(f"tupper-replace-{message.author.id}-{prefix}-nick", ""):
+                    content = message.clean_content
+                    attachments = []
+                    if len(message.attachments) > 0:
+                        plural = ""
+                        if len(message.attachments) > 1:
+                            plural = "s"
+                        for attachment in message.attachments:
+                            logger.debug("Syncing " + attachment.filename)
+                            attachment_blob = io.BytesIO()
+                            await attachment.save(attachment_blob)
+                            attachments.append(
+                                discord.File(attachment_blob, attachment.filename)
+                            )
+                    fromMessageName = config.get(f"tupper-replace-{message.author.id}-{prefix}-nick", "")
+                    webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
+                    if not webhook:
+                        try:
+                            webhooks = await message.webhooks()
+                        except discord.Forbidden:
+                            await message.author.send(f'Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.')
+                            continue
+                        if len(webhooks) > 0:
+                            webhook = discord.utils.get(webhooks, name=config.get("discord", dict()).get("botNavel", "botNavel"))
+                        if not webhook:
+                            webhook = await message.channel.create_webhook(name=config.get("discord", dict()).get("botNavel", "botNavel"), reason='Autocreating for nickmask')
+                        webhook_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
+
+                    return await webhook.send(
+                        content=content,
+                        username=fromMessageName,
+                        avatar_url=config.get(f"tupper-replace-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
+                        embeds=message.embeds,
+                        tts=message.tts,
+                        files=attachments,
+                    )
         if (
             messagefuncs.extract_identifiers_messagelink.search(message.content)
             or messagefuncs.extract_previewable_link.search(message.content)
@@ -902,6 +946,13 @@ def load_user_config(ch):
             config["sync"][
                 ignorekey
             ] = f'{config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
+            config["sync"][
+                f'{ignorekey}-{tuptuple[0]}-{tuptuple[3]}-nick'
+            ] = tuptuple[4]
+            if tuptuple[5]:
+                config["sync"][
+                        f'{ignorekey}-{tuptuple[0]}-{tuptuple[3]}-avatar'
+                        ] = tuptuple[5]
             tuptuple = cur.fetchone()
         conn.commit()
 
