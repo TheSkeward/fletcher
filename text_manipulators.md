@@ -1,4 +1,4 @@
-#Text manipulators
+Text manipulators
 
 ##Rot13
 **Syntax:** `!rot13 message`
