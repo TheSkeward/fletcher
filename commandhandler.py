@@ -423,13 +423,13 @@ class CommandHandler:
         if config.get("sync", {}).get(f"tupper-ignore-{message.guild.id if message.guild else ''}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}", "")):
             for prefix in tuple(
                     config.get("sync", {})
-                    .get(f"tupper-ignore-{message.guild.id}", "")
+                    .get(f"tupper-ignore-{message.guild.id}", ",")
                     .split(",").extend(
                         config.get("sync", {})
-                        .get(f"tupper-ignore-m{message.author.id}", "")
+                        .get(f"tupper-ignore-m{message.author.id}", ",")
                         .split(","))
                 ):
-                if message.content.startswith(prefix) and config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "") or config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-nick", ""):
+                if prefix and message.content.startswith(prefix) and config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "") or config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-nick", ""):
                     content = message.clean_content[len(prefix):]
                     attachments = []
                     if len(message.attachments) > 0:
