@@ -1,4 +1,5 @@
 #Text manipulators
+
 ##Rot13
 **Syntax:** `!rot13 message`
 Replaces the message with a [ROT13](https://en.wikipedia.org/wiki/ROT13) version. React with :rot13: or 🕜 to receive a DM with the original message.
