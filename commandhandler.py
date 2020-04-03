@@ -420,13 +420,16 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
-        if config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", ""):
+        if config.get("sync", {}).get(f"tupper-ignore-{message.guild.id if message.guild else ''}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}", "")):
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.guild.id}", "")
-                    .split(",")
+                    .split(",").extend(
+                        config.get("sync", {})
+                        .get(f"tupper-ignore-m{message.author.id}", "")
+                        .split(","))
                 ):
-                if message.content.startswith(prefix) and config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", ""):
+                if message.content.startswith(prefix) and config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "") or config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-nick", ""):
                     content = message.clean_content[len(prefix):]
                     attachments = []
                     if len(message.attachments) > 0:
@@ -440,7 +443,7 @@ class CommandHandler:
                             attachments.append(
                                 discord.File(attachment_blob, attachment.filename)
                             )
-                    fromMessageName = config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "")
+                    fromMessageName = config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick", "") or config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-nick", "")
                     webhook = webhooks_cache.get("sync", {}).get(f"{message.guild.id}:{message.channel.id}")
                     if not webhook:
                         try:
@@ -457,7 +460,7 @@ class CommandHandler:
                     await webhook.send(
                         content=content,
                         username=fromMessageName,
-                        avatar_url=config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128)),
+                        avatar_url=config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-avatar", config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-avatar", message.author.avatar_url_as(format="png", size=128))),
                         embeds=message.embeds,
                         tts=message.tts,
                         files=attachments,
@@ -946,13 +949,13 @@ def load_user_config(ch):
         while tuptuple:
             if not config.get("sync"):
                 config["sync"] = {}
-            ignorekey = f"tupper-ignore-{tuptuple[1]}"
-            replacekey = f"tupper-replace-{tuptuple[1]}"
+            ignorekey = f"tupper-ignore-{tuptuple[1] or 'm'+tuptuple[0]}"
             if not config["sync"].get(ignorekey, ""):
                 config["sync"][ignorekey] = ""
             config["sync"][
                 ignorekey
             ] = f'{config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
+            replacekey = f"tupper-replace-{tuptuple[1]}"
             config["sync"][
                 f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-nick'
             ] = tuptuple[4]
@@ -1036,7 +1039,7 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
-    return '```'+ch.user_config(message.author.id, message.guild.id, args[0], value)+'```'
+    return '```'+ch.user_config(message.author.id, message.guild.id if message.guild else None, args[0], value)+'```'
 
 async def dumptasks_function(message, client, args):
     tasks = await client.loop.all_tasks()
