@@ -1,4 +1,5 @@
-Text manipulators
+# Text manipulators
+Functions for stylistic changes to messages.
 
 ##Rot13
 **Syntax:** `!rot13 message`
