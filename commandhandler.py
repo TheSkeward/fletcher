@@ -946,8 +946,8 @@ def load_user_config(ch):
 SELECT
   p.user_id user_id, p.guild_id guild_id,
   LTRIM(o.prefix) prefix,
-  a.value avatar,
-  n.value nick
+  n.value nick,
+  a.value avatar
 FROM user_preferences p
   CROSS JOIN LATERAL unnest(string_to_array(p.value, ',')) AS o(prefix)
   LEFT JOIN user_preferences a
@@ -969,7 +969,7 @@ WHERE p.key = 'tupper';
             replacekey = f"tupper-replace-{tuptuple[1]}"
             config["sync"][
                 f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-nick'
-            ] = tuptuple[4]
+            ] = tuptuple[3]
             if tuptuple[4]:
                 config["sync"][
                         f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-avatar'
