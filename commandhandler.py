@@ -974,7 +974,7 @@ WHERE p.key = 'tupper';
                 config["sync"][
                         f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-avatar'
                         ] = tuptuple[4]
-            logger.debug(f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}: {tuptuple[3:4]}')
+            logger.debug(f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}: {tuptuple[3:]}')
             tuptuple = cur.fetchone()
         conn.commit()
 
