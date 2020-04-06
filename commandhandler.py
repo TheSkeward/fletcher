@@ -430,11 +430,11 @@ class CommandHandler:
                         .split(",")
                 ):
                 tupperreplace = None
-                if prefix and message.content.startswith(prefix):
+                if prefix and message.content.startswith(prefix.lstrip()):
                     if config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick"):
                         tupperreplace = f'tupper-replace-{message.guild.id}-{message.author.id}-{prefix}'
-                    elif config.get("sync", {}).get(f"tupper-replace--{message.author.id}-{prefix}-nick"):
-                        tupperreplace = f'tupper-replace-{message.guild.id}-{message.author.id}-{prefix}'
+                    elif config.get("sync", {}).get(f"tupper-replace-None-{message.author.id}-{prefix}-nick"):
+                        tupperreplace = f'tupper-replace-None-{message.author.id}-{prefix}'
                 if not tupperreplace:
                     continue
                 content = message.clean_content[len(prefix):]
