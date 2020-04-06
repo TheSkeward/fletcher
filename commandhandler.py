@@ -942,9 +942,20 @@ def load_user_config(ch):
     def load_tuppers(ch):
         global config
         cur = conn.cursor()
-        cur.execute(
-            "SELECT t.user_id, t.guild_id, t.key, t.value prefix, n.value nick, a.value avatar FROM user_preferences t RIGHT JOIN user_preferences a ON t.user_id = a.user_id AND t.guild_id = a.guild_id AND a.key = 'tupper-avatar-' || t.value RIGHT JOIN user_preferences n ON t.user_id = n.user_id AND t.guild_id = n.guild_id AND n.key = 'tupper-nick-' || t.value WHERE t.key = 'tupper';"
-        )
+        cur.execute("""
+SELECT
+  p.user_id user_id, p.guild_id guild_id,
+  LTRIM(o.prefix) prefix,
+  a.value avatar,
+  n.value nick
+FROM user_preferences p
+  CROSS JOIN LATERAL unnest(string_to_array(p.value, ',')) AS o(prefix)
+  LEFT JOIN user_preferences a
+    ON p.user_id = a.user_id AND COALESCE(p.guild_id, 0) = COALESCE(a.guild_id, 0) AND a.key = 'tupper-avatar-' || LTRIM(o.prefix)
+  LEFT JOIN user_preferences n
+    ON p.user_id = n.user_id AND COALESCE(p.guild_id, 0) = COALESCE(n.guild_id, 0) AND n.key = 'tupper-nick-' || LTRIM(o.prefix)
+WHERE p.key = 'tupper';
+""")
         tuptuple = cur.fetchone()
         while tuptuple:
             if not config.get("sync"):
@@ -963,6 +974,7 @@ def load_user_config(ch):
                 config["sync"][
                         f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-avatar'
                         ] = tuptuple[5]
+            logger.debug(f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}: {tuptuple[4:5]}')
             tuptuple = cur.fetchone()
         conn.commit()
 
