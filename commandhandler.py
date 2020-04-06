@@ -965,16 +965,16 @@ WHERE p.key = 'tupper';
                 config["sync"][ignorekey] = ""
             config["sync"][
                 ignorekey
-            ] = f'{config["sync"][ignorekey]},{tuptuple[3]}'.strip(",")
+            ] = f'{config["sync"][ignorekey]},{tuptuple[2]}'.strip(",")
             replacekey = f"tupper-replace-{tuptuple[1]}"
             config["sync"][
-                f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-nick'
+                f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-nick'
             ] = tuptuple[4]
-            if tuptuple[5]:
+            if tuptuple[4]:
                 config["sync"][
-                        f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}-avatar'
-                        ] = tuptuple[5]
-            logger.debug(f'{replacekey}-{tuptuple[0]}-{tuptuple[3]}: {tuptuple[4:5]}')
+                        f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-avatar'
+                        ] = tuptuple[4]
+            logger.debug(f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}: {tuptuple[3:4]}')
             tuptuple = cur.fetchone()
         conn.commit()
 
