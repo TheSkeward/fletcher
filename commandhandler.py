@@ -960,7 +960,7 @@ WHERE p.key = 'tupper';
         while tuptuple:
             if not config.get("sync"):
                 config["sync"] = {}
-            ignorekey = f"tupper-ignore-{tuptuple[1] or 'm'+tuptuple[0]}"
+            ignorekey = f"tupper-ignore-{tuptuple[1] or 'm'+str(tuptuple[0])}"
             if not config["sync"].get(ignorekey, ""):
                 config["sync"][ignorekey] = ""
             config["sync"][
