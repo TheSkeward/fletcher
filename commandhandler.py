@@ -716,7 +716,8 @@ class CommandHandler:
                         'server':   config['discord'].get('globalAdminIsServerAdmin',  True),
                         'channel':  config['discord'].get('globalAdminIsChannelAdmin', True),
                         '':         True,
-                        None:       True
+                        None:       True,
+                        False:      True
                         }[c.get('admin')] and (message.guild.id not in c.get("blacklist_guild", []) or config['discord'].get('globalAdminIgnoresBlacklists', True))
         elif admin['server']:
             def command_filter(c):
@@ -725,7 +726,8 @@ class CommandHandler:
                         'server':   True,
                         'channel':  config['discord'].get('serverAdminIsChannelAdmin', True),
                         '':         True,
-                        None:       True
+                        None:       True,
+                        False:      True
                         }[c.get('admin')] and (message.guild.id not in c.get("blacklist_guild", []) or config['discord'].get('serverAdminIgnoresBlacklists', False))
         elif admin['channel']:
             def command_filter(c):
@@ -734,7 +736,8 @@ class CommandHandler:
                         'server':   False,
                         'channel':  True,
                         '':         True,
-                        None:       True
+                        None:       True,
+                        False:      True
                         }[c.get('admin')] and message.guild.id not in c.get("blacklist_guild", [])
         else:
             def command_filter(c):
@@ -743,7 +746,8 @@ class CommandHandler:
                         'server':   False,
                         'channel':  False,
                         '':         True,
-                        None:       True
+                        None:       True,
+                        False:      True
                         }[c.get('admin')] and message.guild.id not in c.get("blacklist_guild", [])
     
         try:
