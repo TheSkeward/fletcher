@@ -420,7 +420,8 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
-        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")):
+        tupperId = 431544605209788416
+        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and (not this.user_config(message.author.id, message.guild.id, 'prefer-tupper') and discord.utils.get(message.channel.members, id=tupperId) and discord.utils.get(message.channel.members, id=tupperId).status != discord.Status.online):
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.guild.id}", "")
@@ -710,13 +711,40 @@ class CommandHandler:
         admin = self.is_admin(message, user=user)
         if admin['global']:
             def command_filter(c):
-                return True
+                return {
+                        'global':   True,
+                        'server':   config['discord'].get('globalAdminIsServerAdmin',  True),
+                        'channel':  config['discord'].get('globalAdminIsChannelAdmin', True),
+                        '':         True,
+                        None:       True
+                        }[c.get('admin')] and (message.guild.id not in c.get("blacklist_guild", []) or config['discord'].get('globalAdminIgnoresBlacklists', True))
         elif admin['server']:
             def command_filter(c):
-                return (type(message.channel) is discord.DMChannel or message.guild.id not in c.get("blacklist_guild", [])) and not c.get("hidden", False)
+                return {
+                        'global':   False,
+                        'server':   True,
+                        'channel':  config['discord'].get('serverAdminIsChannelAdmin', True),
+                        '':         True,
+                        None:       True
+                        }[c.get('admin')] and (message.guild.id not in c.get("blacklist_guild", []) or config['discord'].get('serverAdminIgnoresBlacklists', False))
+        elif admin['channel']:
+            def command_filter(c):
+                return {
+                        'global':   False,
+                        'server':   False,
+                        'channel':  True,
+                        '':         True,
+                        None:       True
+                        }[c.get('admin')] and message.guild.id not in c.get("blacklist_guild", [])
         else:
             def command_filter(c):
-                return (type(message.channel) is discord.DMChannel or message.guild.id not in c.get("blacklist_guild", [])) and not c.get("admin", False) and not c.get("hidden", False)
+                return {
+                        'global':   False,
+                        'server':   False,
+                        'channel':  False,
+                        '':         True,
+                        None:       True
+                        }[c.get('admin')] and message.guild.id not in c.get("blacklist_guild", [])
     
         try:
             return list(filter(command_filter, self.commands))
@@ -793,6 +821,11 @@ async def help_function(message, client, args):
         else:
             try:
                 accessible_commands = ch.accessible_commands(message)
+            except IndexError:
+                accessible_commands = []
+        if not verbose:
+            try:
+                accessible_commands = list(filter(lambda c: not c.get('hidden', False), accessible_commands))
             except IndexError:
                 accessible_commands = []
         if target == message.author and len(accessible_commands):
