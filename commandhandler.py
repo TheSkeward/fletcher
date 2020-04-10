@@ -421,7 +421,7 @@ class CommandHandler:
                 pass
             pass
         tupperId = 431544605209788416
-        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and (not this.user_config(message.author.id, message.guild.id, 'prefer-tupper') and discord.utils.get(message.channel.members, id=tupperId) and discord.utils.get(message.channel.members, id=tupperId).status != discord.Status.online):
+        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and (not self.user_config(message.author.id, message.guild.id, 'prefer-tupper') and discord.utils.get(message.channel.members, id=tupperId) and discord.utils.get(message.channel.members, id=tupperId).status != discord.Status.online):
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.guild.id}", "")
