@@ -718,17 +718,17 @@ class CommandHandler:
                         '':         True,
                         None:       True,
                         False:      True
-                        }[c.get('admin')] and ((type(message.channel) is discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", [])) or config['discord'].get('globalAdminIgnoresBlacklists', True))
+                        }[c.get('admin')] and ((type(message.channel) == discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", [])) or config['discord'].get('globalAdminIgnoresBlacklists', True))
         elif admin['server']:
             def command_filter(c):
                 return {
                         'global':   False,
                         'server':   True,
-                        'channel':  config['discord'].get('serverAdminIsChannelAdmin', True),
+                        'channel':  config['d==cord'].get('serverAdminIsChannelAdmin', True),
                         '':         True,
                         None:       True,
                         False:      True
-                        }[c.get('admin')] and ((type(message.channel) is discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", [])) or config['discord'].get('serverAdminIgnoresBlacklists', False))
+                        }[c.get('admin')] and ((type(message.channel) == discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", [])) or config['discord'].get('serverAdminIgnoresBlacklists', False))
         elif admin['channel']:
             def command_filter(c):
                 return {
@@ -738,7 +738,7 @@ class CommandHandler:
                         '':         True,
                         None:       True,
                         False:      True
-                        }[c.get('admin')] and (type(message.channel) is discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", []))
+                        }[c.get('admin')] and (type(message.channel) == discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", []))
         else:
             def command_filter(c):
                 return {
@@ -748,7 +748,7 @@ class CommandHandler:
                         '':         True,
                         None:       True,
                         False:      True
-                        }[c.get('admin')] and (type(message.channel) is discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", []))
+                        }[c.get('admin')] and (type(message.channel) == discord.DMChannel) or (message.guild.id not in c.get("blacklist_guild", []))
     
         try:
             return list(filter(command_filter, self.commands))
