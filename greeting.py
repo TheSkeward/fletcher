@@ -264,7 +264,7 @@ async def regex_filter(message, client, config):
         else:
             subject = str(message.content)
         re_flags = 0
-        if config["regex-ignorecase"] == "On":
+        if config.get("regex-ignorecase") == "On":
             re_flags = re_flags | re.IGNORECASE
         matching = re.search(config["regex-pattern"], subject, re_flags)
         if matching and whitelist_mode:
