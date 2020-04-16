@@ -1,6 +1,7 @@
 from datetime import datetime
 from emoji import UNICODE_EMOJI
 import asyncio
+import io
 from aiohttp import web
 from aiohttp.web import AppRunner, Application, TCPSite
 
