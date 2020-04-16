@@ -653,7 +653,7 @@ class CommandHandler:
                             )
                 else:
                     cur.execute(
-                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NONE AND key = %s;",
+                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
                             [value, user, key]
                             )
             else:
