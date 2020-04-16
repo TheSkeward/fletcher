@@ -426,64 +426,68 @@ class CommandHandler:
                 pass
             pass
         tupperId = 431544605209788416
-        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and not (discord.utils.get(message.channel.members, id=tupperId) and self.user_config(message.author.id, message.guild.id, 'prefer-tupper') and str(discord.utils.get(message.channel.members, id=tupperId).status) == "online"):
-            for prefix in tuple(
-                    config.get("sync", {})
-                    .get(f"tupper-ignore-{message.guild.id}", "")
-                    .split(",")) + tuple(
+        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")):
+            tupper = discord.utils.get(message.channel.members, id=tupperId)
+            if tupper and self.user_config(message.author.id, None, 'prefer-tupper') or self.user_config(message.author.id, message.guild.id, 'prefer-tupper') and tupper.status == discord.Status.online:
+                pass
+            else:
+                for prefix in tuple(
                         config.get("sync", {})
-                        .get(f"tupper-ignore-m{message.author.id}", "")
-                        .split(",")
-                ):
-                tupperreplace = None
-                if prefix and message.content.startswith(prefix.lstrip()):
-                    if config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick"):
-                        tupperreplace = f'tupper-replace-{message.guild.id}-{message.author.id}-{prefix}'
-                    elif config.get("sync", {}).get(f"tupper-replace-None-{message.author.id}-{prefix}-nick"):
-                        tupperreplace = f'tupper-replace-None-{message.author.id}-{prefix}'
-                if not tupperreplace:
-                    continue
-                content = message.clean_content[len(prefix):]
-                attachments = []
-                if len(message.attachments) > 0:
-                    plural = ""
-                    if len(message.attachments) > 1:
-                        plural = "s"
-                    for attachment in message.attachments:
-                        logger.debug("Syncing " + attachment.filename)
-                        attachment_blob = io.BytesIO()
-                        await attachment.save(attachment_blob)
-                        attachments.append(
-                            discord.File(attachment_blob, attachment.filename)
-                        )
-                fromMessageName = config.get("sync", {}).get(f"{tupperreplace}-nick", message.author.display_name)
-                webhook = webhooks_cache.get("sync", {}).get(f"{message.guild.id}:{message.channel.id}")
-                if not webhook:
-                    try:
-                        webhooks = await message.channel.webhooks()
-                    except discord.Forbidden:
-                        await message.author.send(f'Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.')
+                        .get(f"tupper-ignore-{message.guild.id}", "")
+                        .split(",")) + tuple(
+                            config.get("sync", {})
+                            .get(f"tupper-ignore-m{message.author.id}", "")
+                            .split(",")
+                    ):
+                    tupperreplace = None
+                    if prefix and message.content.startswith(prefix.lstrip()):
+                        if config.get("sync", {}).get(f"tupper-replace-{message.guild.id}-{message.author.id}-{prefix}-nick"):
+                            tupperreplace = f'tupper-replace-{message.guild.id}-{message.author.id}-{prefix}'
+                        elif config.get("sync", {}).get(f"tupper-replace-None-{message.author.id}-{prefix}-nick"):
+                            tupperreplace = f'tupper-replace-None-{message.author.id}-{prefix}'
+                    if not tupperreplace:
                         continue
-                    if len(webhooks) > 0:
-                        webhook = discord.utils.get(webhooks, name=config.get("discord", dict()).get("botNavel", "botNavel"))
+                    content = message.clean_content[len(prefix):]
+                    attachments = []
+                    if len(message.attachments) > 0:
+                        plural = ""
+                        if len(message.attachments) > 1:
+                            plural = "s"
+                        for attachment in message.attachments:
+                            logger.debug("Syncing " + attachment.filename)
+                            attachment_blob = io.BytesIO()
+                            await attachment.save(attachment_blob)
+                            attachments.append(
+                                discord.File(attachment_blob, attachment.filename)
+                            )
+                    fromMessageName = config.get("sync", {}).get(f"{tupperreplace}-nick", message.author.display_name)
+                    webhook = webhooks_cache.get("sync", {}).get(f"{message.guild.id}:{message.channel.id}")
                     if not webhook:
-                        webhook = await message.channel.create_webhook(name=config.get("discord", dict()).get("botNavel", "botNavel"), reason='Autocreating for nickmask')
-                    webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
-
-                await webhook.send(
-                    content=content,
-                    username=fromMessageName,
-                    avatar_url=config.get("sync", {}).get(f"{tupperreplace}-avatar", message.author.avatar_url_as(format="png", size=128)),
-                    embeds=message.embeds,
-                    tts=message.tts,
-                    files=attachments,
-                )
-                try:
-                    return await message.delete()
-                except discord.NotFound:
-                    return
-                except discord.Forbidden:
-                    return await message.author.send(f'Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.')
+                        try:
+                            webhooks = await message.channel.webhooks()
+                        except discord.Forbidden:
+                            await message.author.send(f'Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.')
+                            continue
+                        if len(webhooks) > 0:
+                            webhook = discord.utils.get(webhooks, name=config.get("discord", dict()).get("botNavel", "botNavel"))
+                        if not webhook:
+                            webhook = await message.channel.create_webhook(name=config.get("discord", dict()).get("botNavel", "botNavel"), reason='Autocreating for nickmask')
+                        webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
+ 
+                    await webhook.send(
+                        content=content,
+                        username=fromMessageName,
+                        avatar_url=config.get("sync", {}).get(f"{tupperreplace}-avatar", message.author.avatar_url_as(format="png", size=128)),
+                        embeds=message.embeds,
+                        tts=message.tts,
+                        files=attachments,
+                    )
+                    try:
+                        return await message.delete()
+                    except discord.NotFound:
+                        return
+                    except discord.Forbidden:
+                        return await message.author.send(f'Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.')
         if (
             messagefuncs.extract_identifiers_messagelink.search(message.content)
             or messagefuncs.extract_previewable_link.search(message.content)
@@ -616,24 +620,42 @@ class CommandHandler:
     def user_config(self, user, guild, key, value=None):
         cur = conn.cursor()
         if not value:
-            cur.execute(
-                "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
-                [user, guild, key]
-            )
+            if guild:
+                cur.execute(
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
+                        [user, guild, key]
+                        )
+            else:
+                cur.execute(
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
+                        [user, key]
+                        )
             value = cur.fetchone()
             if value:
                 value = value[0]
         else:
-            cur.execute(
-                "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
-                [user, guild, key]
-            )
+            if guild:
+                cur.execute(
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
+                        [user, guild, key]
+                        )
+            else:
+                cur.execute(
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
+                        [user, key]
+                        )
             old_value = cur.fetchone()
             if old_value:
-                cur.execute(
-                    "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id = %s AND key = %s;",
-                    [value, user, guild, key]
-                )
+                if guild:
+                    cur.execute(
+                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id = %s AND key = %s;",
+                            [value, user, guild, key]
+                            )
+                else:
+                    cur.execute(
+                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NONE AND key = %s;",
+                            [value, user, key]
+                            )
             else:
                 cur.execute(
                     "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s);",
