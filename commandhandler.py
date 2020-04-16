@@ -280,6 +280,11 @@ class CommandHandler:
                     logger.error(f"Unknown member_join_action [{member_join_action}]")
 
     async def channel_update_handler(self, before, after):
+        if not before.guild:
+            return
+        scoped_config = self.scope_config(guild=before.guild)
+        if type(before) == discord.TextChannel and scoped_config.get("topic_change_notify") and before.topic != after.topic:
+            await after.send(scoped_confg.get("topic_change_notify_prefix", "Topic changed from {before.topic} to {after.topic}").format(before=before, after=after))
         pass # Stub
 
     async def reload_handler(self):
@@ -421,7 +426,7 @@ class CommandHandler:
                 pass
             pass
         tupperId = 431544605209788416
-        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and not (discord.utils.get(message.channel.members, id=tupperId) and self.user_config(message.author.id, message.guild.id, 'prefer-tupper') and discord.utils.get(message.channel.members, id=tupperId).status == "online"):
+        if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and not (discord.utils.get(message.channel.members, id=tupperId) and self.user_config(message.author.id, message.guild.id, 'prefer-tupper') and str(discord.utils.get(message.channel.members, id=tupperId).status) == "online"):
             for prefix in tuple(
                     config.get("sync", {})
                     .get(f"tupper-ignore-{message.guild.id}", "")
