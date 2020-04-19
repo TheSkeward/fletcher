@@ -361,9 +361,8 @@ async def roll_function(message, client, args):
             num_to_string = partial(coin_num_to_string, num_to_string)
 
         result = [random.randint(1, size) for i in range(scalar)]
-        if size  > 2:
-            result = [v + offset for v in result]
         if size > 2:
+            result = [v + offset for v in result]
             result_stats = {"sum": sum(result), "max": max(result), "min": min(result)}
             result = map(num_to_string, result)
             if scalar > 100:
@@ -405,7 +404,7 @@ async def roll_function(message, client, args):
         elif size == 2:
             response += f"\nResult: {result}"
         else:
-            response += f"\n{str(int(result)-offset)+offset_str if offset else 'Result'}: {result}"
+            response += f"\n{result+offset_str if offset else 'Result'}: {int(result[1:])+offset}"
         if comment:
             response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
