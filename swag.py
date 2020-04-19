@@ -402,8 +402,10 @@ async def roll_function(message, client, args):
             response += f"{result}{'[all '+offset_str+']' if offset else ''} = **{result_stats['sum']}**\nMax: **{result_stats['max']}**, Min: **{result_stats['min']}**"
         elif scalar > 1 and size == 2:
             response += f'{result}\nHeads: **{result_stats["heads"]}**, Tails: **{result_stats["tails"]}**'
+        elif size == 2:
+            response += f"\nResult: {result}"
         else:
-            response += f"\n{str(result-offset)+offset_str if offset else 'Result'}: {result}"
+            response += f"\n{str(int(result)-offset)+offset_str if offset else 'Result'}: {result}"
         if comment:
             response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
