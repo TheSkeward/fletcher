@@ -249,6 +249,23 @@ async def roll_function(message, client, args):
         return sorted(arr)[1:]
     try:
         if len(args):
+            if '#' in args:
+                idx = args.index('#')
+                comment = args[idx:]
+                args = args[:idx]
+            else:
+                comment = None
+            if ('+' in args) or ('-' in args):
+                idx = args.index('+') or args.index('-')
+                if idx + 2 <= len(args):
+                    offset = args[idx:idx+2]
+                    if offset[0] == '+':
+                        offset = offset[1]
+                    else:
+                        offset = -offset[1]
+                    args = args[:idx] + args[idx+3:]
+            else:
+                offset = 0
             if len(args) == 1:
                 if "d" in args[0].lower():
                     args[0] = args[0].lower().split("d")
@@ -256,7 +273,10 @@ async def roll_function(message, client, args):
                     args[0] = [0, 2]
                 elif args[0].startswith("D&D"):
                     result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    result = [v + offset for v in result]
                     response = f"Stats: {result}"
+                    if comment:
+                        response = f"> {comment}\n{response}"
                     return await messagefuncs.sendWrappedMessage(response, message.channel)
                 elif args[0].isnumeric():
                     args[0] = [args[0], 0]
@@ -268,7 +288,10 @@ async def roll_function(message, client, args):
                         result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
                     else:
                         result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    result = [v + offset for v in result]
                     response = f"Stats: {result}"
+                    if comment:
+                        response = f"> {comment}\n{response}"
                     return await messagefuncs.sendWrappedMessage(response, message.channel)
                 else:
                     args = [args[0], args[1]]
@@ -332,6 +355,8 @@ async def roll_function(message, client, args):
             num_to_string = partial(coin_num_to_string, num_to_string)
 
         result = [random.randint(1, size) for i in range(scalar)]
+        if size  > 2:
+            result = [v + offset for v in result]
         if size > 2:
             result_stats = {"sum": sum(result), "max": max(result), "min": min(result)}
             result = map(num_to_string, result)
@@ -368,11 +393,13 @@ async def roll_function(message, client, args):
             f"Rolled {scalar} {num_to_string(scalar, is_size=True)} ({size} sides)."
         )
         if scalar > 1 and size > 2:
-            response += f'{result} = **{result_stats["sum"]}**\nMax: **{result_stats["max"]}**, Min: **{result_stats["min"]}**'
+            response += f"{result}{' offset '+offset+' ' if offset else ''} = **{result_stats['sum']}**\nMax: **{result_stats['max']}**, Min: **{result_stats['min']}**"
         elif scalar > 1 and size == 2:
             response += f'{result}\nHeads: **{result_stats["heads"]}**, Tails: **{result_stats["tails"]}**'
         else:
-            response += f"\nResult: {result}"
+            response += f"\nResult{' offset '+offset+' ' if offset else ''}: {result}"
+        if comment:
+            response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
     except ValueError as e:
         if "invalid literal for int()" in str(e):
