@@ -398,13 +398,13 @@ async def roll_function(message, client, args):
             f"Rolled {scalar} {num_to_string(scalar, is_size=True)} ({size} sides)."
         )
         if scalar > 1 and size > 2:
-            response += f"{result}{'[all '+offset_str+']' if offset else ''} = **{result_stats['sum']}**\nMax: **{result_stats['max']}**, Min: **{result_stats['min']}**"
+            response += f"{result}{' [all '+offset_str+']' if offset else ''} = **{result_stats['sum']}**\nMax: **{result_stats['max']}**, Min: **{result_stats['min']}**"
         elif scalar > 1 and size == 2:
             response += f'{result}\nHeads: **{result_stats["heads"]}**, Tails: **{result_stats["tails"]}**'
         elif size == 2:
             response += f"\nResult: {result}"
         else:
-            response += f"\n{result+offset_str if offset else 'Result'}: {int(result[1:])+offset}"
+            response += f"\n{int(result[2:-2])+offset_str if offset else 'Result'}: {result}"
         if comment:
             response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
