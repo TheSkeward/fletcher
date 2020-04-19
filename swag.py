@@ -254,7 +254,7 @@ async def roll_function(message, client, args):
                 comment = " ".join(args[idx+1:])
                 args = args[:idx]
             else:
-                comment = None
+                comment = message.author.display_name
             if ('+' in args) or ('-' in args):
                 idx = args.index('+') or args.index('-')
                 if idx + 2 <= len(args):
