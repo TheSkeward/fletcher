@@ -260,9 +260,9 @@ async def roll_function(message, client, args):
                 if idx + 2 <= len(args):
                     offset = args[idx:idx+2]
                     if offset[0] == '+':
-                        offset = offset[1]
+                        offset = int(offset[1])
                     else:
-                        offset = -offset[1]
+                        offset = -int(offset[1])
                     args = args[:idx] + args[idx+3:]
             else:
                 offset = 0
