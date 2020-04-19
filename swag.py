@@ -251,7 +251,7 @@ async def roll_function(message, client, args):
         if len(args):
             if '#' in args:
                 idx = args.index('#')
-                comment = args[idx:]
+                comment = " ".join(args[idx+1:])
                 args = args[:idx]
             else:
                 comment = None
