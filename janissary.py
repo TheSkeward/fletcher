@@ -4,6 +4,7 @@ import dateparser.search
 import discord
 import logging
 import messagefuncs
+import netcode
 from sys import exc_info
 import random
 import textwrap
@@ -1105,24 +1106,29 @@ async def copy_permissions_function(message, client, args):
 
 async def copy_emoji_function(message, client, args):
     try:
-        emoji_query = args.pop(0).strip(":")
-        if ":" in emoji_query:
-            emoji_query = emoji_query.split(":")
-            emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
-            filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
+        if len(args) == 2:
+            url = args[0] if '.' in args[0] else args[1]
+            emoji_name = args[1] if url == args[0] else args[0]
         else:
-            filter_query = lambda m: m.name == emoji_query
-        emoji = list(filter(filter_query, client.emojis))
-        if len(args) and args[0].isnumeric():
-            emoji = emoji[int(args.pop(0))]
-        else:
-            emoji = emoji[0]
-        if len(args):
-            emoji_name = args.pop(0)
-        else:
-            emoji_name = emoji.name
-        if emoji:
-            target = await message.channel.send(f"Add reaction {emoji}?")
+            emoji_query = args.pop(0).strip(":")
+            if ":" in emoji_query:
+                emoji_query = emoji_query.split(":")
+                emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
+                filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
+            else:
+                filter_query = lambda m: m.name == emoji_query
+            emoji = list(filter(filter_query, client.emojis))
+            if len(args) and args[0].isnumeric():
+                emoji = emoji[int(args.pop(0))]
+            else:
+                emoji = emoji[0]
+            if len(args):
+                emoji_name = args.pop(0)
+            else:
+                emoji_name = emoji.name
+            url = emoji.url
+        if url:
+            target = await message.channel.send(f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?")
             await target.add_reaction("✅")
             try:
                 reaction, user = await client.wait_for(
@@ -1137,7 +1143,7 @@ async def copy_emoji_function(message, client, args):
                 pass
             custom_emoji = await message.guild.create_custom_emoji(
                 name=emoji_name,
-                image=(await emoji.url.read()),
+                image=(await netcode.simple_get_image(url)),
                 reason=f"Synced from {emoji.guild} for {message.author.name}",
             )
             await message.channel.send(custom_emoji)
