@@ -404,7 +404,7 @@ async def roll_function(message, client, args):
         elif size == 2:
             response += f"\nResult: {result}"
         else:
-            response += f"\n{int(result[2:-2])+offset_str if offset else 'Result'}: {result}"
+            response += f"\n{int(result[3:-2])+offset_str if offset else 'Result'}: {result}"
         if comment:
             response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
