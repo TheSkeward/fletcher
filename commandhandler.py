@@ -290,6 +290,7 @@ class CommandHandler:
 
     async def reload_handler(self):
         try:
+            loop = asyncio.get_event_loop()
             # Trigger reload handlers
             for guild in self.client.guilds:
                 if self.scope_config(guild=guild).get("on_reload"):
@@ -298,9 +299,9 @@ class CommandHandler:
                     )
                     for reload_action in reload_actions:
                         if reload_action in self.reload_handlers.keys():
-                            await self.reload_handlers[reload_action](
+                            loop.create_task(self.reload_handlers[reload_action](
                                 guild, self.client, self.scope_config(guild=guild)
-                            )
+                            ))
                         else:
                             logger.error(f"Unknown reload_action [{reload_action}]")
         except Exception as e:
