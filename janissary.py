@@ -1144,7 +1144,7 @@ async def copy_emoji_function(message, client, args):
                 pass
             custom_emoji = await message.guild.create_custom_emoji(
                 name=emoji_name,
-                image=(await netcode.simple_get_image(url)),
+                image=(await netcode.simple_get_image(url)).read(),
                 reason=f"Synced{' from '+str(emoji.guild) if emoji else ' '+emoji_name} for {message.author.name}",
             )
             await message.channel.send(custom_emoji)
