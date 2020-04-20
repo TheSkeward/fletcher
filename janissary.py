@@ -1109,6 +1109,7 @@ async def copy_emoji_function(message, client, args):
         if len(args) == 2:
             url = args[0] if '.' in args[0] else args[1]
             emoji_name = args[1] if url == args[0] else args[0]
+            emoji = None
         else:
             emoji_query = args.pop(0).strip(":")
             if ":" in emoji_query:
