@@ -449,7 +449,7 @@ class CommandHandler:
                             tupperreplace = f'tupper-replace-None-{message.author.id}-{prefix}'
                     if not tupperreplace:
                         continue
-                    content = message.clean_content[len(prefix):]
+                    content = message.content[len(prefix):]
                     attachments = []
                     if len(message.attachments) > 0:
                         plural = ""
@@ -483,6 +483,7 @@ class CommandHandler:
                         embeds=message.embeds,
                         tts=message.tts,
                         files=attachments,
+                        allowed_mentions=discord.AllowedMentions(everyone=False, users=False,roles=False),
                     )
                     try:
                         return await message.delete()
