@@ -430,7 +430,11 @@ class CommandHandler:
         tupperId = 431544605209788416
         if message.guild and config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")):
             tupper = discord.utils.get(message.channel.members, id=tupperId)
-            if tupper and self.user_config(message.author.id, None, 'prefer-tupper') == '1' or self.user_config(message.author.id, message.guild.id, 'prefer-tupper') == '1' and tupper.status == discord.Status.online:
+            if tupper is not None:
+                tupper_status = tupper.status
+            else:
+                tupper_status = None
+            if (tupper is not None) and (self.user_config(message.author.id, None, 'prefer-tupper') == '1') or (self.user_config(message.author.id, message.guild.id, 'prefer-tupper') == '1') and (tupper_status == discord.Status.online):
                 pass
             else:
                 for prefix in tuple(
