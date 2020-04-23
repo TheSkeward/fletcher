@@ -1669,7 +1669,7 @@ def autoload(ch):
 
     for guild in ch.client.guilds:
         if ch.scope_config(guild=guild).get("role-message"):
-            logger.debug(f"Adding role emoji handler for {guild}")
+            logger.debug(f"Adding role emoji handler for {guild.name}")
             ch.add_message_reaction_remove_handler(
                 ch.scope_config(guild=guild).get("role-message"),
                 {
