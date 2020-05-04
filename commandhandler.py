@@ -607,18 +607,18 @@ class CommandHandler:
             channel = ""
         try:
             if mutable:
-                if config.get(f"Guild {guild}{channel}"):
-                    return config.get(f"Guild {guild}{channel}")
-                elif category and config.get(f"Guild {guild} - {int(category)}"):
-                    return config.get(f"Guild {guild} - {int(category)}")
+                if config.get(f"Guild {guild.name}{channel.name}"):
+                    return config.get(f"Guild {guild.name}{channel.name}")
+                elif category and config.get(f"Guild {guild.name} - {int(category)}"):
+                    return config.get(f"Guild {guild.name} - {int(category)}")
                 else:
-                    config[f"Guild {guild}{channel}"] = []
-                    return config.get(f"Guild {guild}{channel}")
+                    config[f"Guild {guild.name}{channel.name}"] = []
+                    return config.get(f"Guild {guild.name}{channel.name}")
             else:
-                if not config.get(f"Guild {guild}{channel}") and category and config.get(f"Guild {guild} - {int(category)}"):
-                    return dict(config.get(f"Guild {guild} - {int(category)}"))
+                if not config.get(f"Guild {guild.name}{channel.name}") and category and config.get(f"Guild {guild.name} - {int(category)}"):
+                    return dict(config.get(f"Guild {guild.name} - {int(category)}"))
                 else:
-                    return dict(config.get(f"Guild {guild}{channel}"))
+                    return dict(config.get(f"Guild {guild.name}{channel.name}"))
         except TypeError:
             return dict()
         
@@ -1085,7 +1085,7 @@ WHERE p.key = 'tupper';
                 for word in hotwords.keys():
                     try:
                         hotword = Hotword(ch, word, hotwords[word], ch.client.get_guild(guild_id).get_member(user_id))
-                    except ValueError as e:
+                    except (ValueError, KeyError) as e:
                         logger.error(f'Parsing {word} for {user_id} failed: {e}')
                         continue
                     except AttributeError as e:
