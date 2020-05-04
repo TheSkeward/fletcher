@@ -607,18 +607,18 @@ class CommandHandler:
             channel = ""
         try:
             if mutable:
-                if config.get(f"Guild {guild.name}{channel.name}"):
-                    return config.get(f"Guild {guild.name}{channel.name}")
-                elif category and config.get(f"Guild {guild.name} - {int(category)}"):
-                    return config.get(f"Guild {guild.name} - {int(category)}")
+                if config.get(f"Guild {guild}{channel}"):
+                    return config.get(f"Guild {guild}{channel}")
+                elif category and config.get(f"Guild {guild} - {int(category)}"):
+                    return config.get(f"Guild {guild} - {int(category)}")
                 else:
-                    config[f"Guild {guild.name}{channel.name}"] = []
-                    return config.get(f"Guild {guild.name}{channel.name}")
+                    config[f"Guild {guild}{channel}"] = []
+                    return config.get(f"Guild {guild}{channel}")
             else:
-                if not config.get(f"Guild {guild.name}{channel.name}") and category and config.get(f"Guild {guild.name} - {int(category)}"):
-                    return dict(config.get(f"Guild {guild.name} - {int(category)}"))
+                if not config.get(f"Guild {guild}{channel}") and category and config.get(f"Guild {guild} - {int(category)}"):
+                    return dict(config.get(f"Guild {guild} - {int(category)}"))
                 else:
-                    return dict(config.get(f"Guild {guild.name}{channel.name}"))
+                    return dict(config.get(f"Guild {guild}{channel}"))
         except TypeError:
             return dict()
         
