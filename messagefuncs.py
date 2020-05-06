@@ -80,7 +80,7 @@ async def sendWrappedMessage(msg, target, files=[], embed=None):
 
 
 extract_identifiers_messagelink = re.compile(
-    "(?<!<)https://(?:ptb\.)?discordapp.com/channels/(\d+)/(\d+)/(\d+)", re.IGNORECASE
+        "(?<!<)https://(?:ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)", re.IGNORECASE
 )
 
 
@@ -155,7 +155,7 @@ async def teleport_function(message, client, args):
         behest = localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
             title=embedTitle,
-            description="https://discordapp.com/channels/{}/{}/{} {}".format(
+            description="https://discord.com/channels/{}/{}/{} {}".format(
                 toGuild.id, toChannel.id, toMessage.id, " ".join(args[1:])
             ),
             color=inPortalColor[1],
@@ -169,7 +169,7 @@ async def teleport_function(message, client, args):
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await fromMessage.edit(
-                content="**{}** <https://discordapp.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
+                content="**{}** <https://discord.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
                     embedTitle,
                     toGuild.id,
                     toChannel.id,
@@ -184,7 +184,7 @@ async def teleport_function(message, client, args):
             embedTitle = embedTitle + " ({})".format(fromGuild.name)
         embedPortal = discord.Embed(
             title=embedTitle,
-            description="https://discordapp.com/channels/{}/{}/{} {}".format(
+            description="https://discord.com/channels/{}/{}/{} {}".format(
                 fromGuild.id, fromChannel.id, fromMessage.id, " ".join(args[1:])
             ),
             color=discord.Colour.from_rgb(194, 64, 11),
@@ -196,7 +196,7 @@ async def teleport_function(message, client, args):
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await toMessage.edit(
-                content="**{}** <https://discordapp.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
+                content="**{}** <https://discord.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
                     embedTitle,
                     fromGuild.id,
                     fromChannel.id,
@@ -233,7 +233,7 @@ async def preview_messagelink_function(message, client, args):
             )
         else:
             in_content = message.content
-        # 'https://discordapp.com/channels/{}/{}/{}'.format(message.channel.guild.id, message.channel.id, message.id)
+        # 'https://discord.com/channels/{}/{}/{}'.format(message.channel.guild.id, message.channel.id, message.id)
         try:
             urlParts = extract_identifiers_messagelink.search(in_content).groups()
         except AttributeError:
@@ -252,7 +252,7 @@ async def preview_messagelink_function(message, client, args):
             if guild is None:
                 logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
                 await message.author.send(
-                    f"Tried unrolling message link in your message <https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
+                    f"Tried unrolling message link in your message <https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
                 )
                 return
             channel = guild.get_channel(channel_id)
@@ -312,7 +312,7 @@ async def preview_messagelink_function(message, client, args):
                 if args is not None and len(args) >= 1 and args[0].isdigit():
                     content = (
                         content
-                        + f"\nSource: https://discordapp.com/channels/{guild_id}/{channel_id}/{message_id}"
+                        + f"\nSource: https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
                     )
         elif len(previewable_parts):
             if "flightrising" in previewable_parts[0]:
@@ -345,7 +345,7 @@ async def preview_messagelink_function(message, client, args):
             return await sendWrappedMessage(content, message.channel, files=attachments, embed=embed)
     except discord.Forbidden as e:
         await message.author.send(
-            f"Tried unrolling message link in your message https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
+            f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -367,7 +367,7 @@ async def messagelink_function(message, client, args):
                 pass
         if msg and not (len(args) == 2 and args[1] == "INTPROC"):
             await message.channel.send(
-                "Message link on behalf of {}: https://discordapp.com/channels/{}/{}/{}".format(
+                "Message link on behalf of {}: https://discord.com/channels/{}/{}/{}".format(
                     message.author, msg.channel.guild.id, msg.channel.id, msg.id
                 )
             )
@@ -375,7 +375,7 @@ async def messagelink_function(message, client, args):
                 await message.delete()
             return
         elif msg:
-            return "https://discordapp.com/channels/{}/{}/{}".format(
+            return "https://discord.com/channels/{}/{}/{}".format(
                 msg.channel.guild.id, msg.channel.id, msg.id
             )
         else:
@@ -390,7 +390,7 @@ async def bookmark_function(message, client, args):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if str(args[0].emoji) == "🔖":
                 return await sendWrappedMessage(
-                    "Bookmark to conversation in #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to {}".format(
+                    "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} via reaction to {}".format(
                         message.channel.name,
                         message.channel.guild.name,
                         message.channel.guild.id,
@@ -402,13 +402,13 @@ async def bookmark_function(message, client, args):
                 )
             elif str(args[0].emoji) == "🔗":
                 return await args[1].send(
-                    "https://discordapp.com/channels/{}/{}/{}".format(
+                    "https://discord.com/channels/{}/{}/{}".format(
                         message.channel.guild.id, message.channel.id, message.id
                     )
                 )
         else:
             await message.author.send(
-                "Bookmark to conversation in #{} ({}) https://discordapp.com/channels/{}/{}/{} {}".format(
+                "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
                     message.channel.name,
                     message.channel.guild.name,
                     message.channel.guild.id,
@@ -468,7 +468,7 @@ async def subscribe_function(message, client, args):
                 if args[1].id not in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].append(args[1].id)
                 await args[1].send(
-                    f"Subscribed to notifications from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                    f"Subscribed to notifications from https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
                 )
             else:
                 cur.execute(
@@ -479,7 +479,7 @@ async def subscribe_function(message, client, args):
                 if args[1].id in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].remove(args[1].id)
                 await args[1].send(
-                    f"Unsubscribed from notifications for https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                    f"Unsubscribed from notifications for https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
                 )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
