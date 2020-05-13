@@ -119,9 +119,9 @@ class ScheduleFunctions:
         return f"Permission overwrite triggered by schedule for {channel_names} (`!part` to leave channel permanently)"
 
 modes = {
-        "table": commandhandler.Command(description="tabled a discussion", sync=False),
-        "unban": commandhandler.Command(description="snoozed a channel", sync=False),
-        "overwrite": commandhandler.Command(description="snoozed a single channel and kept the overwrite intact", sync=False)
+        "table": commandhandler.Command(description="tabled a discussion", function=ScheduleFunction.table, sync=False),
+        "unban": commandhandler.Command(description="snoozed a channel", function=ScheduleFunction.unban, sync=False),
+        "overwrite": commandhandler.Command(description="snoozed a single channel and kept the overwrite intact", function=ScheduleFunction.overwrite, sync=False)
         }
 
 async def table_exec_function():
@@ -170,7 +170,6 @@ async def table_exec_function():
             try:
                 target_message = await from_channel.fetch_message(message_id)
                 # created_at is naîve, but specified as UTC by Discord API docs
-                content = target_message.content
             except (discord.NotFound, AttributeError) as e:
                 pass
             await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, content, mode_args), user)
