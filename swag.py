@@ -404,7 +404,7 @@ async def roll_function(message, client, args):
         elif size == 2:
             response += f"\nResult: {result}"
         else:
-            response += f"\n{int(result[3:-2])+offset_str if offset else 'Result'}: {result}"
+            response += f"\n{str(int(result[3:-2])-offset)+offset_str if offset else 'Result'}: {result}"
         if comment:
             response = f"> {comment}\n{response}"
         await messagefuncs.sendWrappedMessage(response, message.channel)
@@ -1131,6 +1131,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ['User mention'],
             "description": "Get Current Color for @ed user",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!wiki"],
+            "function": lambda message, client, args: f"https://en.wikipedia.org/wiki/{'_'.join(args)}",
+            "async": False,
+            "args_num": 1,
+            "args_name": ['Article name'],
+            "description": "Search wikipedia for article",
         }
     )
     session = aiohttp.ClientSession(
