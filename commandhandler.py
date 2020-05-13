@@ -26,7 +26,7 @@ remote_command_runner = None
 class Command:
     def __init__(self, trigger=None, function=None, sync=None, hidden=None, admin=None, args_num=None, args_name=None, description=None):
         self.trigger = trigger
-        self.function = dumpconfig_function
+        self.function = function
         self.sync = sync
         self.hidden = hidden
         self.admin = admin
@@ -1233,5 +1233,8 @@ async def run_web_api(config, ch):
     await runner.setup()
     ch.runner = runner
     site = web.TCPSite(runner, config.get("webconsole", {}).get("hostname", '::'), config.get("webconsole", {}).get("port", 25585))
-    await site.start()
+    try:
+        await site.start()
+    except OSError:
+        pass
     ch.site = site

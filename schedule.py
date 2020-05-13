@@ -19,10 +19,10 @@ class ScheduleFunctions:
         permissions = target.overwrites_for(identity)
         return permissions.read_messages == False and permissions.send_messages == False and permissions.embed_links == False
 
-    async def table(target_message, cached_content, mode_args):
-        return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discordapp.com/channels/{guild_id}/{channel_id}/{message_id}\nContent: {content}"
+    async def table(target_message, user, cached_content, mode_args):
+        return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
 
-    async def unban(target_message, cached_content, mode_args):
+    async def unban(target_message, user, cached_content, mode_args):
         if target_message:
             content = target_message.content
             channels = target_message.channel_mentions
@@ -42,7 +42,7 @@ class ScheduleFunctions:
             )
             channels = guild.text_channels
         else:
-            channel = messagefuncs.xchannel(args[0].strip(), guild)
+            channel = messagefuncs.xchannel(args[0].strip(), target_message.guild)
             if channel is None and target_message:
                 channel = target_message.channel
             elif channel is None:
@@ -53,19 +53,19 @@ class ScheduleFunctions:
         else:
             channel_log = []
         for channel in channels:
-            if ScheduleFunctionss.is_my_ban(user, channel):
+            if ScheduleFunctions.is_my_ban(user, channel):
                 await channel.set_permissions(
                     user,
                     overwrite=None,
                     reason="Unban triggered by schedule obo " + user.name,
                 )
                 if not is_glob:
-                    channel_log += [f"{guild.name}:{channel.name}"]
+                    channel_log += [f"{channel.guild.name}:{channel.name}"]
         if not is_glob:
             channel_log = ", ".join(channel_log)
         return f"Unban triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
-    async def overwrite(target_message, cached_content, mode_args):
+    async def overwrite(target_message, user, cached_content, mode_args):
         if target_message:
             content = target_message.content
             channels = target_message.channel_mentions
@@ -85,7 +85,7 @@ class ScheduleFunctions:
             )
             channels = guild.text_channels
         else:
-            channel = messagefuncs.xchannel(args[0].strip(), guild)
+            channel = messagefuncs.xchannel(args[0].strip(), target_message.guild)
             if channel is None and target_message:
                 channel = target_message.channel
             elif channel is None:
@@ -97,8 +97,12 @@ class ScheduleFunctions:
             channel_log = []
         overwrites = ujson.loads(mode_args)
         for channel in channels:
-            if ScheduleFunctionss.is_my_ban(user, channel):
-                overwrite = discord.PermissionOverwrite(**overwrites[f"{guild.name}:{channel.name}"])
+            if ScheduleFunctions.is_my_ban(user, channel):
+                if type(overwrites) == dict:
+                    overwrite_params = overwrites[f"{channel.guild.name}:{channel.name}"]
+                else:
+                    overwrite_params = overwrites
+                overwrite = discord.PermissionOverwrite(**dict(overwrite_params))
                 try:
                     await channel.set_permissions(
                         user,
@@ -107,16 +111,16 @@ class ScheduleFunctions:
                         + user.name,
                     )
                     if not is_glob:
-                        channel_log += [f"{guild.name}:{channel.name}"]
+                        channel_log += [f"{channel.guild.name}:{channel.name}"]
                 except discord.Forbidden as e:
                     logger.warning(
-                        f"TXF: Forbidden to overwrite permissions for {user} in {channel} ({guild})! Bailing out."
+                        f"TXF: Forbidden to overwrite permissions for {user} in {channel.name} ({channel.guild.name})! Bailing out."
                     )
                     if not is_glob:
-                        channel_log += [f"{guild.name}:{channel.name} (failed to overwrite for this channel, Fletcher may not have sufficient permissions anymore)"]
+                        channel_log += [f"{channel.guild.name}:{channel.name} (failed to overwrite for this channel, Fletcher may not have sufficient permissions anymore)"]
         if not is_glob:
             channel_log = ", ".join(channel_log)
-        return f"Permission overwrite triggered by schedule for {channel_names} (`!part` to leave channel permanently)"
+        return f"Permission overwrite triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
 modes = {
         "table": commandhandler.Command(description="tabled a discussion", function=ScheduleFunctions.table, sync=False),
@@ -172,7 +176,7 @@ async def table_exec_function():
                 # created_at is naîve, but specified as UTC by Discord API docs
             except (discord.NotFound, AttributeError) as e:
                 pass
-            await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, content, mode_args), user)
+            await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, user, content, mode_args), user)
             processed_ctids += [ctid]
             tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
