@@ -23,6 +23,19 @@ regex_cache = dict()
 webhooks_cache = dict()
 remote_command_runner = None
 
+class Command:
+    def __init__(self, trigger=None, function=None, sync=None, hidden=None, admin=None, args_num=None, args_name=None, description=None):
+        self.trigger = trigger
+        self.function = dumpconfig_function
+        self.sync = sync
+        self.hidden = hidden
+        self.admin = admin
+        self.arguments = {
+                "min_count": args_num,
+                "names": args_name
+                }
+        self.description = description
+
 class CommandHandler:
 
     # constructor
