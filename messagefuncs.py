@@ -152,7 +152,7 @@ async def teleport_function(message, client, args):
         if config["teleport"]["embeds"] == "on":
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await fromMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:]}\n<https://discord.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>")
+            tmp = await fromMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discord.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>")
         embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
         if toGuild != fromGuild:
@@ -168,7 +168,7 @@ async def teleport_function(message, client, args):
         if config["teleport"]["embeds"] == "on":
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await toMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:]}\n<https://discord.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>")
+            tmp = await toMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discord.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>")
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
                 await message.delete()
