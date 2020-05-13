@@ -95,9 +95,8 @@ async def teleport_function(message, client, args):
             str(fromChannel.id) in config["teleport"]["fromchannel-ban"].split(",")
             and not message.author.guild_permissions.manage_webhooks
         ):
-            await fromChannel.send(
-                "Portals out of this channel have been disabled.", delete_after=60
-            )
+            await message.add_reaction("🚫")
+            await fromChannel.send("Portals out of this channel have been administratively disabled.", delete_after=60)
             raise Exception("Forbidden teleport")
         toChannelName = args[0].strip()
         toChannel = None
@@ -106,48 +105,37 @@ async def teleport_function(message, client, args):
         except ValueError:
             pass
         if toChannel is None:
-            await fromChannel.send(
-                "Could not find channel {}, please check for typos.".format(
-                    toChannelName
-                )
-            )
+            await message.add_reaction("🚫")
+            await fromChannel.send(f"Could not find channel {toChannelName}, please check for typos.", delete_after=60)
             raise Exception("Attempt to open portal to nowhere")
         toGuild = toChannel.guild
         if fromChannel.id == toChannel.id:
-            await fromChannel.send(
-                "You cannot open an overlapping portal! Access denied."
-            )
+            await message.add_reaction("🚫")
+            await fromChannel.send("You cannot open an overlapping portal! Access denied.", delete_after=60)
             raise Exception("Attempt to open overlapping portal")
         if not toChannel.permissions_for(
             toGuild.get_member(message.author.id)
         ).send_messages:
-            await fromChannel.send(
-                "You do not have permission to post in that channel! Access denied."
-            )
+            await message.add_reaction("🚫")
+            await fromChannel.send("You do not have permission to post in that channel! Access denied.", delete_after=60)
             raise Exception("Attempt to open portal to forbidden channel")
         logger.debug("Entering in " + str(fromChannel))
         try:
-            fromMessage = await fromChannel.send(
-                    "Opening Portal To <#{}> ({})".format(toChannel.id, toGuild.name)
-            )
+            fromMessage = await fromChannel.send(f"Opening Portal To <#{toChannel.id}> ({toGuild.name})")
         except discord.Forbidden as e:
-            await message.author.send(
-                content="Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied."
-            )
+            await message.add_reaction("🚫")
+            await message.author.send(content=f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied.")
             raise Exception("Portal failed to open!")
         try:
             logger.debug("Exiting in " + str(toChannel))
-            toMessage = await toChannel.send(
-                "Portal Opening From <#{}> ({})".format(fromChannel.id, fromGuild.name)
-            )
+            toMessage = await toChannel.send(f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})")
         except discord.Forbidden as e:
-            await fromMessage.edit(
-                content="Failed to open portal due to missing permissions! Access denied."
-            )
+            await message.add_reaction("🚫")
+            await fromMessage.edit(content="Failed to open portal due to missing permissions! Access denied.")
             raise Exception("Portal collaped half-open!")
-        embedTitle = "Portal opened to #{}".format(toChannel.name)
+        embedTitle = f"Portal opened to #{toChannel.name}"
         if toGuild != fromGuild:
-            embedTitle = embedTitle + " ({})".format(toGuild.name)
+            embedTitle = f"{embedTitle} ({toGuild.name})"
         if toChannel.name == "hell":
             inPortalColor = ["red", discord.Colour.from_rgb(194, 0, 11)]
         else:
@@ -155,66 +143,42 @@ async def teleport_function(message, client, args):
         behest = localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
             title=embedTitle,
-            description="https://discord.com/channels/{}/{}/{} {}".format(
-                toGuild.id, toChannel.id, toMessage.id, " ".join(args[1:])
-            ),
+            description=f"https://discord.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id} {' '.join(args[1:])}",
             color=inPortalColor[1],
         ).set_footer(
-            icon_url="https://download.lin.anticlack.com/fletcher/"
-            + inPortalColor[0]
-            + "-portal.png",
-            text="On behalf of {}".format(behest),
+            icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
+            text=f"On behalf of {behest}",
         )
         if config["teleport"]["embeds"] == "on":
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await fromMessage.edit(
-                content="**{}** <https://discord.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
-                    embedTitle,
-                    toGuild.id,
-                    toChannel.id,
-                    toMessage.id,
-                    behest,
-                    " ".join(args[1:]),
-                )
-            )
-        embedTitle = "Portal opened from #{}".format(fromChannel.name)
+            tmp = await fromMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:]}\n<https://discord.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>")
+        embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
         if toGuild != fromGuild:
-            embedTitle = embedTitle + " ({})".format(fromGuild.name)
+            embedTitle = f"{embedTitle} ({fromGuild.name})"
         embedPortal = discord.Embed(
             title=embedTitle,
-            description="https://discord.com/channels/{}/{}/{} {}".format(
-                fromGuild.id, fromChannel.id, fromMessage.id, " ".join(args[1:])
-            ),
+            description=f"https://discord.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id} {' '.join(args[1:])}",
             color=discord.Colour.from_rgb(194, 64, 11),
         ).set_footer(
-            icon_url="https://download.lin.anticlack.com/fletcher/orange-portal.png",
-            text="On behalf of {}".format(behest),
+            icon_url="https://dorito.space/fletcher/orange-portal.png",
+            text=f"On behalf of {behest}",
         )
         if config["teleport"]["embeds"] == "on":
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await toMessage.edit(
-                content="**{}** <https://discord.com/channels/{}/{}/{}>\nOn behalf of {}\n{}".format(
-                    embedTitle,
-                    fromGuild.id,
-                    fromChannel.id,
-                    fromMessage.id,
-                    behest,
-                    " ".join(args[1:]),
-                )
-            )
+            tmp = await toMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:]}\n<https://discord.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>")
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
                 await message.delete()
             return
         except discord.Forbidden:
             raise Exception("Couldn't delete portal request message")
-        return "Portal opened on behalf of {} to {}".format(message.author, args[0])
+        return f"Portal opened for {message.author} to {args[0]}"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("TPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error(f"TPF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
@@ -392,8 +356,8 @@ async def bookmark_function(message, client, args):
                 return await sendWrappedMessage(
                     "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} via reaction to {}".format(
                         message.channel.name,
-                        message.channel.guild.name,
-                        message.channel.guild.id,
+                        message.guild.name,
+                        message.guild.id,
                         message.channel.id,
                         message.id,
                         message.content,
@@ -403,15 +367,15 @@ async def bookmark_function(message, client, args):
             elif str(args[0].emoji) == "🔗":
                 return await args[1].send(
                     "https://discord.com/channels/{}/{}/{}".format(
-                        message.channel.guild.id, message.channel.id, message.id
+                        message.guild.id, message.channel.id, message.id
                     )
                 )
         else:
             await message.author.send(
                 "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
                     message.channel.name,
-                    message.channel.guild.name,
-                    message.channel.guild.id,
+                    message.guild.name,
+                    message.guild.id,
                     message.channel.id,
                     message.id,
                     " ".join(args),
