@@ -154,7 +154,7 @@ async def table_exec_function():
             else:
                 mode = mode_params[0]
                 mode_args = mode_params[1]
-            mode_desc = modes[mode]
+            mode_desc = modes[mode].description
             guild = client.get_guild(guild_id)
             if guild is None:
                 logger.info(f"PMF: Fletcher is not in guild {guild_id}")
