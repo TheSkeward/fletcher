@@ -53,7 +53,7 @@ class ScheduleFunctions:
         else:
             channel_log = []
         for channel in channels:
-            if ScheduleFunctions.is_my_ban(user, channel):
+            if ScheduleFunctionss.is_my_ban(user, channel):
                 await channel.set_permissions(
                     user,
                     overwrite=None,
@@ -97,7 +97,7 @@ class ScheduleFunctions:
             channel_log = []
         overwrites = ujson.loads(mode_args)
         for channel in channels:
-            if ScheduleFunctions.is_my_ban(user, channel):
+            if ScheduleFunctionss.is_my_ban(user, channel):
                 overwrite = discord.PermissionOverwrite(**overwrites[f"{guild.name}:{channel.name}"])
                 try:
                     await channel.set_permissions(
@@ -119,9 +119,9 @@ class ScheduleFunctions:
         return f"Permission overwrite triggered by schedule for {channel_names} (`!part` to leave channel permanently)"
 
 modes = {
-        "table": commandhandler.Command(description="tabled a discussion", function=ScheduleFunction.table, sync=False),
-        "unban": commandhandler.Command(description="snoozed a channel", function=ScheduleFunction.unban, sync=False),
-        "overwrite": commandhandler.Command(description="snoozed a single channel and kept the overwrite intact", function=ScheduleFunction.overwrite, sync=False)
+        "table": commandhandler.Command(description="tabled a discussion", function=ScheduleFunctions.table, sync=False),
+        "unban": commandhandler.Command(description="snoozed a channel", function=ScheduleFunctions.unban, sync=False),
+        "overwrite": commandhandler.Command(description="snoozed a single channel and kept the overwrite intact", function=ScheduleFunctions.overwrite, sync=False)
         }
 
 async def table_exec_function():
