@@ -686,14 +686,18 @@ class CommandHandler:
 
     def is_admin(self, message, user=None):
         global config
+        if hasattr(message, "channel"):
+            channel = message.channel
+        else:
+            channel = message
         if not user:
             try:
-                user = message.guild.get_member(message.author.id) or message.author
+                user = channel.guild.get_member(message.author.id) or message.author
             except AttributeError:
                 user = message.author
         globalAdmin = user.id in [int(i.strip()) for i in config["discord"].get("globalAdmin", "").split(",")]
         serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
-        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or serverAdmin or (type(user) is discord.Member  and user.permissions_in(message.channel).manage_webhooks)
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or serverAdmin or (type(user) is discord.Member  and user.permissions_in(channel).manage_webhooks)
         return {
                 'global': globalAdmin,
                 'server': serverAdmin,

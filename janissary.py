@@ -1174,9 +1174,16 @@ async def clear_inbound_sync_function(message, client, args):
 
 async def add_inbound_sync_function(message, client, args):
     global config
+    global ch
     try:
         toChannelName = args[0].strip()
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
+
+        toAdmin = ch.is_admin(toChannel, user)
+        if not toAdmin['channel']:
+            await message.add_reaction("🚫")
+            await user.send("Insufficient target channel permissions")
+            return
 
         await message.add_reaction("🔜")
         await message.channel.create_webhook(
@@ -1572,7 +1579,7 @@ def autoload(ch):
             "function": add_inbound_sync_function,
             "async": True,
             "hidden": False,
-            "admin": "global",
+            "admin": "channel",
             "args_num": 1,
             "args_name": ["#channel"],
             "description": "Add inbound sync bridge from the current channel to the specified server-channel identifer",
@@ -1584,7 +1591,7 @@ def autoload(ch):
             "function": clear_inbound_sync_function,
             "async": True,
             "hidden": False,
-            "admin": "server",
+            "admin": "channel",
             "args_num": 0,
             "args_name": [],
             "description": "Clear all inbound sync bridge(s) from the current channel",
