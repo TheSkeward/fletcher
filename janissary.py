@@ -1183,7 +1183,7 @@ async def add_inbound_sync_function(message, client, args):
         toAdmin = ch.is_admin(toChannel, message.author)
         if not toAdmin['channel']:
             await message.add_reaction("🚫")
-            await user.send("Insufficient target channel permissions")
+            await message.author.send("Insufficient target channel permissions")
             return
 
         await message.add_reaction("🔜")
