@@ -1179,7 +1179,7 @@ async def add_inbound_sync_function(message, client, args):
         toChannelName = args[0].strip()
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
-        toAdmin = ch.is_admin(toChannel, user)
+        toAdmin = ch.is_admin(toChannel, message.user)
         if not toAdmin['channel']:
             await message.add_reaction("🚫")
             await user.send("Insufficient target channel permissions")
