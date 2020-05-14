@@ -692,7 +692,7 @@ async def part_channel_function(message, client, args):
                 "Parting a channel requires server and channel to be specified (e.g. `!part server:channel [hours]`)"
             )
         elif len(args) == 0:
-            channel = message.channel
+            channels = [message.channel]
         elif args[0].strip()[-2:] == ":*":
             guild = discord.utils.get(
                 client.guilds,
