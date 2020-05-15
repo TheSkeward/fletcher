@@ -261,3 +261,10 @@ def autoload(ch):
     except NameError:
         pass
     reminder_timerhandle = asyncio.create_task(table_exec_function())
+
+async def autounload(ch):
+    global reminder_timerhandle
+    try:
+        reminder_timerhandle.cancel()
+    except NameError:
+        pass
