@@ -66,6 +66,7 @@ class ScheduleFunctions:
         return f"Unban triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
     async def overwrite(target_message, user, cached_content, mode_args):
+        global client
         if target_message:
             content = target_message.content
             channels = target_message.channel_mentions
