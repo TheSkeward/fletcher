@@ -467,7 +467,7 @@ sanitize_font = re.compile(r"[^❤A-Za-z0-9 /]")
 def autoload(ch):
     ch.add_command(
         {
-            "trigger": ["!teleport", "!portal"],
+            "trigger": ["!teleport", "!portal", "!tp"],
             "function": teleport_function,
             "async": True,
             "args_num": 1,
