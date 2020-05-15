@@ -85,7 +85,16 @@ class ScheduleFunctions:
             )
             channels = guild.text_channels
         else:
-            channel = messagefuncs.xchannel(args[0].strip(), target_message.guild)
+            if hasattr(target_message, "guild"):
+                guild = target_message.guild
+            else:
+                guild = discord.utils.get(
+                    client.guilds,
+                    name=messagefuncs.expand_guild_name(args[0])
+                    .strip()[:-2]
+                    .replace("_", " "),
+                )
+            channel = messagefuncs.xchannel(args[0].strip(), guild)
             if channel is None and target_message:
                 channel = target_message.channel
             elif channel is None:
