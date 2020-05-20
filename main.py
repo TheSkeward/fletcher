@@ -595,7 +595,7 @@ async def on_message(message):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"ORMR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
         logger.debug(traceback.format_exc())
 
 
@@ -754,7 +754,7 @@ async def on_raw_message_edit(payload):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.error(f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message_id)})
 
 
 # on message deletion (for webhooks only for now)
