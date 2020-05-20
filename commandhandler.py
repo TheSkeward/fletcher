@@ -1228,6 +1228,7 @@ def autoload(ch):
         if len(ch.commands) > 5:
             load_guild_config(ch)
             ch.client.loop.create_task(run_web_api(config, ch))
+    logging.getLogger('discord.voice_client').setLevel('CRITICAL')
 
 async def run_web_api(config, ch):
     app = Application()
