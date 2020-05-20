@@ -19,7 +19,8 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
 sentry_sdk.init(
         dsn="https://7654ff657b6447d78c3eee40151c9414@sentry.io/1842241",
-        integrations=[AioHttpIntegration()]
+        integrations=[AioHttpIntegration()],
+        before_send=lambda event, hint: None if type(event) in [discord.ConnectionClosed] else event
         )
 import signal
 import traceback
@@ -514,7 +515,7 @@ async def on_message(message):
                 )
             )
         ):
-            content = message.clean_content
+            content = message.content
             attachments = []
             if len(message.attachments) > 0:
                 plural = ""
@@ -562,6 +563,7 @@ async def on_message(message):
                 tts=message.tts,
                 files=attachments,
                 wait=True,
+                allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
             )
             cur = conn.cursor()
             cur.execute(
@@ -719,6 +721,7 @@ async def on_raw_message_edit(payload):
                     tts=fromMessage.tts,
                     files=attachments,
                     wait=True,
+                    allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
                 )
                 cur = conn.cursor()
                 cur.execute(
