@@ -761,17 +761,17 @@ async def snooze_channel_function(message, client, args):
             )
         elif len(args) == 0:
             channel = message.channel
-        elif args[0].strip()[-2:] == ":*":
+        elif ":*" in message.content:
             guild = discord.utils.get(
                 client.guilds,
-                name=messagefuncs.expand_guild_name(args[0])
+                name=messagefuncs.expand_guild_name(" ".join(args[:-1]))
                 .strip()[:-2]
                 .replace("_", " "),
             )
             channels = guild.text_channels
         else:
             try:
-                channel = messagefuncs.xchannel(args[0].strip(), message.guild)
+                channel = messagefuncs.xchannel(" ".join(args).strip(), message.guild)
             except exceptions.DirectMessageException:
                 return await message.author.send(
                     "Snoozing a channel via DM requires server to be specified (e.g. `!snooze server:channel [hours]`)"
@@ -1159,13 +1159,11 @@ async def copy_emoji_function(message, client, args):
 async def clear_inbound_sync_function(message, client, args):
     global config
     try:
-        [
-            await webhook.delete()
-            for webhook in await message.channel.webhooks()
+        for webhook in await message.channel.webhooks():
             if webhook.name.startswith(
                 config.get("discord", dict()).get("botNavel", "botNavel") + " ("
-            )
-        ]
+                ):
+                await webhook.delete()
         await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1177,7 +1175,7 @@ async def add_inbound_sync_function(message, client, args):
     global config
     global ch
     try:
-        toChannelName = args[0].strip()
+        toChannelName = " ".join(args).strip()
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
         toAdmin = ch.is_admin(toChannel, message.author)
