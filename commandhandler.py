@@ -1225,7 +1225,7 @@ def autoload(ch):
     ch.user_config.cache_clear()
     if config and ch.client:
         load_user_config(ch)
-        if len(ch.commands) > 3:
+        if len(ch.commands) > 5:
             load_guild_config(ch)
             ch.client.loop.create_task(run_web_api(config, ch))
 
