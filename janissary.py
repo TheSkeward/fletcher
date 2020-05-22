@@ -762,16 +762,28 @@ async def snooze_channel_function(message, client, args):
         elif len(args) == 0:
             channel = message.channel
         elif ":*" in message.content:
+            guild_name = ""
+            for arg in args:
+                guild_name += " " + arg
+                if ":" in arg:
+                    break
+            guild_name = guild_name.lstrip()
             guild = discord.utils.get(
                 client.guilds,
-                name=messagefuncs.expand_guild_name(" ".join(args[:-1]))
+                name=messagefuncs.expand_guild_name(guild_name)
                 .strip()[:-2]
                 .replace("_", " "),
             )
             channels = guild.text_channels
         else:
             try:
-                channel = messagefuncs.xchannel(" ".join(args).strip(), message.guild)
+                channel_name = ""
+                for arg in args:
+                    guild_name += " " + arg
+                    if ":" in arg:
+                        break
+                channel_name = channel_name.lstrip()
+                channel = messagefuncs.xchannel(channel_name, message.guild)
             except exceptions.DirectMessageException:
                 return await message.author.send(
                     "Snoozing a channel via DM requires server to be specified (e.g. `!snooze server:channel [hours]`)"
