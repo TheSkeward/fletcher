@@ -779,7 +779,7 @@ async def snooze_channel_function(message, client, args):
             try:
                 channel_name = ""
                 for arg in args:
-                    guild_name += " " + arg
+                    channel_name += " " + arg
                     if ":" in arg:
                         break
                 channel_name = channel_name.lstrip()
