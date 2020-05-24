@@ -500,7 +500,7 @@ async def on_message(message):
                 pass
             else:
                 return
-        if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}") and not (config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and message.content.startwith(tuple(
+        if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}") and not (config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and message.content.startswith(tuple(
                         config.get("sync", {})
                         .get(f"tupper-ignore-{message.guild.id}", "")
                         .split(",")) + tuple(
