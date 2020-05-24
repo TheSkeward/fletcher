@@ -1127,11 +1127,11 @@ async def copy_emoji_function(message, client, args):
             else:
                 filter_query = lambda m: m.name == emoji_query
             emoji = list(filter(filter_query, client.emojis))
-            if len(args) and args[0].isnumeric():
+            if len(args) > 0 and args[0].isnumeric():
                 emoji = emoji[int(args.pop(0))]
             else:
                 emoji = emoji[0]
-            if len(args):
+            if len(args) > 0:
                 emoji_name = args.pop(0)
             else:
                 emoji_name = emoji.name

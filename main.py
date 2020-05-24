@@ -14,6 +14,8 @@ import math
 import os
 import psycopg2
 import re
+from asyncache import cached
+from cachetools import TTLCache
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
@@ -477,6 +479,10 @@ async def shutdown_function():
     sys.exit(0)
 
 
+@cached(TTLCache(1024, 86400))
+async def fetch_webhook_cached(webhook_id):
+    return await client.fetch_webhook(webhook_id)
+
 # on new message
 @client.event
 async def on_message(message):
@@ -486,7 +492,7 @@ async def on_message(message):
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
         if message.webhook_id:
             try:
-                webhook = await client.fetch_webhook(message.webhook_id)
+                webhook = await fetch_webhook_cached(message.webhook_id)
             except discord.Forbidden:
                 logger.debug(
                     f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
@@ -499,15 +505,27 @@ async def on_message(message):
             ).split(","):
                 pass
             else:
+                if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}"):
+                    logger.debug(f"Webhook {webhook.name} not whitelisted for passthrough")
                 return
-        if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}") and not (config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and message.content.startswith(tuple(
-                        config.get("sync", {})
-                        .get(f"tupper-ignore-{message.guild.id}", "")
-                        .split(",")) + tuple(
+        if (
+                # There's a bridge here
+                message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}")
+                and (
+                    message.webhook_id or 
+                    not (
+                        # There exist possibly applicable tupperhooks
+                        config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}"))
+                        # Message starts with one of the tupperhooks
+                        and message.content.startswith(tuple(
                             config.get("sync", {})
-                            .get(f"tupper-ignore-m{message.author.id}", "")
-                            .split(",")
-                    ))):
+                            .get(f"tupper-ignore-{message.guild.id}", "")
+                            .split(",")) + tuple(
+                                config.get("sync", {})
+                                .get(f"tupper-ignore-m{message.author.id}", "")
+                                .split(",")
+                                ))))
+                            ):
             content = message.content
             attachments = []
             if len(message.attachments) > 0:
