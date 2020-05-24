@@ -500,21 +500,14 @@ async def on_message(message):
                 pass
             else:
                 return
-        if (
-            message.guild is not None and webhook_sync_registry.get(
-                message.guild.name + ":" + message.channel.name
-            )
-            and not (
-                config.get("sync", {}).get(f"tupper-ignore-{message.author.id}", "")
-                and message.content.startswith(
-                    tuple(
+        if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}") and not (config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}")) and message.content.startwith(tuple(
                         config.get("sync", {})
-                        .get(f"tupper-ignore-{message.author.id}", "")
-                        .split(",")
-                    )
-                )
-            )
-        ):
+                        .get(f"tupper-ignore-{message.guild.id}", "")
+                        .split(",")) + tuple(
+                            config.get("sync", {})
+                            .get(f"tupper-ignore-m{message.author.id}", "")
+                            .split(",")
+                    ))):
             content = message.content
             attachments = []
             if len(message.attachments) > 0:
