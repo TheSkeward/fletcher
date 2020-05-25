@@ -27,7 +27,7 @@ def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
     if strip:
         array = map(str.strip, array)
-    if all(str.isnumeric, array):
+    if all(el.isnumeric for el in array):
         array = map(int, array)
     return filter(filter_function, array)
 
