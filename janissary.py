@@ -953,7 +953,8 @@ async def role_message_function(message, client, args, remove=False):
                 message.guild.roles, name=guild_config.get(f"role-message-{args[0].emoji}")
             )
         if not role:
-            raise Exception(f"Matching role not found for reaction role-message-{args[0].emoji} to role-message {guild_config.get(f'role-message-{args[0].emoji}')}")
+            error_message = f"Matching role not found for reaction role-message-{args[0].emoji} to role-message {guild_config.get(f'role-message-{args[0].emoji}')}"
+            raise exceptions.MisconfigurationException(error_message)
         if not remove:
             await message.guild.get_member(args[1].id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
@@ -964,6 +965,8 @@ async def role_message_function(message, client, args, remove=False):
             await message.guild.get_member(args[1].id).remove_roles(
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
+    except exceptions.MisconfigurationException as e:
+        messagefuncs.sendWrappedMessage(e.message, message.guild.owner)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
