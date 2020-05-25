@@ -19,10 +19,10 @@ class ScheduleFunctions:
         permissions = target.overwrites_for(identity)
         return permissions.read_messages == False and permissions.send_messages == False and permissions.embed_links == False
 
-    async def table(target_message, user, cached_content, mode_args):
+    async def table(target_message, user, cached_content, mode_args, created_at):
         return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
 
-    async def unban(target_message, user, cached_content, mode_args):
+    async def unban(target_message, user, cached_content, mode_args, created_at):
         if target_message:
             content = target_message.content
             channels = target_message.channel_mentions
@@ -65,7 +65,7 @@ class ScheduleFunctions:
             channel_log = ", ".join(channel_log)
         return f"Unban triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
-    async def overwrite(target_message, user, cached_content, mode_args):
+    async def overwrite(target_message, user, cached_content, mode_args, created_at):
         global ch
         client = ch.client
         if target_message:
@@ -187,7 +187,7 @@ async def table_exec_function():
                 # created_at is naîve, but specified as UTC by Discord API docs
             except (discord.NotFound, AttributeError) as e:
                 pass
-            await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, user, content, mode_args), user)
+            await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, user, content, mode_args, created_at), user)
             processed_ctids += [ctid]
             tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
