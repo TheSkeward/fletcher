@@ -965,7 +965,7 @@ async def role_message_function(message, client, args, remove=False):
             await message.guild.get_member(args[1].id).remove_roles(
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
-    except exceptions.MisconfigurationException as e:
+    except (discord.Forbidden, exceptions.MisconfigurationException) as e:
         messagefuncs.sendWrappedMessage(e.message, message.guild.owner)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
