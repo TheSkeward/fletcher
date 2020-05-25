@@ -966,7 +966,8 @@ async def role_message_function(message, client, args, remove=False):
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
     except (discord.Forbidden, exceptions.MisconfigurationException) as e:
-        messagefuncs.sendWrappedMessage(e.message, message.guild.owner)
+        exc_type, exc_obj, exc_tb = exc_info()
+        messagefuncs.sendWrappedMessage(f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", message.guild.owner)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
