@@ -850,8 +850,10 @@ def join_rank_function(message, client, args):
             except AttributeError:
                 return f"No element with name {member}"
         elif isinstance(member, int) and len(message.mentions) == 0:
-            if (len(sorted_member_list) + 1 <= member) or (member <= 0):
+            if member <= 0:
                 return "I can't count below one! It's a feature!"
+            elif len(sorted_member_list) + 1 <= member:
+                return "I can't count that high! It's a feature!"
             member_rank = member
             try:
                 member = sorted_member_list[member_rank - 1]
