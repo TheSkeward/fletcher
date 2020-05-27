@@ -849,7 +849,7 @@ def join_rank_function(message, client, args):
                 return f"Predicted elemental member {element.number} would have an atomic mass of {element.mass} daltons if they existed!"
             except AttributeError:
                 return f"No element with name {member}"
-        elif isinstance(member, int) and len(sorted_member_list) + 1 <= member or member <= 0:
+        elif isinstance(member, int) and (len(sorted_member_list) + 1 <= member) or (member <= 0):
             return "I can't count below one! It's a feature!"
         elif isinstance(member, int) and len(message.mentions) == 0:
             member_rank = member
@@ -884,7 +884,7 @@ def join_rank_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("JRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
-        return message.add_reaction("🚫")
+        return
 
 
 async def autounload(ch):
