@@ -225,7 +225,7 @@ async def table_function(message, client, args):
                     ],
                 )
                 conn.commit()
-                return await args[1].send(
+                return await messagefuncs.sendWrappedMessage(
                     "Tabling conversation in #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to {} for {}".format(
                         message.channel.name,
                         message.channel.guild.name,
@@ -234,8 +234,8 @@ async def table_function(message, client, args):
                         message.id,
                         message.content,
                         interval,
-                    )
-                )
+                    ),
+                args[1])
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
