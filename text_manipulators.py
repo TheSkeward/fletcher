@@ -556,13 +556,16 @@ async def spoiler_function(message, client, args):
             else:
                 logger.debug("MFF: Backing out, not my message.")
         else:
+            content_parts = message.clean_content.split(" ", 1)
+            if not len(content_parts) == 2:
+                return
             messageContent = (
                 "**"
                 + message.author.display_name
                 + "**: "
                 + swapcasealpha(
                     rotate_function(
-                        message.clean_content.split(" ", 1)[1].replace(" ", "\n")
+                       content_parts[1].replace(" ", "\n")
                     )
                 )
             )
@@ -807,9 +810,10 @@ def autoload(ch):
             ],
             "function": rot13_function,
             "async": True,
-            "args_num": 0,
-            "args_name": [],
-            "description": "Send contents of message rot13 flipped",
+            "args_num": 1,
+            "args_name": ['message'],
+            "description": "Replaces the message with a [ROT13](https://en.wikipedia.org/wiki/ROT13) version. React with <:rot13:539568301861371905> or 🕜 to receive a DM with the original message.",
+            "syntax": "!rot13 message",
         }
     )
 
@@ -818,9 +822,10 @@ def autoload(ch):
             "trigger": ["!spoiler", "🙈", "!memfrob", "🕦"],
             "function": spoiler_function,
             "async": True,
-            "args_num": 0,
-            "args_name": [],
-            "description": "Send contents of message thoroughly scrambled",
+            "args_num": 1,
+            "args_name": ['message'],
+            "description": "Similar functionality to `!rot13`, but obfuscates the message more thoroughly and works with all characters (not just alphabetic ones). React with 🙈 to receive a DM with the original message.",
+            "syntax": "!spoiler message",
         }
     )
 
@@ -830,8 +835,9 @@ def autoload(ch):
             "function": scramble_function,
             "async": True,
             "args_num": 0,
-            "args_name": [],
-            "description": "Send contents of image deep fried",
+            "args_name": ['Image attachment'],
+            "description": "Replaces image with a deep fried version. React with 🔎 to receive a DM with the original image.",
+            "syntax": "!scramble` as a comment on an uploaded image`",
         }
     )
 
@@ -841,8 +847,9 @@ def autoload(ch):
             "function": mobilespoil_function,
             "async": True,
             "args_num": 0,
-            "args_name": [],
-            "description": "Re-upload image as a spoiler",
+            "args_name": ['Image attachment'],
+            "description": "Replaces image with a Discord spoilered version.",
+            "syntax": "!mobilespoil` as a comment on an uploaded image`",
         }
     )
 
@@ -853,9 +860,23 @@ def autoload(ch):
             "async": False,
             "args_num": 1,
             "args_name": [],
-            "description": "MD5 of args",
+            "description": "Provides an [MD5](https://en.wikipedia.org/wiki/MD5) hash of the message text (does not work on images).",
+            "syntax": "!md5 message",
         }
     )
+
+    ch.add_command(
+        {
+            "trigger": ["!blockquote"],
+            "function": blockquote_embed_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Blockquote message(s) as a webhook embed (see syntax for details).",
+            "syntax": "####Quote previous message\n**Syntax:** `!blockquote`\n\nCreates a blockquote of your previous message using a webhook embed. Webhooks have a higher character limit than messages, so this allows multiple messages to be combined into one.\n\n####Quote multiple previous messages\n**Syntax:** `!blockquote <<n (title)`\n\n**Example:** `!blockquote <<3 Hamlet's Soliloquy`\n\nCreates a blockquote from your past *n* messages, with optional title. The example would produce a quote from your past 3 messages, titled \"Hamlet's Soliloquy\".\n\n####Quote from message text\n**Syntax:** `!blockquote message`\n\n####Quote from message links\n**Syntax:** `!blockquote messagelink1 (messagelink2) (...)`\n\nCreates a blockquote from one or more linked messages.",
+        }
+    )
+
     ch.add_command(
         {
             "trigger": ["!smallcaps"],
@@ -886,17 +907,6 @@ def autoload(ch):
             "args_num": 1,
             "args_name": [],
             "description": "HE COMES",
-        }
-    )
-
-    ch.add_command(
-        {
-            "trigger": ["!blockquote"],
-            "function": blockquote_embed_function,
-            "async": True,
-            "args_num": 0,
-            "args_name": [],
-            "description": "Blockquote last message as embed",
         }
     )
 
