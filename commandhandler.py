@@ -182,6 +182,26 @@ class CommandHandler:
                         processed_emoji = self.client.get_emoji(reaction.emoji.id)
                     else:
                         processed_emoji = reaction.emoji.name
+                    if processed_emoji is None:
+                        image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
+                        emoteServer = self.client.get_guild(config.get('discord', {}).get('emoteServer', 0))
+                        try:
+                            processed_emoji = await emoteServer.create_custom_emoji(
+                                name=name,
+                                image=image,
+                                reason=f"messagemap sync code",
+                            )
+                        except discord.Forbidden:
+                            logger.error("discord.emoteServer misconfigured!")
+                        except discord.HTTPException:
+                            await emoteServer.emojis[-1].delete()
+                            processed_emoji = await emoteServer.create_custom_emoji(
+                                name=name,
+                                image=image,
+                                reason=f"messagemap sync code",
+                            )
+                    if not processed_emoji:
+                        return
                     logger.debug(f'RXH: syncing reaction {processed_emoji}')
                     cur = conn.cursor()
                     cur.execute(
@@ -195,26 +215,6 @@ class CommandHandler:
                         fromChannel = fromGuild.get_channel(metuple[1])
                         fromMessage = await fromChannel.fetch_message(metuple[2])
                         logger.debug(f"RXH: -> {fromMessage}")
-                        if processed_emoji is None:
-                            image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
-                            emoteServer = self.client.get_guild(config.get('discord', {}).get('emoteServer', 0))
-                            try:
-                                processed_emoji = await emoteServer.create_custom_emoji(
-                                    name=name,
-                                    image=image,
-                                    reason=f"messagemap sync code",
-                                )
-                            except discord.Forbidden:
-                                logger.error("discord.emoteServer misconfigured!")
-                            except discord.HTTPException:
-                                await emoteServer.emojis[-1].delete()
-                                processed_emoji = await emoteServer.create_custom_emoji(
-                                    name=name,
-                                    image=image,
-                                    reason=f"messagemap sync code",
-                                )
-                        if not processed_emoji:
-                            return
                         syncReaction = await fromMessage.add_reaction(processed_emoji)
                         cur = conn.cursor()
                         cur.execute(
@@ -239,40 +239,12 @@ class CommandHandler:
                         toChannel = toGuild.get_channel(metuple[1])
                         toMessage = await toChannel.fetch_message(metuple[2])
                         logger.debug(f"RXH: -> {toMessage}")
-                        syncReaction = await toMessage.add_reaction(emoji)
-                        emoji = None
-                        if reaction.emoji.is_custom_emoji():
-                            processed_emoji = self.client.get_emoji(reaction.emoji.id)
-                        else:
-                            processed_emoji = reaction.emoji.name
-                        if processed_emoji:
-                            emoji = processed_emoji
-                        else:
-                            image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
-                            emoteServer = self.client.get_guild(config.get('discord', {}).get('emoteServer', 0))
-                            try:
-                                emoji = await emoteServer.create_custom_emoji(
-                                    name=name,
-                                    image=image,
-                                    reason=f"messagemap sync code",
-                                )
-                            except discord.Forbidden:
-                                logger.error("discord.emoteServer misconfigured!")
-                            except discord.HTTPException:
-                                await emoteServer.emojis[-1].delete()
-                                emoji = await emoteServer.create_custom_emoji(
-                                    name=name,
-                                    image=image,
-                                    reason=f"messagemap sync code",
-                                )
-                        if not emoji:
-                            return
-                        syncReaction = await toMessage.add_reaction(emoji)
+                        syncReaction = await toMessage.add_reaction(processed_emoji)
                         cur = conn.cursor()
                         cur.execute(
                             "UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                             [
-                                '{"' + emoji.name + '"}',
+                                '{"' + processed_emoji.name + '"}',
                                 message.guild.id,
                                 message.channel.id,
                                 message.id,
