@@ -185,7 +185,7 @@ class CommandHandler:
                         processed_emoji = reaction.emoji.name
                     if processed_emoji is None:
                         image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
-                        emoteServer = self.client.get_guild(config.get('discord', {}).get('emoteServer', 0))
+                        emoteServer = self.client.get_guild(int(config.get('discord', {}).get('emoteServer', 0)))
                         try:
                             processed_emoji = await emoteServer.create_custom_emoji(
                                 name=name,
