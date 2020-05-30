@@ -8,6 +8,7 @@ from aiohttp.web import AppRunner, Application, TCPSite
 import discord
 import logging
 import messagefuncs
+import netcode
 import greeting
 import inspect
 import janissary
