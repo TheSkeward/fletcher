@@ -188,7 +188,7 @@ class CommandHandler:
                         emoteServer = self.client.get_guild(int(config.get('discord', {}).get('emoteServer', 0)))
                         try:
                             processed_emoji = await emoteServer.create_custom_emoji(
-                                name=name,
+                                name=reaction.emoji.name,
                                 image=image,
                                 reason=f"messagemap sync code",
                             )
@@ -197,7 +197,7 @@ class CommandHandler:
                         except discord.HTTPException:
                             await emoteServer.emojis[-1].delete()
                             processed_emoji = await emoteServer.create_custom_emoji(
-                                name=name,
+                                name=reaction.emoji.name,
                                 image=image,
                                 reason=f"messagemap sync code",
                             )
