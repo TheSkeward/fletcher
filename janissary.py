@@ -1133,8 +1133,11 @@ async def copy_emoji_function(message, client, args):
             emoji = list(filter(filter_query, client.emojis))
             if len(args) > 0 and args[0].isnumeric():
                 emoji = emoji[int(args.pop(0))]
-            else:
+            elif len(emoji):
                 emoji = emoji[0]
+            else:
+                await message.channel.send("Emoji not found on any Fletcher-enabled server.")
+                return
             if len(args) > 0:
                 emoji_name = args.pop(0)
             else:
