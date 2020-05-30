@@ -239,9 +239,14 @@ class CommandHandler:
                         toChannel = toGuild.get_channel(metuple[1])
                         toMessage = await toChannel.fetch_message(metuple[2])
                         logger.debug(f"RXH: -> {toMessage}")
+                        syncReaction = await toMessage.add_reaction(emoji)
                         emoji = None
-                        if reaction.emoji:
-                            emoji = reaction.emoji
+                        if reaction.emoji.is_custom_emoji():
+                            processed_emoji = self.client.get_emoji(reaction.emoji.id)
+                        else:
+                            processed_emoji = reaction.emoji.name
+                        if processed_emoji:
+                            emoji = processed_emoji
                         else:
                             image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
                             emoteServer = self.client.get_guild(config.get('discord', {}).get('emoteServer', 0))
