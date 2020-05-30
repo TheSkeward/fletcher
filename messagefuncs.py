@@ -97,7 +97,7 @@ async def teleport_function(message, client, args):
         ):
             await message.add_reaction("🚫")
             await fromChannel.send("Portals out of this channel have been administratively disabled.", delete_after=60)
-            raise Exception("Forbidden teleport")
+            return
         toChannelName = args[0].strip()
         toChannel = None
         try:
@@ -107,32 +107,32 @@ async def teleport_function(message, client, args):
         if toChannel is None:
             await message.add_reaction("🚫")
             await fromChannel.send(f"Could not find channel {toChannelName}, please check for typos.", delete_after=60)
-            raise Exception("Attempt to open portal to nowhere")
+            return
         toGuild = toChannel.guild
         if fromChannel.id == toChannel.id:
             await message.add_reaction("🚫")
             await fromChannel.send("You cannot open an overlapping portal! Access denied.", delete_after=60)
-            raise Exception("Attempt to open overlapping portal")
+            return
         if not toChannel.permissions_for(
             toGuild.get_member(message.author.id)
         ).send_messages:
             await message.add_reaction("🚫")
             await fromChannel.send("You do not have permission to post in that channel! Access denied.", delete_after=60)
-            raise Exception("Attempt to open portal to forbidden channel")
+            return
         logger.debug("Entering in " + str(fromChannel))
         try:
             fromMessage = await fromChannel.send(f"Opening Portal To <#{toChannel.id}> ({toGuild.name})")
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
             await message.author.send(content=f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied.")
-            raise Exception("Portal failed to open!")
+            return
         try:
             logger.debug("Exiting in " + str(toChannel))
             toMessage = await toChannel.send(f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})")
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
             await fromMessage.edit(content="Failed to open portal due to missing permissions! Access denied.")
-            raise Exception("Portal collaped half-open!")
+            return
         embedTitle = f"Portal opened to #{toChannel.name}"
         if toGuild != fromGuild:
             embedTitle = f"{embedTitle} ({toGuild.name})"
@@ -246,7 +246,7 @@ async def preview_messagelink_function(message, client, args):
                     sent_at,
                     content,
                 )
-            if target_message.channel.is_nsfw() and not message.channel.is_nsfw():
+            if target_message.channel.is_nsfw() and not (type(message.channel) is discord.DMChannel or message.channel.is_nsfw()):
                 content = extract_links.sub(r"<\g<0>>", content)
             if len(target_message.attachments) > 0:
                 plural = ""
