@@ -1409,6 +1409,8 @@ def autoload(ch):
     global tag_id_as_command
     global client
     global config
+    if ch is None:
+        ch = CommandHandler(client)
     ch.add_command(
         {
             "trigger": ["!dumptasks"],
