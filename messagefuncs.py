@@ -1,4 +1,5 @@
 from sys import exc_info
+import aiohttp
 import discord
 import exceptions
 import io
@@ -353,8 +354,7 @@ async def bookmark_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
             if str(args[0].emoji) == "🔖":
-                return await sendWrappedMessage(
-                    "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} via reaction to {}".format(
+                bookmark_message = "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} via reaction to {}".format(
                         message.channel.name,
                         message.guild.name,
                         message.guild.id,
@@ -362,8 +362,22 @@ async def bookmark_function(message, client, args):
                         message.id,
                         message.content,
                     ),
-                    args[1],
-                )
+                await sendWrappedMessage(bookmark_message, args[1])
+                pocket_consumer_key = ch.config.get(section="pocket", key="consumer_key")
+                if not pocket_consumer_key:
+                    return
+                pocket_access_token = ch.user_config(message.author.id, None, 'pocket_access_token')
+                if not pocket_access_token:
+                    return
+                pocket_username = ch.user_config(message.author.id, None, 'pocket_username')
+                async with aiohttp.ClientSession() as session:
+                    params = aiohttp.FormData()
+                    params.add_field(title=message.content)
+                    params.add_field(url="https://discord.com/channels/{}/{}/{}".format(
+                        message.guild.id, message.channel.id, message.id
+                    ))
+                    async with session.post("https://getpocket.com/v3/add", data=params):
+                        return
             elif str(args[0].emoji) == "🔗":
                 return await args[1].send(
                     "https://discord.com/channels/{}/{}/{}".format(
@@ -371,7 +385,7 @@ async def bookmark_function(message, client, args):
                     )
                 )
         else:
-            await message.author.send(
+            await sendWrappedMessage(
                 "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
                     message.channel.name,
                     message.guild.name,
@@ -379,7 +393,8 @@ async def bookmark_function(message, client, args):
                     message.channel.id,
                     message.id,
                     " ".join(args),
-                )
+                ),
+                message.author
             )
             return await message.add_reaction("✅")
     except Exception as e:
