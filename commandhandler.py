@@ -467,10 +467,7 @@ class CommandHandler:
                 webhook = discord.Webhook.partial(
                     -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
                 )
-            if webhook and webhook.name in sync.get("whitelist-webhooks", []):
-                logger.debug(str(webhook))
-                pass
-            else:
+            if webhook.name not in sync.get("whitelist-webhooks", []):
                 return
         # There's a bridge here
         if self.webhook_sync_registry.get(bridge_key) and (
@@ -480,9 +477,9 @@ class CommandHandler:
             (not sync.get(f"tupper-ignore-{message.guild.id}") and not sync.get(f"tupper-ignore-m{user.id}")) or
             # There exist possibly applicable tupperhooks
             # Message does not start with any of the tupperhooks
-            (sync.get(f"tupper-ignore-{message.guild.id}") or sync.get(f"tupper-ignore-m{user.id}") and not message.content.startswith(tuple(filter("".__ne__, 
-                            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
-                            sync.get(f"tupper-ignore-m{user.id}", [])
+            (not message.content.startswith(tuple(filter("".__ne__, 
+                            str_to_arr(sync.get(f"tupper-ignore-{message.guild.id}", ""), strip=False) + 
+                            str_to_arr(sync.get(f"tupper-ignore-m{user.id}", ""), strip=False)
                             ))
                         ))):
             content = message.content
