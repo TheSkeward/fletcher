@@ -116,7 +116,7 @@ class FletcherConfig:
         elif strict:
             return None
         else:
-            return value
+            return [value]
 
     def normalize(self, value, key=""):
         if type(value) is dict:
