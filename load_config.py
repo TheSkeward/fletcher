@@ -109,9 +109,9 @@ class FletcherConfig:
         if type(value) is list:
             return value
         elif ", " in value or value.startswith(" ") or value.endswith(" "):
-            return self.str_to_array(value,strip=True)
+            return self.str_to_array(value,strip=True) or []
         elif "," in value:
-            return self.str_to_array(value,strip=False)
+            return self.str_to_array(value,strip=False) or []
         elif strict:
             return None
         else:
