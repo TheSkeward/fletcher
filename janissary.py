@@ -1373,8 +1373,8 @@ async def pin_message_function(message, client, args):
 def login_function(message, client, args):
     global ch
     return {
-        "pocket": "https://getpocket.com/v3/oauth/request?consumer_key={ch.config.get(section='pocket', key='consumer_key')&redirect_uri=https://fletcher.fun/authorize_pocket&userid={message.author.id}"
-        }.get(args[0], f"Could not find matching service login flow for {args[0]}").format(ch=ch, message=message, args=args)
+        "pocket": "https://getpocket.com/v3/oauth/request?consumer_key={ch.config.get(section='pocket', key='consumer_key')}&redirect_uri=https://fletcher.fun/authorize_pocket&userid={message.author.id}"
+        }.get(args[0], "Could not find matching service login flow for {args[0]}").format(ch=ch, message=message, args=args)
 
 def autoload(ch):
     ch.add_command(
