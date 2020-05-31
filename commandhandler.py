@@ -845,14 +845,13 @@ class CommandHandler:
             logger.error(f"Couldn't find {command_name} for blacklisting on guild {guild_id}")
 
     def scope_config(self, message=None, channel=None, guild=None, mutable=False):
-        global config
         if guild is None:
             if channel and type(channel) != discord.DMChannel:
                 guild = channel.guild
             elif message and type(channel) != discord.DMChannel:
                 guild = message.guild
             else:
-                return config
+                return self.config
         if channel is None:
             if message:
                 channel = message.channel
@@ -860,28 +859,11 @@ class CommandHandler:
             guild = guild.id
         if channel and type(channel) is not int:
             channel = channel.id
-        if guild and channel and self.client.get_guild(guild).get_channel(channel).category_id:
-            category = self.client.get_guild(guild).get_channel(channel).category_id
-        else:
-            category = None
-        if channel:
-            channel = f" - {int(channel)}"
-        else:
-            channel = ""
         try:
             if mutable:
-                if config.get(f"Guild {guild}{channel}"):
-                    return config.get(f"Guild {guild}{channel}")
-                elif category and config.get(f"Guild {guild} - {int(category)}"):
-                    return config.get(f"Guild {guild} - {int(category)}")
-                else:
-                    config[f"Guild {guild}{channel}"] = []
-                    return config.get(f"Guild {guild}{channel}")
+                return self.config.get(guild=guild, channel=channel)
             else:
-                if not config.get(f"Guild {guild}{channel}") and category and config.get(f"Guild {guild} - {int(category)}"):
-                    return dict(config.get(f"Guild {guild} - {int(category)}"))
-                else:
-                    return dict(config.get(f"Guild {guild}{channel}"))
+                return dict(self.config.get(guild=guild, channel=channel))
         except TypeError:
             return {}
 
