@@ -1691,10 +1691,11 @@ def autoload(ch):
     )
 
     for guild in ch.client.guilds:
-        if ch.scope_config(guild=guild).get("role-message-list"):
+        rml = ch.config.get(guild=guild, key="role-message-list")
+        if len(rml):
             logger.debug(f"Adding role emoji handler for {guild.name}")
             ch.add_message_reaction_remove_handler(
-                ch.scope_config(guild=guild).get("role-message-list"),
+                rml,
                 {
                     "trigger": [""],  # Empty string: a special catch-all trigger
                     "function": lambda message, client, args: role_message_function(
@@ -1707,7 +1708,7 @@ def autoload(ch):
                 },
             )
             ch.add_message_reaction_handler(
-                ch.scope_config(guild=guild).get("role-message-list"),
+                rml,
                 {
                     "trigger": [""],  # Empty string: a special catch-all trigger
                     "function": role_message_function,

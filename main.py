@@ -343,6 +343,7 @@ async def reload_function(message=None, client=client, args=[]):
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
         commandhandler.ch = ch
+        ch.config = config
         await autoload(versionutils, ch)
         versioninfo = versionutils.VersionInfo()
         ch.add_command(
