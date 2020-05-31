@@ -18,6 +18,7 @@ import textwrap
 import ujson
 from functools import lru_cache, partial
 from sentry_sdk import configure_scope
+from asyncache import cached
 from cachetools import TTLCache
 
 logger = logging.getLogger("fletcher")
