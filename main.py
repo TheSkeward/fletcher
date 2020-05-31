@@ -462,6 +462,12 @@ async def on_message(message):
             # try to evaluate with the command handler
             while ch is None:
                 await asyncio.sleep(1)
+            while 1:
+                try:
+                    ch.config
+                except AttributeError:
+                    await asyncio.sleep(1)
+                break
             await ch.command_handler(message)
  
         except Exception as e:
@@ -500,6 +506,12 @@ async def on_raw_message_edit(payload):
             return
         while ch is None:
             await asyncio.sleep(1)
+        while 1:
+            try:
+                ch.config
+            except AttributeError:
+                await asyncio.sleep(1)
+            break
         with sentry_sdk.configure_scope() as scope:
             user = fromMessage.author
             scope.user = {"id": user.id, "username": str(user)}
@@ -533,6 +545,12 @@ async def on_raw_message_delete(message):
     try:
         while ch is None:
             await asyncio.sleep(1)
+        while 1:
+            try:
+                ch.config
+            except AttributeError:
+                await asyncio.sleep(1)
+            break
         fromGuild = client.get_guild(message.guild_id)
         fromChannel = fromGuild.get_channel(message.channel_id)
         if type(fromChannel) is discord.TextChannel:
@@ -639,6 +657,12 @@ async def on_raw_reaction_add(reaction):
         try:
             while ch is None:
                 await asyncio.sleep(1)
+            while 1:
+                try:
+                    ch.config
+                except AttributeError:
+                    await asyncio.sleep(1)
+                break
             await ch.reaction_handler(reaction)
 
         # generic python error
@@ -658,6 +682,12 @@ async def on_raw_reaction_remove(reaction):
         try:
             while ch is None:
                 await asyncio.sleep(1)
+            while 1:
+                try:
+                    ch.config
+                except AttributeError:
+                    await asyncio.sleep(1)
+                break
             await ch.reaction_remove_handler(reaction)
 
         # generic python error
@@ -705,6 +735,12 @@ async def on_voice_state_update(member, before, after):
 async def on_member_join(member):
     while ch is None:
         await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
     await ch.join_handler(member)
 
 
@@ -713,6 +749,12 @@ async def on_member_join(member):
 async def on_member_remove(member):
     while ch is None:
         await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
     await ch.remove_handler(member)
 
 
@@ -721,6 +763,12 @@ async def on_member_remove(member):
 async def on_guild_channel_update(before, after):
     while ch is None:
         await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
     await ch.channel_update_handler(before, after)
 
 
