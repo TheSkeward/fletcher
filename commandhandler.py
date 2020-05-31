@@ -656,8 +656,8 @@ class CommandHandler:
             logger.info(f"{config.get(section='discord', key='botNavel')}: {message.clean_content}")
             return
         try:
-            guild_config = self.scope_config(guild=message.guild)
-            channel_config = self.scope_config(
+            guild_config = self.config.get(guild=message.guild)
+            channel_config = self.config.get(
                 guild=message.guild, channel=message.channel
             )
         except (AttributeError, ValueError) as e:
