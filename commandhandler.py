@@ -446,7 +446,7 @@ class CommandHandler:
 
     @cached(TTLCache(1024, 86400))
     async def fetch_webhook_cached(self, webhook_id):
-        return await self.lient.fetch_webhook(webhook_id)
+        return await self.client.fetch_webhook(webhook_id)
 
     async def bridge_message(self, message):
         global config
