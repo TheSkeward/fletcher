@@ -372,10 +372,12 @@ async def bookmark_function(message, client, args):
                 pocket_username = ch.user_config(message.author.id, None, 'pocket_username')
                 async with aiohttp.ClientSession() as session:
                     params = aiohttp.FormData()
-                    params.add_field(title=message.content)
-                    params.add_field(url="https://discord.com/channels/{}/{}/{}".format(
+                    params.add_field("title", message.content)
+                    params.add_field("url", "https://discord.com/channels/{}/{}/{}".format(
                         message.guild.id, message.channel.id, message.id
                     ))
+                    params.add_field("consumer_key", pocket_consumer_key)
+                    params.add_field("access_token", pocket_access_token)
                     async with session.post("https://getpocket.com/v3/add", data=params):
                         return
             elif str(args[0].emoji) == "🔗":
