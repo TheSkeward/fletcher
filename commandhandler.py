@@ -317,7 +317,7 @@ class CommandHandler:
                             cur.execute(
                                 "UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                                 [
-                                    '{"' + processed_emoji.name + '"}',
+                                    '{"' + processed_emoji if type(processed_emoji) is str else processed_emoji.name + '"}',
                                     message.guild.id,
                                     message.channel.id,
                                     message.id,
