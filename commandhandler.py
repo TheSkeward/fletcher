@@ -107,7 +107,7 @@ class CommandHandler:
             tupper_status = None
         if (tupper is not None) and (self.user_config(user.id, None, 'prefer-tupper') == '1') or (self.user_config(user.id, message.guild.id, 'prefer-tupper', allow_global_substitute=True) == '0') and (tupper_status == discord.Status.online):
             return
-        for prefix in sync.get(f"tupper-ignore-{message.guild.id}") + sync.get(f"tupper-ignore-m{user.id}"):
+        for prefix in tuple(sync.get(f"tupper-ignore-{message.guild.id}", [])) + tuple(sync.get(f"tupper-ignore-m{user.id}", [])):
             tupperreplace = None
             if prefix and message.content.startswith(prefix.lstrip()):
                 if sync.get(f"tupper-replace-{message.guild.id}-{user.id}-{prefix}-nick"):
