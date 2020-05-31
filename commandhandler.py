@@ -307,9 +307,10 @@ class CommandHandler:
                 logger.error(f"RRH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def remove_handler(self, user):
+        global config
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
-            member_remove_actions = str_to_arr(self.scope_config(guild=user.guild).get("on_member_remove", ""))
+            member_remove_actions = config.get(guild=user.guild, key="on_member_remove")
             for member_remove_action in member_remove_actions:
                 if member_remove_action in self.remove_handlers.keys():
                     await self.remove_handlers[member_remove_action](
@@ -323,7 +324,7 @@ class CommandHandler:
     async def join_handler(self, user):
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
-            member_join_actions = str_to_arr(self.scope_config(guild=user.guild).get("on_member_join"))
+            member_join_actions = config.get(guild=user.guild, key="on_member_join")
             for member_join_action in member_join_actions:
                 if member_join_action in self.join_handlers.keys():
                     await self.join_handlers[member_join_action](
@@ -364,7 +365,7 @@ class CommandHandler:
             loop = asyncio.get_event_loop()
             # Trigger reload handlers
             for guild in self.client.guilds:
-                reload_actions = str_to_arr(self.scope_config(guild=guild).get("on_reload", ""))
+                reload_actions = self.scope_config(guild=guild).get("on_reload")
                 for reload_action in reload_actions:
                     if reload_action in self.reload_handlers.keys():
                         loop.create_task(self.reload_handlers[reload_action](
@@ -663,8 +664,8 @@ class CommandHandler:
                 channel_config = {}
 
         try:
-            blacklist_category = str_to_arr(guild_config.get("automod-blacklist-category", ""))
-            blacklist_channel = str_to_arr(guild_config.get("automod-blacklist-channel", ""))
+            blacklist_category = guild_config.get("automod-blacklist-category")
+            blacklist_channel = guild_config.get("automod-blacklist-channel")
             if (
                 type(message.channel) is discord.TextChannel
                 and message.channel.category_id not in blacklist_category
@@ -694,7 +695,7 @@ class CommandHandler:
                     <= float(guild_config["sent-com-score-threshold"])
                     and message.webhook_id is None
                     and message.guild.name
-                    in str_to_arr(config.get("moderation", {}).get("guilds", ""))
+                    in config.get(section="moderation", key="guilds")
                 ):
                     await janissary.modreport_function(
                         message,
@@ -764,14 +765,12 @@ class CommandHandler:
             messagefuncs.extract_identifiers_messagelink.search(message.content)
             or messagefuncs.extract_previewable_link.search(message.content)
         ) and not message.content.startswith(("!preview", "!blockquote", "!xreact")):
-            if user.id not in str_to_arr(config.get("moderation", {}).get(
-                "blacklist-user-usage", ""
-            )):
+            if user.id not in config.get(section="moderation", key="blacklist-user-usage"):
                 await messagefuncs.preview_messagelink_function(
                     message, self.client, None
                 )
         if "rot13" in message.content:
-            if user.id not in str_to_arr(config.get("moderation", {}).get("blacklist-user-usage", "")):
+            if user.id not in config.get(section="moderation", key="blacklist-user-usage"):
                 await message.add_reaction(
                     self.client.get_emoji(
                         int(config.get("discord", {}).get("rot13", "clock1130"))
@@ -821,7 +820,7 @@ class CommandHandler:
         elif command.get("long_run"):
             await message.channel.trigger_typing()
         logger.debug(f"[CH] Triggered {command}")
-        if user.id in str_to_arr(self.scope_config()["moderation"].get("blacklist-user-usage", "")):
+        if user.id in self.scope_config()["moderation"].get("blacklist-user-usage"):
             raise Exception(f"Blacklisted command attempt by user {user}")
         if command["async"]:
             await command["function"](message, self.client, args)
@@ -948,7 +947,7 @@ class CommandHandler:
                 user = channel.guild.get_member(message.author.id) or message.author
             except AttributeError:
                 user = message.author
-        globalAdmin = user.id in str_to_arr(config["discord"].get("globalAdmin", ""))
+        globalAdmin = user.id == config["discord"].get("globalAdmin", "")
         serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
         channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or serverAdmin or (type(user) is discord.Member  and user.permissions_in(channel).manage_webhooks)
         return {
@@ -1002,7 +1001,7 @@ class CommandHandler:
 
     def accessible_commands(self, message, user=None):
         global config
-        if message.author.id in str_to_arr(config["moderation"].get("blacklist-user-usage", "")):
+        if message.author.id in config["moderation"].get("blacklist-user-usage"):
             return []
         admin = self.is_admin(message, user=user)
         if message.guild:
@@ -1258,7 +1257,7 @@ def load_guild_config(ch):
     def load_blacklists(ch):
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
-            for command_name in str_to_arr(guild_config.get("blacklist-commands", "")):
+            for command_name in guild_config.get("blacklist-commands"):
                 ch.blacklist_command(command_name, guild.id)
     logger.debug('LBL')
     load_blacklists(ch)
