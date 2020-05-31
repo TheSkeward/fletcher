@@ -432,7 +432,7 @@ class CommandHandler:
             loop = asyncio.get_event_loop()
             # Trigger reload handlers
             for guild in self.client.guilds:
-                reload_actions = self.scope_config(guild=guild).get("on_reload")
+                reload_actions = self.scope_config(guild=guild).get("on_reload_list")
                 for reload_action in reload_actions:
                     if reload_action in self.reload_handlers.keys():
                         loop.create_task(self.reload_handlers[reload_action](
