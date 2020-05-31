@@ -1692,7 +1692,7 @@ def autoload(ch):
 
     for guild in ch.client.guilds:
         rml = ch.config.get(guild=guild, key="role-message-list")
-        if len(rml):
+        if rml and len(rml):
             logger.debug(f"Adding role emoji handler for {guild.name}")
             ch.add_message_reaction_remove_handler(
                 rml,
