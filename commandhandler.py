@@ -609,7 +609,7 @@ class CommandHandler:
                         plural = "s"
                     if (
                         fromMessage.channel.is_nsfw()
-                        and not webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toChannelObject"].is_nsfw()
+                        and not self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toChannelObject"].is_nsfw()
                     ):
                         content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
                         for attachment in fromMessage.attachments:
@@ -627,7 +627,7 @@ class CommandHandler:
                     fromMessageName = toGuild.get_member(
                         fromMessage.author.id
                     ).display_name
-                syncMessage = await webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toWebhook"].send(
+                syncMessage = await self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toWebhook"].send(
                     content=content,
                     username=fromMessageName,
                     avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
