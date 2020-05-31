@@ -134,7 +134,7 @@ class FletcherConfig:
         else:
             return self.normalize_numbers(self.normalize_booleans(value, strict=False), strict=False)
 
-    def get(self, key, default, section=None, guild=None, channel=None, use_category_as_channel_fallback=True, use_guild_as_channel_fallback=True):
+    def get(self, key=None, default=None, section=None, guild=None, channel=None, use_category_as_channel_fallback=True, use_guild_as_channel_fallback=True):
         if guild is None and channel:
             if type(channel) in [discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]:
                 guild = channel.guild
