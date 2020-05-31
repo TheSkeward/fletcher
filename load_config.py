@@ -107,7 +107,7 @@ class FletcherConfig:
         array = string.split(delim)
         if strip:
             array = map(str.strip, array)
-        if all(el.isnumeric for el in array):
+        if all(str(el).isnumeric() for el in array):
             array = map(int, array)
         return list(filter(filter_function, array))
 
