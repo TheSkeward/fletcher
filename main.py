@@ -460,7 +460,7 @@ async def on_message(message):
         scope.set_tag("message", str(message.id))
         try:
             # try to evaluate with the command handler
-            while ch is None or not hasattr(ch, "config"):
+            while ch is None:
                 await asyncio.sleep(1)
             await ch.command_handler(message)
  
@@ -498,7 +498,7 @@ async def on_raw_message_edit(payload):
                 f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra=extra
             )
             return
-        while ch is None or not hasattr(ch, "config"):
+        while ch is None:
             await asyncio.sleep(1)
         with sentry_sdk.configure_scope() as scope:
             user = fromMessage.author
@@ -531,7 +531,7 @@ async def on_raw_message_edit(payload):
 async def on_raw_message_delete(message):
     global webhook_sync_registry
     try:
-        while ch is None or not hasattr(ch, "config"):
+        while ch is None:
             await asyncio.sleep(1)
         fromGuild = client.get_guild(message.guild_id)
         fromChannel = fromGuild.get_channel(message.channel_id)
@@ -637,7 +637,7 @@ async def on_raw_reaction_add(reaction):
     else:
         # try to evaluate with the command handler
         try:
-            while ch is None or not hasattr(ch, "config"):
+            while ch is None:
                 await asyncio.sleep(1)
             await ch.reaction_handler(reaction)
 
@@ -656,7 +656,7 @@ async def on_raw_reaction_remove(reaction):
     else:
         # try to evaluate with the command handler
         try:
-            while ch is None or not hasattr(ch, "config"):
+            while ch is None:
                 await asyncio.sleep(1)
             await ch.reaction_remove_handler(reaction)
 
@@ -703,7 +703,7 @@ async def on_voice_state_update(member, before, after):
 # on new member
 @client.event
 async def on_member_join(member):
-    while ch is None or not hasattr(ch, "config"):
+    while ch is None:
         await asyncio.sleep(1)
     await ch.join_handler(member)
 
@@ -711,7 +711,7 @@ async def on_member_join(member):
 # on departing member
 @client.event
 async def on_member_remove(member):
-    while ch is None or not hasattr(ch, "config"):
+    while ch is None:
         await asyncio.sleep(1)
     await ch.remove_handler(member)
 
@@ -719,7 +719,7 @@ async def on_member_remove(member):
 # on channel change
 @client.event
 async def on_guild_channel_update(before, after):
-    while ch is None or not hasattr(ch, "config"):
+    while ch is None:
         await asyncio.sleep(1)
     await ch.channel_update_handler(before, after)
 
