@@ -1156,7 +1156,7 @@ async def copy_emoji_function(message, client, args):
             except asyncio.TimeoutError:
                 await target.edit(message="Cancelled, timeout.")
                 await message.remove_reaction("✅", client.user)
-                pass
+                return
             custom_emoji = await message.guild.create_custom_emoji(
                 name=emoji_name,
                 image=(await netcode.simple_get_image(url)).read(),
