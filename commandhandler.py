@@ -655,8 +655,8 @@ class CommandHandler:
         if message.author == client.user:
             logger.info(f"{config.get(section='discord', key='botNavel')}: {message.clean_content}")
             return
-        guild_config = self.config.get(guild=message.guild)
-        channel_config = self.config.get(channel=message.channel)
+        guild_config = self.config.get(guild=message.guild, default={})
+        channel_config = self.config.get(channel=message.channel, default={})
 
         try:
             blacklist_category = guild_config.get("automod-blacklist-category", [])
