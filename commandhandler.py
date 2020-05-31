@@ -107,7 +107,7 @@ class CommandHandler:
                 channel = self.client.get_channel(reaction.channel_id)
                 user = reaction.member
                 message = await channel.fetch_message(reaction.message_id)
-                scope.user = {"id": user.id, username: str(user)}
+                scope.user = {"id": user.id, "username": str(user)}
                 admin = self.is_admin(message, user)
                 args = [reaction, user, "add"]
                 try:
@@ -275,7 +275,7 @@ class CommandHandler:
                     user = self.client.get_user(reaction.user_id)
                 else:
                     user = channel.guild.get_member(reaction.user_id)
-                scope.user = {"id": user.id, username: str(user)}
+                scope.user = {"id": user.id, "username": str(user)}
                 message = await channel.fetch_message(reaction.message_id)
                 args = [reaction, user, "remove"]
                 try:
@@ -306,7 +306,7 @@ class CommandHandler:
 
     async def remove_handler(self, user):
         with configure_scope() as scope:
-            scope.user = {"id": user.id, username: str(user)}
+            scope.user = {"id": user.id, "username": str(user)}
             member_remove_actions = str_to_arr(self.scope_config(guild=user.guild).get("on_member_remove", ""))
             for member_remove_action in member_remove_actions:
                 if member_remove_action in self.remove_handlers.keys():
@@ -320,7 +320,7 @@ class CommandHandler:
 
     async def join_handler(self, user):
         with configure_scope() as scope:
-            scope.user = {"id": user.id, username: str(user)}
+            scope.user = {"id": user.id, "username": str(user)}
             member_join_actions = str_to_arr(self.scope_config(guild=user.guild).get("on_member_join"))
             for member_join_action in member_join_actions:
                 if member_join_action in self.join_handlers.keys():
@@ -381,7 +381,7 @@ class CommandHandler:
 
         with configure_scope() as scope:
             user = message.author
-            scope.user = {"id": user.id, username: str(user)}
+            scope.user = {"id": user.id, "username": str(user)}
             try:
                 guild_config = self.scope_config(guild=message.guild)
                 channel_config = self.scope_config(
