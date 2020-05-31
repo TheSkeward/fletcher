@@ -92,6 +92,73 @@ class CommandHandler:
         for message_id in str_to_arr(message_ids):
             self.message_reaction_handlers[message_id] = func
 
+    async def tupper_proc(self, message):
+        global config
+        global webhooks_cache
+        tupperId = 431544605209788416
+        sync = config.get(section="sync")
+        user = message.author
+        if not (message.guild and sync.get(f"tupper-ignore-{message.guild.id}") or sync.get(f"tupper-ignore-m{user.id}")):
+            return
+        tupper = discord.utils.get(message.channel.members, id=tupperId)
+        if tupper is not None:
+            tupper_status = tupper.status
+        else:
+            tupper_status = None
+        if (tupper is not None) and (self.user_config(user.id, None, 'prefer-tupper') == '1') or (self.user_config(user.id, message.guild.id, 'prefer-tupper', allow_global_substitute=True) == '0') and (tupper_status == discord.Status.online):
+            return
+        for prefix in sync.get(f"tupper-ignore-{message.guild.id}") + sync.get(f"tupper-ignore-m{user.id}"):
+            tupperreplace = None
+            if prefix and message.content.startswith(prefix.lstrip()):
+                if sync.get(f"tupper-replace-{message.guild.id}-{user.id}-{prefix}-nick"):
+                    tupperreplace = f'tupper-replace-{message.guild.id}-{user.id}-{prefix}'
+                elif sync.get(f"tupper-replace-None-{user.id}-{prefix}-nick"):
+                    tupperreplace = f'tupper-replace-None-{user.id}-{prefix}'
+            if not tupperreplace:
+                continue
+            content = message.content[len(prefix):]
+            attachments = []
+            if len(message.attachments) > 0:
+                plural = ""
+                if len(message.attachments) > 1:
+                    plural = "s"
+                for attachment in message.attachments:
+                    logger.debug("Syncing " + attachment.filename)
+                    attachment_blob = io.BytesIO()
+                    await attachment.save(attachment_blob)
+                    attachments.append(
+                        discord.File(attachment_blob, attachment.filename)
+                    )
+            fromMessageName = sync.get(f"{tupperreplace}-nick", user.display_name)
+            webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
+            if not webhook:
+                try:
+                    webhooks = await message.channel.webhooks()
+                except discord.Forbidden:
+                    await user.send(f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.")
+                    continue
+                if len(webhooks) > 0:
+                    webhook = discord.utils.get(webhooks, name=config.get(section="discord", key="botNavel"))
+                if not webhook:
+                    webhook = await message.channel.create_webhook(name=config.get(section="discord", key="botNavel"), reason='Autocreating for nickmask')
+                webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
+ 
+            await webhook.send(
+                content=content,
+                username=fromMessageName,
+                avatar_url=sync.get(f"{tupperreplace}-avatar", user.avatar_url_as(format="png", size=128)),
+                embeds=message.embeds,
+                tts=message.tts,
+                files=attachments,
+                allowed_mentions=discord.AllowedMentions(everyone=False, users=False,roles=False),
+            )
+            try:
+                return await message.delete()
+            except discord.NotFound:
+                return
+            except discord.Forbidden:
+                return await user.send(f'Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.')
+
     async def web_handler(self, request):
         json = await request.json()
         channel_config = ch.scope_config(guild=json['guild_id'], channel=json['channel_id'])
@@ -468,73 +535,6 @@ class CommandHandler:
                     conn.rollback()
                 exc_type, exc_obj, exc_tb = exc_info()
                 logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-
-        async def tupper_proc(self, message):
-            global config
-            global webhooks_cache
-            tupperId = 431544605209788416
-            sync = config.get(section="sync")
-            user = message.author
-            if not (message.guild and sync.get(f"tupper-ignore-{message.guild.id}") or sync.get(f"tupper-ignore-m{user.id}")):
-                return
-            tupper = discord.utils.get(message.channel.members, id=tupperId)
-            if tupper is not None:
-                tupper_status = tupper.status
-            else:
-                tupper_status = None
-            if (tupper is not None) and (self.user_config(user.id, None, 'prefer-tupper') == '1') or (self.user_config(user.id, message.guild.id, 'prefer-tupper', allow_global_substitute=True) == '0') and (tupper_status == discord.Status.online):
-                return
-            for prefix in sync.get(f"tupper-ignore-{message.guild.id}") + sync.get(f"tupper-ignore-m{user.id}"):
-                tupperreplace = None
-                if prefix and message.content.startswith(prefix.lstrip()):
-                    if sync.get(f"tupper-replace-{message.guild.id}-{user.id}-{prefix}-nick"):
-                        tupperreplace = f'tupper-replace-{message.guild.id}-{user.id}-{prefix}'
-                    elif sync.get(f"tupper-replace-None-{user.id}-{prefix}-nick"):
-                        tupperreplace = f'tupper-replace-None-{user.id}-{prefix}'
-                if not tupperreplace:
-                    continue
-                content = message.content[len(prefix):]
-                attachments = []
-                if len(message.attachments) > 0:
-                    plural = ""
-                    if len(message.attachments) > 1:
-                        plural = "s"
-                    for attachment in message.attachments:
-                        logger.debug("Syncing " + attachment.filename)
-                        attachment_blob = io.BytesIO()
-                        await attachment.save(attachment_blob)
-                        attachments.append(
-                            discord.File(attachment_blob, attachment.filename)
-                        )
-                fromMessageName = sync.get(f"{tupperreplace}-nick", user.display_name)
-                webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
-                if not webhook:
-                    try:
-                        webhooks = await message.channel.webhooks()
-                    except discord.Forbidden:
-                        await user.send(f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.")
-                        continue
-                    if len(webhooks) > 0:
-                        webhook = discord.utils.get(webhooks, name=config.get(section="discord", key="botNavel"))
-                    if not webhook:
-                        webhook = await message.channel.create_webhook(name=config.get(section="discord", key="botNavel"), reason='Autocreating for nickmask')
-                    webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
- 
-                await webhook.send(
-                    content=content,
-                    username=fromMessageName,
-                    avatar_url=sync.get(f"{tupperreplace}-avatar", user.avatar_url_as(format="png", size=128)),
-                    embeds=message.embeds,
-                    tts=message.tts,
-                    files=attachments,
-                    allowed_mentions=discord.AllowedMentions(everyone=False, users=False,roles=False),
-                )
-                try:
-                    return await message.delete()
-                except discord.NotFound:
-                    return
-                except discord.Forbidden:
-                    return await user.send(f'Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.')
 
     async def edit_handler(self, message):
         fromMessage = message
