@@ -1718,7 +1718,5 @@ def autoload(ch):
                 },
             )
 
-def autoload(ch):
-    pass
 async def autounload(ch):
     pass
