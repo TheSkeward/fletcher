@@ -371,7 +371,7 @@ async def bookmark_function(message, client, args):
                 if not pocket_access_token:
                     return
                 pocket_username = ch.user_config(message.author.id, None, 'pocket_username')
-                for url in re.findall(url_search, message.content):
+                for url in url_search.findall(message.content):
                     logger.debug(f'Pocketing {url}')
                     async with aiohttp.ClientSession() as session:
                         params = aiohttp.FormData()
