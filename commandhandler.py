@@ -377,7 +377,7 @@ class CommandHandler:
         global config
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
-            member_remove_actions = config.get(guild=user.guild, key="on_member_remove")
+            member_remove_actions = config.get(guild=user.guild, key="on_member_remove_list")
             for member_remove_action in member_remove_actions:
                 if member_remove_action in self.remove_handlers.keys():
                     await self.remove_handlers[member_remove_action](
@@ -391,7 +391,7 @@ class CommandHandler:
     async def join_handler(self, user):
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
-            member_join_actions = config.get(guild=user.guild, key="on_member_join")
+            member_join_actions = config.get(guild=user.guild, key="on_member_join_list")
             for member_join_action in member_join_actions:
                 if member_join_action in self.join_handlers.keys():
                     await self.join_handlers[member_join_action](
