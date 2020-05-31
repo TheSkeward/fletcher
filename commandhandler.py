@@ -664,8 +664,8 @@ class CommandHandler:
                 channel_config = {}
 
         try:
-            blacklist_category = guild_config.get("automod-blacklist-category")
-            blacklist_channel = guild_config.get("automod-blacklist-channel")
+            blacklist_category = guild_config.get("automod-blacklist-category", [])
+            blacklist_channel = guild_config.get("automod-blacklist-channel", [])
             if (
                 type(message.channel) is discord.TextChannel
                 and message.channel.category_id not in blacklist_category
