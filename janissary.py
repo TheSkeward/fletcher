@@ -1370,6 +1370,12 @@ async def pin_message_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+def login_function(message, client, args):
+    global ch
+    return {
+        "pocket": "https://getpocket.com/v3/oauth/request?consumer_key={ch.config.get(section='pocket', key='consumer_key')&redirect_uri=https://fletcher.fun/authorize_pocket&userid={message.author.id}"
+        }.get(args[0], f"Could not find matching service login flow for args[0]")
+
 def autoload(ch):
     ch.add_command(
         {
@@ -1687,6 +1693,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Get channel topic",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!login"],
+            "function": login_function,
+            "async": False,
+            "hidden": False,
+            "args_num": 1,
+            "args_name": ["[pocket]"],
+            "description": "Authenticate with an external service",
         }
     )
 
