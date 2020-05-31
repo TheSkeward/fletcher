@@ -1,8 +1,6 @@
 import os
 import discord
 import copy
-import logging
-from systemd import journal
 import configparser
 
 logger = logging.getLogger("fletcher")
@@ -15,12 +13,6 @@ class FletcherConfig:
         config.read(base_config_path)
         config = {s: {k: self.normalize(v, key=k) for k, v in dict(config.items(s)).items()} for s in config.sections()}
         self.config_dict = config
-        logger.addHandler(
-            journal.JournalHandler(
-                SYSLOG_IDENTIFIER=self.get("botLogName", section="discord")
-            )
-        )
-        logger.setLevel(logging.DEBUG)
 
         if os.path.isdir(config.get("extra", {}).get("rc-path", "/unavailable")):
             for file_name in os.listdir(config.get("extra", {}).get("rc-path")):
