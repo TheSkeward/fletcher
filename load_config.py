@@ -2,6 +2,7 @@ import os
 import discord
 import copy
 import configparser
+import logging
 
 logger = logging.getLogger("fletcher")
 
