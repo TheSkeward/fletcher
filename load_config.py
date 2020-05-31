@@ -103,7 +103,7 @@ class FletcherConfig:
         else:
             return value
 
-    def str_to_arr(self, string, delim=",", strip=True, filter_function=None.__ne__):
+    def str_to_array(self, string, delim=",", strip=True, filter_function=None.__ne__):
         array = string.split(delim)
         if strip:
             array = map(str.strip, array)
