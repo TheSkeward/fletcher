@@ -4,7 +4,6 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sys import exc_info
 from systemd import journal
 import asyncio
-import configparser
 import cProfile
 import discord
 import importlib
@@ -15,7 +14,6 @@ import os
 import psycopg2
 import re
 from asyncache import cached
-from cachetools import TTLCache
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
@@ -109,18 +107,15 @@ fletcher=# \d qdb
 
 """
 
-FLETCHER_CONFIG = os.getenv("FLETCHER_CONFIG", "./.fletcherrc")
+logger = logging.getLogger("fletcher")
 
-config = configparser.ConfigParser()
-config.optionxform = str
-config.read(FLETCHER_CONFIG)
-config = {s: dict(config.items(s)) for s in config.sections()}
+import load_config
+config = load_config.FletcherConfig()
 
 # Enable logging to SystemD
-logger = logging.getLogger("fletcher")
 logger.addHandler(
     journal.JournalHandler(
-        SYSLOG_IDENTIFIER=config["discord"].get("botLogName", "Fletcher")
+        SYSLOG_IDENTIFIER=config.get(section="discord", key="botLogName")
     )
 )
 logger.setLevel(logging.DEBUG)
@@ -128,7 +123,7 @@ logger.setLevel(logging.DEBUG)
 client = discord.Client()
 
 # token from https://discordapp.com/developers
-token = config["discord"]["botToken"]
+token = config.get(section="discord", key="botToken")
 
 # globals for database handle and CommandHandler
 conn = None
@@ -169,15 +164,11 @@ async def load_webhooks():
     webhook_sync_registry = {}
     for guild in client.guilds:
         try:
-            if (
-                "Guild " + str(guild.id) in config
-                and "synchronize" in config["Guild " + str(guild.id)]
-                and config["Guild " + str(guild.id)]["synchronize"] == "on"
-            ):
+            if config.get(guild=guild, key="synchronize"):
                 logger.debug(f"LWH: Querying {guild.name}")
                 for webhook in await guild.webhooks():
                     if webhook.name.startswith(
-                        config.get("discord", dict()).get("botNavel", "botNavel") + " ("
+                        config.get(section="discord", key="botNavel") + " ("
                     ):
                         logger.debug(f"LWH: * {webhook.name}")
                         toChannelName = (
@@ -331,32 +322,8 @@ async def reload_function(message=None, client=client, args=[]):
             if pr:
                 pr.disable()
                 pr.print_stats()
-        config = configparser.ConfigParser()
-        config.optionxform = str
-        config.read(FLETCHER_CONFIG)
-        config = {s: dict(config.items(s)) for s in config.sections()}
-        if config.get("discord", dict()).get("profile"):
-            pr = cProfile.Profile()
-            pr.enable()
-        if os.path.isdir(config.get("extra", dict()).get("rc-path", "/unavailable")):
-            for file_name in os.listdir(config["extra"]["rc-path"]):
-                if file_name.isdigit():
-                    guild_config = configparser.ConfigParser()
-                    guild_config.optionxform = str
-                    guild_config.read(f'{config["extra"]["rc-path"]}/{file_name}')
-                    for section_name, section in guild_config.items():
-                        if section_name == "DEFAULT":
-                            section_key = f"Guild {file_name}"
-                        else:
-                            section_key = f"Guild {file_name} - {section_name}"
-                        logger.debug(f"RM: Adding section for {section_key}")
-                        if section_key in config:
-                            logger.info(
-                                f"RM: Duplicate section definition for {section_key}, duplicate keys may be overwritten"
-                            )
-                        config[section_key] = dict()
-                        for k, v in guild_config.items(section_name):
-                            config[section_key][k] = v
+        importlib.reload(load_config)
+        config = load_config.FletcherConfig()
         await animate_startup("📝", message)
         conn = psycopg2.connect(
             host=config["database"]["host"],
@@ -370,7 +337,6 @@ async def reload_function(message=None, client=client, args=[]):
         importlib.reload(commandhandler)
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
-        await autoload(commandhandler, ch)
         await autoload(versionutils, ch)
         versioninfo = versionutils.VersionInfo()
         ch.add_command(
@@ -422,7 +388,7 @@ async def reload_function(message=None, client=client, args=[]):
         # Trigger reload handlers
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
-        commandhandler.load_guild_config(ch)
+        await autoload(commandhandler, ch)
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         await load_webhooks()
@@ -479,135 +445,24 @@ async def shutdown_function():
     sys.exit(0)
 
 
-@cached(TTLCache(1024, 86400))
-async def fetch_webhook_cached(webhook_id):
-    return await client.fetch_webhook(webhook_id)
-
 # on new message
 @client.event
 async def on_message(message):
-    global webhook_sync_registry
-    global conn
-    try:
-        # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
-        if message.webhook_id:
-            try:
-                webhook = await fetch_webhook_cached(message.webhook_id)
-            except discord.Forbidden:
-                logger.debug(
-                    f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
-                )
-                webhook = discord.Webhook.partial(
-                    -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
-                )
-            if webhook and webhook.name in config.get("sync", dict()).get(
-                "whitelist-webhooks", ""
-            ).split(","):
-                pass
-            else:
-                if message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}"):
-                    logger.debug(f"Webhook {webhook.name} not whitelisted for passthrough")
-                return
-        if (
-                # There's a bridge here
-                message.guild and webhook_sync_registry.get(f"{message.guild.name}:{message.channel.name}")
-                and (
-                    message.webhook_id or 
-                    not (
-                        # There exist possibly applicable tupperhooks
-                        config.get("sync", {}).get(f"tupper-ignore-{message.guild.id}", config.get("sync", {}).get(f"tupper-ignore-m{message.author.id}"))
-                        # Message starts with one of the tupperhooks
-                        and message.content.startswith(tuple(
-                            config.get("sync", {})
-                            .get(f"tupper-ignore-{message.guild.id}", "")
-                            .split(",")) + tuple(
-                                config.get("sync", {})
-                                .get(f"tupper-ignore-m{message.author.id}", "")
-                                .split(",")
-                                ))))
-                            ):
-            content = message.content
-            attachments = []
-            if len(message.attachments) > 0:
-                plural = ""
-                if len(message.attachments) > 1:
-                    plural = "s"
-                if (
-                    message.channel.is_nsfw()
-                    and not webhook_sync_registry[
-                        message.guild.name + ":" + message.channel.name
-                    ]["toChannelObject"].is_nsfw()
-                ):
-                    content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
-                    for attachment in message.attachments:
-                        content = content + "\n• <" + attachment.url + ">"
-                else:
-                    for attachment in message.attachments:
-                        logger.debug("Syncing " + attachment.filename)
-                        attachment_blob = io.BytesIO()
-                        await attachment.save(attachment_blob)
-                        attachments.append(
-                            discord.File(attachment_blob, attachment.filename)
-                        )
-            # wait=True: blocking call for messagemap insertions to work
-            fromMessageName = message.author.display_name
-            if (
-                webhook_sync_registry[message.guild.name + ":" + message.channel.name][
-                    "toChannelObject"
-                ].guild.get_member(message.author.id)
-                is not None
-            ):
-                fromMessageName = (
-                    webhook_sync_registry[
-                        message.guild.name + ":" + message.channel.name
-                    ]["toChannelObject"]
-                    .guild.get_member(message.author.id)
-                    .display_name
-                )
-            syncMessage = await webhook_sync_registry[
-                message.guild.name + ":" + message.channel.name
-            ]["toWebhook"].send(
-                content=content,
-                username=fromMessageName,
-                avatar_url=message.author.avatar_url_as(format="png", size=128),
-                embeds=message.embeds,
-                tts=message.tts,
-                files=attachments,
-                wait=True,
-                allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
-            )
-            cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
-                [
-                    message.guild.id,
-                    message.channel.id,
-                    message.id,
-                    syncMessage.guild.id,
-                    syncMessage.channel.id,
-                    syncMessage.id,
-                ],
-            )
-            conn.commit()
-        if message.author == client.user:
-            logger.info(
-                config.get("discord", dict()).get("botNavel", "botNavel")
-                + ": "
-                + message.clean_content
-            )
-            return
-
-        # try to evaluate with the command handler
-        while ch is None:
-            await asyncio.sleep(1)
-        await ch.command_handler(message)
-
-    except Exception as e:
-        if "cur" in locals() and "conn" in locals():
-            conn.rollback()
-        exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
-        logger.debug(traceback.format_exc())
+    global config
+    with sentry_sdk.configure_scope() as scope:
+        user = message.author
+        scope.user = {"id": user.id, "username": str(user)}
+        scope.set_tag("message", str(message.id))
+        try:
+            # try to evaluate with the command handler
+            while ch is None:
+                await asyncio.sleep(1)
+            await ch.command_handler(message)
+ 
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
+            logger.debug(traceback.format_exc())
 
 
 # on message update (for webhooks only for now)
@@ -638,115 +493,13 @@ async def on_raw_message_edit(payload):
                 f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra=extra
             )
             return
+        while ch is None:
+            await asyncio.sleep(1)
+        with sentry_sdk.configure_scope() as scope:
+            user = fromMessage.author
+            scope.user = {"id": user.id, "username": str(user)}
+            await ch.edit_handler(fromMessage)
 
-        if len(fromMessage.content) > 0:
-            if type(fromChannel) is discord.TextChannel:
-                logger.info(
-                    f"{message_id} #{fromGuild.name}:{fromChannel.name} <{fromMessage.author.name}:{fromMessage.author.id}> [Edit] {fromMessage.content}",
-                    extra={
-                        "GUILD_IDENTIFIER": fromGuild.name,
-                        "CHANNEL_IDENTIFIER": fromChannel.name,
-                        "SENDER_NAME": fromMessage.author.name,
-                        "SENDER_ID": fromMessage.author.id,
-                        "MESSAGE_ID": str(fromMessage.id),
-                    },
-                )
-            elif type(fromChannel) is discord.DMChannel:
-                logger.info(
-                    f"{message_id} @{fromChannel.recipient.name} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
-                    extra={
-                        "GUILD_IDENTIFIER": "@",
-                        "CHANNEL_IDENTIFIER": fromChannel.recipient,
-                        "SENDER_NAME": fromMessage.author.name,
-                        "SENDER_ID": fromMessage.author.id,
-                        "MESSAGE_ID": str(fromMessage.id),
-                    },
-                )
-            else:
-                # Group Channels don't support bots so neither will we
-                pass
-        else:
-            # Currently, we don't log empty or image-only messages
-            pass
-        if "guild_id" in message and (
-            fromGuild.name + ":" + fromChannel.name in webhook_sync_registry.keys()
-        ):
-            cur = conn.cursor()
-            cur.execute(
-                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
-                [int(message["guild_id"]), int(message["channel_id"]), message_id],
-            )
-            metuple = cur.fetchone()
-            conn.commit()
-            if metuple is not None:
-                toGuild = client.get_guild(metuple[0])
-                to_guild_config = ch.scope_config(guild=toGuild)
-                if to_guild_config.get("sync-edits", "on") != "on":
-                    logger.debug(
-                        f"ORMU: Demurring to edit message at client guild request"
-                    )
-                    return
-                toChannel = toGuild.get_channel(metuple[1])
-                toMessage = await toChannel.fetch_message(metuple[2])
-                if to_guild_config.get("sync-deletions", "on") != "on":
-                    logger.debug(
-                        f"ORMU: Demurring to delete edited message at client guild request"
-                    )
-                else:
-                    await toMessage.delete()
-                content = fromMessage.clean_content
-                attachments = []
-                if len(fromMessage.attachments) > 0:
-                    plural = ""
-                    if len(fromMessage.attachments) > 1:
-                        plural = "s"
-                    if (
-                        fromMessage.channel.is_nsfw()
-                        and not webhook_sync_registry[
-                            fromMessage.guild.name + ":" + fromMessage.channel.name
-                        ]["toChannelObject"].is_nsfw()
-                    ):
-                        content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
-                        for attachment in fromMessage.attachments:
-                            content = content + "\n• <" + attachment.url + ">"
-                    else:
-                        for attachment in fromMessage.attachments:
-                            logger.debug("Syncing " + attachment.filename)
-                            attachment_blob = io.BytesIO()
-                            await attachment.save(attachment_blob)
-                            attachments.append(
-                                discord.File(attachment_blob, attachment.filename)
-                            )
-                fromMessageName = fromMessage.author.display_name
-                if toGuild.get_member(fromMessage.author.id) is not None:
-                    fromMessageName = toGuild.get_member(
-                        fromMessage.author.id
-                    ).display_name
-                syncMessage = await webhook_sync_registry[
-                    fromMessage.guild.name + ":" + fromMessage.channel.name
-                ]["toWebhook"].send(
-                    content=content,
-                    username=fromMessageName,
-                    avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
-                    embeds=fromMessage.embeds,
-                    tts=fromMessage.tts,
-                    files=attachments,
-                    wait=True,
-                    allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
-                )
-                cur = conn.cursor()
-                cur.execute(
-                    "UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
-                    [
-                        syncMessage.guild.id,
-                        syncMessage.channel.id,
-                        syncMessage.id,
-                        int(message["guild_id"]),
-                        int(message["channel_id"]),
-                        message_id,
-                    ],
-                )
-                conn.commit()
     except discord.Forbidden as e:
         logger.error(
             "Forbidden to edit synced message from "
