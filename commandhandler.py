@@ -478,10 +478,12 @@ class CommandHandler:
             # There exist possibly applicable tupperhooks
             # Message does not start with any of the tupperhooks
             (not message.content.startswith(tuple(filter("".__ne__, 
-                            str_to_arr(sync.get(f"tupper-ignore-{message.guild.id}", ""), strip=False) + 
-                            str_to_arr(sync.get(f"tupper-ignore-m{user.id}", ""), strip=False)
+                            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
+                            sync.get(f"tupper-ignore-m{user.id}", [])
                             ))
                         ))):
+            logger.debug(sync.get(f"tupper-ignore-{message.guild.id}", []) + 
+                            sync.get(f"tupper-ignore-m{user.id}", []))
             content = message.content
             attachments = []
             if len(message.attachments) > 0:
