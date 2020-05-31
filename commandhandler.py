@@ -176,8 +176,11 @@ class CommandHandler:
                 global config
                 messageContent = str(reaction.emoji)
                 channel = self.client.get_channel(reaction.channel_id)
-                user = reaction.member
                 message = await channel.fetch_message(reaction.message_id)
+                if message.guild:
+                    user = message.guild.get_member(reaction.user_id)
+                else:
+                    user = self.client.get_user(reaction.user_id)
                 scope.user = {"id": user.id, "username": str(user)}
                 admin = self.is_admin(message, user)
                 args = [reaction, user, "add"]
