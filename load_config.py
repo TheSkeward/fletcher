@@ -2,6 +2,7 @@ import os
 import discord
 import copy
 import logging
+from systemd import journal
 import configparser
 
 logger = logging.getLogger("fletcher")
