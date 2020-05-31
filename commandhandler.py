@@ -451,7 +451,10 @@ class CommandHandler:
     async def bridge_message(self, message):
         global config
         global conn
-        if not hasattr(message, "guild"):
+        try:
+            if not message.guild:
+                return
+        except AttributeError:
             return
         bridge_key = f"{message.guild.name}:{message.channel.name}"
         sync = config.get(section="sync")
