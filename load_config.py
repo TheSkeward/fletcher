@@ -145,6 +145,7 @@ class FletcherConfig:
             category = self.client.get_guild(guild).get_channel(channel).category_id
         else:
             category = None
+        value = None
         if   key is     None and section is     None and guild is     None and channel is     None:
             value = self.config_dict or self.defaults
         elif key is not None and section is     None and guild is     None and channel is     None:
