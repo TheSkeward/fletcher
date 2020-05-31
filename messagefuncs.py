@@ -387,7 +387,7 @@ async def bookmark_function(message, client, args):
         else:
             await sendWrappedMessage(
                 "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
-                    message.channel.name,
+                    message.channel.recipient if type(message.channel) is discord.DMChannel else message.channel.name,
                     message.guild.name,
                     message.guild.id,
                     message.channel.id,
