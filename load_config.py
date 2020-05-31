@@ -136,7 +136,7 @@ class FletcherConfig:
             if type(channel) in [discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]:
                 guild = channel.guild
             else:
-                raise ValueError("Guild was not specified and cannot be inferred from channel")
+                guild = 0
         if hasattr(guild, "id"):
             guild = guild.id
         if hasattr(channel, "id"):
