@@ -380,7 +380,7 @@ class CommandHandler:
     async def fetch_webhook_cached(self, webhook_id):
         return await self.lient.fetch_webhook(webhook_id)
 
-    async def bridge_messsage(self, message):
+    async def bridge_message(self, message):
         global config
         global conn
         bridge_key = "f{message.guild.name}:{message.channel.name}"
