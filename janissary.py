@@ -1382,7 +1382,7 @@ async def login_function(message, client, args):
             async with session.post("https://getpocket.com/v3/oauth/request", data=params) as resp:
                 request_body = (await resp.read()).decode("UTF-8")
                 request_token = request_body.split("=")[1]
-                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}")
+                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}", message.channel)
     else:
         return await messagefuncs.sendWrappedMessage(f"Could not find matching service login flow for {args[0]}", message.channel)
 
