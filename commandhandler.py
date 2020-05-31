@@ -449,7 +449,7 @@ class CommandHandler:
                 wait=True,
                 allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
             )
-        try:
+            try:
                 cur = conn.cursor()
                 cur.execute(
                     "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
@@ -463,11 +463,11 @@ class CommandHandler:
                     ],
                 )
                 conn.commit()
-        except Exception as e:
-            if "cur" in locals() and "conn" in locals():
-                conn.rollback()
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+            except Exception as e:
+                if "cur" in locals() and "conn" in locals():
+                    conn.rollback()
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
         async def tupper_proc(self, message):
             global config
