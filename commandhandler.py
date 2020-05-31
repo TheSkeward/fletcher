@@ -469,21 +469,20 @@ class CommandHandler:
                 )
             if webhook.name not in sync.get("whitelist-webhooks", []):
                 return
+        ignores = list(filter("".__ne__, 
+            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
+            sync.get(f"tupper-ignore-m{user.id}", [])
+            ))
         # There's a bridge here
         if self.webhook_sync_registry.get(bridge_key) and (
             # Whitelisted webhook
-            (message.webhook_id) or
+            message.webhook_id or
             # No tupper configuration
-            (not sync.get(f"tupper-ignore-{message.guild.id}") and not sync.get(f"tupper-ignore-m{user.id}")) or
+            not len(ignores) or
             # There exist possibly applicable tupperhooks
             # Message does not start with any of the tupperhooks
-            (not message.content.startswith(tuple(filter("".__ne__, 
-                            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
-                            sync.get(f"tupper-ignore-m{user.id}", [])
-                            ))
-                        ))):
-            logger.debug(sync.get(f"tupper-ignore-{message.guild.id}", []) + 
-                            sync.get(f"tupper-ignore-m{user.id}", []))
+            not message.content.startswith(tuple(ignores))
+            ):
             content = message.content
             attachments = []
             if len(message.attachments) > 0:
