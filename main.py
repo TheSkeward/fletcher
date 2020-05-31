@@ -159,7 +159,7 @@ webhook_sync_registry = {
 }
 
 
-async def load_webhooks():
+async def load_webhooks(ch=None):
     global config
     webhook_sync_registry = {}
     for guild in client.guilds:
@@ -254,6 +254,8 @@ async def load_webhooks():
             logger.debug(f"LWH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             pass
     globals()["webhook_sync_registry"] = webhook_sync_registry
+    if ch:
+        ch.webhook_sync_registry = webhook_sync_registry
     logger.debug("Webhooks loaded:")
     logger.debug(
         "\n".join(
@@ -395,8 +397,7 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(commandhandler, ch)
         await animate_startup("🔁", message)
         globals()["ch"] = ch
-        await load_webhooks()
-        ch.webhook_sync_registry = webhook_sync_registry
+        await load_webhooks(ch)
         if message:
             await message.add_reaction("↔")
         await animate_startup("✅", message)

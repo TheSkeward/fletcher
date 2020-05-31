@@ -315,8 +315,9 @@ class CommandHandler:
                             syncReaction = await toMessage.add_reaction(processed_emoji)
                             cur = conn.cursor()
                             cur.execute(
-                                f'UPDATE messagemap SET reactions = reactions || "{processed_emoji}" WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
+                                f'UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
                                 [
+                                    str(processed_emoji),
                                     message.guild.id,
                                     message.channel.id,
                                     message.id,
@@ -450,7 +451,9 @@ class CommandHandler:
     async def bridge_message(self, message):
         global config
         global conn
-        bridge_key = "f{message.guild.name}:{message.channel.name}"
+        if not hasattr(message, "guild"):
+            return
+        bridge_key = f"{message.guild.name}:{message.channel.name}"
         sync = config.get(section="sync")
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
@@ -464,12 +467,13 @@ class CommandHandler:
                 webhook = discord.Webhook.partial(
                     -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
                 )
-            if webhook and webhook.name in sync.get("whitelist-webhooks"):
+            if webhook and webhook.name in sync.get("whitelist-webhooks", []):
+                logger.debug(str(webhook))
                 pass
             else:
                 return
         # There's a bridge here
-        if message.guild and self.webhook_sync_registry.get(bridge_key) and (
+        if self.webhook_sync_registry.get(bridge_key) and (
             # Whitelisted webhook
             (message.webhook_id) or
             # No tupper configuration
@@ -477,8 +481,8 @@ class CommandHandler:
             # There exist possibly applicable tupperhooks
             # Message does not start with any of the tupperhooks
             (sync.get(f"tupper-ignore-{message.guild.id}") or sync.get(f"tupper-ignore-m{user.id}") and not message.content.startswith(tuple(filter("".__ne__, 
-                            sync.get(f"tupper-ignore-{message.guild.id}") + 
-                            sync.get(f"tupper-ignore-m{user.id}")
+                            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
+                            sync.get(f"tupper-ignore-m{user.id}", [])
                             ))
                         ))):
             content = message.content
@@ -545,7 +549,7 @@ class CommandHandler:
         if len(fromMessage.content) > 0:
             if type(fromChannel) is discord.TextChannel:
                 logger.info(
-                    f"{message_id} #{fromGuild.name}:{fromChannel.name} <{fromMessage.author.name}:{fromMessage.author.id}> [Edit] {fromMessage.content}",
+                    f"{message.id} #{fromGuild.name}:{fromChannel.name} <{fromMessage.author.name}:{fromMessage.author.id}> [Edit] {fromMessage.content}",
                     extra={
                         "GUILD_IDENTIFIER": fromGuild.name,
                         "CHANNEL_IDENTIFIER": fromChannel.name,
@@ -556,7 +560,7 @@ class CommandHandler:
                 )
             elif type(fromChannel) is discord.DMChannel:
                 logger.info(
-                    f"{message_id} @{fromChannel.recipient.name} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
+                    f"{message.id} @{fromChannel.recipient.name} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
                     extra={
                         "GUILD_IDENTIFIER": "@",
                         "CHANNEL_IDENTIFIER": fromChannel.recipient,
@@ -575,7 +579,7 @@ class CommandHandler:
             cur = conn.cursor()
             cur.execute(
                 "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
-                [int(message["guild_id"]), int(message["channel_id"]), message_id],
+                [message.guild.id, message.channel.id, message.id],
             )
             metuple = cur.fetchone()
             conn.commit()
@@ -634,9 +638,9 @@ class CommandHandler:
                         syncMessage.guild.id,
                         syncMessage.channel.id,
                         syncMessage.id,
-                        int(message["guild_id"]),
-                        int(message["channel_id"]),
-                        message_id,
+                        message.guild.id,
+                        message.channel.id,
+                        message.id,
                     ],
                 )
                 conn.commit()
