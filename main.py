@@ -330,6 +330,8 @@ async def reload_function(message=None, client=client, args=[]):
                 pr.print_stats()
         importlib.reload(load_config)
         config = load_config.FletcherConfig()
+        load_config.client = client
+        config.client = client
         await animate_startup("📝", message)
         conn = psycopg2.connect(
             host=config["database"]["host"],
