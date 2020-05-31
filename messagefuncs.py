@@ -349,7 +349,7 @@ async def messagelink_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("MLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
-url_search = re.compile("(([\w]+:)?//)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?")
+url_search = re.compile("(?:(?:[\w]+:)?//)?(?:(?:[\d\w]|%[a-fA-f\d]{2,2})+(?::(?:[\d\w]|%[a-fA-f\d]{2,2})+)?@)?(?:[\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(?::[\d]+)?(?:/(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(?:\?(?:&?(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(?:#(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?")
 
 async def bookmark_function(message, client, args):
     try:
