@@ -111,7 +111,7 @@ class FletcherConfig:
             array = map(int, array)
         return list(filter(filter_function, array))
 
-    def normalize_arrays(self, value, strict=False):
+    def normalize_array(self, value, strict=False):
         if type(value) is list:
             return value
         elif ", " in value or value.startswith(" ") or value.endswith(" "):
