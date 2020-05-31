@@ -82,9 +82,9 @@ class FletcherConfig:
     def normalize_booleans(self, value, strict=False):
         if type(value) is bool:
             return value
-        elif value.lower().strip() in ["on", "true", "yes"]:
+        elif str(value).lower().strip() in ["on", "true", "yes"]:
             return True
-        elif value.lower().strip() in ["off", "false", "no"]:
+        elif str(value).lower().strip() in ["off", "false", "no"]:
             return False
         elif strict:
             return None
@@ -94,9 +94,9 @@ class FletcherConfig:
     def normalize_numbers(self, value, strict=False):
         if type(value) in [int, float]:
             return value
-        elif value.isdigit():
+        elif str(value).isdigit():
             return int(value)
-        elif value.isnumeric():
+        elif str(value).isnumeric():
             return float(value)
         elif strict:
             return None
