@@ -93,7 +93,7 @@ async def teleport_function(message, client, args):
         fromChannel = message.channel
         fromGuild = message.guild
         if (
-            str(fromChannel.id) in config["teleport"]["fromchannel-ban"].split(",")
+            fromChannel.id in config["teleport"]["fromchannel-banlist"]
             and not message.author.guild_permissions.manage_webhooks
         ):
             await message.add_reaction("🚫")
