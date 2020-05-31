@@ -64,7 +64,8 @@ class FletcherConfig:
         self.guild_defaults = {
                 "synchronize": False,
                 "sync-deletions": True,
-                "sync-edits": True
+                "sync-edits": True,
+                "blacklist-commands": []
                 }
         self.channel_defaults = {
                 "synchronize": False
