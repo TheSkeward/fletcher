@@ -1257,7 +1257,7 @@ def load_guild_config(ch):
     def load_blacklists(ch):
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
-            for command_name in guild_config.get("blacklist-commands"):
+            for command_name in guild_config.get("blacklist-commands", []):
                 ch.blacklist_command(command_name, guild.id)
     logger.debug('LBL')
     load_blacklists(ch)
