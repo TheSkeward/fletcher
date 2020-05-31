@@ -1302,11 +1302,11 @@ WHERE p.key = 'tupper';
             if not config.get("sync"):
                 config["sync"] = {}
             ignorekey = f"tupper-ignore-{tuptuple[1] or 'm'+str(tuptuple[0])}"
-            if not config["sync"].get(ignorekey, ""):
-                config["sync"][ignorekey] = ""
+            if config["sync"].get(ignorekey):
+                config["sync"][ignorekey] = []
             config["sync"][
                 ignorekey
-            ] = f'{config["sync"][ignorekey]},{tuptuple[2]}'.strip(",")
+            ] += tuptuple[2]
             replacekey = f"tupper-replace-{tuptuple[1]}"
             config["sync"][
                 f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-nick'
