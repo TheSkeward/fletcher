@@ -364,13 +364,16 @@ async def bookmark_function(message, client, args):
                         message.content,
                     )
                 await sendWrappedMessage(bookmark_message, args[1])
+                urls = url_search.findall(message.content)
+                if not len(urls):
+                    return
                 pocket_consumer_key = ch.config.get(section="pocket", key="consumer_key")
                 if not pocket_consumer_key:
+                    logger.debug("No pocket_consumer_key set")
                     return
-                pocket_access_token = ch.user_config(message.author.id, None, 'pocket_access_token')
+                pocket_access_token = ch.user_config(args[1].id, None, 'pocket_access_token')
                 if not pocket_access_token:
                     return
-                pocket_username = ch.user_config(message.author.id, None, 'pocket_username')
                 for url in url_search.findall(message.content):
                     logger.debug(f'Pocketing {url}')
                     async with aiohttp.ClientSession() as session:
