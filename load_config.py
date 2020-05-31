@@ -213,7 +213,7 @@ class FletcherConfig:
             value = default
         return value
 
-    def __contains__(key):
+    def __contains__(self, key):
         if   type(key) in [discord.Guild]:
             return f"Guild {guild.id:d}" in self.config_dict
         elif type(key) in [discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]:
