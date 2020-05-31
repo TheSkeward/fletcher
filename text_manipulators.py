@@ -189,6 +189,8 @@ async def ocr_function(message, client, args):
             url = args[0]
         logger.debug(url)
         input_image_blob = await netcode.simple_get_image(url)
+        if not input_image_blob:
+            return
         input_image_blob.seek(0)
         input_image = Image.open(input_image_blob)
         input_image_blob.seek(0)
