@@ -373,6 +373,7 @@ async def bookmark_function(message, client, args):
                     return
                 pocket_username = ch.user_config(message.author.id, None, 'pocket_username')
                 for url in re.findall(url_search, message.content):
+                    logger.debug(f'Pocketing {url}')
                     async with aiohttp.ClientSession() as session:
                         params = aiohttp.FormData()
                         params.add_field("title", message.content)
