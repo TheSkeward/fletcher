@@ -270,7 +270,7 @@ canticum_message = None
 doissetep_omega = None
 
 
-async def autoload(module, choverride):
+async def autoload(module, choverride, config=None):
     if choverride:
         ch = choverride
     else:
@@ -286,7 +286,10 @@ async def autoload(module, choverride):
         pass
     importlib.reload(module)
     module.ch = ch
-    module.config = ch.config
+    if config is None:
+        module.config = ch.config
+    else:
+        module.config = config
     module.conn = conn
     module.sid = sid
     module.versioninfo = versioninfo
@@ -332,7 +335,7 @@ async def reload_function(message=None, client=client, args=[]):
         )
         await animate_startup("💾", message)
         # Command Handler (loaded twice to bootstrap)
-        await autoload(commandhandler, None)
+        await autoload(commandhandler, None, config)
         await animate_startup("⌨", message)
         ch = commandhandler.CommandHandler(client)
         commandhandler.ch = ch
