@@ -1,3 +1,4 @@
+import aiohttp
 import asyncio
 from datetime import datetime, timedelta
 import dateparser.search
@@ -1370,11 +1371,20 @@ async def pin_message_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
-def login_function(message, client, args):
+async def login_function(message, client, args):
     global ch
-    return {
-            "pocket": f"https://getpocket.com/v3/oauth/request?consumer_key={ch.config.get(section='pocket', key='consumer_key')}&redirect_uri=https://fletcher.fun/authorize_pocket&userid={message.author.id}"
-        }.get(args[0], "Could not find matching service login flow for {args[0]}")
+    if args[0] == "pocket":
+        async with aiohttp.ClientSession() as session:
+            params = aiohttp.FormData()
+            params.add_field("consumer_key", ch.config.get(section='pocket', key='consumer_key'))
+            params.add_field("redirect_uri", ch.config.get(section='pocket', key='redirect_uri'))
+            params.add_field("state", message.author.id)
+            async with session.post("https://getpocket.com/v3/oauth/request", data=params) as resp:
+                request_body = (await resp.read()).decode("UTF-8")
+                request_token = request_body.split("=")[1]
+                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}")
+    else:
+        return await messagefuncs.sendWrappedMessage(f"Could not find matching service login flow for {args[0]}", message.channel)
 
 def autoload(ch):
     ch.add_command(
@@ -1700,7 +1710,7 @@ def autoload(ch):
         {
             "trigger": ["!login"],
             "function": login_function,
-            "async": False,
+            "async": True,
             "hidden": False,
             "args_num": 1,
             "args_name": ["[pocket]"],
