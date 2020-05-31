@@ -760,7 +760,7 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
-        await tupper_proc(message)
+        await self.tupper_proc(message)
         if (
             messagefuncs.extract_identifiers_messagelink.search(message.content)
             or messagefuncs.extract_previewable_link.search(message.content)
