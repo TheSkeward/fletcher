@@ -1378,11 +1378,11 @@ async def login_function(message, client, args):
             params = aiohttp.FormData()
             params.add_field("consumer_key", ch.config.get(section='pocket', key='consumer_key'))
             params.add_field("redirect_uri", ch.config.get(section='pocket', key='redirect_uri'))
-            params.add_field("state", message.author.id)
+            params.add_field("state", str(message.author.id))
             async with session.post("https://getpocket.com/v3/oauth/request", data=params) as resp:
                 request_body = (await resp.read()).decode("UTF-8")
                 request_token = request_body.split("=")[1]
-                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}", message.channel)
+                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}%3Frequest_token%3D{request_token}", message.channel)
     else:
         return await messagefuncs.sendWrappedMessage(f"Could not find matching service login flow for {args[0]}", message.channel)
 
