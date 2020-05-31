@@ -98,6 +98,8 @@ class CommandHandler:
         tupperId = 431544605209788416
         sync = config.get(section="sync")
         user = message.author
+        if type(message.channel) is not discord.TextChannel:
+            return
         if not (message.guild and sync.get(f"tupper-ignore-{message.guild.id}") or sync.get(f"tupper-ignore-m{user.id}")):
             return
         tupper = discord.utils.get(message.channel.members, id=tupperId)
