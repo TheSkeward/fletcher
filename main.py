@@ -289,7 +289,7 @@ async def autoload(module, choverride, config=None):
     module.ch = ch
     module.client = client
     if config is None:
-        module.config = ch.config
+        module.config = globals()["config"]
     else:
         module.config = config
     module.conn = conn
