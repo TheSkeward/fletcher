@@ -12,7 +12,7 @@ class FletcherConfig:
         config = configparser.ConfigParser()
         config.optionxform = str
         config.read(base_config_path)
-        config = {s: {k: self.normalize(v) for k, v in dict(config.items(s)).items()} for s in config.sections()}
+        config = {s: {k: self.normalize(v, key=k) for k, v in dict(config.items(s)).items()} for s in config.sections()}
         self.config_dict = config
         logger.addHandler(
             journal.JournalHandler(
@@ -46,9 +46,9 @@ class FletcherConfig:
                                 k = k[1]
                                 if subsection_key not in config[section_key]:
                                     config[section_key][subsection_key] = {}
-                                config[section_key][subsection_key][k] = self.normalize(v)
+                                config[section_key][subsection_key][k] = self.normalize(v, key=k)
                             else:
-                                config[section_key][k] = self.normalize(v)
+                                config[section_key][k] = self.normalize(v, key=k)
         self.config_dict = config
         self.defaults = {
                 "database": {
@@ -123,7 +123,7 @@ class FletcherConfig:
         else:
             return value
 
-    def normalize(self, value, key=None):
+    def normalize(self, value, key=""):
         if type(value) is dict:
             return {k: self.normalize(v) for k, v in value.items()}
         elif type(value) is list:
