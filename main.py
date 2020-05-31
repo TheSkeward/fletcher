@@ -275,6 +275,7 @@ async def autoload(module, choverride, config=None):
         ch = choverride
     else:
         ch = globals()["ch"]
+    global client
     global conn
     global sid
     global versioninfo
@@ -286,6 +287,7 @@ async def autoload(module, choverride, config=None):
         pass
     importlib.reload(module)
     module.ch = ch
+    module.client = client
     if config is None:
         module.config = ch.config
     else:
