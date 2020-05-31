@@ -361,7 +361,7 @@ async def bookmark_function(message, client, args):
                         message.channel.id,
                         message.id,
                         message.content,
-                    ),
+                    )
                 await sendWrappedMessage(bookmark_message, args[1])
                 pocket_consumer_key = ch.config.get(section="pocket", key="consumer_key")
                 if not pocket_consumer_key:
