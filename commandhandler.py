@@ -289,17 +289,17 @@ class CommandHandler:
                             fromMessage = await fromChannel.fetch_message(metuple[2])
                             logger.debug(f"RXH: -> {fromMessage}")
                             syncReaction = await fromMessage.add_reaction(processed_emoji)
-                            cur = conn.cursor()
-                            cur.execute(
-                                "UPDATE messagemap SET reactions = reactions || %s WHERE toguild = %s AND tochannel = %s AND tomessage = %s;",
-                                [
-                                    str(processed_emoji),
-                                    message.guild.id,
-                                    message.channel.id,
-                                    message.id,
-                                ],
-                            )
-                            conn.commit()
+                            # cur = conn.cursor()
+                            # cur.execute(
+                            #     "UPDATE messagemap SET reactions = reactions || %s WHERE toguild = %s AND tochannel = %s AND tomessage = %s;",
+                            #     [
+                            #         str(processed_emoji),
+                            #         message.guild.id,
+                            #         message.channel.id,
+                            #         message.id,
+                            #     ],
+                            # )
+                            # conn.commit()
                         cur = conn.cursor()
                         cur.execute(
                             "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
@@ -313,17 +313,17 @@ class CommandHandler:
                             toMessage = await toChannel.fetch_message(metuple[2])
                             logger.debug(f"RXH: -> {toMessage}")
                             syncReaction = await toMessage.add_reaction(processed_emoji)
-                            cur = conn.cursor()
-                            cur.execute(
-                                f'UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
-                                [
-                                    str(processed_emoji),
-                                    message.guild.id,
-                                    message.channel.id,
-                                    message.id,
-                                ],
-                            )
-                            conn.commit()
+                            # cur = conn.cursor()
+                            # cur.execute(
+                            #     f'UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
+                            #     [
+                            #         str(processed_emoji),
+                            #         message.guild.id,
+                            #         message.channel.id,
+                            #         message.id,
+                            #     ],
+                            # )
+                            # conn.commit()
                 except discord.InvalidArgument as e:
                     if "cur" in locals() and "conn" in locals():
                         conn.rollback()
