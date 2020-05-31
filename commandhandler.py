@@ -315,9 +315,8 @@ class CommandHandler:
                             syncReaction = await toMessage.add_reaction(processed_emoji)
                             cur = conn.cursor()
                             cur.execute(
-                                "UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
+                                f'UPDATE messagemap SET reactions = reactions || "{processed_emoji}" WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
                                 [
-                                    str(processed_emoji),
                                     message.guild.id,
                                     message.channel.id,
                                     message.id,
