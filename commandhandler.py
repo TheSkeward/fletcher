@@ -458,7 +458,7 @@ class CommandHandler:
     @cached(TTLCache(1024, 86400))
     async def fetch_webhook_cached(self, webhook_id):
         try:
-            webhook = await self.fetch_webhook_cached(webhook_id)
+            webhook = await self.client.fetch_webhook(webhook_id)
         except discord.Forbidden:
             logger.debug(
                 f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
