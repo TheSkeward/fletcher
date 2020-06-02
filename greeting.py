@@ -40,6 +40,8 @@ async def restorerole_function(member, client, config):
             f'RPR: Restoring roles {",".join([str(role) for role in roles])} for {member.id} in {member.guild.id}'
         )
         await member.edit(nick=name, roles=roles, reason="Restoring Previous Roles")
+    except discord.Forbidden as e:
+        await member.guild.owner.send(f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}')
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
