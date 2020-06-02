@@ -488,8 +488,8 @@ class CommandHandler:
                     logger.debug("Webhook isn't whitelisted for bridging")
                 return
         ignores = list(filter("".__ne__, 
-            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
-            sync.get(f"tupper-ignore-m{user.id}", [])
+            str_to_arr(sync.get(f"tupper-ignore-{message.guild.id}", "") + "," +
+            sync.get(f"tupper-ignore-m{user.id}", ""),strip=False)
             ))
         if not message.webhook_id and len(ignores) and message.content.startswith(tuple(ignores)):
             logger.debug(f"Prefix in {tuple(ignores)}, not bridging")
