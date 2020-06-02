@@ -74,6 +74,7 @@ class CommandHandler:
         command["module"] = inspect.stack()[1][1].split("/")[-1].rstrip(".py")
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
+        logger.debug(f"Loading command {command}")
         self.commands.append(command)
 
     def add_remove_handler(self, func_name, func):
