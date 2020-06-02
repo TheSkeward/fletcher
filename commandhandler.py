@@ -262,7 +262,7 @@ class CommandHandler:
                             processed_emoji = reaction.emoji.name
                         if processed_emoji is None:
                             image = (await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{reaction.emoji.id}.png?v=1")).read()
-                            emoteServer = self.client.get_guild(int(config.get('discord', {}).get('emoteServer', 0)))
+                            emoteServer = self.client.get_guild(config.get(section='discord', key='emoteServer', default=0))
                             try:
                                 processed_emoji = await emoteServer.create_custom_emoji(
                                     name=reaction.emoji.name,
@@ -292,6 +292,9 @@ class CommandHandler:
                             fromGuild = self.client.get_guild(metuple[0])
                             fromChannel = fromGuild.get_channel(metuple[1])
                             fromMessage = await fromChannel.fetch_message(metuple[2])
+                            if fromMessage.author.id in config.get(section="moderation", key="blacklist-user-usage", default=[]):
+                                logger.debug("Demurring to bridge reaction to message of users on the blacklist")
+                                return
                             logger.debug(f"RXH: -> {fromMessage}")
                             syncReaction = await fromMessage.add_reaction(processed_emoji)
                             # cur = conn.cursor()
@@ -316,6 +319,9 @@ class CommandHandler:
                             toGuild = self.client.get_guild(metuple[0])
                             toChannel = toGuild.get_channel(metuple[1])
                             toMessage = await toChannel.fetch_message(metuple[2])
+                            if toMessage.author.id in config.get(section="moderation", key="blacklist-user-usage", default=[]):
+                                logger.debug("Demurring to bridge reaction to message of users on the blacklist")
+                                return
                             logger.debug(f"RXH: -> {toMessage}")
                             syncReaction = await toMessage.add_reaction(processed_emoji)
                             # cur = conn.cursor()
@@ -367,10 +373,9 @@ class CommandHandler:
                         await message.guild.get_member(user_id).send(
                             f"{user.display_name} ({user.name}#{user.discriminator}) removed reaction of {messageContent} from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
                         )
-                if self.message_reaction_remove_handlers.get(message.id):
-                    command = self.message_reaction_remove_handlers[message.id]
-                    if self.allowCommand(command, message, user=user):
-                        await self.run_command(command, message, args, user)
+                command = self.message_reaction_remove_handlers.get(message.id)
+                if command and self.allowCommand(command, message, user=user):
+                    await self.run_command(command, message, args, user)
                 for command in self.get_command(messageContent, message, max_args=0):
                     if self.allowCommand(command, message, user=user) and command.get("remove"):
                         await self.run_command(command, message, args, user)
@@ -462,6 +467,9 @@ class CommandHandler:
         except AttributeError:
             return
         bridge_key = f"{message.guild.name}:{message.channel.name}"
+        bridge = self.webhook_sync_registry.get(bridge_key)
+        if not bridge:
+            return
         sync = config.get(section="sync")
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
@@ -476,74 +484,66 @@ class CommandHandler:
                     -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
                 )
             if webhook.name not in sync.get("whitelist-webhooks", []):
+                if not webhook.name.startswith(ch.config.get(section="discord", key="botNavel")):
+                    logger.debug("Webhook isn't whitelisted for bridging")
                 return
         ignores = list(filter("".__ne__, 
             sync.get(f"tupper-ignore-{message.guild.id}", []) + 
             sync.get(f"tupper-ignore-m{user.id}", [])
             ))
-        # There's a bridge here
-        if self.webhook_sync_registry.get(bridge_key) and (
-            # Whitelisted webhook
-            message.webhook_id or
-            # No tupper configuration
-            not len(ignores) or
-            # There exist possibly applicable tupperhooks
-            # Message does not start with any of the tupperhooks
-            not message.content.startswith(tuple(ignores))
+        if not message.webhook_id and len(ignores) and message.content.startswith(tuple(ignores)):
+            logger.debug(f"Prefix in {tuple(ignores)}, not bridging")
+            return
+        content = message.content or " "
+        attachments = []
+        if len(message.attachments) > 0:
+            if (
+                message.channel.is_nsfw()
+                and not bridge["toChannelObject"].is_nsfw()
             ):
-            content = message.content
-            attachments = []
-            if len(message.attachments) > 0:
-                plural = ""
-                if len(message.attachments) > 1:
-                    plural = "s"
-                if (
-                    message.channel.is_nsfw()
-                    and not self.webhook_sync_registry[bridge_key]["toChannelObject"].is_nsfw()
-                ):
-                    content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
-                    for attachment in message.attachments:
-                        content = f"{content}\n• <{attachment.url}>"
-                else:
-                    for attachment in message.attachments:
-                        logger.debug(f"Syncing {attachment.filename}")
-                        attachment_blob = io.BytesIO()
-                        await attachment.save(attachment_blob)
-                        attachments.append(
-                            discord.File(attachment_blob, attachment.filename)
-                        )
-            # wait=True: blocking call for messagemap insertions to work
-            toMember = self.webhook_sync_registry[bridge_key]["toChannelObject"].guild.get_member(user.id)
-            fromMessageName = toMember.display_name if toMember else user.display_name
-            syncMessage = await self.webhook_sync_registry[bridge_key]["toWebhook"].send(
-                content=content,
-                username=fromMessageName,
-                avatar_url=user.avatar_url_as(format="png", size=128),
-                embeds=message.embeds,
-                tts=message.tts,
-                files=attachments,
-                wait=True,
-                allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
+                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
+                for attachment in message.attachments:
+                    content += f"\n• <{attachment.url}>"
+            else:
+                for attachment in message.attachments:
+                    logger.debug(f"Syncing {attachment.filename}")
+                    attachment_blob = io.BytesIO()
+                    await attachment.save(attachment_blob)
+                    attachments.append(
+                        discord.File(attachment_blob, attachment.filename)
+                    )
+        toMember = bridge["toChannelObject"].guild.get_member(user.id)
+        fromMessageName = toMember.display_name if toMember else user.display_name
+        # wait=True: blocking call for messagemap insertions to work
+        syncMessage = await bridge["toWebhook"].send(
+            content=content,
+            username=fromMessageName,
+            avatar_url=user.avatar_url_as(format="png", size=128),
+            embeds=message.embeds,
+            tts=message.tts,
+            files=attachments,
+            wait=True,
+            allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
+        )
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
+                [
+                    message.guild.id,
+                    message.channel.id,
+                    message.id,
+                    syncMessage.guild.id,
+                    syncMessage.channel.id,
+                    syncMessage.id,
+                ],
             )
-            try:
-                cur = conn.cursor()
-                cur.execute(
-                    "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
-                    [
-                        message.guild.id,
-                        message.channel.id,
-                        message.id,
-                        syncMessage.guild.id,
-                        syncMessage.channel.id,
-                        syncMessage.id,
-                    ],
-                )
-                conn.commit()
-            except Exception as e:
-                if "cur" in locals() and "conn" in locals():
-                    conn.rollback()
-                exc_type, exc_obj, exc_tb = exc_info()
-                logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+            conn.commit()
+        except Exception as e:
+            if "cur" in locals() and "conn" in locals():
+                conn.rollback()
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def edit_handler(self, message):
         fromMessage = message

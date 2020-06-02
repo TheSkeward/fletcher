@@ -654,24 +654,23 @@ async def on_raw_message_delete(message):
 async def on_raw_reaction_add(reaction):
     # if the reaction is from the bot itself ignore it
     if reaction.user_id == client.user.id:
-        pass
-    else:
-        # try to evaluate with the command handler
-        try:
-            while ch is None:
+        return
+    # try to evaluate with the command handler
+    try:
+        while ch is None:
+            await asyncio.sleep(1)
+        while 1:
+            try:
+                ch.config
+            except AttributeError:
                 await asyncio.sleep(1)
-            while 1:
-                try:
-                    ch.config
-                except AttributeError:
-                    await asyncio.sleep(1)
-                break
-            await ch.reaction_handler(reaction)
+            break
+        await ch.reaction_handler(reaction)
 
-        # generic python error
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"ORRA[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+    # generic python error
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"ORRA[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 # on new rxn
@@ -679,24 +678,23 @@ async def on_raw_reaction_add(reaction):
 async def on_raw_reaction_remove(reaction):
     # if the reaction is from the bot itself ignore it
     if reaction.user_id == client.user.id:
-        pass
-    else:
-        # try to evaluate with the command handler
-        try:
-            while ch is None:
+        return
+    # try to evaluate with the command handler
+    try:
+        while ch is None:
+            await asyncio.sleep(1)
+        while 1:
+            try:
+                ch.config
+            except AttributeError:
                 await asyncio.sleep(1)
-            while 1:
-                try:
-                    ch.config
-                except AttributeError:
-                    await asyncio.sleep(1)
-                break
-            await ch.reaction_remove_handler(reaction)
+            break
+        await ch.reaction_remove_handler(reaction)
 
-        # generic python error
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"ORRR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+    # generic python error
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"ORRR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 # on vox change
