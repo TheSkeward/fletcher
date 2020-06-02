@@ -946,24 +946,28 @@ async def sudo_function(message, client, args):
 
 async def role_message_function(message, client, args, remove=False):
     try:
-        guild_config = ch.scope_config(guild=message.guild)
-        if guild_config.get(f"role-message-{args[0].emoji}").isnumeric():
-            role = message.guild.get_role(int(guild_config.get(f"role-message-{args[0].emoji}")))
+        reaction, user, mode = args
+        role = ch.config.get(key=f"role-message-{reaction.emoji}", default=0, guild=message.guild)
+        if not role:
+            logger.debug("No matching role")
+            return
+        if type(role) is int:
+            role = message.guild.get_role(role)
         else:
             role = discord.utils.get(
-                message.guild.roles, name=guild_config.get(f"role-message-{args[0].emoji}")
+                message.guild.roles, name=role
             )
         if not role:
-            error_message = f"Matching role not found for reaction role-message-{args[0].emoji} to role-message {guild_config.get(f'role-message-{args[0].emoji}')}"
+            error_message = f"Matching role {role} not found for reaction role-message-{reaction.emoji} to role-message {message.id}"
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
-            await message.guild.get_member(args[1].id).add_roles(
+            await message.guild.get_member(user.id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
             )
-            if args[0].emoji in guild_config.get("role-message-autodelete", list()):
-                await message.remove_reaction(args[0].emoji, args[1])
+            if args[0].emoji in ch.config.get(key="role-message-autodelete", guild=message.guild, default=[]):
+                await message.remove_reaction(reaction.emoji, user)
         else:
-            await message.guild.get_member(args[1].id).remove_roles(
+            await message.guild.get_member(user.id).remove_roles(
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
     except (discord.Forbidden, exceptions.MisconfigurationException) as e:
