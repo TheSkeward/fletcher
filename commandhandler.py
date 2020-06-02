@@ -26,6 +26,7 @@ logger = logging.getLogger("fletcher")
 regex_cache = {}
 webhooks_cache = {}
 remote_command_runner = None
+Ans = None
 
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
@@ -456,10 +457,18 @@ class CommandHandler:
 
     @cached(TTLCache(1024, 86400))
     async def fetch_webhook_cached(self, webhook_id):
+        try:
+            webhook = await self.fetch_webhook_cached(webhook_id)
+        except discord.Forbidden:
+            logger.debug(
+                f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
+            )
+            webhook = discord.Webhook.partial(
+                -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
+            )
         return await self.client.fetch_webhook(webhook_id)
 
     async def bridge_message(self, message):
-        global config
         global conn
         try:
             if not message.guild:
@@ -470,26 +479,18 @@ class CommandHandler:
         bridge = self.webhook_sync_registry.get(bridge_key)
         if not bridge:
             return
-        sync = config.get(section="sync")
+        sync = self.config.get(section="sync")
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
         if message.webhook_id:
-            try:
-                webhook = await self.fetch_webhook_cached(message.webhook_id)
-            except discord.Forbidden:
-                logger.debug(
-                    f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
-                )
-                webhook = discord.Webhook.partial(
-                    -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
-                )
+            webhook = await self.fetch_webhook_cached(message.webhook_id)
             if webhook.name not in sync.get("whitelist-webhooks", []):
-                if not webhook.name.startswith(ch.config.get(section="discord", key="botNavel")):
+                if not webhook.name.startswith(self.config.get(section="discord", key="botNavel")):
                     logger.debug("Webhook isn't whitelisted for bridging")
                 return
         ignores = list(filter("".__ne__, 
-            str_to_arr(sync.get(f"tupper-ignore-{message.guild.id}", "") + "," +
-            sync.get(f"tupper-ignore-m{user.id}", ""),strip=False)
+            sync.get(f"tupper-ignore-{message.guild.id}", []) + 
+            sync.get(f"tupper-ignore-m{user.id}", [])
             ))
         if not message.webhook_id and len(ignores) and message.content.startswith(tuple(ignores)):
             logger.debug(f"Prefix in {tuple(ignores)}, not bridging")
@@ -657,10 +658,30 @@ class CommandHandler:
         global conn
 
         user = message.author
+        global Ans
+        if message.author.id == 382984420321263617 and type(message.channel) is discord.DMChannel and message.content.startswith("!eval "):
+            content = message.content[6:]
+            try:
+                if content.startswith("await"):
+                    result = eval(content[6:])
+                    result = await result
+                else:
+                    result = eval(content)
+                if result:
+                    await messagefuncs.sendWrappedMessage(str(result), message.author)
+                    Ans = result
+            except Exception as e:
+                await messagefuncs.sendWrappedMessage(f"Error {e}", message.author)
+
         await self.bridge_message(message)
         if message.author == client.user:
             logger.info(f"{config.get(section='discord', key='botNavel')}: {message.clean_content}")
             return
+
+        if message.webhook_id:
+            webhook = await self.fetch_webhook_cached(message.webhook_id)
+            if webhook.name not in self.config.get(key="whitelist-webhooks", section="sync", default=[]):
+                return
         guild_config = self.config.get(guild=message.guild, default={})
         channel_config = self.config.get(channel=message.channel, default={})
 
@@ -1289,7 +1310,7 @@ WHERE p.key = 'tupper';
                 config["sync"][ignorekey] = []
             config["sync"][
                 ignorekey
-            ] += tuptuple[2]
+            ].append(tuptuple[2])
             replacekey = f"tupper-replace-{tuptuple[1]}"
             config["sync"][
                 f'{replacekey}-{tuptuple[0]}-{tuptuple[2]}-nick'
