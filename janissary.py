@@ -737,6 +737,8 @@ async def part_channel_function(message, client, args):
             channel_names += f"{channel.guild.name}:{channel.name}, "
         await message.add_reaction("✅")
         await message.author.send(f"Parted from {channel_names[0:-2]}")
+    except discord.NotFound as e:
+        await message.author.send(e)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
