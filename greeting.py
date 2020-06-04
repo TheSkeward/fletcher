@@ -179,7 +179,7 @@ async def randomize_role_function(member, client, config):
     try:
         if type(member) is discord.Member:
             role = member.guild.get_role(
-                int(random.choice(config["randomize_role_list"].split(",")))
+                int(random.choice(config["randomize_role_list"]))
             )
             logger.info("RRF: adding role " + str(role) + " to " + str(member))
             await member.add_roles(
