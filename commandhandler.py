@@ -359,6 +359,33 @@ class CommandHandler:
                     user = channel.guild.get_member(reaction.user_id)
                 scope.user = {"id": user.id, "username": str(user)}
                 message = await channel.fetch_message(reaction.message_id)
+                if type(channel) is discord.TextChannel:
+                    logger.info(
+                        f"#{channel.guild.name}:{channel.name} <{user.name}:{user.id}> unreacting with {messageContent} from {message.id}",
+                        extra={
+                            "GUILD_IDENTIFIER": channel.guild.name,
+                            "CHANNEL_IDENTIFIER": channel.name,
+                            "SENDER_NAME": user.name,
+                            "SENDER_ID": user.id,
+                            "MESSAGE_ID": str(message.id),
+                            "REACTION_IDENTIFIER": messageContent
+                        },
+                    )
+                elif type(channel) is discord.DMChannel:
+                    logger.info(
+                        f"@{channel.recipient.name} <{user.name}:{user.id}> unreacting with {messageContent} from {message.id}",
+                        extra={
+                            "GUILD_IDENTIFIER": "@",
+                            "CHANNEL_IDENTIFIER": channel.recipient.name,
+                            "SENDER_NAME": user.name,
+                            "SENDER_ID": user.id,
+                            "MESSAGE_ID": str(message.id),
+                            "REACTION_IDENTIFIER": messageContent
+                        },
+                    )
+                else:
+                    # Group Channels don't support bots so neither will we
+                    pass
                 args = [reaction, user, "remove"]
                 try:
                     guild_config = self.scope_config(guild=message.guild)
@@ -660,7 +687,7 @@ class CommandHandler:
 
         user = message.author
         global Ans
-        if message.author.id == 382984420321263617 and type(message.channel) is discord.DMChannel and message.content.startswith("!eval "):
+        if user.id == 382984420321263617 and type(message.channel) is discord.DMChannel and message.content.startswith("!eval "):
             content = message.content[6:]
             try:
                 if content.startswith("await"):
@@ -669,14 +696,21 @@ class CommandHandler:
                 else:
                     result = eval(content)
                 if result:
-                    await messagefuncs.sendWrappedMessage(str(result), message.author)
+                    await messagefuncs.sendWrappedMessage(str(result), user)
                     Ans = result
             except Exception as e:
-                await messagefuncs.sendWrappedMessage(f"Error {e}", message.author)
+                await messagefuncs.sendWrappedMessage(f"Error {e}", user)
 
         await self.bridge_message(message)
-        if message.author == client.user:
-            logger.info(f"{config.get(section='discord', key='botNavel')}: {message.clean_content}")
+        if user == client.user:
+            logger.info(f"{message.id} #{message.guild.name if message.guild else message.recipient}:{message.channel.name} <{user.name}:{user.id}> [{sent_com_score}] {message.system_content}",
+                    extra={
+                        "GUILD_IDENTIFIER": message.guild.name if message.guild else None,
+                        "CHANNEL_IDENTIFIER": message.channel.name,
+                        "SENDER_NAME": user.name,
+                        "SENDER_ID": user.id,
+                        "MESSAGE_ID": str(message.id),
+                    })
             return
 
         if message.webhook_id:
