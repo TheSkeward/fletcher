@@ -489,7 +489,7 @@ class CommandHandler:
             webhook = await self.client.fetch_webhook(webhook_id)
         except discord.Forbidden:
             logger.debug(
-                f"Fetch webhook failed for {message.webhook_id} due to missing permissions on {message.guild} ({message.guild.id})"
+                f"Fetch webhook failed for {webhook_id} due to missing permissions"
             )
             webhook = discord.Webhook.partial(
                 -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
