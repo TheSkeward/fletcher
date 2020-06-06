@@ -703,7 +703,7 @@ class CommandHandler:
 
         await self.bridge_message(message)
         if user == client.user:
-            logger.info(f"{message.id} #{message.guild.name if message.guild else message.channel.recipient.name}:{message.channel.name} <{user.name}:{user.id}> {message.system_content}",
+            logger.info(f"{message.id} #{message.guild.name if message.guild else 'DM'}:{message.channel.name if message.guild else message.channel.recipient.name} <{user.name}:{user.id}> {message.system_content}",
                     extra={
                         "GUILD_IDENTIFIER": message.guild.name if message.guild else None,
                         "CHANNEL_IDENTIFIER": message.channel.name,
