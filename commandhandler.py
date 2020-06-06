@@ -544,16 +544,31 @@ class CommandHandler:
         toMember = bridge["toChannelObject"].guild.get_member(user.id)
         fromMessageName = toMember.display_name if toMember else user.display_name
         # wait=True: blocking call for messagemap insertions to work
-        syncMessage = await bridge["toWebhook"].send(
-            content=content,
-            username=fromMessageName,
-            avatar_url=user.avatar_url_as(format="png", size=128),
-            embeds=message.embeds,
-            tts=message.tts,
-            files=attachments,
-            wait=True,
-            allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
-        )
+        try:
+            syncMessage = await bridge["toWebhook"].send(
+                content=content,
+                username=fromMessageName,
+                avatar_url=user.avatar_url_as(format="png", size=128),
+                embeds=message.embeds,
+                tts=message.tts,
+                files=attachments,
+                wait=True,
+                allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
+            )
+        except discord.HTTPException as e:
+            if attachments:
+                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
+                for attachment in message.attachments:
+                    content += f"\n• <{attachment.url}>"
+                syncMessage = await bridge["toWebhook"].send(
+                    content=content,
+                    username=fromMessageName,
+                    avatar_url=user.avatar_url_as(format="png", size=128),
+                    embeds=message.embeds,
+                    tts=message.tts,
+                    wait=True,
+                    allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
+                )
         try:
             cur = conn.cursor()
             cur.execute(
