@@ -633,67 +633,70 @@ class CommandHandler:
             )
             metuple = cur.fetchone()
             conn.commit()
-            if metuple is not None:
-                toGuild = self.client.get_guild(metuple[0])
-                to_guild_config = self.scope_config(guild=toGuild)
-                if not self.config.get(key="sync-edits", guild=toGuild):
-                    logger.debug(f"ORMU: Demurring to edit message at client guild request")
-                    return
-                toChannel = toGuild.get_channel(metuple[1])
-                toMessage = await toChannel.fetch_message(metuple[2])
-                if not self.config.get(key="sync-deletions", guild=toGuild):
-                    logger.debug(f"ORMU: Demurring to delete edited message at client guild request")
+        else:
+            metuple = None
+        if metuple is not None:
+            toGuild = self.client.get_guild(metuple[0])
+            to_guild_config = self.scope_config(guild=toGuild)
+            if not self.config.get(key="sync-edits", guild=toGuild):
+                logger.debug(f"ORMU: Demurring to edit message at client guild request")
+                return
+            toChannel = toGuild.get_channel(metuple[1])
+            toMessage = await toChannel.fetch_message(metuple[2])
+            if not self.config.get(key="sync-deletions", guild=toGuild):
+                logger.debug(f"ORMU: Demurring to delete edited message at client guild request")
+            else:
+                await toMessage.delete()
+            content = fromMessage.clean_content
+            attachments = []
+            if len(fromMessage.attachments) > 0:
+                plural = ""
+                if len(fromMessage.attachments) > 1:
+                    plural = "s"
+                if (
+                    fromMessage.channel.is_nsfw()
+                    and not self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toChannelObject"].is_nsfw()
+                ):
+                    content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
+                    for attachment in fromMessage.attachments:
+                        content = f"{content}\n• <{attachment.url}>"
                 else:
-                    await toMessage.delete()
-                content = fromMessage.clean_content
-                attachments = []
-                if len(fromMessage.attachments) > 0:
-                    plural = ""
-                    if len(fromMessage.attachments) > 1:
-                        plural = "s"
-                    if (
-                        fromMessage.channel.is_nsfw()
-                        and not self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toChannelObject"].is_nsfw()
-                    ):
-                        content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
-                        for attachment in fromMessage.attachments:
-                            content = f"{content}\n• <{attachment.url}>"
-                    else:
-                        for attachment in fromMessage.attachments:
-                            logger.debug(f"Syncing {attachment.filename}")
-                            attachment_blob = io.BytesIO()
-                            await attachment.save(attachment_blob)
-                            attachments.append(
-                                discord.File(attachment_blob, attachment.filename)
-                            )
-                fromMessageName = fromMessage.author.display_name
-                if toGuild.get_member(fromMessage.author.id) is not None:
-                    fromMessageName = toGuild.get_member(
-                        fromMessage.author.id
-                    ).display_name
-                syncMessage = await self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toWebhook"].send(
-                    content=content,
-                    username=fromMessageName,
-                    avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
-                    embeds=fromMessage.embeds,
-                    tts=fromMessage.tts,
-                    files=attachments,
-                    wait=True,
-                    allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
-                )
-                cur = conn.cursor()
-                cur.execute(
-                    "UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
-                    [
-                        syncMessage.guild.id,
-                        syncMessage.channel.id,
-                        syncMessage.id,
-                        message.guild.id,
-                        message.channel.id,
-                        message.id,
-                    ],
-                )
-                conn.commit()
+                    for attachment in fromMessage.attachments:
+                        logger.debug(f"Syncing {attachment.filename}")
+                        attachment_blob = io.BytesIO()
+                        await attachment.save(attachment_blob)
+                        attachments.append(
+                            discord.File(attachment_blob, attachment.filename)
+                        )
+            fromMessageName = fromMessage.author.display_name
+            if toGuild.get_member(fromMessage.author.id) is not None:
+                fromMessageName = toGuild.get_member(
+                    fromMessage.author.id
+                ).display_name
+            syncMessage = await self.webhook_sync_registry[f"{fromMessage.guild.name}:{fromMessage.channel.name}"]["toWebhook"].send(
+                content=content,
+                username=fromMessageName,
+                avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
+                embeds=fromMessage.embeds,
+                tts=fromMessage.tts,
+                files=attachments,
+                wait=True,
+                allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
+            )
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
+                [
+                    syncMessage.guild.id,
+                    syncMessage.channel.id,
+                    syncMessage.id,
+                    message.guild.id,
+                    message.channel.id,
+                    message.id,
+                ],
+            )
+            conn.commit()
+        await self.tupper_proc(message)
 
     async def command_handler(self, message):
         global config
@@ -721,7 +724,7 @@ class CommandHandler:
             logger.info(f"{message.id} #{message.guild.name if message.guild else 'DM'}:{message.channel.name if message.guild else message.channel.recipient.name} <{user.name}:{user.id}> {message.system_content}",
                     extra={
                         "GUILD_IDENTIFIER": message.guild.name if message.guild else None,
-                        "CHANNEL_IDENTIFIER": message.channel.name,
+                        "CHANNEL_IDENTIFIER": message.channel.name if message.guild else message.channel.recipient.name,
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
