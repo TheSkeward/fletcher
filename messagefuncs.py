@@ -31,8 +31,17 @@ def expand_guild_name(
         new_guild = regex.sub(prefix + v + suffix, new_guild)
         if not global_replace and new_guild != guild:
             logger.debug(f"Replacement found {k} -> {v}")
-            return new_guild.replace("_", " ")
-    return new_guild.replace("_", " ")
+            if ":" in new_guild:
+                new_guild = new_guild.split(":", 1)
+                return new_guild[0].replace("_", " ")+":"+new_guild[1]
+            else:
+                return new_guild.replace("_", " ")
+    if ":" in new_guild:
+        new_guild = new_guild.split(":", 1)
+        return new_guild[0].replace("_", " ")+":"+new_guild[1]
+
+    else:
+        return new_guild.replace("_", " ")
 
 
 def xchannel(targetChannel, currentGuild):
