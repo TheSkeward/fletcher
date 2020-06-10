@@ -1004,9 +1004,9 @@ class CommandHandler:
                 user = channel.guild.get_member(message.author.id) or message.author
             except AttributeError:
                 user = message.author
-        globalAdmin = user.id == config["discord"].get("globalAdmin", "")
-        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
-        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", "") == "True") or serverAdmin or (type(user) is discord.Member  and user.permissions_in(channel).manage_webhooks)
+        globalAdmin = user.id == config["discord"].get("globalAdmin", 0)
+        serverAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", False)) or (type(user) is discord.Member and user.guild_permissions.manage_webhooks)
+        channelAdmin = (globalAdmin and config["discord"].get("globalAdminIsServerAdmin", False)) or serverAdmin or (type(user) is discord.Member  and user.permissions_in(channel).manage_webhooks)
         return {
                 'global': globalAdmin,
                 'server': serverAdmin,
