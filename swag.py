@@ -888,6 +888,16 @@ def join_rank_function(message, client, args):
         logger.error("JRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         return
 
+async def ttl(url, message, client, args):
+    global session
+    start = time.time()
+    try:
+        async with session.get(url, timeout=60) as response:
+            result = await response.text()
+            end = time.time()
+            await message.channel.send(f"{url}: {end - start}")
+    except asyncio.TimeoutError:
+        await message.channel.send(f"{url}: TimeoutEror")
 
 async def autounload(ch):
     global session
@@ -1145,6 +1155,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ['Article name'],
             "description": "Search wikipedia for article",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!glowup"],
+            "function": partial(ttl, "https://glowfic.com"),
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Check if Glowfic site is up",
         }
     )
     session = aiohttp.ClientSession(
