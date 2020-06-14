@@ -896,7 +896,7 @@ async def ttl(url, message, client, args):
         async with session.get(url, timeout=60) as response:
             result = await response.text()
             end = time.time()
-            await message.channel.send(f"{url}: {end - start}")
+            await message.channel.send(f"{url}: {response.code} in {end - start} seconds")
     except asyncio.TimeoutError:
         await message.channel.send(f"{url}: TimeoutEror")
 
