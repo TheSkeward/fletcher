@@ -280,7 +280,7 @@ async def roll_function(message, client, args):
                 elif args[0].startswith("coin"):
                     args[0] = [0, 2]
                 elif args[0].startswith("D&D"):
-                    result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                    result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(6)])
                     result = [v + offset for v in result]
                     response = f"Stats: {result}"
                     if comment:
@@ -295,7 +295,7 @@ async def roll_function(message, client, args):
                     if args[1].startswith("7drop1"):
                         result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
                     else:
-                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(5)])) for j in range(6)])
+                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(6)])
                     result = [v + offset for v in result]
                     response = f"Stats: {result}"
                     if comment:
