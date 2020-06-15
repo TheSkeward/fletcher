@@ -894,7 +894,7 @@ async def snooze_channel_function(message, client, args):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"SNCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.info(f"SNCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await message.channel.send(
             "Snooze forbidden! I don't have the authority to do that."
         )
