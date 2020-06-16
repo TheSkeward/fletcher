@@ -218,6 +218,7 @@ async def preview_messagelink_function(message, client, args):
             previewable_parts = []
         attachments = []
         embed = None
+        content = None
         if len(urlParts) == 3:
             guild_id = int(urlParts[0])
             channel_id = int(urlParts[1])
