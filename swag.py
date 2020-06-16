@@ -250,6 +250,10 @@ async def roll_function(message, client, args):
     def drop_lowest(arr):
         return sorted(arr)[1:]
     try:
+        if ("+" in message.content) and (" + " not in message.content):
+            args = message.content.replace("+", " + ").split(" ")[1:]
+        if ("-" in message.content) and (" - " not in message.content):
+           args = message.content.replace("-", " - ").split(" ")[1:]
         if len(args):
             if '#' in args:
                 idx = args.index('#')
