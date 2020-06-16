@@ -569,6 +569,8 @@ class CommandHandler:
                     wait=True,
                     allowed_mentions=discord.AllowedMentions(users=False, roles=False, everyone=False),
                 )
+        if not syncMessage:
+            return
         try:
             cur = conn.cursor()
             cur.execute(
