@@ -494,7 +494,7 @@ class CommandHandler:
             webhook = discord.Webhook.partial(
                 -1, "loading-forbidden", adapter=discord.RequestsWebhookAdapter()
             )
-        return await self.client.fetch_webhook(webhook_id)
+        return webhook
 
     async def bridge_message(self, message):
         global conn
