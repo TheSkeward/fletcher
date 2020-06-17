@@ -12,6 +12,7 @@ import netcode
 import greeting
 import inspect
 import janissary
+import random
 import re
 from sys import exc_info
 import textwrap
@@ -274,7 +275,7 @@ class CommandHandler:
                             except discord.Forbidden:
                                 logger.error("discord.emoteServer misconfigured!")
                             except discord.HTTPException:
-                                await emoteServer.emojis[-1].delete()
+                                await random.choice(emoteServer.emojis).delete()
                                 processed_emoji = await emoteServer.create_custom_emoji(
                                     name=reaction.emoji.name,
                                     image=image,
