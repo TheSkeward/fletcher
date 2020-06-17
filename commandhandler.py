@@ -544,6 +544,7 @@ class CommandHandler:
         toMember = bridge["toChannelObject"].guild.get_member(user.id)
         fromMessageName = toMember.display_name if toMember else user.display_name
         # wait=True: blocking call for messagemap insertions to work
+        syncMessage = None
         try:
             syncMessage = await bridge["toWebhook"].send(
                 content=content,
