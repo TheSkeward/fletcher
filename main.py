@@ -605,13 +605,10 @@ async def on_raw_message_delete(message):
             conn.commit()
             if metuple is not None:
                 toGuild = client.get_guild(metuple[0])
-                to_guild_config = ch.scope_config(guild=toGuild)
-                if to_guild_config.get("sync-deletions", "on") != "on":
-                    logger.debug(
-                        f"ORMD: Demurring to delete message at client guild request"
-                    )
-                    return
                 toChannel = toGuild.get_channel(metuple[1])
+                if not ch.config.get(key="sync-deletions", guild=toGuild, channel=toChannel):
+                    logger.debug(f"ORMD: Demurring to delete edited message at client guild request")
+                    return
                 toMessage = None
                 while not toMessage:
                     try:

@@ -640,18 +640,14 @@ class CommandHandler:
             metuple = None
         if metuple is not None:
             toGuild = self.client.get_guild(metuple[0])
-            if not self.config.get(key="sync-edits", guild=toGuild) and not message.pinned:
-                logger.debug(f"ORMU: Demurring to edit message at client guild request")
-                return
             toChannel = toGuild.get_channel(metuple[1])
             toMessage = await toChannel.fetch_message(metuple[2])
             if message.pinned:
                 await toMessage.pin()
                 return
-            if not self.config.get(key="sync-deletions", guild=toGuild):
-                logger.debug(f"ORMU: Demurring to delete edited message at client guild request")
-            else:
-                await toMessage.delete()
+            if not self.config.get(key="sync-edits", guild=toGuild, channel=toChannel):
+                logger.debug(f"ORMU: Demurring to edit message at client guild request")
+                return
             content = fromMessage.clean_content
             attachments = []
             if len(fromMessage.attachments) > 0:
