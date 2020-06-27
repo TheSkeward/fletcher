@@ -632,7 +632,9 @@ async def reaction_request_function(message, client, args):
                         target = historical_message
                         break
             if flip:
-                image = Image.open(await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{emoji.id}.png?v=1").seek(0))
+                image_blob = await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{emoji.id}.png?v=1")
+                image_blob.seek(0)
+                image = Image.open(image_blob)
                 image.flip()
                 output_image_blob = io.BytesIO()
                 image.save(output_image_blob, format="PNG", optimize=True)
