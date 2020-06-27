@@ -587,9 +587,11 @@ async def spoiler_function(message, client, args):
 
 
 async def reaction_request_function(message, client, args):
+    global config
     try:
         if not message.channel.permissions_for(message.author).external_emojis:
             return False
+        flip = message.content.startswith("!tcaerx")
         emoji_query = args[0].strip(":")
         target = None
         try:
@@ -629,6 +631,30 @@ async def reaction_request_function(message, client, args):
                     if historical_message.author != message.author:
                         target = historical_message
                         break
+            if flip:
+                image = Image.open(await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{emoji.id}.png?v=1").seek(0))
+                image.flip()
+                output_image_blob = io.BytesIO()
+                image.save(output_image_blob, format="PNG", optimize=True)
+                output_image_blob.seek(0)
+                emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
+                try:
+                    processed_emoji = await emoteServer.create_custom_emoji(
+                        name=emoji.name[::-1],
+                        image=output_image_blob,
+                        reason=f"xreact flip-o-matic",
+                    )
+                except discord.Forbidden:
+                    logger.error("discord.emoteServer misconfigured!")
+                except discord.HTTPException:
+                    output_image_blob.seek(0)
+                    await random.choice(emoteServer.emojis).delete()
+                    processed_emoji = await emoteServer.create_custom_emoji(
+                        name=emoji.name[::-1],
+                        image=output_image_blob,
+                        reason=f"xreact flip-o-matic",
+                    )
+                emoji = processed_emoji
             await target.add_reaction(emoji)
             await asyncio.sleep(1)
             try:
@@ -914,7 +940,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["!xreact"],
+            "trigger": ["!xreact", "!tcaerx"],
             "function": reaction_request_function,
             "async": True,
             "args_num": 1,
