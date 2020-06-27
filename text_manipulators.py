@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from PIL import Image
+from PIL import Image, ImageOps
 from sys import exc_info
 import asyncio
 import aiohttp
@@ -635,9 +635,9 @@ async def reaction_request_function(message, client, args):
                 image_blob = await netcode.simple_get_image(f"https://cdn.discordapp.com/emojis/{emoji.id}.png?v=1")
                 image_blob.seek(0)
                 image = Image.open(image_blob)
-                image.flip()
+                flip_image = ImageOps.flip(image)
                 output_image_blob = io.BytesIO()
-                image.save(output_image_blob, format="PNG", optimize=True)
+                flip_image.save(output_image_blob, format="PNG", optimize=True)
                 output_image_blob.seek(0)
                 emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
                 try:
