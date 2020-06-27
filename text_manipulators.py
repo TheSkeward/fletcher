@@ -620,7 +620,32 @@ async def reaction_request_function(message, client, args):
                 filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
             else:
                 filter_query = lambda m: m.name == emoji_query
-            emoji = list(filter(filter_query, client.emojis)).pop(0)
+            try:
+                emoji = list(filter(filter_query, client.emojis)).pop(0)
+            except IndexError as e:
+                if len(emoji_query) == 1:
+                    image_blob = await netcode.simple_get_image(f"https://twemoji.maxcdn.com/72x72/{hex(ord(emoji_query))[2:]}.png")
+                    image_blob.seek(0)
+                    emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
+                    try:
+                        emoji = await emoteServer.create_custom_emoji(
+                            name=emoji_query,
+                            image=image_blob.read(),
+                            reason="xreact custom copier",
+                        )
+                    except discord.Forbidden:
+                        logger.error("discord.emoteServer misconfigured!")
+                    except discord.HTTPException:
+                        image_blob.seek(0)
+                        await random.choice(emoteServer.emojis).delete()
+                        emoji = await emoteServer.create_custom_emoji(
+                            name=emoji_query,
+                            image=image_blob.read(),
+                            reason="xreact custom copier",
+                        )
+                    emoji = processed_emoji
+                else:
+                    raise e
         if len(args) >= 2 and args[-1].isnumeric() and int(args[1]) >= 1000000:
             target = await message.channel.fetch_message(int(args[-1]))
         if emoji:
