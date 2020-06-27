@@ -629,7 +629,7 @@ async def reaction_request_function(message, client, args):
                     emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
                     try:
                         emoji = await emoteServer.create_custom_emoji(
-                            name=emoji_query,
+                            name=hex(ord(emoji_query))[2:],
                             image=image_blob.read(),
                             reason="xreact custom copier",
                         )
@@ -639,7 +639,7 @@ async def reaction_request_function(message, client, args):
                         image_blob.seek(0)
                         await random.choice(emoteServer.emojis).delete()
                         emoji = await emoteServer.create_custom_emoji(
-                            name=emoji_query,
+                            name=hex(ord(emoji_query))[2:],
                             image=image_blob.read(),
                             reason="xreact custom copier",
                         )
