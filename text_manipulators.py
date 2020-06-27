@@ -643,7 +643,6 @@ async def reaction_request_function(message, client, args):
                             image=image_blob.read(),
                             reason="xreact custom copier",
                         )
-                    emoji = processed_emoji
                 else:
                     raise e
         if len(args) >= 2 and args[-1].isnumeric() and int(args[1]) >= 1000000:
