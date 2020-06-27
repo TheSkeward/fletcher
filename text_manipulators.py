@@ -639,13 +639,12 @@ async def reaction_request_function(message, client, args):
                 output_image_blob = io.BytesIO()
                 flip_image.save(output_image_blob, format="PNG", optimize=True)
                 output_image_blob.seek(0)
-                flip_name = emoji.name[::-1]
                 emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
                 try:
                     processed_emoji = await emoteServer.create_custom_emoji(
-                        name=flip_name,
-                        image=output_image_blob,
-                        reason=f"xreact flip-o-matic",
+                        name=emoji.name[::-1],
+                        image=output_image_blob.read(),
+                        reason="xreact flip-o-matic",
                     )
                 except discord.Forbidden:
                     logger.error("discord.emoteServer misconfigured!")
@@ -653,9 +652,9 @@ async def reaction_request_function(message, client, args):
                     output_image_blob.seek(0)
                     await random.choice(emoteServer.emojis).delete()
                     processed_emoji = await emoteServer.create_custom_emoji(
-                        name=flip_name,
-                        image=output_image_blob,
-                        reason=f"xreact flip-o-matic",
+                        name=emoji.name[::-1],
+                        image=output_image_blob.read(),
+                        reason="xreact flip-o-matic",
                     )
                 emoji = processed_emoji
             await target.add_reaction(emoji)
