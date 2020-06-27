@@ -405,7 +405,7 @@ async def modreport_function(message, client, args):
         plaintext = None
         automod = None
         scoped_config = ch.scope_config(guild=message.guild)
-        if scoped_config.get("moderation") != "On":
+        if not scoped_config.get("moderation"):
             logger.info(f"Moderation disabled on guild {message.guild}")
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
@@ -1377,6 +1377,82 @@ async def pin_message_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+async def self_service_channel_function(message, client, args):
+    global ch
+    try:
+        if not ch.is_admin(message.channel_mentions[0], message.author)['channel']:
+            await message.author.send('You don\'t have permission to set up a self-service channel reaction function because you don\'t have channel admin permissions.')
+            return
+        if len(args) == 3 and type(args[1]) is discord.Member:
+            if args[2] == "add":
+                try:
+                    await message.channel_mentions[0].set_permissions(
+                            args[1], read_messages=True, send_messages=True, read_message_history=True
+                            )
+                    await message.author.send(
+                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
+                            )
+                    await args[1].send(
+                            f"Added you to channel #{message.channel_mentions[0].name}"
+                            )
+                except discord.Forbidden:
+                    await message.author.send(f"I don\'t have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add.")
+            else:
+                try:
+                    await message.channel_mentions[0].set_permissions(
+                            args[1], read_messages=False, send_messages=False, read_message_history=False
+                            )
+                    await message.author.send(
+                            f"Removed {args[1]} from channel #{message.channel_mentions[0].name}"
+                        )
+                    await args[1].send(
+                            f"Removed you from channel #{message.channel_mentions[0].name}"
+                        )
+                except discord.Forbidden:
+                    await message.author.send(f"I don\'t have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal.")
+        else:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'chanselfmanage', %s) ON CONFLICT DO NOTHING;",
+                [message.author.id, message.guild.id, str(message.id)],
+            )
+            conn.commit()
+            ch.add_message_reaction_remove_handler(
+                message.id,
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": lambda message, client, args: self_service_channel_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "remove user from channel for a given message",
+                },
+            )
+            ch.add_message_reaction_handler(
+                message.id,
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": lambda message, client, args: self_service_channel_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "add user to channel for a given message",
+                },
+            )
+            await message.add_reaction('🚪')
+            await message.author.send(
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history on #{message.channel_mentions[0].name}"
+            )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("SSCF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
+
 async def login_function(message, client, args):
     global ch
     if args[0] == "pocket":
@@ -1724,34 +1800,87 @@ def autoload(ch):
         }
     )
 
-    for guild in ch.client.guilds:
-        rml = ch.config.get(guild=guild, key="role-message-list")
-        if rml and len(rml):
-            logger.debug(f"Adding role emoji handler for {guild.name}")
+    ch.add_command(
+        {
+            "trigger": ["!openchannel"],
+            "function": self_service_channel_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 1,
+            "args_name": ["#channel"],
+            "description": "Create message that will automatically add and remove users from a channel",
+        }
+    )
+
+    def load_self_service_channels(ch):
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'chanselfmanage';"
+        )
+        subtuple = cur.fetchone()
+        while subtuple:
+            message_id = int(subtuple[3])
+            logger.debug(f"adding channel management message handler {subtuple}")
             ch.add_message_reaction_remove_handler(
-                rml,
+                message_id,
                 {
-                    "trigger": [""],  # Empty string: a special catch-all trigger
-                    "function": lambda message, client, args: role_message_function(
-                        message, client, args, remove=True
-                    ),
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": lambda message, client, args: self_service_channel_function,
+                    "exclusive": True,
                     "async": True,
                     "args_num": 0,
                     "args_name": [],
-                    "description": "Assign roles based on emoji for a given message",
+                    "description": "remove user from channel for a given message",
+                },
+            )
+            ch.add_message_reaction_handler(
+                message_id,
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": lambda message, client, args: self_service_channel_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "add user to channel for a given message",
+                },
+            )
+            subtuple = cur.fetchone()
+        conn.commit()
+
+
+    for guild in ch.client.guilds:
+        rml = ch.config.get(guild=guild, key="role-message-list")
+        if rml and len(rml):
+            logger.debug(f"adding role emoji handler for {guild.name}")
+            ch.add_message_reaction_remove_handler(
+                rml,
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": lambda message, client, args: role_message_function(
+                        message, client, args, remove=true
+                    ),
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "assign roles based on emoji for a given message",
                 },
             )
             ch.add_message_reaction_handler(
                 rml,
                 {
-                    "trigger": [""],  # Empty string: a special catch-all trigger
+                    "trigger": [""],  # empty string: a special catch-all trigger
                     "function": role_message_function,
+                    "exclusive": True,
                     "async": True,
                     "args_num": 0,
                     "args_name": [],
-                    "description": "Assign roles based on emoji for a given message",
+                    "description": "assign roles based on emoji for a given message",
                 },
             )
+
+    load_self_service_channels(ch)
 
 async def autounload(ch):
     pass
