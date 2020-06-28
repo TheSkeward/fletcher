@@ -432,9 +432,9 @@ async def modreport_function(message, client, args):
         if "mod-message-suffix" in scoped_config:
             report_content = report_content + "\n" + scoped_config["mod-message-suffix"]
         if automod:
-            users = scoped_config["mod-users"].split(",")
+            users = scoped_config["mod-users"]
         else:
-            users = scoped_config["manual-mod-users"].split(",")
+            users = scoped_config["manual-mod-userslist"]
         users = list(expand_target_list(users, message.guild))
         for target in users:
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
