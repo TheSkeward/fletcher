@@ -1380,6 +1380,8 @@ async def pin_message_function(message, client, args):
 async def self_service_channel_function(message, client, args):
     global ch
     try:
+        if not len(message.channel_mentions):
+            return
         if not ch.is_admin(message.channel_mentions[0], message.author)['channel']:
             await message.author.send('You don\'t have permission to set up a self-service channel reaction function because you don\'t have channel admin permissions.')
             return
@@ -1418,10 +1420,10 @@ async def self_service_channel_function(message, client, args):
             )
             conn.commit()
             ch.add_message_reaction_remove_handler(
-                message.id,
+                [message.id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": lambda message, client, args: self_service_channel_function,
+                    "function": self_service_channel_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -1430,10 +1432,10 @@ async def self_service_channel_function(message, client, args):
                 },
             )
             ch.add_message_reaction_handler(
-                message.id,
+                [message.id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": lambda message, client, args: self_service_channel_function,
+                    "function": self_service_channel_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -1822,10 +1824,10 @@ def autoload(ch):
             message_id = int(subtuple[3])
             logger.debug(f"adding channel management message handler {subtuple}")
             ch.add_message_reaction_remove_handler(
-                message_id,
+                [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": lambda message, client, args: self_service_channel_function,
+                    "function": self_service_channel_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -1834,10 +1836,10 @@ def autoload(ch):
                 },
             )
             ch.add_message_reaction_handler(
-                message_id,
+                [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": lambda message, client, args: self_service_channel_function,
+                    "function": self_service_channel_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
