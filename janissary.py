@@ -1860,7 +1860,7 @@ def autoload(ch):
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": lambda message, client, args: role_message_function(
-                        message, client, args, remove=true
+                        message, client, args, remove=True
                     ),
                     "exclusive": True,
                     "async": True,
