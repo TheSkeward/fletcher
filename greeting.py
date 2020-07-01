@@ -331,7 +331,7 @@ async def alphabetize_channels(guild, client, config):
     try:
         position = 0
         for category_tuple in guild.by_category():
-            channels = category_tuple[1] if category_tuple[1] else category_tuple[0].channels
+            channels = category_tuple[1] if not category_tuple[0] else category_tuple[0].channels
             if category_tuple[0] and category_tuple[0].name in config.get("azsort-exclude", "").split(","):
                 position += len(channels)
                 continue
