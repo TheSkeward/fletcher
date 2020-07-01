@@ -331,10 +331,11 @@ async def alphabetize_channels(guild, client, config):
     try:
         position = 0
         for category_tuple in guild.by_category():
+            channels = category_tuple[1] if category_tuple[1] else category_tuple[0].channels
             if category_tuple[0] and category_tuple[0].name in config.get("azsort-exclude", "").split(","):
-                position += len(category_tuple[1])
+                position += len(channels)
                 continue
-            channels = list(filter(lambda channel: type(channel) == discord.TextChannel, category_tuple[1]))
+            channels = list(filter(lambda channel: type(channel) == discord.TextChannel, channels))
             az_channels = sorted(channels, key=lambda channel: channel.name)
             logger.debug(f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}')
             for channel in az_channels:
