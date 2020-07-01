@@ -337,12 +337,12 @@ async def alphabetize_channels(guild, client, config):
                 continue
             channels = list(filter(lambda channel: type(channel) == discord.TextChannel, channels))
             az_channels = sorted(channels, key=lambda channel: channel.name)
-            logger.debug(f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}', extra={'module': 'alphabetize_channels'})
+            logger.debug(f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}', extra={'MODULE': 'alphabetize_channels'})
             for channel in az_channels:
-                logger.debug(f'#{channel.name} {channel.position} -> {position}', extra={'module': 'alphabetize_channels'})
+                logger.debug(f'#{channel.name} {channel.position} -> {position}', extra={'MODULE': 'alphabetize_channels'})
                 if channel.position != position:
                     logger.info(
-                        f"Moving {channel} to {position} from {channel.position}", extra={'module': 'alphabetize_channels'}
+                        f"Moving {channel} to {position} from {channel.position}", extra={'MODULE': 'alphabetize_channels'}
                     )
                     if channel.position != 0:
                         try:
