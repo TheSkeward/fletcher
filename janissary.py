@@ -432,7 +432,7 @@ async def modreport_function(message, client, args):
         if "mod-message-suffix" in scoped_config:
             report_content = report_content + "\n" + scoped_config["mod-message-suffix"]
         if automod:
-            users = scoped_config["mod-users"]
+            users = scoped_config["mod-userslist"]
         else:
             users = scoped_config["manual-mod-userslist"]
         users = list(expand_target_list(users, message.guild))
@@ -1302,7 +1302,7 @@ async def error_report_function(error_str, guild, client):
     automod = None
     scoped_config = ch.scope_config(guild=message.guild)
     if automod:
-        users = scoped_config["mod-users"].split(",")
+        users = scoped_config["mod-userslist"]
     else:
         users = str(guild.owner.id)
     users = list(expand_target_list(users, guild))
