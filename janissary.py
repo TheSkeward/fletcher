@@ -1786,7 +1786,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!topic"],
-            "function": lambda message, client, args: '#'+message.channel.name+' topic: '+message.channel.topic,
+            "function": lambda message, client, args: f"#{message.channel.name} topic: {message.channel.topic}",
             "async": False,
             "hidden": False,
             "args_num": 0,
