@@ -449,12 +449,18 @@ def expand_target_list(targets, guild):
     inputs = list(targets)
     targets = set()
     for target in inputs:
-        if target.startswith("r:"):
-            members = guild.get_role(int(target[2:])).members
-            targets.update(set(members))
-        elif target.startswith("c:"):
-            channel = guild.get_channel(int(target[2:]))
-            targets.add(channel)
+        if type(target) == str:
+            if target.startswith("r:"):
+                members = guild.get_role(int(target[2:])).members
+                targets.update(set(members))
+            elif target.startswith("c:"):
+                channel = guild.get_channel(int(target[2:]))
+                targets.add(channel)
+            else:
+                try:
+                    targets.add(guild.get_member(int(target)))
+                except ValueError:
+                    logger.info('Misconfiguration: could not expand {target}')
         else:
             # ID asssumed to be targets
             targets.add(guild.get_member(int(target)))
