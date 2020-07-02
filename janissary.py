@@ -440,6 +440,8 @@ async def modreport_function(message, client, args):
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
             if message.channel.is_nsfw():
                 await modmail.add_reaction("🕜")
+    except KeyError as e:
+        await error_report_function(f"{e} config key missing", message.guild, client)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"MRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1307,10 +1309,7 @@ async def error_report_function(error_str, guild, client):
     global ch
     automod = None
     scoped_config = ch.scope_config(guild=message.guild)
-    if automod:
-        users = scoped_config["mod-userslist"]
-    else:
-        users = str(guild.owner.id)
+    users = scoped_config.get("mod-userslist") or guild.owner.id
     users = list(expand_target_list(users, guild))
     for target in users:
         modmail = await messagefuncs.sendWrappedMessage(report_content, target)
