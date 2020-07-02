@@ -90,7 +90,7 @@ async def sendWrappedMessage(msg, target, files=[], embed=None):
 
 
 extract_identifiers_messagelink = re.compile(
-        "(?<!<)https?://(?:ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)", re.IGNORECASE
+        "(?<!<)https?://(?:canary\.|ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)", re.IGNORECASE
 )
 
 
