@@ -16,6 +16,7 @@ import random
 import re
 from sys import exc_info
 import textwrap
+import traceback
 import ujson
 from functools import lru_cache, partial
 from sentry_sdk import configure_scope
@@ -346,6 +347,7 @@ class CommandHandler:
                 if "cur" in locals() and "conn" in locals():
                     conn.rollback()
                 exc_type, exc_obj, exc_tb = exc_info()
+                logger.debug(traceback.format_exc())
                 logger.error(f"RXH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def reaction_remove_handler(self, reaction):
