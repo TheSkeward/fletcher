@@ -446,7 +446,7 @@ class CommandHandler:
         scoped_config = self.scope_config(guild=before.guild)
         if type(before) == discord.TextChannel and before.name != after.name:
             logger.info(
-                f"#{before.guild.name}:{before.channel.name} <name> Name changed from {before.name} to {after.name}",
+                f"#{before.guild.name}:{before.name} <name> Name changed from {before.name} to {after.name}",
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
                     "CHANNEL_IDENTIFIER": before.channel.name,
@@ -457,7 +457,7 @@ class CommandHandler:
                 await after.send(scoped_confg.get("name_change_notify_prefix", "Name changed from {before.name} to {after.name}").format(before=before, after=after))
         if type(before) == discord.TextChannel and before.topic != after.topic:
             logger.info(
-                f"#{before.guild.name}:{before.channel.name} <topic> Topic changed from {before.topic} to {after.topic}",
+                f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
                     "CHANNEL_IDENTIFIER": before.channel.name,
@@ -1397,6 +1397,22 @@ WHERE p.key = 'tupper';
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+    def load_self_service_channels(ch):
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'chanselfmanage';"
+        )
+        subtuple = cur.fetchone()
+        while subtuple:
+            (message_id, channel_id) = subtuple[3].split(",")
+            guild_config = ch.scope_config(guild=int(subtuple[1]), mutable=True)
+            if not guild_config.get("chanselfmanage"):
+                guild_config["chanselfmanage"] = {}
+            if not guild_config["chanselfmanage"].get(int(message_id)):
+                guild_config["chanselfmanage"][int(message_id)] = int(channel_id)
+            subtuple = cur.fetchone()
+        conn.commit()
+
     def load_react_notifications(ch):
         cur = conn.cursor()
         cur.execute(
@@ -1419,6 +1435,8 @@ WHERE p.key = 'tupper';
     load_tuppers(ch)
     logger.debug('LUHW')
     load_hotwords(ch)
+    logger.debug('LSSC')
+    load_self_service_channels(ch)
 
 def preference_function(message, client, args):
     global ch
