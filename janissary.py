@@ -434,7 +434,7 @@ async def modreport_function(message, client, args):
         if automod:
             users = scoped_config["mod-userslist"]
         else:
-            users = scoped_config.get("manual-mod-userslist") or message.guild.owner.id
+            users = scoped_config.get("manual-mod-userslist") or list(message.guild.owner.id)
         users = list(expand_target_list(users, message.guild))
         for target in users:
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
@@ -448,7 +448,10 @@ async def modreport_function(message, client, args):
 
 
 def expand_target_list(targets, guild):
-    inputs = list(targets)
+    try:
+        inputs = list(targets)
+    except TypeError:
+        inputs = [targets]
     targets = set()
     for target in inputs:
         if type(target) == str:
@@ -1382,6 +1385,48 @@ async def pin_message_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
+async def invite_function(message, client, args):
+    global ch
+    try:
+        channel = message.channel
+        name = " ".join(args)
+        member = message.guild.get_member_named(name)
+        # if not member:
+        #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
+        if not member:
+            await message.author.send(f'Could not find user matching {name}')
+            return
+        try:
+            target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
+            await target.add_reaction("✅")
+        except discord.Forbidden:
+            return await message.author.send(f"Couldn't send invite to {member}: discord.Forbidden")
+        try:
+            reaction, user = await client.wait_for(
+                "reaction_add",
+                timeout=60000.0*24,
+                check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
+                and (user == member),
+            )
+        except asyncio.TimeoutError:
+            await target.edit(message=f"{target.message}\nInvite expired due to timeout.")
+            await message.remove_reaction("✅", client.user)
+            return
+        try:
+            await channel.set_permissions(
+                member,
+                read_messages=True,
+                read_message_history=True,
+                send_messages=True,
+                reason="Invited by channel admin",
+            )
+            await message.author.send(f"{member} accepted your invite to {channel.mention}")
+        except discord.Forbidden:
+            return await message.author.send(f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden")
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 async def self_service_channel_function(message, client, args):
     global ch
     try:
@@ -1804,6 +1849,19 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["[pocket]"],
             "description": "Authenticate with an external service",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!invite"],
+            "function": invite_function,
+            "async": True,
+            "hidden": False,
+            "admin": "channel",
+            "args_num": 1,
+            "args_name": ["Username (optional discriminator)"],
+            "description": "Invite user to the current channel",
         }
     )
 
