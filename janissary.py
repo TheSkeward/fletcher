@@ -1396,22 +1396,23 @@ async def invite_function(message, client, args):
         if not member:
             await message.author.send(f'Could not find user matching {name}')
             return
-        try:
-            target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
-            await target.add_reaction("✅")
-        except discord.Forbidden:
-            return await message.author.send(f"Couldn't send invite to {member}: discord.Forbidden")
-        try:
-            reaction, user = await client.wait_for(
-                "reaction_add",
-                timeout=60000.0*24,
-                check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
-                and (user == member),
-            )
-        except asyncio.TimeoutError:
-            await target.edit(message=f"{target.message}\nInvite expired due to timeout.")
-            await message.remove_reaction("✅", client.user)
-            return
+        if not member.bot:
+            try:
+                target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
+                await target.add_reaction("✅")
+            except discord.Forbidden:
+                return await message.author.send(f"Couldn't send invite to {member}: discord.Forbidden")
+            try:
+                reaction, user = await client.wait_for(
+                    "reaction_add",
+                    timeout=60000.0*24,
+                    check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
+                    and (user == member),
+                )
+            except asyncio.TimeoutError:
+                await target.edit(message=f"{target.message}\nInvite expired due to timeout.")
+                await message.remove_reaction("✅", client.user)
+                return
         try:
             await channel.set_permissions(
                 member,
