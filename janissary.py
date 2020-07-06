@@ -1390,12 +1390,14 @@ async def invite_function(message, client, args):
     try:
         channel = message.channel
         name = " ".join(args)
-        member = message.guild.get_member_named(name)
+        member = ch.get_member_name(message.guild, name)
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
         if not member:
             await message.author.send(f'Could not find user matching {name}')
             return
+        else:
+            await message.add_reaction("🔜")
         if not member.bot:
             try:
                 target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
@@ -1422,6 +1424,8 @@ async def invite_function(message, client, args):
                 reason="Invited by channel admin",
             )
             await message.author.send(f"{member} accepted your invite to {channel.mention}")
+            await message.remove_reaction("🔜", client.user)
+            await message.add_reaction("✅")
         except discord.Forbidden:
             return await message.author.send(f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden")
     except Exception as e:
