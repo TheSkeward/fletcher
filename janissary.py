@@ -1390,7 +1390,7 @@ async def invite_function(message, client, args):
     try:
         channel = message.channel
         name = " ".join(args)
-        member = ch.get_member_name(message.guild, name)
+        member = ch.get_member_named(message.guild, name)
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
         if not member:
