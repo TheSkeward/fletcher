@@ -1221,7 +1221,8 @@ async def add_inbound_sync_function(message, client, args):
             await message.author.send("Insufficient target channel permissions")
             return
 
-        await message.add_reaction("🔜")
+        soon = client.get_emoji(664472443053932604) or "🔜"
+        await message.add_reaction(bluesoon)
         await message.channel.create_webhook(
             name=config.get("discord", dict()).get("botNavel", "botNavel")
             + " ("
@@ -1231,7 +1232,7 @@ async def add_inbound_sync_function(message, client, args):
             + ")",
             reason=f"On behalf of {message.author.name}",
         )
-        await message.remove_reaction("🔜", client.user)
+        await message.remove_reaction(soon, client.user)
         await message.add_reaction("✅")
         if ch.scope_config(guild=message.guild).get("synchronize", "off") != "on":
             await message.author.send("Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun")
@@ -1391,13 +1392,14 @@ async def invite_function(message, client, args):
         channel = message.channel
         name = " ".join(args)
         member = ch.get_member_named(message.guild, name)
+        soon = client.get_emoji(664472443053932604) or "🔜"
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
         if not member:
             await message.author.send(f'Could not find user matching {name}')
             return
         else:
-            await message.add_reaction("🔜")
+            await message.add_reaction(soon)
         if not member.bot:
             try:
                 target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
@@ -1424,7 +1426,7 @@ async def invite_function(message, client, args):
                 reason="Invited by channel admin",
             )
             await message.author.send(f"{member} accepted your invite to {channel.mention}")
-            await message.remove_reaction("🔜", client.user)
+            await message.remove_reaction(soon, client.user)
             await message.add_reaction("✅")
         except discord.Forbidden:
             return await message.author.send(f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden")
