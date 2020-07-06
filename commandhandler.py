@@ -1059,6 +1059,40 @@ class CommandHandler:
             return True
 
 
+    def get_member_named(self, guild, name, allow_insensitive=True):
+        result = None
+        members = guild.members
+        if len(name) > 5 and name[-5] == '#':
+            # The 5 length is checking to see if #0000 is in the string,
+            # as a#0000 has a length of 6, the minimum for a potential
+            # discriminator lookup.
+            potential_discriminator = name[-4:]
+
+            # do the actual lookup and return if found
+            # if it isn't found then we'll do a full name lookup below.
+            result = discord.utils.get(members, name=name[:-5], discriminator=potential_discriminator)
+            if result is not None:
+                return result
+
+        result = discord.utils.find(lambda m: m.name == name, members)
+        if result is not None:
+            return result
+
+        result = discord.utils.find(lambda m: m.nick == name, members)
+        if result is not None:
+            return result
+
+        if not allow_insensitive:
+            return None
+
+        name = name.lower()
+        result = discord.utils.find(lambda m: name == m.name.lower(), members)
+        if result is not None:
+            return result
+
+        result = discord.utils.find(lambda m: name == m.nick.lower(), members)
+        if result is not None:
+            return result
 
     def accessible_commands(self, message, user=None):
         global config
@@ -1422,40 +1456,6 @@ WHERE p.key = 'tupper';
     logger.debug('LUHW')
     load_hotwords(ch)
 
-    def get_member_named(self, guild, name, allow_insensitive=True):
-        result = None
-        members = self.members
-        if len(name) > 5 and name[-5] == '#':
-            # The 5 length is checking to see if #0000 is in the string,
-            # as a#0000 has a length of 6, the minimum for a potential
-            # discriminator lookup.
-            potential_discriminator = name[-4:]
-
-            # do the actual lookup and return if found
-            # if it isn't found then we'll do a full name lookup below.
-            result = utils.get(members, name=name[:-5], discriminator=potential_discriminator)
-            if result is not None:
-                return result
-
-        result = utils.find(lambda m: m.name == name, members)
-        if result is not None:
-            return result
-
-        result = utils.find(lambda m: m.nick == name, members)
-        if result is not None:
-            return result
-
-        if not allow_insensitive:
-            return None
-
-        name = name.lower()
-        result = utils.find(lambda m: name == m.name.lower(), members)
-        if result is not None:
-            return result
-
-        result = utils.find(lambda m: name == m.nick.lower(), members)
-        if result is not None:
-            return result
 
 def preference_function(message, client, args):
     global ch
