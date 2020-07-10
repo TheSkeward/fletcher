@@ -278,7 +278,7 @@ async def roll_function(message, client, args):
             else:
                 offset = 0
                 offset_str = None
-            if -1e6 < offset < 1e9:
+            if -10e6 < offset < 10e6:
                 raise ValueError("That offset seems like a bit much, don't you think?")
             if len(args) == 1:
                 if "d" in args[0].lower():
