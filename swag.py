@@ -281,17 +281,17 @@ async def roll_function(message, client, args):
             if not ( -10e6 < offset < 10e6 ):
                 raise ValueError("That offset seems like a bit much, don't you think?")
             if len(args) == 1:
-                if "d" in args[0].lower():
-                    args[0] = args[0].lower().split("d")
-                elif args[0].startswith("coin"):
-                    args[0] = [0, 2]
-                elif args[0].startswith("D&D"):
+                if args[0].startswith("D&D"):
                     result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(6)])
                     result = [v + offset for v in result]
                     response = f"Stats: {result}"
                     if comment:
                         response = f"> {comment}\n{response}"
                     return await messagefuncs.sendWrappedMessage(response, message.channel)
+                elif "d" in args[0].lower():
+                    args[0] = args[0].lower().split("d")
+                elif args[0].startswith("coin"):
+                    args[0] = [0, 2]
                 elif args[0].isnumeric():
                     args[0] = [args[0], 0]
                 else:
