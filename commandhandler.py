@@ -180,6 +180,9 @@ class CommandHandler:
                 global config
                 messageContent = str(reaction.emoji)
                 channel = self.client.get_channel(reaction.channel_id)
+                if not channel:
+                    logger.info("Channel does not exist")
+                    return
                 message = await channel.fetch_message(reaction.message_id)
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
@@ -1108,16 +1111,16 @@ class CommandHandler:
         admin[False] = True
         if admin['global']:
             def command_filter(c):
-                return admin[c.get('admin')] and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('globalAdminIgnoresBlacklists', True))
+                return admin[c.get('admin')] and (guild_id in c.get("whitelist_guild", [guild_id])) and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('globalAdminIgnoresBlacklists', True))
         elif admin['server']:
             def command_filter(c):
-                return admin[c.get('admin')] and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('serverAdminIgnoresBlacklists', False))
+                return admin[c.get('admin')] and (guild_id in c.get("whitelist_guild", [guild_id])) and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('serverAdminIgnoresBlacklists', False))
         elif admin['channel']:
             def command_filter(c):
-                return admin[c.get('admin')] and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('channelAdminIgnoresBlacklists', False))
+                return admin[c.get('admin')] and (guild_id in c.get("whitelist_guild", [guild_id])) and ((guild_id not in c.get("blacklist_guild", [])) or config['discord'].get('channelAdminIgnoresBlacklists', False))
         else:
             def command_filter(c):
-                return admin[c.get('admin')] and (guild_id not in c.get("blacklist_guild", []))
+                return admin[c.get('admin')] and (guild_id in c.get("whitelist_guild", [guild_id])) and (guild_id not in c.get("blacklist_guild", []))
 
         try:
             return list(filter(command_filter, self.commands))
