@@ -112,6 +112,10 @@ async def teleport_function(message, client, args):
         toChannel = None
         try:
             toChannel = xchannel(toChannelName, fromGuild)
+        except AttributeError:
+            await message.add_reaction("🚫")
+            await fromChannel.send("Cannot teleport out of a DMChannel.", delete_after=60)
+            return
         except ValueError:
             pass
         if toChannel is None:
