@@ -475,8 +475,8 @@ async def on_message(message):
  
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
             logger.debug(traceback.format_exc())
+            logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
 
 
 # on message update (for webhooks only for now)
@@ -503,6 +503,7 @@ async def on_raw_message_edit(payload):
                 extra["CHANNEL_IDENTIFIER"] = fromChannel.name
             if fromGuild:
                 extra["GUILD_IDENTIFIER"] = fromGuild.name
+            logger.debug(traceback.format_exc())
             logger.warning(
                 f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra=extra
             )
