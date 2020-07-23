@@ -181,7 +181,7 @@ class FletcherConfig:
         elif key is not None and section is     None and guild is not None and channel is not None:
             value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(key, None)
             if not value and use_category_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d} - {category:d}").get(key, None)
+                value = self.config_dict.get(f"Guild {guild:d} - {category:d}", {}).get(key, None)
             if not value and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(key, None)
             if not value:
