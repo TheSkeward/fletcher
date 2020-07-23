@@ -275,7 +275,7 @@ async def preview_messagelink_function(message, client, args):
                     + plural
                     + " attached"
                 )
-                if target_message.channel.is_nsfw() and not message.channel.is_nsfw():
+                if target_message.channel.is_nsfw() and (type(message.channel) is discord.DMChannel or not message.channel.is_nsfw()):
                     content = content + " from an R18 channel."
                     for attachment in target_message.attachments:
                         content = content + "\n• <" + attachment.url + ">"
