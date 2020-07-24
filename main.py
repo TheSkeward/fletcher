@@ -795,6 +795,9 @@ async def doissetep_omega_autoconnect():
             # Reset canticum_message when reloaded [workaround for https://todo.sr.ht/~nova/fletcher/6]
             canticum_message = None
             return doissetep_omega
+        except discord.ClientException as e:
+            logger.debug('Omega connected already')
+            pass
         except asyncio.exceptions.TimeoutError as e:
             logger.debug('Omega timeout')
             pass
