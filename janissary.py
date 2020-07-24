@@ -434,7 +434,7 @@ async def modreport_function(message, client, args):
         if automod:
             users = scoped_config["mod-userslist"]
         else:
-            users = scoped_config.get("manual-mod-userslist") or [message.guild.owner.id]
+            users = scoped_config.get("manual-mod-userslist", [message.guild.owner.id])
         users = list(expand_target_list(users, message.guild))
         for target in users:
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
