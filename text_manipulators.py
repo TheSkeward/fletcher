@@ -624,7 +624,7 @@ async def reaction_request_function(message, client, args):
                 if len(emoji):
                     emoji = emoji.pop(0)
                 else:
-                    image_blob = await netcode.simple_get_image(f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png")
+                    image_blob = await netcode.simple_get_image(f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query[0]))[2:]}.png")
                     image_blob.seek(0)
                     emoteServer = client.get_guild(config.get(section='discord', key='emoteServer', default=0))
                     try:
