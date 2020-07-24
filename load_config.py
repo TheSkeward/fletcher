@@ -22,7 +22,7 @@ class FletcherConfig:
                     guild_config.optionxform = str
                     guild_config.read(f'{config["extra"]["rc-path"]}/{file_name}')
                     for section_name, section in guild_config.items():
-                        if section_name == "DEFAULT":
+                        if section_name.lower() in ["default", "general"]:
                             section_key = f"Guild {file_name}"
                         else:
                             section_key = f"Guild {file_name} - {section_name}"

@@ -454,7 +454,7 @@ class CommandHandler:
                 f"#{before.guild.name}:{before.name} <name> Name changed from {before.name} to {after.name}",
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
-                    "CHANNEL_IDENTIFIER": before.channel.name,
+                    "CHANNEL_IDENTIFIER": before.name,
                     "SENT_COM_SCORE": sent_com_score,
                 },
             )
@@ -465,7 +465,7 @@ class CommandHandler:
                 f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
-                    "CHANNEL_IDENTIFIER": before.channel.name,
+                    "CHANNEL_IDENTIFIER": before.name,
                     "SENT_COM_SCORE": sent_com_score,
                 },
             )
