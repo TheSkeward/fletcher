@@ -469,6 +469,7 @@ def expand_target_list(targets, guild):
         else:
             # ID asssumed to be targets
             targets.add(guild.get_member(int(target)))
+    targets.discard(None)
     return targets
 
 
