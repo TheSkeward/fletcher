@@ -1137,6 +1137,9 @@ async def copy_permissions_function(message, client, args):
 
 async def copy_emoji_function(message, client, args):
     try:
+        if not message.author.permissions_in(message.channel).manage_emojis:
+            await message.add_reaction("🚫")
+            return
         if len(args) == 2:
             url = args[0] if '.' in args[0] else args[1]
             emoji_name = args[1] if url == args[0] else args[0]
@@ -1733,7 +1736,6 @@ def autoload(ch):
             "trigger": ["!copy_emoji", "!esteal"],
             "function": copy_emoji_function,
             "async": True,
-            "admin": "server",
             "args_num": 1,
             "args_name": ["reaction name", "offset (optional)"],
             "description": "Copy emoji to this server",
