@@ -6,13 +6,18 @@ import logging
 
 logger = logging.getLogger("fletcher")
 
+
 class FletcherConfig:
     config_dict = None
+
     def __init__(self, base_config_path=os.getenv("FLETCHER_CONFIG", "./.fletcherrc")):
         config = configparser.ConfigParser()
         config.optionxform = str
         config.read(base_config_path)
-        config = {s: {k: self.normalize(v, key=k) for k, v in dict(config.items(s)).items()} for s in config.sections()}
+        config = {
+            s: {k: self.normalize(v, key=k) for k, v in dict(config.items(s)).items()}
+            for s in config.sections()
+        }
         self.config_dict = config
 
         if os.path.isdir(config.get("extra", {}).get("rc-path", "/unavailable")):
@@ -40,36 +45,34 @@ class FletcherConfig:
                                 k = k[1]
                                 if subsection_key not in config[section_key]:
                                     config[section_key][subsection_key] = {}
-                                config[section_key][subsection_key][k] = self.normalize(v, key=k)
+                                config[section_key][subsection_key][k] = self.normalize(
+                                    v, key=k
+                                )
                             else:
                                 config[section_key][k] = self.normalize(v, key=k)
         self.config_dict = config
         self.defaults = {
-                "database": {
-                    "engine": "postgres",
-                    "user": "fletcher_user",
-                    "tablespace": "fletcher",
-                    "host": "localhost"
-                    },
-                "discord": {
-                    "botNavel": "ƒ",
-                    "botLogName": "fletcher",
-                    "globalAdminIsServerAdmin": True,
-                    "profile": False
-                    },
-                "nickmask": {
-                    "conflictbots": [431544605209788416],
-                    }
-                }
+            "database": {
+                "engine": "postgres",
+                "user": "fletcher_user",
+                "tablespace": "fletcher",
+                "host": "localhost",
+            },
+            "discord": {
+                "botNavel": "ƒ",
+                "botLogName": "fletcher",
+                "globalAdminIsServerAdmin": True,
+                "profile": False,
+            },
+            "nickmask": {"conflictbots": [431544605209788416],},
+        }
         self.guild_defaults = {
-                "synchronize": False,
-                "sync-deletions": True,
-                "sync-edits": True,
-                "blacklist-commands": []
-                }
-        self.channel_defaults = {
-                "synchronize": False
-                }
+            "synchronize": False,
+            "sync-deletions": True,
+            "sync-edits": True,
+            "blacklist-commands": [],
+        }
+        self.channel_defaults = {"synchronize": False}
 
     def clone(self):
         return copy.deepcopy(self)
@@ -110,9 +113,9 @@ class FletcherConfig:
         if type(value) is list:
             return value
         elif ", " in value or value.startswith(" ") or value.endswith(" "):
-            return self.str_to_array(value,strip=True) or []
+            return self.str_to_array(value, strip=True) or []
         elif "," in value:
-            return self.str_to_array(value,strip=False) or []
+            return self.str_to_array(value, strip=False) or []
         elif strict:
             return None
         else:
@@ -126,14 +129,29 @@ class FletcherConfig:
         elif "list" in key:
             return [self.normalize(v) for v in self.normalize_array(value)]
         else:
-            return self.normalize_numbers(self.normalize_booleans(value, strict=False), strict=False)
+            return self.normalize_numbers(
+                self.normalize_booleans(value, strict=False), strict=False
+            )
 
     def __getitem__(self, key):
         return self.get(key=key)
 
-    def get(self, key=None, default=None, section=None, guild=None, channel=None, use_category_as_channel_fallback=True, use_guild_as_channel_fallback=True):
+    def get(
+        self,
+        key=None,
+        default=None,
+        section=None,
+        guild=None,
+        channel=None,
+        use_category_as_channel_fallback=True,
+        use_guild_as_channel_fallback=True,
+    ):
         if guild is None and channel:
-            if type(channel) in [discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]:
+            if type(channel) in [
+                discord.TextChannel,
+                discord.VoiceChannel,
+                discord.CategoryChannel,
+            ]:
                 guild = channel.guild
             else:
                 guild = 0
@@ -141,57 +159,126 @@ class FletcherConfig:
             guild = guild.id
         if hasattr(channel, "id"):
             channel = channel.id
-        if guild and channel and self.client.get_guild(guild).get_channel(channel).category_id:
+        if (
+            guild
+            and channel
+            and self.client.get_guild(guild).get_channel(channel).category_id
+        ):
             category = self.client.get_guild(guild).get_channel(channel).category_id
         else:
             category = None
         value = None
-        if   key is     None and section is     None and guild is     None and channel is     None:
+        if key is None and section is None and guild is None and channel is None:
             value = self.config_dict or self.defaults
-        elif key is not None and section is     None and guild is     None and channel is     None:
+        elif key is not None and section is None and guild is None and channel is None:
             value = self.config_dict.get(key, self.defaults.get(key))
-        elif key is     None and section is not None and guild is     None and channel is     None:
+        elif key is None and section is not None and guild is None and channel is None:
             value = self.config_dict.get(section, self.defaults.get(section, {}))
-        elif key is not None and section is not None and guild is     None and channel is     None:
+        elif (
+            key is not None
+            and section is not None
+            and guild is None
+            and channel is None
+        ):
             value = self.config_dict.get(section, {}).get(key, None)
             if value is None:
                 value = self.defaults.get(section, {}).get(key, None)
-        elif key is     None and section is     None and guild is not None and channel is     None:
+        elif key is None and section is None and guild is not None and channel is None:
             value = self.config_dict.get(f"Guild {guild:d}", self.guild_defaults)
-        elif key is not None and section is     None and guild is not None and channel is     None:
+        elif (
+            key is not None
+            and section is None
+            and guild is not None
+            and channel is None
+        ):
             value = self.config_dict.get(f"Guild {guild:d}", {}).get(key, None)
             if value is None:
                 value = self.guild_defaults.get(key, None)
-        elif key is     None and section is not None and guild is not None and channel is     None:
+        elif (
+            key is None
+            and section is not None
+            and guild is not None
+            and channel is None
+        ):
             value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, None)
             if value is None:
                 value = self.guild_defaults.get(section, {})
-        elif key is not None and section is not None and guild is not None and channel is     None:
-            value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, {}).get(key, None)
+        elif (
+            key is not None
+            and section is not None
+            and guild is not None
+            and channel is None
+        ):
+            value = (
+                self.config_dict.get(f"Guild {guild:d}", {})
+                .get(section, {})
+                .get(key, None)
+            )
             if value is None:
                 value = self.guild_defaults.get(section, {}).get(key, None)
-        elif key is     None and section is     None and guild is     None and channel is not None:
-            raise ValueError("Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]")
-        elif key is not None and section is     None and guild is     None and channel is not None:
-            raise ValueError("Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]")
-        elif key is     None and section is not None and guild is     None and channel is not None:
-            raise ValueError("Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]")
-        elif key is not None and section is not None and guild is     None and channel is not None:
-            raise ValueError("Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]")
-        elif key is not None and section is     None and guild is not None and channel is not None:
-            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(key, None)
+        elif key is None and section is None and guild is None and channel is not None:
+            raise ValueError(
+                "Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]"
+            )
+        elif (
+            key is not None
+            and section is None
+            and guild is None
+            and channel is not None
+        ):
+            raise ValueError(
+                "Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]"
+            )
+        elif (
+            key is None
+            and section is not None
+            and guild is None
+            and channel is not None
+        ):
+            raise ValueError(
+                "Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]"
+            )
+        elif (
+            key is not None
+            and section is not None
+            and guild is None
+            and channel is not None
+        ):
+            raise ValueError(
+                "Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]"
+            )
+        elif (
+            key is not None
+            and section is None
+            and guild is not None
+            and channel is not None
+        ):
+            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(
+                key, None
+            )
             if not value and use_category_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d} - {category:d}", {}).get(key, None)
+                value = self.config_dict.get(f"Guild {guild:d} - {category:d}", {}).get(
+                    key, None
+                )
             if not value and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(key, None)
             if not value:
                 value = self.channel_defaults.get(key, None)
             if not value and use_guild_as_channel_fallback:
                 value = self.guild_defaults.get(key, None)
-        elif key is     None and section is not None and guild is not None and channel is not None:
-            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(section, None)
+        elif (
+            key is None
+            and section is not None
+            and guild is not None
+            and channel is not None
+        ):
+            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(
+                section, None
+            )
             if not value and use_category_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d} - {category:d}").get(section, None)
+                value = self.config_dict.get(f"Guild {guild:d} - {category:d}").get(
+                    section, None
+                )
             if not value and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, None)
             if not value:
@@ -200,12 +287,29 @@ class FletcherConfig:
                 value = self.guild_defaults.get(section, None)
             if not value:
                 value = {}
-        elif key is not None and section is not None and guild is not None and channel is not None:
-            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(section, {}).get(key, None)
+        elif (
+            key is not None
+            and section is not None
+            and guild is not None
+            and channel is not None
+        ):
+            value = (
+                self.config_dict.get(f"Guild {guild:d} - {channel:d}", {})
+                .get(section, {})
+                .get(key, None)
+            )
             if not value and use_category_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d} - {category:d}").get(section, {}).get(key, None)
+                value = (
+                    self.config_dict.get(f"Guild {guild:d} - {category:d}")
+                    .get(section, {})
+                    .get(key, None)
+                )
             if not value and use_guild_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, {}).get(key, None)
+                value = (
+                    self.config_dict.get(f"Guild {guild:d}", {})
+                    .get(section, {})
+                    .get(key, None)
+                )
             if not value:
                 value = self.channel_defaults.get(section, {}).get(key, None)
             if not value and use_guild_as_channel_fallback:
@@ -215,9 +319,13 @@ class FletcherConfig:
         return value
 
     def __contains__(self, key):
-        if   type(key) in [discord.Guild]:
+        if type(key) in [discord.Guild]:
             return f"Guild {guild.id:d}" in self.config_dict
-        elif type(key) in [discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel]:
+        elif type(key) in [
+            discord.TextChannel,
+            discord.VoiceChannel,
+            discord.CategoryChannel,
+        ]:
             return f"Guild {key.guild.id:d} - {key.id:d}" in self.config_dict
         elif type(key) in [discord.DMChannel]:
             return f"Guild 0 - {key.recipient.id:d}" in self.config_dict

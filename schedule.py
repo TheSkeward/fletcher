@@ -14,10 +14,15 @@ logger = logging.getLogger("fletcher")
 
 schedule_extract_channelmention = re.compile("(?:<#)(\d+)")
 
+
 class ScheduleFunctions:
     def is_my_ban(identity, target):
         permissions = target.overwrites_for(identity)
-        return permissions.read_messages == False and permissions.send_messages == False and permissions.embed_links == False
+        return (
+            permissions.read_messages == False
+            and permissions.send_messages == False
+            and permissions.embed_links == False
+        )
 
     async def table(target_message, user, cached_content, mode_args, created_at):
         return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
@@ -110,7 +115,9 @@ class ScheduleFunctions:
         for channel in channels:
             if ScheduleFunctions.is_my_ban(user, channel):
                 if type(overwrites) == dict:
-                    overwrite_params = overwrites[f"{channel.guild.name}:{channel.name}"]
+                    overwrite_params = overwrites[
+                        f"{channel.guild.name}:{channel.name}"
+                    ]
                 else:
                     overwrite_params = overwrites
                 overwrite = discord.PermissionOverwrite(**dict(overwrite_params))
@@ -128,16 +135,28 @@ class ScheduleFunctions:
                         f"TXF: Forbidden to overwrite permissions for {user} in {channel.name} ({channel.guild.name})! Bailing out."
                     )
                     if not is_glob:
-                        channel_log += [f"{channel.guild.name}:{channel.name} (failed to overwrite for this channel, Fletcher may not have sufficient permissions anymore)"]
+                        channel_log += [
+                            f"{channel.guild.name}:{channel.name} (failed to overwrite for this channel, Fletcher may not have sufficient permissions anymore)"
+                        ]
         if not is_glob:
             channel_log = ", ".join(channel_log)
         return f"Permission overwrite triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
+
 modes = {
-        "table": commandhandler.Command(description="tabled a discussion", function=ScheduleFunctions.table, sync=False),
-        "unban": commandhandler.Command(description="snoozed a channel", function=ScheduleFunctions.unban, sync=False),
-        "overwrite": commandhandler.Command(description="snoozed a single channel and kept the overwrite intact", function=ScheduleFunctions.overwrite, sync=False)
-        }
+    "table": commandhandler.Command(
+        description="tabled a discussion", function=ScheduleFunctions.table, sync=False
+    ),
+    "unban": commandhandler.Command(
+        description="snoozed a channel", function=ScheduleFunctions.unban, sync=False
+    ),
+    "overwrite": commandhandler.Command(
+        description="snoozed a single channel and kept the overwrite intact",
+        function=ScheduleFunctions.overwrite,
+        sync=False,
+    ),
+}
+
 
 async def table_exec_function():
     try:
@@ -175,7 +194,7 @@ async def table_exec_function():
                 logger.info(f"PMF: Fletcher is not in guild {guild_id}")
                 await messagefuncs.sendWrappedMessage(
                     f"You {mode_desc} in a server that Fletcher no longer services, so this request cannot be fulfilled. The content of the command is reproduced below: {content}",
-                    user
+                    user,
                 )
                 processed_ctids += [ctid]
                 tabtuple = cur.fetchone()
@@ -187,7 +206,12 @@ async def table_exec_function():
                 # created_at is naîve, but specified as UTC by Discord API docs
             except (discord.NotFound, AttributeError) as e:
                 pass
-            await messagefuncs.sendWrappedMessage(await modes[mode].function(target_message, user, content, mode_args, created_at), user)
+            await messagefuncs.sendWrappedMessage(
+                await modes[mode].function(
+                    target_message, user, content, mode_args, created_at
+                ),
+                user,
+            )
             processed_ctids += [ctid]
             tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
@@ -235,7 +259,8 @@ async def table_function(message, client, args):
                         message.content,
                         interval,
                     ),
-                args[1])
+                    args[1],
+                )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
@@ -261,6 +286,7 @@ def autoload(ch):
     except NameError:
         pass
     reminder_timerhandle = asyncio.create_task(table_exec_function())
+
 
 async def autounload(ch):
     global reminder_timerhandle

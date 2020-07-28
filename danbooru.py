@@ -111,6 +111,7 @@ async def autounload(ch):
     if session:
         await session.close()
 
+
 def autoload(ch):
     global config
     global search_results_cache

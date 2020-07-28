@@ -33,12 +33,12 @@ def expand_guild_name(
             logger.debug(f"Replacement found {k} -> {v}")
             if ":" in new_guild:
                 new_guild = new_guild.split(":", 1)
-                return new_guild[0].replace("_", " ")+":"+new_guild[1]
+                return new_guild[0].replace("_", " ") + ":" + new_guild[1]
             else:
                 return new_guild.replace("_", " ")
     if ":" in new_guild:
         new_guild = new_guild.split(":", 1)
-        return new_guild[0].replace("_", " ")+":"+new_guild[1]
+        return new_guild[0].replace("_", " ") + ":" + new_guild[1]
 
     else:
         return new_guild.replace("_", " ")
@@ -90,7 +90,8 @@ async def sendWrappedMessage(msg, target, files=[], embed=None):
 
 
 extract_identifiers_messagelink = re.compile(
-        "(?<!<)https?://(?:canary\.|ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)", re.IGNORECASE
+    "(?<!<)https?://(?:canary\.|ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)",
+    re.IGNORECASE,
 )
 
 
@@ -102,11 +103,15 @@ async def teleport_function(message, client, args):
         fromChannel = message.channel
         fromGuild = message.guild
         if (
-            fromChannel.id in config.get(section="teleport", key="fromchannel-banlist", default=[])
+            fromChannel.id
+            in config.get(section="teleport", key="fromchannel-banlist", default=[])
             and not message.author.guild_permissions.manage_webhooks
         ):
             await message.add_reaction("🚫")
-            await fromChannel.send("Portals out of this channel have been administratively disabled.", delete_after=60)
+            await fromChannel.send(
+                "Portals out of this channel have been administratively disabled.",
+                delete_after=60,
+            )
             return
         toChannelName = args[0].strip()
         toChannel = None
@@ -114,38 +119,56 @@ async def teleport_function(message, client, args):
             toChannel = xchannel(toChannelName, fromGuild)
         except AttributeError:
             await message.add_reaction("🚫")
-            await fromChannel.send("Cannot teleport out of a DMChannel.", delete_after=60)
+            await fromChannel.send(
+                "Cannot teleport out of a DMChannel.", delete_after=60
+            )
             return
         except ValueError:
             pass
         if toChannel is None:
             await message.add_reaction("🚫")
-            await fromChannel.send(f"Could not find channel {toChannelName}, please check for typos.", delete_after=60)
+            await fromChannel.send(
+                f"Could not find channel {toChannelName}, please check for typos.",
+                delete_after=60,
+            )
             return
         toGuild = toChannel.guild
         if fromChannel.id == toChannel.id:
             await message.add_reaction("🚫")
-            await fromChannel.send("You cannot open an overlapping portal! Access denied.", delete_after=60)
+            await fromChannel.send(
+                "You cannot open an overlapping portal! Access denied.", delete_after=60
+            )
             return
         if not toChannel.permissions_for(
             toGuild.get_member(message.author.id)
         ).send_messages:
             await message.add_reaction("🚫")
-            await fromChannel.send("You do not have permission to post in that channel! Access denied.", delete_after=60)
+            await fromChannel.send(
+                "You do not have permission to post in that channel! Access denied.",
+                delete_after=60,
+            )
             return
         logger.debug("Entering in " + str(fromChannel))
         try:
-            fromMessage = await fromChannel.send(f"Opening Portal To <#{toChannel.id}> ({toGuild.name})")
+            fromMessage = await fromChannel.send(
+                f"Opening Portal To <#{toChannel.id}> ({toGuild.name})"
+            )
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
-            await message.author.send(content=f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied.")
+            await message.author.send(
+                content=f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied."
+            )
             return
         try:
             logger.debug("Exiting in " + str(toChannel))
-            toMessage = await toChannel.send(f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})")
+            toMessage = await toChannel.send(
+                f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})"
+            )
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
-            await fromMessage.edit(content="Failed to open portal due to missing permissions! Access denied.")
+            await fromMessage.edit(
+                content="Failed to open portal due to missing permissions! Access denied."
+            )
             return
         embedTitle = f"Portal opened to #{toChannel.name}"
         if toGuild != fromGuild:
@@ -166,7 +189,9 @@ async def teleport_function(message, client, args):
         if config["teleport"]["embeds"] == "on":
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await fromMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>")
+            tmp = await fromMessage.edit(
+                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
+            )
         embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
         if toGuild != fromGuild:
@@ -182,7 +207,9 @@ async def teleport_function(message, client, args):
         if config["teleport"]["embeds"] == "on":
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
-            tmp = await toMessage.edit(content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>")
+            tmp = await toMessage.edit(
+                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
+            )
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
                 await message.delete()
@@ -197,7 +224,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+)",
     re.IGNORECASE,
 )
 
@@ -261,7 +288,9 @@ async def preview_messagelink_function(message, client, args):
                     sent_at,
                     content,
                 )
-            if target_message.channel.is_nsfw() and not (type(message.channel) is discord.DMChannel or message.channel.is_nsfw()):
+            if target_message.channel.is_nsfw() and not (
+                type(message.channel) is discord.DMChannel or message.channel.is_nsfw()
+            ):
                 content = extract_links.sub(r"<\g<0>>", content)
             if len(target_message.attachments) > 0:
                 plural = ""
@@ -275,7 +304,10 @@ async def preview_messagelink_function(message, client, args):
                     + plural
                     + " attached"
                 )
-                if target_message.channel.is_nsfw() and (type(message.channel) is discord.DMChannel or not message.channel.is_nsfw()):
+                if target_message.channel.is_nsfw() and (
+                    type(message.channel) is discord.DMChannel
+                    or not message.channel.is_nsfw()
+                ):
                     content = content + " from an R18 channel."
                     for attachment in target_message.attachments:
                         content = content + "\n• <" + attachment.url + ">"
@@ -307,21 +339,25 @@ async def preview_messagelink_function(message, client, args):
                 import versionutils
 
                 embed = await versionutils.buglist_function(
-                        message, client, [previewable_parts[0].split("/")[-1], "INTPROC"]
-                    )
+                    message, client, [previewable_parts[0].split("/")[-1], "INTPROC"]
+                )
                 content = "Todo Preview"
             elif "vine" in previewable_parts[0]:
                 import swag
 
                 attachments = [
                     await swag.vine_function(
-                        message, client, [previewable_parts[0].split("/")[-1], "INTPROC"]
+                        message,
+                        client,
+                        [previewable_parts[0].split("/")[-1], "INTPROC"],
                     )
                 ]
                 content = "Vine Preview"
         # TODO 🔭 to preview?
         if content:
-            return await sendWrappedMessage(content, message.channel, files=attachments, embed=embed)
+            return await sendWrappedMessage(
+                content, message.channel, files=attachments, embed=embed
+            )
     except discord.Forbidden as e:
         await message.author.send(
             f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
@@ -363,40 +399,50 @@ async def messagelink_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("MLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
-url_search = re.compile("(?:(?:[\w]+:)?//)?(?:(?:[\d\w]|%[a-fA-f\d]{2,2})+(?::(?:[\d\w]|%[a-fA-f\d]{2,2})+)?@)?(?:[\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(?::[\d]+)?(?:/(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(?:\?(?:&?(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(?:#(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?")
+
+url_search = re.compile(
+    "(?:(?:[\w]+:)?//)?(?:(?:[\d\w]|%[a-fA-f\d]{2,2})+(?::(?:[\d\w]|%[a-fA-f\d]{2,2})+)?@)?(?:[\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(?::[\d]+)?(?:/(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(?:\?(?:&?(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(?:#(?:[-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?"
+)
+
 
 async def bookmark_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
             if str(args[0].emoji) == "🔖":
                 bookmark_message = "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} via reaction to {}".format(
-                        message.channel.name,
-                        message.guild.name,
-                        message.guild.id,
-                        message.channel.id,
-                        message.id,
-                        message.content,
-                    )
+                    message.channel.name,
+                    message.guild.name,
+                    message.guild.id,
+                    message.channel.id,
+                    message.id,
+                    message.content,
+                )
                 await sendWrappedMessage(bookmark_message, args[1])
                 urls = url_search.findall(message.content)
                 if not len(urls):
                     return
-                pocket_consumer_key = ch.config.get(section="pocket", key="consumer_key")
+                pocket_consumer_key = ch.config.get(
+                    section="pocket", key="consumer_key"
+                )
                 if not pocket_consumer_key:
                     logger.debug("No pocket_consumer_key set")
                     return
-                pocket_access_token = ch.user_config(args[1].id, None, 'pocket_access_token')
+                pocket_access_token = ch.user_config(
+                    args[1].id, None, "pocket_access_token"
+                )
                 if not pocket_access_token:
                     return
                 for url in url_search.findall(message.content):
-                    logger.debug(f'Pocketing {url}')
+                    logger.debug(f"Pocketing {url}")
                     async with aiohttp.ClientSession() as session:
                         params = aiohttp.FormData()
                         params.add_field("title", message.content)
                         params.add_field("url", url)
                         params.add_field("consumer_key", pocket_consumer_key)
                         params.add_field("access_token", pocket_access_token)
-                        async with session.post("https://getpocket.com/v3/add", data=params):
+                        async with session.post(
+                            "https://getpocket.com/v3/add", data=params
+                        ):
                             return
             elif str(args[0].emoji) == "🔗":
                 return await args[1].send(
@@ -407,14 +453,16 @@ async def bookmark_function(message, client, args):
         else:
             await sendWrappedMessage(
                 "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
-                    message.channel.recipient if type(message.channel) is discord.DMChannel else message.channel.name,
+                    message.channel.recipient
+                    if type(message.channel) is discord.DMChannel
+                    else message.channel.name,
                     message.guild.name,
                     message.guild.id,
                     message.channel.id,
                     message.id,
                     " ".join(args),
                 ),
-                message.author
+                message.author,
             )
             return await message.add_reaction("✅")
     except Exception as e:
@@ -573,6 +621,7 @@ def autoload(ch):
             "description": "Subscribe to reaction notifications on this message",
         }
     )
+
 
 async def autounload(ch):
     pass

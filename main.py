@@ -18,10 +18,12 @@ import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 
 sentry_sdk.init(
-        dsn="https://7654ff657b6447d78c3eee40151c9414@sentry.io/1842241",
-        integrations=[AioHttpIntegration()],
-        before_send=lambda event, hint: None if type(event) in [discord.ConnectionClosed] else event
-        )
+    dsn="https://7654ff657b6447d78c3eee40151c9414@sentry.io/1842241",
+    integrations=[AioHttpIntegration()],
+    before_send=lambda event, hint: None
+    if type(event) in [discord.ConnectionClosed]
+    else event,
+)
 import signal
 import traceback
 
@@ -110,6 +112,7 @@ fletcher=# \d qdb
 logger = logging.getLogger("fletcher")
 
 import load_config
+
 config = load_config.FletcherConfig()
 
 # Enable logging to SystemD
@@ -188,8 +191,8 @@ async def load_webhooks(ch=None):
                         )
                         try:
                             webhook_sync_registry[
-                                    f"{fromGuild.id}:{webhook.id}"
-                                    ] = fromChannelName
+                                f"{fromGuild.id}:{webhook.id}"
+                            ] = fromChannelName
                         except AttributeError:
                             logger.debug(f"LWH: fromGuild.id not defined")
                             continue
@@ -472,11 +475,14 @@ async def on_message(message):
                     await asyncio.sleep(1)
                 break
             await ch.command_handler(message)
- 
+
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.debug(traceback.format_exc())
-            logger.error(f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message.id)})
+            logger.error(
+                f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}",
+                extra={"MESSAGE_ID": str(message.id)},
+            )
 
 
 # on message update (for webhooks only for now)
@@ -540,7 +546,10 @@ async def on_raw_message_edit(payload):
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug(traceback.format_exc())
-        logger.error(f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", extra={"MESSAGE_ID": str(message_id)})
+        logger.error(
+            f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e}",
+            extra={"MESSAGE_ID": str(message_id)},
+        )
 
 
 # on message deletion (for webhooks only for now)
@@ -608,8 +617,12 @@ async def on_raw_message_delete(message):
             if metuple is not None:
                 toGuild = client.get_guild(metuple[0])
                 toChannel = toGuild.get_channel(metuple[1])
-                if not ch.config.get(key="sync-deletions", guild=toGuild, channel=toChannel):
-                    logger.debug(f"ORMD: Demurring to delete edited message at client guild request")
+                if not ch.config.get(
+                    key="sync-deletions", guild=toGuild, channel=toChannel
+                ):
+                    logger.debug(
+                        f"ORMD: Demurring to delete edited message at client guild request"
+                    )
                     return
                 toMessage = None
                 while not toMessage:
@@ -796,13 +809,14 @@ async def doissetep_omega_autoconnect():
             canticum_message = None
             return doissetep_omega
         except discord.ClientException as e:
-            logger.debug('Omega connected already')
+            logger.debug("Omega connected already")
             pass
         except asyncio.exceptions.TimeoutError as e:
-            logger.debug('Omega timeout')
+            logger.debug("Omega timeout")
             pass
         except AttributeError as e:
             logger.exception(e)
+
 
 loop = asyncio.get_event_loop()
 

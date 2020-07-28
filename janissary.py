@@ -465,7 +465,7 @@ def expand_target_list(targets, guild):
                 try:
                     targets.add(guild.get_member(int(target)))
                 except ValueError:
-                    logger.info('Misconfiguration: could not expand {target}')
+                    logger.info("Misconfiguration: could not expand {target}")
         else:
             # ID asssumed to be targets
             targets.add(guild.get_member(int(target)))
@@ -677,7 +677,8 @@ async def lockout_user_function(message, client, args):
                                 read_messages=False,
                                 read_message_history=False,
                                 send_messages=False,
-                                reason="Admin requested lockout obo " + message.author.name,
+                                reason="Admin requested lockout obo "
+                                + message.author.name,
                             )
                             logMessage = (
                                 str(member)
@@ -689,7 +690,9 @@ async def lockout_user_function(message, client, args):
                             logger.debug("LUF: " + logMessage)
                             log = log + "\n" + logMessage
                         except discord.Forbidden as e:
-                            message.author.send(f'Forbidden to set permissions on {channel}')
+                            message.author.send(
+                                f"Forbidden to set permissions on {channel}"
+                            )
         await messagefuncs.sendWrappedMessage(log, message.author)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -854,7 +857,12 @@ async def snooze_channel_function(message, client, args):
                 interval = float(args[0])
             except (ValueError, IndexError):
                 interval = float(24)
-        overwrites = "overwrite " + ujson.dumps({f"{guild.name}:{channel.name}": channel.overwrites_for(message.author) for channel in channels})
+        overwrites = "overwrite " + ujson.dumps(
+            {
+                f"{guild.name}:{channel.name}": channel.overwrites_for(message.author)
+                for channel in channels
+            }
+        )
         if type(interval) == float:
             cur.execute(
                 f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, NOW() + INTERVAL '{interval} hours', '{overwrites}');",
@@ -961,16 +969,16 @@ async def sudo_function(message, client, args):
 async def role_message_function(message, client, args, remove=False):
     try:
         reaction, user, mode = args
-        role = ch.config.get(key=f"role-message-{reaction.emoji}", default=0, guild=message.guild)
+        role = ch.config.get(
+            key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
+        )
         if not role:
             logger.debug("No matching role")
             return
         if type(role) is int:
             role = message.guild.get_role(role)
         else:
-            role = discord.utils.get(
-                message.guild.roles, name=role
-            )
+            role = discord.utils.get(message.guild.roles, name=role)
         if not role:
             error_message = f"Matching role {role} not found for reaction role-message-{reaction.emoji} to role-message {message.id}"
             raise exceptions.MisconfigurationException(error_message)
@@ -978,7 +986,9 @@ async def role_message_function(message, client, args, remove=False):
             await message.guild.get_member(user.id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
             )
-            if args[0].emoji in ch.config.get(key="role-message-autodelete", guild=message.guild, default=[]):
+            if args[0].emoji in ch.config.get(
+                key="role-message-autodelete", guild=message.guild, default=[]
+            ):
                 await message.remove_reaction(reaction.emoji, user)
         else:
             await message.guild.get_member(user.id).remove_roles(
@@ -986,7 +996,9 @@ async def role_message_function(message, client, args, remove=False):
             )
     except (discord.Forbidden, exceptions.MisconfigurationException) as e:
         exc_type, exc_obj, exc_tb = exc_info()
-        await messagefuncs.sendWrappedMessage(f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", message.guild.owner)
+        await messagefuncs.sendWrappedMessage(
+            f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}", message.guild.owner
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"RMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1141,15 +1153,20 @@ async def copy_emoji_function(message, client, args):
             await message.add_reaction("🚫")
             return
         if len(args) == 2:
-            url = args[0] if '.' in args[0] else args[1]
+            url = args[0] if "." in args[0] else args[1]
             emoji_name = args[1] if url == args[0] else args[0]
             emoji = None
         else:
             emoji_query = args.pop(0).strip(":")
             if ":" in emoji_query:
                 emoji_query = emoji_query.split(":")
-                emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
-                filter_query = lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
+                emoji_query[0] = messagefuncs.expand_guild_name(
+                    emoji_query[0], suffix=""
+                )
+                filter_query = (
+                    lambda m: m.name == emoji_query[1]
+                    and m.guild.name == emoji_query[0]
+                )
             else:
                 filter_query = lambda m: m.name == emoji_query
             emoji = list(filter(filter_query, client.emojis))
@@ -1158,7 +1175,9 @@ async def copy_emoji_function(message, client, args):
             elif len(emoji):
                 emoji = emoji[0]
             else:
-                await message.channel.send("Emoji not found on any Fletcher-enabled server.")
+                await message.channel.send(
+                    "Emoji not found on any Fletcher-enabled server."
+                )
                 return
             if len(args) > 0:
                 emoji_name = args.pop(0)
@@ -1166,7 +1185,9 @@ async def copy_emoji_function(message, client, args):
                 emoji_name = emoji.name
             url = emoji.url
         if url:
-            target = await message.channel.send(f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?")
+            target = await message.channel.send(
+                f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?"
+            )
             await target.add_reaction("✅")
             try:
                 reaction, user = await client.wait_for(
@@ -1203,7 +1224,7 @@ async def clear_inbound_sync_function(message, client, args):
         for webhook in await message.channel.webhooks():
             if webhook.name.startswith(
                 config.get("discord", dict()).get("botNavel", "botNavel") + " ("
-                ):
+            ):
                 await webhook.delete()
         await message.add_reaction("✅")
     except Exception as e:
@@ -1220,7 +1241,7 @@ async def add_inbound_sync_function(message, client, args):
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
         toAdmin = ch.is_admin(toChannel, message.author)
-        if not toAdmin['channel']:
+        if not toAdmin["channel"]:
             await message.add_reaction("🚫")
             await message.author.send("Insufficient target channel permissions")
             return
@@ -1239,7 +1260,9 @@ async def add_inbound_sync_function(message, client, args):
         await message.remove_reaction(soon, client.user)
         await message.add_reaction("✅")
         if ch.scope_config(guild=message.guild).get("synchronize", "off") != "on":
-            await message.author.send("Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun")
+            await message.author.send(
+                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun"
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1304,14 +1327,15 @@ async def voice_opt_out(message, client, args):
         ):
             if voice_channel.permissions_for(message.author).connect:
                 await voice_channel.set_permissions(
-                        message.author, connect=False, read_messages=False
-                        )
+                    message.author, connect=False, read_messages=False
+                )
                 logger.debug(f"Removed {message.author} from {voice_channel}")
         await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_bj, exc_tb = exc_info()
         logger.error(f"VOO[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await message.add_reaction("🚫")
+
 
 async def error_report_function(error_str, guild, client):
     global ch
@@ -1321,6 +1345,7 @@ async def error_report_function(error_str, guild, client):
     users = list(expand_target_list(users, guild))
     for target in users:
         modmail = await messagefuncs.sendWrappedMessage(report_content, target)
+
 
 async def delete_my_message_function(message, client, args):
     global config
@@ -1344,7 +1369,9 @@ async def set_slowmode_function(message, client, args):
         if len(message.channel_mentions) > 0:
             target = message.channel_mentions[0]
             if not message.author.permissions_in(target).manage_webhooks:
-                logger.warning("SSMF: Forbidden to set slowmode without target admin privileges")
+                logger.warning(
+                    "SSMF: Forbidden to set slowmode without target admin privileges"
+                )
                 return
         else:
             target = message.channel
@@ -1360,35 +1387,63 @@ async def unpin_message_function(message, client, args):
     global ch
     try:
         scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
-        if scoped_config.get('allow_unprivileged_unpins', False) == 'On' or (scoped_config.get('allow_unprivileged_selfunpins', False) == 'On' and message.author == args[1]) or ch.is_admin(message, user=args[1])['channel']:
+        if (
+            scoped_config.get("allow_unprivileged_unpins", False) == "On"
+            or (
+                scoped_config.get("allow_unprivileged_selfunpins", False) == "On"
+                and message.author == args[1]
+            )
+            or ch.is_admin(message, user=args[1])["channel"]
+        ):
             try:
                 await message.unpin()
             except discord.HTTPException:
-                await args[1].send('Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.')
+                await args[1].send(
+                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again."
+                )
             except discord.Forbidden:
-                await args[1].send('I don\'t have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.')
+                await args[1].send(
+                    "I don't have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again."
+                )
         else:
-            await args[1].send('Server is not configured to allow you to unpin messages in this channel. Ask an admin to set `allow_unprivileged_unpins` or `allow_unprivileged_selfunpins` to `On` to use this feature.')
+            await args[1].send(
+                "Server is not configured to allow you to unpin messages in this channel. Ask an admin to set `allow_unprivileged_unpins` or `allow_unprivileged_selfunpins` to `On` to use this feature."
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"UPMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 
 async def pin_message_function(message, client, args):
     global ch
     try:
         scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
-        if scoped_config.get('allow_unprivileged_pins', False) == 'On' or (scoped_config.get('allow_unprivileged_selfpins', False) == 'On' and message.author == args[1]) or ch.is_admin(message, user=args[1])['channel']:
+        if (
+            scoped_config.get("allow_unprivileged_pins", False) == "On"
+            or (
+                scoped_config.get("allow_unprivileged_selfpins", False) == "On"
+                and message.author == args[1]
+            )
+            or ch.is_admin(message, user=args[1])["channel"]
+        ):
             try:
                 await message.pin()
             except discord.HTTPException:
-                await args[1].send('Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.')
+                await args[1].send(
+                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again."
+                )
             except discord.Forbidden:
-                await args[1].send('I don\'t have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.')
+                await args[1].send(
+                    "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again."
+                )
         else:
-            await args[1].send('Server is not configured to allow you to pin messages in this channel. Ask an admin to set `allow_unprivileged_pins` or `allow_unprivileged_selfpins` to `On` to use this feature.')
+            await args[1].send(
+                "Server is not configured to allow you to pin messages in this channel. Ask an admin to set `allow_unprivileged_pins` or `allow_unprivileged_selfpins` to `On` to use this feature."
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 
 async def invite_function(message, client, args):
     global ch
@@ -1400,25 +1455,31 @@ async def invite_function(message, client, args):
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
         if not member:
-            await message.author.send(f'Could not find user matching {name}')
+            await message.author.send(f"Could not find user matching {name}")
             return
         else:
             await message.add_reaction(soon)
         if not member.bot:
             try:
-                target = await member.send(f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅")
+                target = await member.send(
+                    f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅"
+                )
                 await target.add_reaction("✅")
             except discord.Forbidden:
-                return await message.author.send(f"Couldn't send invite to {member}: discord.Forbidden")
+                return await message.author.send(
+                    f"Couldn't send invite to {member}: discord.Forbidden"
+                )
             try:
                 reaction, user = await client.wait_for(
                     "reaction_add",
-                    timeout=60000.0*24,
+                    timeout=60000.0 * 24,
                     check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
                     and (user == member),
                 )
             except asyncio.TimeoutError:
-                await target.edit(message=f"{target.message}\nInvite expired due to timeout.")
+                await target.edit(
+                    message=f"{target.message}\nInvite expired due to timeout."
+                )
                 await message.remove_reaction("✅", client.user)
                 return
         try:
@@ -1429,50 +1490,67 @@ async def invite_function(message, client, args):
                 send_messages=True,
                 reason="Invited by channel admin",
             )
-            await message.author.send(f"{member} accepted your invite to {channel.mention}")
+            await message.author.send(
+                f"{member} accepted your invite to {channel.mention}"
+            )
             await message.remove_reaction(soon, client.user)
             await message.add_reaction("✅")
         except discord.Forbidden:
-            return await message.author.send(f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden")
+            return await message.author.send(
+                f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden"
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 
 async def self_service_channel_function(message, client, args):
     global ch
     try:
         if not len(message.channel_mentions):
             return
-        if not ch.is_admin(message.channel_mentions[0], message.author)['channel']:
-            await message.author.send('You don\'t have permission to set up a self-service channel reaction function because you don\'t have channel admin permissions.')
+        if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
+            await message.author.send(
+                "You don't have permission to set up a self-service channel reaction function because you don't have channel admin permissions."
+            )
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add":
                 try:
                     await message.channel_mentions[0].set_permissions(
-                            args[1], read_messages=True, send_messages=True, read_message_history=True
-                            )
+                        args[1],
+                        read_messages=True,
+                        send_messages=True,
+                        read_message_history=True,
+                    )
                     await message.author.send(
-                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
-                            )
+                        f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
+                    )
                     await args[1].send(
-                            f"Added you to channel #{message.channel_mentions[0].name}"
-                            )
+                        f"Added you to channel #{message.channel_mentions[0].name}"
+                    )
                 except discord.Forbidden:
-                    await message.author.send(f"I don\'t have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add.")
+                    await message.author.send(
+                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add."
+                    )
             else:
                 try:
                     await message.channel_mentions[0].set_permissions(
-                            args[1], read_messages=False, send_messages=False, read_message_history=False
-                            )
+                        args[1],
+                        read_messages=False,
+                        send_messages=False,
+                        read_message_history=False,
+                    )
                     await message.author.send(
-                            f"Removed {args[1]} from channel #{message.channel_mentions[0].name}"
-                        )
+                        f"Removed {args[1]} from channel #{message.channel_mentions[0].name}"
+                    )
                     await args[1].send(
-                            f"Removed you from channel #{message.channel_mentions[0].name}"
-                        )
+                        f"Removed you from channel #{message.channel_mentions[0].name}"
+                    )
                 except discord.Forbidden:
-                    await message.author.send(f"I don\'t have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal.")
+                    await message.author.send(
+                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal."
+                    )
         else:
             cur = conn.cursor()
             cur.execute(
@@ -1504,7 +1582,7 @@ async def self_service_channel_function(message, client, args):
                     "description": "add user to channel for a given message",
                 },
             )
-            await message.add_reaction('🚪')
+            await message.add_reaction("🚪")
             await message.author.send(
                 f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history on #{message.channel_mentions[0].name}"
             )
@@ -1515,21 +1593,32 @@ async def self_service_channel_function(message, client, args):
         logger.error("SSCF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
-
 async def login_function(message, client, args):
     global ch
     if args[0] == "pocket":
         async with aiohttp.ClientSession() as session:
             params = aiohttp.FormData()
-            params.add_field("consumer_key", ch.config.get(section='pocket', key='consumer_key'))
-            params.add_field("redirect_uri", ch.config.get(section='pocket', key='redirect_uri'))
+            params.add_field(
+                "consumer_key", ch.config.get(section="pocket", key="consumer_key")
+            )
+            params.add_field(
+                "redirect_uri", ch.config.get(section="pocket", key="redirect_uri")
+            )
             params.add_field("state", str(message.author.id))
-            async with session.post("https://getpocket.com/v3/oauth/request", data=params) as resp:
+            async with session.post(
+                "https://getpocket.com/v3/oauth/request", data=params
+            ) as resp:
                 request_body = (await resp.read()).decode("UTF-8")
                 request_token = request_body.split("=")[1]
-                return await messagefuncs.sendWrappedMessage(f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}%3Frequest_token%3D{request_token}", message.channel)
+                return await messagefuncs.sendWrappedMessage(
+                    f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}%3Frequest_token%3D{request_token}",
+                    message.channel,
+                )
     else:
-        return await messagefuncs.sendWrappedMessage(f"Could not find matching service login flow for {args[0]}", message.channel)
+        return await messagefuncs.sendWrappedMessage(
+            f"Could not find matching service login flow for {args[0]}", message.channel
+        )
+
 
 def autoload(ch):
     ch.add_command(
@@ -1808,7 +1897,7 @@ def autoload(ch):
             "hidden": False,
             "admin": "channel",
             "args_num": 1,
-            "args_name": ['Seconds'],
+            "args_name": ["Seconds"],
             "description": "Set channel slow-mode time",
         }
     )
@@ -1923,7 +2012,6 @@ def autoload(ch):
             subtuple = cur.fetchone()
         conn.commit()
 
-
     for guild in ch.client.guilds:
         rml = ch.config.get(guild=guild, key="role-message-list")
         if rml and len(rml):
@@ -1956,6 +2044,7 @@ def autoload(ch):
             )
 
     load_self_service_channels(ch)
+
 
 async def autounload(ch):
     pass

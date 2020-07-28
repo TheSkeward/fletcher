@@ -55,31 +55,35 @@ async def buglist_function(message, client, args):
             # The HTML on this page does not lend itself to parsing :( Might be worth contributing a patch to upstream, if for no other reason than to get OpenGraph tags working (https://git.sr.ht/~sircmpwn/todo.sr.ht)
             root = html.document_fromstring(request_body)
             # -18 to chop " -- sr.ht todo"
-            embed = discord.Embed(
-                    title=root.xpath("//title")[0].text[:-18], url=source_url
-                    ).add_field(
+            embed = (
+                discord.Embed(title=root.xpath("//title")[0].text[:-18], url=source_url)
+                .add_field(
                     name="Status",
                     value=root.xpath('//dt[.="Status"]/following-sibling::dd/strong')[
                         0
-                        ].text.strip(),
+                    ].text.strip(),
                     inline=True,
-                    ).add_field(
+                )
+                .add_field(
                     name="Submitter",
                     value=root.xpath('//dt[.="Submitter"]/following-sibling::dd/a')[
                         0
-                        ].text.strip(),
+                    ].text.strip(),
                     inline=True,
-                    ).add_field(
+                )
+                .add_field(
                     name="Updated",
                     value=root.xpath('//dt[.="Updated"]/following-sibling::dd/span')[
                         0
-                        ].text.strip(),
+                    ].text.strip(),
                     inline=True,
-                    ).set_footer(
+                )
+                .set_footer(
                     icon_url="https://download.lin.anticlack.com/fletcher/sr.ht.favicon.png",
                     text="On behalf of {}".format(message.author.display_name),
-                    )
-        if args[-1] == 'INTPROC':
+                )
+            )
+        if args[-1] == "INTPROC":
             return embed
         else:
             await message.channel.send(embed=embed)
@@ -120,6 +124,7 @@ def autoload(ch):
             "description": "Tell user about the status",
         }
     )
+
 
 async def autounload(ch):
     pass

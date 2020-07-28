@@ -41,7 +41,9 @@ async def restorerole_function(member, client, config):
         )
         await member.edit(nick=name, roles=roles, reason="Restoring Previous Roles")
     except discord.Forbidden as e:
-        await member.guild.owner.send(f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}')
+        await member.guild.owner.send(
+            f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}'
+        )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
@@ -331,22 +333,39 @@ async def alphabetize_channels(guild, client, config):
     try:
         position = 0
         for category_tuple in guild.by_category():
-            channels = category_tuple[1] if not category_tuple[0] else category_tuple[0].channels
-            if category_tuple[0] and category_tuple[0].name in config.get("azsort-exclude", "").split(","):
+            channels = (
+                category_tuple[1]
+                if not category_tuple[0]
+                else category_tuple[0].channels
+            )
+            if category_tuple[0] and category_tuple[0].name in config.get(
+                "azsort-exclude", ""
+            ).split(","):
                 position += len(channels)
                 continue
-            channels = list(filter(lambda channel: type(channel) == discord.TextChannel, channels))
+            channels = list(
+                filter(lambda channel: type(channel) == discord.TextChannel, channels)
+            )
             az_channels = sorted(channels, key=lambda channel: channel.name)
-            logger.debug(f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}', extra={'FLETCHER_MODULE': 'alphabetize_channels'})
+            logger.debug(
+                f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}',
+                extra={"FLETCHER_MODULE": "alphabetize_channels"},
+            )
             for channel in az_channels:
-                logger.debug(f'#{channel.name} {channel.position} -> {position}', extra={'FLETCHER_MODULE': 'alphabetize_channels'})
+                logger.debug(
+                    f"#{channel.name} {channel.position} -> {position}",
+                    extra={"FLETCHER_MODULE": "alphabetize_channels"},
+                )
                 if channel.position != position:
                     logger.info(
-                        f"Moving {channel} to {position} from {channel.position}", extra={'FLETCHER_MODULE': 'alphabetize_channels'}
+                        f"Moving {channel} to {position} from {channel.position}",
+                        extra={"FLETCHER_MODULE": "alphabetize_channels"},
                     )
                     if channel.position != 0:
                         try:
-                            await channel.edit(position=position, reason="Alphabetizing")
+                            await channel.edit(
+                                position=position, reason="Alphabetizing"
+                            )
                         except discord.InvalidArgument as e:
                             # Ignore issues with position being too high for voice channels
                             pass
@@ -366,6 +385,7 @@ def autoload(ch):
     ch.add_join_handler("chanban", chanban_join_function)
     ch.add_reload_handler("chanban", chanban_reload_function)
     ch.add_reload_handler("azsort", alphabetize_channels)
+
 
 async def autounload(ch):
     pass

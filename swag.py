@@ -125,8 +125,9 @@ async def retrowave_function(message, client, args):
                 root.xpath('//a[@class="download-button"]')[0].attrib["href"]
             ) as resp:
                 buffer = io.BytesIO(await resp.read())
-            return await message.channel.send(f"On behalf of {message.author.display_name}",
-                files=[discord.File(buffer, "retrowave.jpg")]
+            return await message.channel.send(
+                f"On behalf of {message.author.display_name}",
+                files=[discord.File(buffer, "retrowave.jpg")],
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -141,35 +142,38 @@ async def wiki_otd_function(message, client, args):
             date = "_".join(args)
         else:
             date = chronos.get_now(message=message).strftime("%B_%-d")
-        logger.debug(f'WOTD: chronos thinks today is {date}')
+        logger.debug(f"WOTD: chronos thinks today is {date}")
         async with session.get(url) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
-            titlebar = root.xpath(f'//div[@id="toc"]/following::a[@href="/wiki/{date}"]')[1].getparent().getparent()
-            embedPreview = discord.Embed(
-                title=titlebar
-                .text_content()
-                .strip(),
-                url=url,
-            ).set_thumbnail(
+            titlebar = (
+                root.xpath(f'//div[@id="toc"]/following::a[@href="/wiki/{date}"]')[1]
+                .getparent()
+                .getparent()
+            )
+            embedPreview = (
+                discord.Embed(title=titlebar.text_content().strip(), url=url,)
+                .set_thumbnail(
                     url=f'https:{titlebar.getnext().xpath("//img")[0].attrib["src"]}'
-            ).set_footer(
-                icon_url=message.author.avatar_url,
-                text="Wikipedia \"On This Day {}\" on behalf of {}".format(
-                    date.replace("_", " "), message.author.display_name
-                ),
+                )
+                .set_footer(
+                    icon_url=message.author.avatar_url,
+                    text='Wikipedia "On This Day {}" on behalf of {}'.format(
+                        date.replace("_", " "), message.author.display_name
+                    ),
+                )
             )
             for li in titlebar.getnext().getnext():
                 embedPreview.add_field(
-                        name=li[0].text_content().strip(),
-                        value=" ".join([el.text_content() for el in li[1:]]),
-                        inline=True
-                        )
+                    name=li[0].text_content().strip(),
+                    value=" ".join([el.text_content() for el in li[1:]]),
+                    inline=True,
+                )
             embedPreview.add_field(
-                    name="Birthdays",
-                    value=titlebar.getnext().getnext().getnext().text_content().strip(),
-                    inline=True
-                    )
+                name="Birthdays",
+                value=titlebar.getnext().getnext().getnext().text_content().strip(),
+                inline=True,
+            )
             resp = await message.channel.send(embed=embedPreview)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -247,47 +251,56 @@ pick_regexes = {
 
 async def roll_function(message, client, args):
     usage_message = "Usage: !roll `number of probability objects`d`number of sides`"
+
     def drop_lowest(arr):
         return sorted(arr)[1:]
+
     try:
         if ("+" in message.content) and (" + " not in message.content):
             args = message.content.replace("+", " + ").split(" ")[1:]
         if ("-" in message.content) and (" - " not in message.content):
-           args = message.content.replace("-", " - ").split(" ")[1:]
+            args = message.content.replace("-", " - ").split(" ")[1:]
         if len(args):
-            if '#' in args:
-                idx = args.index('#')
-                comment = " ".join(args[idx+1:])
+            if "#" in args:
+                idx = args.index("#")
+                comment = " ".join(args[idx + 1 :])
                 args = args[:idx]
             else:
                 comment = message.author.display_name
-            if ('+' in args) or ('-' in args):
+            if ("+" in args) or ("-" in args):
                 try:
-                    idx = args.index('+')
+                    idx = args.index("+")
                 except ValueError:
-                    idx = args.index('-')
+                    idx = args.index("-")
                 if idx + 2 <= len(args):
-                    offset = args[idx:idx+2]
-                    if offset[0] == '+':
+                    offset = args[idx : idx + 2]
+                    if offset[0] == "+":
                         offset = int(offset[1])
                         offset_str = f" + {offset}"
                     else:
                         offset = -int(offset[1])
                         offset_str = f" - {-offset}"
-                    args = args[:idx] + args[idx+3:]
+                    args = args[:idx] + args[idx + 3 :]
             else:
                 offset = 0
                 offset_str = None
-            if not ( -10e6 < offset < 10e6 ):
+            if not (-10e6 < offset < 10e6):
                 raise ValueError("That offset seems like a bit much, don't you think?")
             if len(args) == 1:
                 if args[0].startswith("D&D"):
-                    result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(6)])
+                    result = sorted(
+                        [
+                            sum(drop_lowest([random.randint(1, 6) for i in range(4)]))
+                            for j in range(6)
+                        ]
+                    )
                     result = [v + offset for v in result]
                     response = f"Stats: {result}"
                     if comment:
                         response = f"> {comment}\n{response}"
-                    return await messagefuncs.sendWrappedMessage(response, message.channel)
+                    return await messagefuncs.sendWrappedMessage(
+                        response, message.channel
+                    )
                 elif "d" in args[0].lower():
                     args[0] = args[0].lower().split("d")
                 elif args[0].startswith("coin"):
@@ -299,14 +312,34 @@ async def roll_function(message, client, args):
             elif len(args) == 2:
                 if args[0].startswith("D&D"):
                     if args[1].startswith("7drop1"):
-                        result = drop_lowest([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(7)])
+                        result = drop_lowest(
+                            [
+                                sum(
+                                    drop_lowest(
+                                        [random.randint(1, 6) for i in range(4)]
+                                    )
+                                )
+                                for j in range(7)
+                            ]
+                        )
                     else:
-                        result = sorted([sum(drop_lowest([random.randint(1, 6) for i in range(4)])) for j in range(6)])
+                        result = sorted(
+                            [
+                                sum(
+                                    drop_lowest(
+                                        [random.randint(1, 6) for i in range(4)]
+                                    )
+                                )
+                                for j in range(6)
+                            ]
+                        )
                     result = [v + offset for v in result]
                     response = f"Stats: {result}"
                     if comment:
                         response = f"> {comment}\n{response}"
-                    return await messagefuncs.sendWrappedMessage(response, message.channel)
+                    return await messagefuncs.sendWrappedMessage(
+                        response, message.channel
+                    )
                 else:
                     args = [args[0], args[1]]
             else:
@@ -493,7 +526,7 @@ async def flightrising_function(message, client, args):
         guild_config = ch.scope_config(guild=message.guild)
         url = args[0]
         input_image_blob = None
-        if url.endswith('.png'):
+        if url.endswith(".png"):
             input_image_blob = await netcode.simple_get_image(url)
         else:
             data = url.split("?")[1]
@@ -515,7 +548,7 @@ async def flightrising_function(message, client, args):
                     f'https://www1.flightrising.com{request_body["dragon_url"]}'
                 )
         file_name = "flightrising.png"
-        spoiler_regex = guild_config.get('fr-spoiler-regex')
+        spoiler_regex = guild_config.get("fr-spoiler-regex")
         if spoiler_regex and re.search(spoiler_regex, url):
             file_name = "SPOILER_flightrising.png"
         return discord.File(input_image_blob, file_name)
@@ -531,14 +564,10 @@ async def vine_function(message, client, args):
         url = args[0]
         input_image_blob = None
         file_name = None
-        async with session.get(
-            f"https://archive.vine.co/posts/{url}.json",
-        ) as resp:
+        async with session.get(f"https://archive.vine.co/posts/{url}.json",) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
-                    await message.channel.send(
-                        f"Couldn't find that Vine page ({url})"
-                    )
+                    await message.channel.send(f"Couldn't find that Vine page ({url})")
                 return
             request_body = await resp.json()
             input_image_blob = await netcode.simple_get_image(request_body["videoUrl"])
@@ -675,18 +704,18 @@ async def lifx_function(message, client, args):
     global ch
     try:
         guild_config = ch.scope_config(guild=message.guild)
-        if 'lifx-token' not in guild_config:
-            await message.author.send("No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration.")
+        if "lifx-token" not in guild_config:
+            await message.author.send(
+                "No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration."
+            )
             return await message.add_reaction("🚫")
         selector = None
-        data = {
-                "color": ""
-                }
+        data = {"color": ""}
         for arg in args:
-            if arg.startswith(('all', 'group', 'location', 'scene', 'label')):
+            if arg.startswith(("all", "group", "location", "scene", "label")):
                 selector = arg
             elif arg in ["on", "off"]:
-                data['power'] = arg
+                data["power"] = arg
             else:
                 data["color"] = f"{data['color']} {arg}"
         if not selector:
@@ -695,31 +724,35 @@ async def lifx_function(message, client, args):
         if data["color"] == "":
             del data["color"]
         if not ("color" in data or "power" in data):
-             return await message.channel.send("LIFX Parsing Error: specify either a color parameter or a power parameter (on|off).")
+            return await message.channel.send(
+                "LIFX Parsing Error: specify either a color parameter or a power parameter (on|off)."
+            )
         async with session.put(
-             f"https://api.lifx.com/v1/lights/{selector}/state",
-             headers={
-                 "Authorization": f"Bearer {guild_config.get('lifx-token')}"
-                 },
-             data=data
+            f"https://api.lifx.com/v1/lights/{selector}/state",
+            headers={"Authorization": f"Bearer {guild_config.get('lifx-token')}"},
+            data=data,
         ) as resp:
             request_body = await resp.json()
-            if 'error' in request_body:
-                 return await message.channel.send(f"LIFX Error: {request_body['error']} (data sent was `{data}`, selector was `selector`")
-                 await message.add_reaction("🚫")
+            if "error" in request_body:
+                return await message.channel.send(
+                    f"LIFX Error: {request_body['error']} (data sent was `{data}`, selector was `selector`"
+                )
+                await message.add_reaction("🚫")
             embedPreview = discord.Embed(title=f"Updated Lights: {data}")
             dataStr = data["color"].replace(" ", "%20")
-            logger.debug(f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png")
-            embedPreview.set_image(url=f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png")
+            logger.debug(
+                f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png"
+            )
+            embedPreview.set_image(
+                url=f"https://novalinium.com/rationality/lifx-color.pl?string={dataStr}&ext=png"
+            )
             embedPreview.set_footer(
                 icon_url="http://download.nova.anticlack.com/fletcher/favicon_lifx_32x32.png",
                 text=f"On behalf of {message.author.display_name}",
             )
             for light in request_body["results"]:
                 embedPreview.add_field(
-                    name=light["label"],
-                    value=light["status"],
-                    inline=True,
+                    name=light["label"], value=light["status"], inline=True,
                 )
             resp = await message.channel.send(embed=embedPreview)
     except Exception as e:
@@ -840,7 +873,7 @@ def join_rank_function(message, client, args):
         else:
             member = message.author
         if not message.guild:
-            return 'This command ranks you in a server, and so cannot be used outside of one.'
+            return "This command ranks you in a server, and so cannot be used outside of one."
         sorted_member_list = sorted(
             message.guild.members, key=lambda member: member.joined_at
         )
@@ -896,6 +929,7 @@ def join_rank_function(message, client, args):
         logger.error("JRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         return
 
+
 async def ttl(url, message, client, args):
     global session
     start = time.time()
@@ -903,14 +937,18 @@ async def ttl(url, message, client, args):
         async with session.get(url, timeout=60) as response:
             result = await response.text()
             end = time.time()
-            await message.channel.send(f"{response.method} {response.url}: {response.status} {response.reason} in {(end - start):0.3g} seconds")
+            await message.channel.send(
+                f"{response.method} {response.url}: {response.status} {response.reason} in {(end - start):0.3g} seconds"
+            )
     except asyncio.TimeoutError:
         await message.channel.send(f"{url}: TimeoutEror")
+
 
 async def autounload(ch):
     global session
     if session:
         await session.close()
+
 
 def autoload(ch):
     global session
@@ -1005,7 +1043,11 @@ def autoload(ch):
             "async": True,
             "args_num": 0,
             "long_run": True,
-            "args_name": ['Up to 16 characters', 'Up to 13 characters', 'Up to 27 characters'],
+            "args_name": [
+                "Up to 16 characters",
+                "Up to 13 characters",
+                "Up to 27 characters",
+            ],
             "description": "Retrowave Text Generator. Arguments are bucketed in batches of three, with 16 characters for the top row, 13 for the middle row, and 27 for the bottom row. Non alphanumeric characters are stripped. To set your own divisions, add slashes.",
         }
     )
@@ -1118,7 +1160,7 @@ def autoload(ch):
             "async": True,
             "args_num": 0,
             "long_run": True,
-            "args_name": ['Month Day# (January 1)'],
+            "args_name": ["Month Day# (January 1)"],
             "description": "Wikipedia On This Day",
         }
     )
@@ -1129,7 +1171,7 @@ def autoload(ch):
             "async": True,
             "args_num": 1,
             "long_run": True,
-            "args_name": ['Color', '[Selector]'],
+            "args_name": ["Color", "[Selector]"],
             "description": "Set color of LIFX bulbs",
         }
     )
@@ -1151,7 +1193,7 @@ def autoload(ch):
             % message.mentions[0].colour.value,
             "async": False,
             "args_num": 1,
-            "args_name": ['User mention'],
+            "args_name": ["User mention"],
             "description": "Get Current Color for @ed user",
         }
     )
@@ -1161,7 +1203,7 @@ def autoload(ch):
             "function": lambda message, client, args: f"https://en.wikipedia.org/wiki/{'_'.join(args)}",
             "async": False,
             "args_num": 1,
-            "args_name": ['Article name'],
+            "args_name": ["Article name"],
             "description": "Search wikipedia for article",
         }
     )
