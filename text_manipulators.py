@@ -683,7 +683,7 @@ async def reaction_request_function(message, client, args):
             await target.add_reaction(emoji)
             await asyncio.sleep(1)
             try:
-                reaction, user = await client.wait_for(
+                await client.wait_for(
                     "raw_reaction_add",
                     timeout=6000.0,
                     check=lambda reaction: str(reaction.emoji) == str(emoji),
