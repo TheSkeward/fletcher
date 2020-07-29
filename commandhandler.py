@@ -756,6 +756,7 @@ class CommandHandler:
         if fromGuild and self.webhook_sync_registry.get(
             f"{fromGuild.name}:{fromChannel.name}"
         ):
+            await asyncio.sleep(1)
             cur = conn.cursor()
             cur.execute(
                 "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
