@@ -593,7 +593,7 @@ class CommandHandler:
                                 guild, self.client, self.scope_config(guild=guild)
                             )
                         )
-                        successful_events += f"{guild.name}: {reload_action}"
+                        successful_events.append(f"{guild.name}: {reload_action}")
                     else:
                         logger.error(f"Unknown reload_action [{reload_action}]")
             return successful_events
@@ -779,7 +779,12 @@ class CommandHandler:
             if message.pinned:
                 await toMessage.pin()
                 return
-            if not self.config.get(key="sync-edits", guild=toGuild.id, channel=toChannel.id, use_category_as_channel_fallback=False):
+            if not self.config.get(
+                key="sync-edits",
+                guild=toGuild.id,
+                channel=toChannel.id,
+                use_category_as_channel_fallback=False,
+            ):
                 logger.debug(f"ORMU: Demurring to edit message at client guild request")
                 return
             content = fromMessage.clean_content
