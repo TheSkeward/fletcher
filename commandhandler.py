@@ -581,6 +581,7 @@ class CommandHandler:
         try:
             loop = asyncio.get_event_loop()
             # Trigger reload handlers
+            successful_events = []
             for guild in self.client.guilds:
                 reload_actions = self.scope_config(guild=guild).get(
                     "on_reload_list", []
@@ -592,8 +593,10 @@ class CommandHandler:
                                 guild, self.client, self.scope_config(guild=guild)
                             )
                         )
+                        successful_events += f"{guild.name}: {reload_action}"
                     else:
                         logger.error(f"Unknown reload_action [{reload_action}]")
+            return successful_events
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"RLH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -758,12 +761,15 @@ class CommandHandler:
         ):
             await asyncio.sleep(1)
             cur = conn.cursor()
+            query_params = [fromGuild.id, fromChannel.id, message.id]
+            logger.debug(f"[Bridge] looking up {query_params}")
             cur.execute(
                 "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
-                [message.guild.id, message.channel.id, message.id],
+                query_params,
             )
             metuple = cur.fetchone()
             conn.commit()
+            logger.debug(f"[Bridge] {metuple}")
         else:
             metuple = None
         if metuple is not None:
@@ -773,7 +779,7 @@ class CommandHandler:
             if message.pinned:
                 await toMessage.pin()
                 return
-            if not self.config.get(key="sync-edits", guild=toGuild, channel=toChannel):
+            if not self.config.get(key="sync-edits", guild=toGuild.id, channel=toChannel.id, use_category_as_channel_fallback=False):
                 logger.debug(f"ORMU: Demurring to edit message at client guild request")
                 return
             content = fromMessage.clean_content
