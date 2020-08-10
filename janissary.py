@@ -1,4 +1,5 @@
 import aiohttp
+from functools import partial
 import asyncio
 from datetime import datetime, timedelta
 import dateparser.search
