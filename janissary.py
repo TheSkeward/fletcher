@@ -1250,7 +1250,7 @@ async def add_inbound_sync_function(message, client, args):
         soon = client.get_emoji(664472443053932604)
         try:
             await message.add_reaction(soon)
-        except (discord.Forbidden, InvalidArgument):
+        except (discord.Forbidden, discord.InvalidArgument):
             soon = "🔜"
             await message.add_reaction(soon)
         await message.channel.create_webhook(
