@@ -1246,8 +1246,12 @@ async def add_inbound_sync_function(message, client, args):
             await message.author.send("Insufficient target channel permissions")
             return
 
-        soon = client.get_emoji(664472443053932604) or "🔜"
-        await message.add_reaction(bluesoon)
+        soon = client.get_emoji(664472443053932604)
+        try:
+            await message.add_reaction(soon)
+        except discord.Forbidden:
+            soon = "🔜"
+            await message.add_reaction(soon)
         await message.channel.create_webhook(
             name=config.get("discord", dict()).get("botNavel", "botNavel")
             + " ("
@@ -1961,6 +1965,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Username (optional discriminator)"],
             "description": "Invite user to the current channel",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!clopenchannel"],
+            "function": partial(self_service_channel_function, autoclose=True),
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["#channel"],
+            "description": "Create message that will automatically add and remove users from a channel",
         }
     )
 
