@@ -332,44 +332,47 @@ async def alphabetize_channels(guild, client, config):
     # In categories, don't order categories themselves
     try:
         position = 0
-        for category_tuple in guild.by_category():
-            channels = (
-                category_tuple[1]
-                if not category_tuple[0]
-                else category_tuple[0].channels
-            )
-            if category_tuple[0] and category_tuple[0].name in config.get(
-                "azsort-exclude", ""
-            ).split(","):
-                position += len(channels)
-                continue
-            channels = list(
-                filter(lambda channel: type(channel) == discord.TextChannel, channels)
-            )
-            az_channels = sorted(channels, key=lambda channel: channel.name)
-            logger.debug(
-                f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}',
-                extra={"FLETCHER_MODULE": "alphabetize_channels"},
-            )
-            for channel in az_channels:
+        while runagain:
+            runagain = False
+            for category_tuple in guild.by_category():
+                channels = (
+                    category_tuple[1]
+                    if not category_tuple[0]
+                    else category_tuple[0].channels
+                )
+                if category_tuple[0] and category_tuple[0].name in config.get(
+                    "azsort-exclude", ""
+                ).split(","):
+                    position += len(channels)
+                    continue
+                channels = list(
+                    filter(lambda channel: type(channel) == discord.TextChannel, channels)
+                )
+                az_channels = sorted(channels, key=lambda channel: channel.name)
                 logger.debug(
-                    f"#{channel.name} {channel.position} -> {position}",
+                    f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}',
                     extra={"FLETCHER_MODULE": "alphabetize_channels"},
                 )
-                if channel.position != position:
-                    logger.info(
-                        f"Moving {channel} to {position} from {channel.position}",
+                for channel in az_channels:
+                    logger.debug(
+                        f"#{channel.name} {channel.position} -> {position}",
                         extra={"FLETCHER_MODULE": "alphabetize_channels"},
                     )
-                    if channel.position != 0:
-                        try:
-                            await channel.edit(
-                                position=position, reason="Alphabetizing"
-                            )
-                        except discord.InvalidArgument as e:
-                            # Ignore issues with position being too high for voice channels
-                            pass
-                position += 1
+                    if channel.position != position:
+                        runagain = True
+                        logger.info(
+                            f"Moving {channel} to {position} from {channel.position}",
+                            extra={"FLETCHER_MODULE": "alphabetize_channels"},
+                        )
+                        if channel.position != 0:
+                            try:
+                                await channel.edit(
+                                    position=position, reason="Alphabetizing"
+                                )
+                            except discord.InvalidArgument as e:
+                                # Ignore issues with position being too high for voice channels
+                                pass
+                    position += 1
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"ACF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
