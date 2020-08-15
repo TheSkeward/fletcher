@@ -356,6 +356,7 @@ async def alphabetize_channels(guild, client, config):
                     f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}',
                     extra={"FLETCHER_MODULE": "alphabetize_channels"},
                 )
+                startingposition = position
                 for channel in az_channels:
                     logger.debug(
                         f"#{channel.name} {channel.position} -> {position}",
@@ -375,6 +376,8 @@ async def alphabetize_channels(guild, client, config):
                                 # Ignore issues with position being too high for voice channels
                                 pass
                             runagain = True
+                    if runagain:
+                        position = startingposition - 1
                     position += 1
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
