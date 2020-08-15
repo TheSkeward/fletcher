@@ -333,6 +333,7 @@ async def alphabetize_channels(guild, client, config):
     try:
         position = 0
         for category_tuple in guild.by_category():
+            runagain = True
             while runagain:
                 runagain = False
                 channels = (
