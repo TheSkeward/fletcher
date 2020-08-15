@@ -332,9 +332,9 @@ async def alphabetize_channels(guild, client, config):
     # In categories, don't order categories themselves
     try:
         position = 0
-        while runagain:
-            runagain = False
-            for category_tuple in guild.by_category():
+        for category_tuple in guild.by_category():
+            while runagain:
+                runagain = False
                 channels = (
                     category_tuple[1]
                     if not category_tuple[0]
@@ -346,7 +346,9 @@ async def alphabetize_channels(guild, client, config):
                     position += len(channels)
                     continue
                 channels = list(
-                    filter(lambda channel: type(channel) == discord.TextChannel, channels)
+                    filter(
+                        lambda channel: type(channel) == discord.TextChannel, channels
+                    )
                 )
                 az_channels = sorted(channels, key=lambda channel: channel.name)
                 logger.debug(
@@ -359,7 +361,6 @@ async def alphabetize_channels(guild, client, config):
                         extra={"FLETCHER_MODULE": "alphabetize_channels"},
                     )
                     if channel.position != position:
-                        runagain = True
                         logger.info(
                             f"Moving {channel} to {position} from {channel.position}",
                             extra={"FLETCHER_MODULE": "alphabetize_channels"},
@@ -372,6 +373,7 @@ async def alphabetize_channels(guild, client, config):
                             except discord.InvalidArgument as e:
                                 # Ignore issues with position being too high for voice channels
                                 pass
+                            runagain = True
                     position += 1
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
