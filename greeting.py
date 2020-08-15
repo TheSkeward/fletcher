@@ -331,9 +331,9 @@ async def regex_filter(message, client, config):
 async def alphabetize_channels(guild, client, config):
     # In categories, don't order categories themselves
     try:
-        position = 0
         runagain = True
         while runagain:
+            position = 0
             runagain = False
             for category_tuple in guild.by_category():
                 channels = (
