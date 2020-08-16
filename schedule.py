@@ -3,6 +3,7 @@ import commandhandler
 import discord
 import logging
 import messagefuncs
+import traceback
 import re
 from sys import exc_info
 import textwrap
@@ -226,6 +227,7 @@ async def table_exec_function():
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error(f"TXF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
