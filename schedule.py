@@ -3,6 +3,7 @@ import commandhandler
 import discord
 import logging
 import messagefuncs
+from sentry_sdk import configure_scope
 import traceback
 import re
 from sys import exc_info
@@ -25,10 +26,14 @@ class ScheduleFunctions:
             and permissions.embed_links == False
         )
 
-    async def table(target_message, user, cached_content, mode_args, created_at, from_channel):
+    async def table(
+        target_message, user, cached_content, mode_args, created_at, from_channel
+    ):
         return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
 
-    async def unban(target_message, user, cached_content, mode_args, created_at, from_channel):
+    async def unban(
+        target_message, user, cached_content, mode_args, created_at, from_channel
+    ):
         if target_message:
             content = target_message.content
             channels = target_message.channel_mentions
@@ -53,6 +58,7 @@ class ScheduleFunctions:
                 channel = target_message.channel
             elif channel is None:
                 channel = from_channel
+                logger.debug(from_channel)
             channels = [channel]
         if is_glob:
             channel_log = channels[0].guild.name
@@ -71,7 +77,9 @@ class ScheduleFunctions:
             channel_log = ", ".join(channel_log)
         return f"Unban triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
-    async def overwrite(target_message, user, cached_content, mode_args, created_at, from_channel):
+    async def overwrite(
+        target_message, user, cached_content, mode_args, created_at, from_channel
+    ):
         global ch
         client = ch.client
         if target_message:
@@ -114,6 +122,9 @@ class ScheduleFunctions:
             channel_log = []
         overwrites = ujson.loads(mode_args)
         for channel in channels:
+            if channel is None:
+                return f"Error in executing channel override: channel does not exist for {target_message}. This is probably due to the channel being deleted since the snooze record was added.\n> {cached_content}"
+            logger.debug(f"Checking {user} in {channel}")
             if ScheduleFunctions.is_my_ban(user, channel):
                 if type(overwrites) == dict:
                     overwrite_params = overwrites[
@@ -174,47 +185,49 @@ async def table_exec_function():
         processed_ctids = []
         tabtuple = cur.fetchone()
         while tabtuple:
-            user = client.get_user(tabtuple[0])
-            guild_id = tabtuple[1]
-            channel_id = tabtuple[2]
-            message_id = tabtuple[3]
-            created = tabtuple[5]
-            created_at = created.strftime("%B %d, %Y %I:%M%p UTC")
-            content = tabtuple[4]
-            mode_params = tabtuple[6].split(" ", 1)
-            ctid = tabtuple[7]
-            if len(mode_params) == 1:
-                mode = mode_params[0]
-                mode_args = None
-            else:
-                mode = mode_params[0]
-                mode_args = mode_params[1]
-            mode_desc = modes[mode].description
-            guild = client.get_guild(guild_id)
-            if guild is None:
-                logger.info(f"PMF: Fletcher is not in guild {guild_id}")
+            with configure_scope() as scope:
+                user = client.get_user(tabtuple[0])
+                scope.user = {"id": user.id, "username": str(user)}
+                guild_id = tabtuple[1]
+                channel_id = tabtuple[2]
+                message_id = tabtuple[3]
+                created = tabtuple[5]
+                created_at = created.strftime("%B %d, %Y %I:%M%p UTC")
+                content = tabtuple[4]
+                mode_params = tabtuple[6].split(" ", 1)
+                ctid = tabtuple[7]
+                if len(mode_params) == 1:
+                    mode = mode_params[0]
+                    mode_args = None
+                else:
+                    mode = mode_params[0]
+                    mode_args = mode_params[1]
+                mode_desc = modes[mode].description
+                guild = client.get_guild(guild_id)
+                if guild is None:
+                    logger.info(f"PMF: Fletcher is not in guild {guild_id}")
+                    await messagefuncs.sendWrappedMessage(
+                        f"You {mode_desc} in a server that Fletcher no longer services, so this request cannot be fulfilled. The content of the command is reproduced below: {content}",
+                        user,
+                    )
+                    processed_ctids += [ctid]
+                    tabtuple = cur.fetchone()
+                    continue
+                from_channel = guild.get_channel(channel_id)
+                target_message = None
+                try:
+                    target_message = await from_channel.fetch_message(message_id)
+                    # created_at is naîve, but specified as UTC by Discord API docs
+                except (discord.NotFound, AttributeError) as e:
+                    pass
                 await messagefuncs.sendWrappedMessage(
-                    f"You {mode_desc} in a server that Fletcher no longer services, so this request cannot be fulfilled. The content of the command is reproduced below: {content}",
+                    await modes[mode].function(
+                        target_message, user, content, mode_args, created_at, from_channel
+                    ),
                     user,
                 )
                 processed_ctids += [ctid]
                 tabtuple = cur.fetchone()
-                continue
-            from_channel = guild.get_channel(channel_id)
-            target_message = None
-            try:
-                target_message = await from_channel.fetch_message(message_id)
-                # created_at is naîve, but specified as UTC by Discord API docs
-            except (discord.NotFound, AttributeError) as e:
-                pass
-            await messagefuncs.sendWrappedMessage(
-                await modes[mode].function(
-                    target_message, user, content, mode_args, created_at, from_channel
-                ),
-                user,
-            )
-            processed_ctids += [ctid]
-            tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
         conn.commit()
         global reminder_timerhandle
@@ -227,7 +240,9 @@ async def table_exec_function():
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.debug(traceback.format_exc())
+        if "ctid" in locals():
+            logger.info(f"TXF: Error in ctid row {ctid}")
+        logger.info(traceback.format_exc())
         logger.error(f"TXF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
