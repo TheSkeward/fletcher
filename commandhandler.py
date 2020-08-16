@@ -550,7 +550,6 @@ class CommandHandler:
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
                     "CHANNEL_IDENTIFIER": before.name,
-                    "SENT_COM_SCORE": sent_com_score,
                 },
             )
             if scoped_config.get("name_change_notify", False):
@@ -566,7 +565,6 @@ class CommandHandler:
                 extra={
                     "GUILD_IDENTIFIER": before.guild.name,
                     "CHANNEL_IDENTIFIER": before.name,
-                    "SENT_COM_SCORE": sent_com_score,
                 },
             )
             if scoped_config.get("topic_change_notify", False):
