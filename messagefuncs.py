@@ -515,7 +515,7 @@ async def subscribe_function(message, client, args):
                 if args[1].id not in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].append(args[1].id)
                 await args[1].send(
-                    f"By reacting with {args[0].emoji}, you subscribed to reaction on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications."
+                    f"By reacting with {args[0].emoji}, you subscribed to reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications."
                 )
             else:
                 cur.execute(
