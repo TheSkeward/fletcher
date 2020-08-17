@@ -515,7 +515,7 @@ async def subscribe_function(message, client, args):
                 if args[1].id not in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].append(args[1].id)
                 await args[1].send(
-                        f"By reacting with {args[0]}, you subscribed to reaction on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications."
+                    f"By reacting with {args[0].emoji}, you subscribed to reaction on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications."
                 )
             else:
                 cur.execute(
@@ -526,7 +526,7 @@ async def subscribe_function(message, client, args):
                 if args[1].id in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].remove(args[1].id)
                 await args[1].send(
-                        f"By unreacting with {args[0]}, you unsubscribed from reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name})."
+                    f"By unreacting with {args[0].emoji}, you unsubscribed from reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name})."
                 )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
