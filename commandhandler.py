@@ -81,6 +81,7 @@ class CommandHandler:
             re.IGNORECASE,
         )
         self.bang_remover = re.compile("^!+")
+        self.global_admin = client.get_user(config["discord"].get("globalAdmin", 0))
 
     def add_command(self, command):
         command["module"] = inspect.stack()[1][1].split("/")[-1].rstrip(".py")
@@ -288,8 +289,11 @@ class CommandHandler:
                     return await message.remove_reaction(messageContent, user)
                 if guild_config.get("subscribe", {}).get(message.id):
                     for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        await message.guild.get_member(user_id).send(
+                        preview_message = await message.guild.get_member(user_id).send(
                             f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {messageContent} to https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                        )
+                        await messagefuncs.preview_messagelink_function(
+                            preview_message, self.client, None
                         )
                 args = [reaction, user, "add"]
                 scoped_command = None
@@ -494,8 +498,11 @@ class CommandHandler:
                         channel_config = {}
                 if guild_config.get("subscribe", {}).get(message.id):
                     for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        await message.guild.get_member(user_id).send(
+                        preview_message = await message.guild.get_member(user_id).send(
                             f"{user.display_name} ({user.name}#{user.discriminator}) removed reaction of {messageContent} from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                        )
+                        await messagefuncs.preview_messagelink_function(
+                            preview_message, self.client, None
                         )
                 command = self.message_reaction_remove_handlers.get(message.id)
                 if command and self.allowCommand(command, message, user=user):
