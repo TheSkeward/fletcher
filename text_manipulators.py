@@ -2665,11 +2665,30 @@ async def ocr_function(message, client, args):
             and message.embeds[0].thumbnail.url != discord.Embed.Empty
         ):
             url = message.embeds[0].thumbnail.url
-        elif args[0]:
+        elif len(args) and args[0]:
             url = args[0]
+        else:
+            lessage = (await message.channel.history(limit=1, before=message).flatten())[0]
+            if len(lessage.attachments):
+                url = lessage.attachments[0].url
+            elif len(lessage.embeds) and lessage.embeds[0].image.url != discord.Embed.Empty:
+                url = lessage.embeds[0].image.url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].thumbnail.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].thumbnail.url
+            elif len(args) and args[0]:
+                url = args[0]
         logger.debug(url)
-        input_image_blob = await netcode.simple_get_image(url)
-        if not input_image_blob:
+        try:
+            input_image_blob = await netcode.simple_get_image(url)
+        except Exception as e:
+            await message.add_reaction("🚫")
+            await message.channel.send(
+                "Could not retrieve image with url {url} ({e})",
+                delete_after=60,
+            )
             return
         input_image_blob.seek(0)
         input_image = Image.open(input_image_blob)
