@@ -608,21 +608,19 @@ async def scp_function(message, client, args):
                         "http://www.scpwiki.com/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
-                        args.append(
-                            request_body.split("iframe-redirect#")[1]
-                            .split('"')[0]
-                            .split("-")[2]
-                        )
+                        request_body = request_body.split("iframe-redirect#")[1]
+                        request_body = request_body.split('"')[0]
+                        request_body = request_body.split('/scp')[1]
+                        args.append(request_body[1:])
                 except IndexError:
                     async with session.get(
                         "http://www.scpwiki.com/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
-                        args.append(
-                            request_body.split("iframe-redirect#")[1]
-                            .split('"')[0]
-                            .split("-")[2]
-                        )
+                        request_body = request_body.split("iframe-redirect#")[1]
+                        request_body = request_body.split('"')[0]
+                        request_body = request_body.split('/scp')[1]
+                        args.append(request_body[1:])
         if args[0][0].isdigit():
             url = "http://www.scpwiki.com/scp-" + args[0]
         elif args[0].startswith("http://www.scpwiki.com/"):
