@@ -2668,10 +2668,15 @@ async def ocr_function(message, client, args):
         elif len(args) and args[0]:
             url = args[0]
         else:
-            lessage = (await message.channel.history(limit=1, before=message).flatten())[0]
+            lessage = (
+                await message.channel.history(limit=1, before=message).flatten()
+            )[0]
             if len(lessage.attachments):
                 url = lessage.attachments[0].url
-            elif len(lessage.embeds) and lessage.embeds[0].image.url != discord.Embed.Empty:
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].image.url != discord.Embed.Empty
+            ):
                 url = lessage.embeds[0].image.url
             elif (
                 len(lessage.embeds)
@@ -2686,8 +2691,7 @@ async def ocr_function(message, client, args):
         except Exception as e:
             await message.add_reaction("🚫")
             await message.channel.send(
-                "Could not retrieve image with url {url} ({e})",
-                delete_after=60,
+                "Could not retrieve image with url {url} ({e})", delete_after=60,
             )
             return
         input_image_blob.seek(0)

@@ -610,7 +610,7 @@ async def scp_function(message, client, args):
                         request_body = (await resp.read()).decode("UTF-8")
                         request_body = request_body.split("iframe-redirect#")[1]
                         request_body = request_body.split('"')[0]
-                        request_body = request_body.split('/scp')[1]
+                        request_body = request_body.split("/scp")[1]
                         args.append(request_body[1:])
                 except IndexError:
                     async with session.get(
@@ -619,7 +619,7 @@ async def scp_function(message, client, args):
                         request_body = (await resp.read()).decode("UTF-8")
                         request_body = request_body.split("iframe-redirect#")[1]
                         request_body = request_body.split('"')[0]
-                        request_body = request_body.split('/scp')[1]
+                        request_body = request_body.split("/scp")[1]
                         args.append(request_body[1:])
         if args[0][0].isdigit():
             url = "http://www.scpwiki.com/scp-" + args[0]
