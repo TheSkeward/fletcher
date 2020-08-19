@@ -721,7 +721,7 @@ async def part_channel_function(message, client, args):
         else:
             try:
                 channel = messagefuncs.xchannel(args[0].strip(), message.guild)
-            except exceptions.DirectMessageException:
+            except (exceptions.DirectMessageException, AttributeError):
                 return await message.author.send(
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel [hours]`)"
                 )
