@@ -1022,6 +1022,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!ifeellikeshit"],
+            "function": lambda message, client, args: "<:ghost_hug:630502841181667349> have a flowchart: https://philome.la/jace_harr/you-feel-like-shit-an-interactive-self-care-guide/play/index.html",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "FiO link",
+            "hidden": True,
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!fio", "!optimal"],
             "function": lambda message, client, args: "https://www.fimfiction.net/story/62074/8/friendship-is-optimal/",
             "async": False,
