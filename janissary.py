@@ -1542,17 +1542,17 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                         )
                     else:
                         await message.channel.set_permissions(
-                                args[1],
-                                read_messages=False,
-                                send_messages=False,
-                                read_message_history=False,
-                                )
+                            args[1],
+                            read_messages=False,
+                            send_messages=False,
+                            read_message_history=False,
+                        )
                         await message.author.send(
                             f"Added {args[1]} to channel #{message.channel_mentions[0].name}, and removed {args[1]} from channel #{message.channel.name}"
-                            )
+                        )
                         await args[1].send(
                             f"Added you to channel #{message.channel_mentions[0].name}, and removed you from channel #{message.channel.name}"
-                            )
+                        )
                 except discord.Forbidden:
                     await message.author.send(
                         f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add."
@@ -1587,8 +1587,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
-                        self_service_channel_function,
-                        autoclose=autoclose,
+                        self_service_channel_function, autoclose=autoclose,
                     ),
                     "exclusive": True,
                     "async": True,
@@ -1602,8 +1601,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
-                        self_service_channel_function,
-                        autoclose=autoclose,
+                        self_service_channel_function, autoclose=autoclose,
                     ),
                     "exclusive": True,
                     "async": True,
@@ -2000,7 +1998,7 @@ def autoload(ch):
             "function": partial(self_service_channel_function, autoclose=True),
             "admin": "channel",
             "async": True,
-            "hidden": True,
+            "hidden": False,
             "args_num": 1,
             "args_name": ["#channel"],
             "description": "Create message that will automatically add and remove users from a channel",
