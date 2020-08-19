@@ -1377,7 +1377,7 @@ class CommandHandler:
             def query_filter(c):
                 return (
                     any(target_trigger in trigger for trigger in c["trigger"])
-                    or target_trigger in c["description"].lower()
+                    or target_trigger in c.get("description",'').lower()
                     and min_args <= c.get("args_num", 0) <= max_args
                 )
 
