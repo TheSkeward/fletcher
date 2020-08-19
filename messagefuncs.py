@@ -9,6 +9,15 @@ import textwrap
 
 logger = logging.getLogger("fletcher")
 
+async def add_reaction(message, reaction):
+    if type(reaction) is list:
+        reactions = []
+        for r in reaction:
+            reactions.append(await message.add_reaction(r))
+        return reactions
+    else:
+        return await message.add_reaction(reaction)
+
 
 def expand_guild_name(
     guild, prefix="", suffix=":", global_replace=False, case_sensitive=False

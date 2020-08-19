@@ -42,7 +42,21 @@ uwu_responses = {
         "Thanksss~",
         "uwu to you too <3",
     ],
-    "reaction": ["❤", "💛", "💚", "💙", "💜", "💕", "💓", "💗", "💖", "💘", "💘", "💝", ["🇳", "🇴", "🇺"]],
+    "reaction": [
+        "❤",
+        "💛",
+        "💚",
+        "💙",
+        "💜",
+        "💕",
+        "💓",
+        "💗",
+        "💖",
+        "💘",
+        "💘",
+        "💝",
+        ["🇳", "🇴", "🇺"],
+    ],
 }
 pick_lists = {
     "wizard_rolls": "1 of 1 - MAGIC MADE IT WORSE!, 2 - YOUR MAGIC IS IMPOTENT., 3 - YOUR MAGIC SUCKS., 4 - THE MAGIC WORKS BUT IS AWFUL!, 5 - EVERYTHING GOES PERFECTLY TO PLAN., 6 - THINGS WORK TOO WELL!",
@@ -62,15 +76,13 @@ async def uwu_function(message, client, args, responses=uwu_responses):
             or "fletch" in message.clean_content.lower()
             or message.content.startswith("!")
             or "good bot" in message.content.lower()
+            or message.author.id == client.global_admin.id
         ):
             if random.randint(0, 100) < 20:
                 reaction = random.choice(responses["reaction"])
-                if type(reaction) is list:
-                    for r in reaction:
-                        await message.add_reaction(r)
-                else:
-                    await message.add_reaction(reaction)
-            return await message.channel.send(random.choice(responses["public"]))
+                await messagefuncs.add_reaction(message, reaction)
+            else:
+                return await message.channel.send(random.choice(responses["public"]))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("UWU[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -1205,7 +1217,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!thank you"],
-            "function": lambda message, client, args: message.add_reaction(
+            "function": lambda message, client, args: messagefuncs.add_reaction(message, 
                 random.choice(uwu_responses["reaction"])
             ),
             "async": True,
