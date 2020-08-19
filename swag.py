@@ -218,9 +218,9 @@ async def shindan_function(message, client, args):
                         )
         else:
             url = None
-            if args[0].isdigit():
+            if len(args) and args[0].isdigit():
                 url = "https://en.shindanmaker.com/" + args[0]
-            elif args[0].startswith("https://en.shindanmaker.com/"):
+            elif len(args) and args[0].startswith("https://en.shindanmaker.com/"):
                 url = args[0]
             else:
                 await message.channel.send(
