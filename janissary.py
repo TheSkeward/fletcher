@@ -1151,7 +1151,7 @@ async def copy_permissions_function(message, client, args):
 async def copy_emoji_function(message, client, args):
     try:
         if not message.author.permissions_in(message.channel).manage_emojis:
-            await message.add_reaction("🚫")
+            await message.add_reaction("🙅‍♀️")
             return
         if len(args) == 2:
             url = args[0] if "." in args[0] else args[1]
@@ -1195,7 +1195,7 @@ async def copy_emoji_function(message, client, args):
                     "reaction_add",
                     timeout=6000.0,
                     check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
-                    and (user == message.author),
+                    and user.permission_in(message.channel).manage_emojis,
                 )
             except asyncio.TimeoutError:
                 await target.edit(message="Cancelled, timeout.")
@@ -1243,7 +1243,7 @@ async def add_inbound_sync_function(message, client, args):
 
         toAdmin = ch.is_admin(toChannel, message.author)
         if not toAdmin["channel"]:
-            await message.add_reaction("🚫")
+            await message.add_reaction("🙅‍♀️")
             await message.author.send("Insufficient target channel permissions")
             return
 
@@ -1509,7 +1509,7 @@ async def invite_function(message, client, args):
         logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
-async def self_service_channel_function(message, client, args):
+async def self_service_channel_function(message, client, args, autoclose=False):
     global ch
     try:
         if not len(message.channel_mentions):
@@ -1517,6 +1517,11 @@ async def self_service_channel_function(message, client, args):
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await message.author.send(
                 "You don't have permission to set up a self-service channel reaction function because you don't have channel admin permissions."
+            )
+            return
+        if not ch.is_admin(message.channel, message.author)["channel"] and autoclose:
+            await message.author.send(
+                "You don't have permission to set up an autoclosing self-service channel reaction function because you don't have channel admin permissions."
             )
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
@@ -1528,12 +1533,26 @@ async def self_service_channel_function(message, client, args):
                         send_messages=True,
                         read_message_history=True,
                     )
-                    await message.author.send(
-                        f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
-                    )
-                    await args[1].send(
-                        f"Added you to channel #{message.channel_mentions[0].name}"
-                    )
+                    if not autoclose:
+                        await message.author.send(
+                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
+                        )
+                        await args[1].send(
+                            f"Added you to channel #{message.channel_mentions[0].name}"
+                        )
+                    else:
+                        await message.channel.set_permissions(
+                                args[1],
+                                read_messages=False,
+                                send_messages=False,
+                                read_message_history=False,
+                                )
+                        await message.author.send(
+                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}, and removed {args[1]} from channel #{message.channel.name}"
+                            )
+                        await args[1].send(
+                            f"Added you to channel #{message.channel_mentions[0].name}, and removed you from channel #{message.channel.name}"
+                            )
                 except discord.Forbidden:
                     await message.author.send(
                         f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add."
@@ -1559,7 +1578,7 @@ async def self_service_channel_function(message, client, args):
         else:
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'chanselfmanage', %s) ON CONFLICT DO NOTHING;",
+                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'chanselfmanage{'autoclose' if autoclose else ''}', %s) ON CONFLICT DO NOTHING;",
                 [message.author.id, message.guild.id, str(message.id)],
             )
             conn.commit()
@@ -1567,7 +1586,10 @@ async def self_service_channel_function(message, client, args):
                 [message.id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": partial(
+                        self_service_channel_function,
+                        autoclose=autoclose,
+                    ),
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -1579,7 +1601,10 @@ async def self_service_channel_function(message, client, args):
                 [message.id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": partial(
+                        self_service_channel_function,
+                        autoclose=autoclose,
+                    ),
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -1973,6 +1998,7 @@ def autoload(ch):
         {
             "trigger": ["!clopenchannel"],
             "function": partial(self_service_channel_function, autoclose=True),
+            "admin": "channel",
             "async": True,
             "hidden": True,
             "args_num": 1,
@@ -1996,7 +2022,7 @@ def autoload(ch):
     def load_self_service_channels(ch):
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'chanselfmanage';"
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key LIKE 'chanselfmanage%';"
         )
         subtuple = cur.fetchone()
         while subtuple:
@@ -2006,7 +2032,10 @@ def autoload(ch):
                 [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": partial(
+                        self_service_channel_function,
+                        autoclose=subtuple[3].endswith("autoclose"),
+                    ),
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -2018,7 +2047,10 @@ def autoload(ch):
                 [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": partial(
+                        self_service_channel_function,
+                        autoclose=subtuple[3].endswith("autoclose"),
+                    ),
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,

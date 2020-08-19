@@ -222,7 +222,12 @@ async def table_exec_function():
                     pass
                 await messagefuncs.sendWrappedMessage(
                     await modes[mode].function(
-                        target_message, user, content, mode_args, created_at, from_channel
+                        target_message,
+                        user,
+                        content,
+                        mode_args,
+                        created_at,
+                        from_channel,
                     ),
                     user,
                 )
@@ -242,6 +247,7 @@ async def table_exec_function():
         exc_type, exc_obj, exc_tb = exc_info()
         if "ctid" in locals():
             logger.info(f"TXF: Error in ctid row {ctid}")
+            await ch.global_admin.send(f"TXF: Error in ctid row {ctid}")
         logger.info(traceback.format_exc())
         logger.error(f"TXF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 

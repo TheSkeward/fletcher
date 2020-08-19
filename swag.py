@@ -1199,6 +1199,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["thank you fletcher"],
+            "function": lambda message, client, args: message.add_reaction(
+                random.choice(uwu_responses["reaction"])
+            ),
+            "async": True,
+            "hidden": True,
+            "args_num": 0,
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!wiki"],
             "function": lambda message, client, args: f"https://en.wikipedia.org/wiki/{'_'.join(args)}",
             "async": False,
