@@ -605,7 +605,7 @@ async def scp_function(message, client, args):
             else:
                 try:
                     async with session.get(
-                        "http://www.scp-wiki.net/random:random-scp"
+                        "https://www.scp-wiki.net/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
                         args.append(
@@ -615,7 +615,7 @@ async def scp_function(message, client, args):
                         )
                 except IndexError:
                     async with session.get(
-                        "http://www.scp-wiki.net/random:random-scp"
+                        "https://www.scp-wiki.net/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
                         args.append(
