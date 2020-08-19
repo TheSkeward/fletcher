@@ -2725,7 +2725,14 @@ async def ocr_function(message, client, args):
 async def mobilespoil_function(message, client, args):
     try:
         input_image_blob = io.BytesIO()
-        await message.attachments[0].save(input_image_blob)
+        if len(message.attachments):
+            lessage = None
+            await message.attachments[0].save(input_image_blob)
+        else:
+            lessage = (
+                await message.channel.history(limit=1, before=message).flatten()
+            )[0]
+            await lessage.attachments[0].save(input_image_blob)
         if (
             len(args) != 3
             or type(args[1]) is not discord.Member
@@ -2736,6 +2743,8 @@ async def mobilespoil_function(message, client, args):
         ):
             try:
                 await message.delete()
+                if lessage:
+                    await lessage.delete()
             except discord.Forbidden as e:
                 if type(message.channel) != discord.DMChannel:
                     logger.error(
