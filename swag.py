@@ -605,7 +605,7 @@ async def scp_function(message, client, args):
             else:
                 try:
                     async with session.get(
-                        "https://scpwiki.com/random:random-scp"
+                        "https://www.scpwiki.com/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
                         args.append(
@@ -615,7 +615,7 @@ async def scp_function(message, client, args):
                         )
                 except IndexError:
                     async with session.get(
-                        "https://scpwiki.com/random:random-scp"
+                        "https://www.scpwiki.com/random:random-scp"
                     ) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
                         args.append(
@@ -624,20 +624,20 @@ async def scp_function(message, client, args):
                             .split("-")[2]
                         )
         if args[0][0].isdigit():
-            url = "https://scpwiki.com/scp-" + args[0]
-        elif args[0].startswith("https://scpwiki.com/"):
+            url = "https://www.scpwiki.com/scp-" + args[0]
+        elif args[0].startswith("https://www.scpwiki.com/"):
             url = args[0]
         elif len(args):
-            url = "https://scpwiki.com/" + "-".join(args).lower()
+            url = "https://www.scpwiki.com/" + "-".join(args).lower()
         else:
             await message.channel.send(
-                "Please specify a SCP number from https://scpwiki.com/"
+                "Please specify a SCP number from https://www.scpwiki.com/"
             )
             return
         async with session.get(url) as resp:
             if resp.status != 200:
                 await message.channel.send(
-                    f"Please specify a SCP number from https://scpwiki.com/ (HTTP {resp.status} for {url})"
+                    f"Please specify a SCP number from https://www.scpwiki.com/ (HTTP {resp.status} for {url})"
                 )
                 return
             request_body = (await resp.read()).decode("UTF-8")
