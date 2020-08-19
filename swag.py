@@ -1217,8 +1217,8 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!thank you"],
-            "function": lambda message, client, args: messagefuncs.add_reaction(message, 
-                random.choice(uwu_responses["reaction"])
+            "function": lambda message, client, args: messagefuncs.add_reaction(
+                message, random.choice(uwu_responses["reaction"])
             ),
             "async": True,
             "hidden": True,

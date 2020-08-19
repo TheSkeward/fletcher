@@ -9,6 +9,7 @@ import textwrap
 
 logger = logging.getLogger("fletcher")
 
+
 async def add_reaction(message, reaction):
     if type(reaction) is list:
         reactions = []
