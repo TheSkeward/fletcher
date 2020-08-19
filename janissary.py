@@ -1483,7 +1483,7 @@ async def invite_function(message, client, args):
                 )
             except asyncio.TimeoutError:
                 await target.edit(
-                    message=f"{target.message}\nInvite expired due to timeout."
+                    message=f"{target.content}\nInvite expired due to timeout."
                 )
                 await message.remove_reaction("✅", client.user)
                 return
