@@ -42,7 +42,7 @@ uwu_responses = {
         "Thanksss~",
         "uwu to you too <3",
     ],
-    "reaction": ["❤", "💛", "💚", "💙", "💜", "💕", "💓", "💗", "💖", "💘", "💘", "💝"],
+    "reaction": ["❤", "💛", "💚", "💙", "💜", "💕", "💓", "💗", "💖", "💘", "💘", "💝", ["🇳", "🇴", "🇺"]],
 }
 pick_lists = {
     "wizard_rolls": "1 of 1 - MAGIC MADE IT WORSE!, 2 - YOUR MAGIC IS IMPOTENT., 3 - YOUR MAGIC SUCKS., 4 - THE MAGIC WORKS BUT IS AWFUL!, 5 - EVERYTHING GOES PERFECTLY TO PLAN., 6 - THINGS WORK TOO WELL!",
@@ -64,7 +64,12 @@ async def uwu_function(message, client, args, responses=uwu_responses):
             or "good bot" in message.content.lower()
         ):
             if random.randint(0, 100) < 20:
-                await message.add_reaction(random.choice(responses["reaction"]))
+                reaction = random.choice(responses["reaction"])
+                if type(reaction) is list:
+                    for r in reaction:
+                        await message.add_reaction(r)
+                else:
+                    await message.add_reaction(reaction)
             return await message.channel.send(random.choice(responses["public"]))
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
