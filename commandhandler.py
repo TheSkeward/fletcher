@@ -235,9 +235,11 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
+                scope.set_tag("channel", channel.name)
                 message = await channel.fetch_message(reaction.message_id)
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
+                    scope.set_tag("guild", message.guild.name)
                 else:
                     user = self.client.get_user(reaction.user_id)
                 scope.user = {"id": user.id, "username": str(user)}
@@ -455,10 +457,12 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
+                scope.set_tag("channel", channel.name)
                 if type(channel) == discord.DMChannel:
                     user = self.client.get_user(reaction.user_id)
                 else:
                     user = channel.guild.get_member(reaction.user_id)
+                    scope.set_tag("guild", channel.guild.name)
                 scope.user = {"id": user.id, "username": str(user)}
                 message = await channel.fetch_message(reaction.message_id)
                 if type(channel) is discord.TextChannel:
@@ -523,6 +527,7 @@ class CommandHandler:
         global config
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
+            scope.set_tag("guild", user.guild.name)
             member_remove_actions = config.get(
                 guild=user.guild, key="on_member_remove_list", default=[]
             )
@@ -539,6 +544,7 @@ class CommandHandler:
     async def join_handler(self, user):
         with configure_scope() as scope:
             scope.user = {"id": user.id, "username": str(user)}
+            scope.set_tag("guild", user.guild.name)
             member_join_actions = config.get(
                 guild=user.guild, key="on_member_join_list", default=[]
             )
