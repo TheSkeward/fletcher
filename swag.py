@@ -1199,7 +1199,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["thank you fletcher"],
+            "trigger": ["!thank you"],
             "function": lambda message, client, args: message.add_reaction(
                 random.choice(uwu_responses["reaction"])
             ),
