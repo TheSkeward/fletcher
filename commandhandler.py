@@ -452,6 +452,9 @@ class CommandHandler:
                 global config
                 messageContent = str(reaction.emoji)
                 channel = self.client.get_channel(reaction.channel_id)
+                if not channel:
+                    logger.info("Channel does not exist")
+                    return
                 if type(channel) == discord.DMChannel:
                     user = self.client.get_user(reaction.user_id)
                 else:
