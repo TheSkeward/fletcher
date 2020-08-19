@@ -73,11 +73,11 @@ class CommandHandler:
         self.message_reaction_handlers = {}
         self.message_reaction_remove_handlers = {}
         self.tag_id_as_command = re.compile(
-            "(?:^(?:Oh)?\s*(?:<@"
-            + str(client.user.id)
-            + ">|Fletch[er]*)[, .]*)|(?:[, .]*(?:<@"
-            + str(client.user.id)
-            + ">|Fletch[er]*)[, .]*$)",
+            "(?:^(?:Oh)?\s*(?:"
+            + client.user.mention
+            + "|Fletch[er]*)[, .]*)|(?:[, .]*(?:"
+            + client.user.mention
+            + "|Fletch[er]*)[, .]*$)",
             re.IGNORECASE,
         )
         self.bang_remover = re.compile("^!+")
@@ -1758,7 +1758,6 @@ async def autounload(ch):
 
 
 def autoload(ch):
-    global tag_id_as_command
     global client
     global config
     if ch is None:
