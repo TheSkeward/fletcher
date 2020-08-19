@@ -1015,7 +1015,10 @@ class CommandHandler:
                     )
                 )
         searchString = message.content
-        searchString = self.tag_id_as_command.sub("!", searchString)
+        if self.tag_id_as_command.search(searchString):
+            searchString = self.tag_id_as_command.sub("!", searchString)
+            if len(searchString) and searchString[-1] == "!":
+                searchString = "!" + searchString[:-1]
         if config["interactivity"]["enhanced-command-finding"] == "on":
             if len(searchString) and searchString[-1] == "!":
                 searchString = "!" + searchString[:-1]
