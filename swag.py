@@ -64,6 +64,7 @@ pick_lists = {
 
 
 async def uwu_function(message, client, args, responses=uwu_responses):
+    global ch
     try:
         if (
             len(args) == 3
@@ -76,7 +77,7 @@ async def uwu_function(message, client, args, responses=uwu_responses):
             or "fletch" in message.clean_content.lower()
             or message.content.startswith("!")
             or "good bot" in message.content.lower()
-            or message.author.id == client.global_admin.id
+            or message.author.id == ch.global_admin.id
         ):
             if random.randint(0, 100) < 20:
                 reaction = random.choice(responses["reaction"])
