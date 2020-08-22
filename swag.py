@@ -1032,6 +1032,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!bail"],
+            "function": lambda message, client, args: f"Looks like {message.author.display_name} is bailing out on this one - good luck!",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Bail out",
+            "hidden": True,
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!fio", "!optimal"],
             "function": lambda message, client, args: "https://www.fimfiction.net/story/62074/8/friendship-is-optimal/",
             "async": False,
