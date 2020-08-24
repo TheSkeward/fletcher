@@ -801,6 +801,20 @@ class CommandHandler:
             ):
                 logger.debug(f"ORMU: Demurring to edit message at client guild request")
                 return
+            if self.config.get(
+                key="sync-deletions",
+                guild=toGuild.id,
+                channel=toChannel.id,
+                use_category_as_channel_fallback=False,
+            ):
+                try:
+                    await toMessage.delete()
+                except discord.NotFound:
+                    return
+                except discord.Forbidden:
+                    logger.info(
+                            f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that."
+                            )
             content = fromMessage.clean_content
             attachments = []
             if len(fromMessage.attachments) > 0:
@@ -1377,7 +1391,7 @@ class CommandHandler:
             def query_filter(c):
                 return (
                     any(target_trigger in trigger for trigger in c["trigger"])
-                    or target_trigger in c.get("description",'').lower()
+                    or target_trigger in c.get("description", "").lower()
                     and min_args <= c.get("args_num", 0) <= max_args
                 )
 
