@@ -1264,18 +1264,20 @@ async def add_inbound_sync_function(message, client, args):
         )
         await message.remove_reaction(soon, client.user)
         await message.add_reaction("✅")
-        if ch.config.get(channel=message.channel.id, guild=message.guild.id, key="synchronize"):
+        if not ch.config.get(
+            channel=message.channel.id, guild=message.guild.id, key="synchronize"
+        ):
             await message.author.send(
                 "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun"
             )
         else:
             ch.webhook_sync_registry[message.channel.name] = {
-                    "toChannelObject": toChannel,
-                    "toWebhook": webhook,
-                    "toChannelName": toChannel.name,
-                    "fromChannelObject": message.channel,
-                    "fromWebhook": None,
-                    }
+                "toChannelObject": toChannel,
+                "toWebhook": webhook,
+                "toChannelName": toChannel.name,
+                "fromChannelObject": message.channel,
+                "fromWebhook": None,
+            }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
