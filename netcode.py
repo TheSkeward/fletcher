@@ -1,6 +1,7 @@
 import io
 import aiohttp
 from sys import exc_info
+import traceback
 import logging
 
 logger = logging.getLogger("fletcher")
@@ -20,6 +21,7 @@ async def simple_get_image(url):
                     )
                 return buffer
     except Exception as e:
+        logger.debug(traceback.format_exc())
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SGI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
