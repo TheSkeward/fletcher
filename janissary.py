@@ -1271,7 +1271,9 @@ async def add_inbound_sync_function(message, client, args):
                 "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun"
             )
         else:
-            ch.webhook_sync_registry[message.guild.name + ":" + message.channel.name] = {
+            ch.webhook_sync_registry[
+                message.guild.name + ":" + message.channel.name
+            ] = {
                 "toChannelObject": toChannel,
                 "toWebhook": webhook,
                 "toChannelName": toChannel.name,

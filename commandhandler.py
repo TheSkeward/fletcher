@@ -813,8 +813,8 @@ class CommandHandler:
                     return
                 except discord.Forbidden:
                     logger.info(
-                            f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that."
-                            )
+                        f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that."
+                    )
             content = fromMessage.clean_content
             attachments = []
             if len(fromMessage.attachments) > 0:
