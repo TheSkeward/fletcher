@@ -1195,7 +1195,7 @@ async def copy_emoji_function(message, client, args):
                     "reaction_add",
                     timeout=6000.0,
                     check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
-                    and user.permission_in(message.channel).manage_emojis,
+                    and user.permissions_in(message.channel).manage_emojis,
                 )
             except asyncio.TimeoutError:
                 await target.edit(message="Cancelled, timeout.")
