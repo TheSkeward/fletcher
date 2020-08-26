@@ -235,7 +235,7 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
-                scope.set_tag("channel", channel.name)
+                scope.set_tag("channel", channel.name if type(channel) is not discord.DMChannel else "DM")
                 message = await channel.fetch_message(reaction.message_id)
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
@@ -457,7 +457,7 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
-                scope.set_tag("channel", channel.name)
+                scope.set_tag("channel", channel.name if type(channel) is not discord.DMChannel else "DM")
                 if type(channel) == discord.DMChannel:
                     user = self.client.get_user(reaction.user_id)
                 else:
