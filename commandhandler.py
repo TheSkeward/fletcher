@@ -235,7 +235,10 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
-                scope.set_tag("channel", channel.name if type(channel) is not discord.DMChannel else "DM")
+                scope.set_tag(
+                    "channel",
+                    channel.name if type(channel) is not discord.DMChannel else "DM",
+                )
                 message = await channel.fetch_message(reaction.message_id)
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
@@ -457,7 +460,10 @@ class CommandHandler:
                 if not channel:
                     logger.info("Channel does not exist")
                     return
-                scope.set_tag("channel", channel.name if type(channel) is not discord.DMChannel else "DM")
+                scope.set_tag(
+                    "channel",
+                    channel.name if type(channel) is not discord.DMChannel else "DM",
+                )
                 if type(channel) == discord.DMChannel:
                     user = self.client.get_user(reaction.user_id)
                 else:
@@ -1662,7 +1668,7 @@ WHERE p.key = 'tupper';
         while tuptuple:
             if not config.get("sync"):
                 config["sync"] = {}
-            ignorekey = f"tupper-ignore-{tuptuple[1] or 'm'+str(tuptuple[0])}"
+            ignorekey = f"tupper-ignore-{'m'+str(tuptuple[0])}"
             if not config["sync"].get(ignorekey):
                 config["sync"][ignorekey] = []
             config["sync"][ignorekey].append(tuptuple[2])
