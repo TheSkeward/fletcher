@@ -145,6 +145,7 @@ import text_manipulators
 import schedule
 import swag
 import googlephotos
+import pinterest
 import danbooru
 import github
 import chronos
@@ -386,6 +387,7 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(swag, ch)
         await animate_startup("🙉", message)
         # Photos Connectors (for !twilestia et al)
+        await autoload(pinterest, ch)
         await autoload(googlephotos, ch)
         await autoload(danbooru, ch)
         await animate_startup("📷", message)
