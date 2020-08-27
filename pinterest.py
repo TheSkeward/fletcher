@@ -3,11 +3,13 @@ import discord
 from py3pin.Pinterest import Pinterest
 import io
 import logging
+import messagefuncs
 import random
 from sys import exc_info
 import ujson
 
 logger = logging.getLogger("fletcher")
+
 
 async def pinterest_randomize_function(message, client, args):
     username = args[0]
@@ -36,11 +38,14 @@ def autoload(ch):
     )
     # for guild in ch.guilds:
     #     for ch.config.get(guild=guild, section="pinterest"):
-    pinterest = Pinterest(email=ch.config.get(section="pinterest", key="email"),
-            password=ch.config.get(section="pinterest", key="password"),
-            username=ch.config.get(section="pinterest", key="username"),
-            cred_root=ch.config.get(section="pinterest", key="tmpdir"))
+    pinterest = Pinterest(
+        email=ch.config.get(section="pinterest", key="email"),
+        password=ch.config.get(section="pinterest", key="password"),
+        username=ch.config.get(section="pinterest", key="username"),
+        cred_root=ch.config.get(section="pinterest", key="tmpdir"),
+    )
     pinterest.login()
+
 
 async def autounload(ch):
     pass
