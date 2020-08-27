@@ -31,7 +31,7 @@ def get_board(username, boardname):
     while len(board_batch) > 0:
         boards += board_batch
         board_batch = pinterest.boards(username=username)
-    board_id = discord.utils.get(boards, name=boardname)
+    board_id = discord.utils.find(lambda b: b['name'] == boardname, boards)['id']
     board_feed = []
     feed_batch = pinterest.board_feed(board_id=board_id)
     while len(feed_batch) > 0:
