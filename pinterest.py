@@ -7,18 +7,33 @@ import messagefuncs
 import random
 from sys import exc_info
 import ujson
+from cachetools import cached, TTLCache
 
 logger = logging.getLogger("fletcher")
 
+board_cache = {}
 
 async def pinterest_randomize_function(message, client, args):
     username = args[0]
+    boardname = " ".join(args[1:])
+    if not board_cache.get(f"u:{username},b:{boardname}"):
+        board_cache[f"u:{username},b:{boardname}"] = random.shuffle(get_board(username, boardname))
+    await message.channel.send(board_cache[f"u:{username},b:{boardname}"].pop())
+
+@cached(TTLCache(1024, 600))
+def get_board(username, boardname):
     boards = []
     board_batch = pinterest.boards(username=username)
     while len(board_batch) > 0:
         boards += board_batch
         board_batch = pinterest.boards(username=username)
-    await messagefuncs.sendWrappedMessage(ujson.dumps(boards), message.author)
+    board_id = discord.utils.get(boards, name=" ".join(args[1:]))
+    board_feed = []
+    feed_batch = pinterest.board_feed(board_id=board_id)
+    while len(feed_batch) > 0:
+        board_feed += feed_batch
+        feed_batch = pinterest.board_feed(board_id=board_id)
+    return board_feed
 
 
 def autoload(ch):
