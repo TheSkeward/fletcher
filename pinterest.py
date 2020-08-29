@@ -17,7 +17,7 @@ board_cache = {}
 async def pinterest_randomize_function(message, client, args):
     username = args[0]
     boardname = " ".join(args[1:])
-    if not board_cache.get(f"u:{username},b:{boardname}"):
+    if not board_cache.get(f"u:{username},b:{boardname}") or not len(board_cache.get(f"u:{username},b:{boardname}")):
         board_cache[f"u:{username},b:{boardname}"] = random.shuffle(
             get_board(username, boardname)
         )
@@ -31,7 +31,7 @@ def get_board(username, boardname):
     while len(board_batch) > 0:
         boards += board_batch
         board_batch = pinterest.boards(username=username)
-    board_id = discord.utils.find(lambda b: b['name'] == boardname, boards)['id']
+    board_id = discord.utils.find(lambda b: b["name"] == boardname, boards)["id"]
     board_feed = []
     feed_batch = pinterest.board_feed(board_id=board_id)
     while len(feed_batch) > 0:
