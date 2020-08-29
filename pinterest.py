@@ -17,10 +17,11 @@ board_cache = {}
 async def pinterest_randomize_function(message, client, args):
     username = args[0]
     boardname = " ".join(args[1:])
-    if not board_cache.get(f"u:{username},b:{boardname}") or not len(board_cache.get(f"u:{username},b:{boardname}")):
-        board_cache[f"u:{username},b:{boardname}"] = random.shuffle(
-            get_board(username, boardname)
-        )
+    if not board_cache.get(f"u:{username},b:{boardname}") or not len(
+        board_cache.get(f"u:{username},b:{boardname}")
+    ):
+        board_cache[f"u:{username},b:{boardname}"] = get_board(username, boardname)
+        random.shuffle(board_cache[f"u:{username},b:{boardname}"])
     await message.channel.send(board_cache[f"u:{username},b:{boardname}"].pop())
 
 
