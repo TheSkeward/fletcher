@@ -23,7 +23,15 @@ async def pinterest_randomize_function(message, client, args):
         board_cache[cachekey] = get_board(username, boardname)
         random.shuffle(board_cache[cachekey])
     board_entry = board_cache[cachekey].pop()
-    await messagefuncs.sendWrappedMessage(f"{board_entry}", message.channel)
+    embedPreview = discord.Embed(title=board_entry["grid_title"], description=board_entry["attribution"]["author_name"], url=board_entry["attribution"]["url"])
+    embedPreview.set_footer(
+        icon_url="http://download.nova.anticlack.com/fletcher/pinterest.png",
+        text=f"On behalf of {message.author.display_name}",
+    )
+    embedPreview.set_thumbnail(
+        url=board_entry["images"]["orig"]["url"]
+    )
+    await message.channel.send(embed=embedPreview)
 
 
 @cached(TTLCache(1024, 600))
