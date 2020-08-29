@@ -17,12 +17,13 @@ board_cache = {}
 async def pinterest_randomize_function(message, client, args):
     username = args[0]
     boardname = " ".join(args[1:])
-    if not board_cache.get(f"u:{username},b:{boardname}") or not len(
-        board_cache.get(f"u:{username},b:{boardname}")
-    ):
-        board_cache[f"u:{username},b:{boardname}"] = get_board(username, boardname)
-        random.shuffle(board_cache[f"u:{username},b:{boardname}"])
-    await messagefuncs.sendWrappedMessage(board_cache[f"u:{username},b:{boardname}"].pop(), message.channel)
+    cachekey = f"u:{username},b:{boardname}"
+    board = board_cache.get(cachekey)
+    if board is None or not len(board):
+        board_cache[cachekey] = get_board(username, boardname)
+        random.shuffle(board_cache[cachekey])
+    board_entry = board_cache[cachekey].pop()
+    await messagefuncs.sendWrappedMessage(f"{board_entry}", message.channel)
 
 
 @cached(TTLCache(1024, 600))
