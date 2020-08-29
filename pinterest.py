@@ -22,7 +22,7 @@ async def pinterest_randomize_function(message, client, args):
     ):
         board_cache[f"u:{username},b:{boardname}"] = get_board(username, boardname)
         random.shuffle(board_cache[f"u:{username},b:{boardname}"])
-    await message.channel.send(board_cache[f"u:{username},b:{boardname}"].pop())
+    await messagefuncs.sendWrappedMessage(board_cache[f"u:{username},b:{boardname}"].pop(), message.channel)
 
 
 @cached(TTLCache(1024, 600))
