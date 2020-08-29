@@ -25,8 +25,8 @@ async def pinterest_randomize_function(message, client, args):
     board_entry = board_cache[cachekey].pop()
     embedPreview = discord.Embed(
         title=board_entry["grid_title"],
-        description=board_entry["attribution"]["author_name"],
-        url=board_entry["attribution"]["url"],
+        description=board_entry.get("attribution", dict()).get("author_name", ""),
+        url=board_entry.get("link", "")
     )
     embedPreview.set_footer(
         icon_url="http://download.nova.anticlack.com/fletcher/pinterest.png",
