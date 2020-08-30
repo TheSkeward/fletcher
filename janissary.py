@@ -973,6 +973,7 @@ async def role_message_function(message, client, args, remove=False):
         role = ch.config.get(
             key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
         )
+        role_str = role
         if not role:
             logger.debug("No matching role")
             return
@@ -981,7 +982,7 @@ async def role_message_function(message, client, args, remove=False):
         else:
             role = discord.utils.get(message.guild.roles, name=role)
         if not role:
-            error_message = f"Matching role {role} not found for reaction role-message-{reaction.emoji} to role-message {message.id}"
+            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction.emoji} to role-message {message.id}"
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
             await message.guild.get_member(user.id).add_roles(
