@@ -595,7 +595,7 @@ async def azlyrics_function(message, client, args):
             lyrics = lyrics.replace("\r", "")
             lyrics = lyrics.replace("\n", "")
             lyrics = lyrics.replace("<br>", "\n")
-        return f">>> lyrics"
+        return f">>> {lyrics}"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AZLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
