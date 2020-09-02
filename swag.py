@@ -591,8 +591,9 @@ async def azlyrics_function(message, client, args):
             request_body = (await resp.read()).decode("UTF-8")
             request_body = request_body.split("cf_text_top")[1]
             request_body = request_body.split("-->")[1]
-            request_body = request_body.split("</div")[0]
-            lyrics = request_body.replace("<br>", "\n")
+            lyrics = request_body.split("</div")[0]
+            lyrics = lyrics.replace("\n", "")
+            lyrics = lyrics.replace("<br>", "\n")
         return lyrics
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
