@@ -580,17 +580,20 @@ async def azlyrics_function(message, client, args):
     global ch
     try:
         url = args[0]
-        async with session.get(f"https://www.azlyrics.com/lyrics/{url}",) as resp:
+        lyrics = None
+        async with session.get(url) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
-                    await message.channel.send(f"Couldn't find that AZLyrics page ({url})")
+                    await message.channel.send(
+                        f"Couldn't find that AZLyrics page ({url})"
+                    )
                 return
-                request_body = (await resp.read()).decode("UTF-8")
-                request_body = request_body.split("cf_text_top")[1]
-                request_body = request_body.split('-->')[1]
-                request_body = request_body.split("</div")[0]
-                request_body = request_body.replace('<br>', '\n')
-        return request_body
+            request_body = (await resp.read()).decode("UTF-8")
+            request_body = request_body.split("cf_text_top")[1]
+            request_body = request_body.split("-->")[1]
+            request_body = request_body.split("</div")[0]
+            lyrics = request_body.replace("<br>", "\n")
+        return lyrics
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AZLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
