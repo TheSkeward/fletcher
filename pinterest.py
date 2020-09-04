@@ -32,11 +32,7 @@ async def pinterest_randomize_function(message, client, args):
     images = board_entry.get("images", {}) or {}
     orig = images.get("orig", {}) or {}
     orig_url = orig.get("url", "")
-    embedPreview = discord.Embed(
-        title=title,
-        description=author,
-        url=url,
-    )
+    embedPreview = discord.Embed(title=title, description=author, url=url,)
     embedPreview.set_footer(
         icon_url="http://download.nova.anticlack.com/fletcher/pinterest.png",
         text=f"On behalf of {message.author.display_name}",
@@ -54,6 +50,7 @@ def get_boards(username):
         board_batch = pinterest.boards(username=username)
     return boards
 
+
 @cached(TTLCache(1024, 600))
 def get_feeds(board_id):
     board_feed = []
@@ -63,9 +60,12 @@ def get_feeds(board_id):
         feed_batch = pinterest.board_feed(board_id=board_id)
     return board_feed
 
+
 @cached(TTLCache(1024, 600))
 def get_board(username, boardname):
-    board_id = discord.utils.find(lambda b: b["name"] == boardname, get_boards(username))["id"]
+    board_id = discord.utils.find(
+        lambda b: b["name"] == boardname, get_boards(username)
+    )["id"]
     return get_feeds(board_id)
 
 
@@ -79,8 +79,8 @@ def autoload(ch):
             "async": True,
             "admin": False,
             "hidden": True,
-            "args_num": 1,
-            "args_name": [],
+            "args_num": 2,
+            "args_name": ["username", "board"],
             "description": "Return a random image from the board specified",
         }
     )
