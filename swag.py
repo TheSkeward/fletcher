@@ -611,7 +611,7 @@ async def dog_function(message, client, args):
         async with session.get("https://random.dog/woof.json") as resp:
             request_body = await resp.json()
             input_image_blob = await netcode.simple_get_image(request_body["url"])
-            file_name = request_body["url"].split("/")[-1]
+            file_name = "/".split(request_body["url"])[-1]
         return discord.File(input_image_blob, file_name)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1306,7 +1306,7 @@ def autoload(ch):
             "async": True,
             "args_num": 0,
             "args_name": [],
-            "description": "Woof!"
+            "description": "Woof!",
         }
     )
     ch.add_command(
