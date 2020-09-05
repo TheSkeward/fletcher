@@ -605,13 +605,13 @@ async def azlyrics_function(message, client, args):
 async def dog_function(message, client, args):
     global ch
     try:
-        url = args[0]
         input_image_blob = None
         file_name = None
         async with session.get("https://random.dog/woof.json") as resp:
             request_body = await resp.json()
+            logger.debug(request_body)
             input_image_blob = await netcode.simple_get_image(request_body["url"])
-            file_name = "/".split(request_body["url"])[-1]
+            file_name = request_body["url"].split("/")[-1]
         return discord.File(input_image_blob, file_name)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
