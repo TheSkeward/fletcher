@@ -612,7 +612,7 @@ async def dog_function(message, client, args):
             logger.debug(request_body)
             input_image_blob = await netcode.simple_get_image(request_body["url"])
             file_name = request_body["url"].split("/")[-1]
-        return discord.File(input_image_blob, file_name)
+        return await message.channel.send(files=[discord.File(input_image_blob, file_name)])
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
