@@ -605,6 +605,8 @@ async def azlyrics_function(message, client, args):
 async def dog_function(message, client, args):
     global ch
     try:
+        if message.author.id == 122799573755232256:
+            return await message.channel.send("https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045")
         url = None
         input_image_blob = None
         file_name = None
@@ -615,8 +617,8 @@ async def dog_function(message, client, args):
             file_name = url.split("/")[-1]
         try:
             await message.channel.send(
-                    files=[discord.File(input_image_blob, file_name)]
-                    )
+                files=[discord.File(input_image_blob, file_name)]
+            )
         except discord.HTTPException:
             await message.channel.send(url)
     except Exception as e:
