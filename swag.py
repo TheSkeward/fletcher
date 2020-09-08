@@ -605,8 +605,10 @@ async def azlyrics_function(message, client, args):
 async def dog_function(message, client, args):
     global ch
     try:
-        if message.author.id == 122799573755232256:
-            return await message.channel.send("https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045")
+        if ch.user_config(message.author.id, None, 'crocodile-is-dog'):
+            return await message.channel.send(
+                "https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045"
+            )
         url = None
         input_image_blob = None
         file_name = None
