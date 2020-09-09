@@ -1046,12 +1046,12 @@ async def chanlog_function(message, client, args):
 
         if len(args) > 0:
             content += f" before {args[0]}"
-            before = await message.channel.fetch_message(id=args[0])
+            before = await message.channel.fetch_message_fast(id=args[0])
         else:
             before = None
         if len(args) > 1:
             content += f" after {args[1]}"
-            after = await message.channel.fetch_message(id=args[1])
+            after = await message.channel.fetch_message_fast(id=args[1])
         else:
             after = None
 

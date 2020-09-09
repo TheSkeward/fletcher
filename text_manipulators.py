@@ -3131,7 +3131,7 @@ async def reaction_request_function(message, client, args):
                     logger.warning("QAF: Fletcher is not in guild ID " + str(guild_id))
                     return
                 channel = guild.get_channel(channel_id)
-                target = await channel.fetch_message(message_id)
+                target = await channel.fetch_message_fast(message_id)
         except AttributeError:
             pass
         if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000:
@@ -3178,7 +3178,7 @@ async def reaction_request_function(message, client, args):
                             reason="xreact custom copier",
                         )
         if len(args) >= 2 and args[-1].isnumeric() and int(args[1]) >= 1000000:
-            target = await message.channel.fetch_message(int(args[-1]))
+            target = await message.channel.fetch_message_fast(int(args[-1]))
         if emoji:
             if target is None:
                 async for historical_message in message.channel.history(
@@ -3271,7 +3271,7 @@ async def blockquote_embed_function(message, client, args):
                         "I don't have permission to access that message, please check server configuration."
                     )
                 channel = guild.get_channel(channel_id)
-                target_message = await channel.fetch_message(message_id)
+                target_message = await channel.fetch_message_fast(message_id)
                 # created_at is naîve, but specified as UTC by Discord API docs
                 sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
                 rollup = target_message.content

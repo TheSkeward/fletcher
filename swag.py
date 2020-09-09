@@ -605,7 +605,7 @@ async def azlyrics_function(message, client, args):
 async def dog_function(message, client, args):
     global ch
     try:
-        if ch.user_config(message.author.id, None, 'crocodile-is-dog'):
+        if ch.user_config(message.author.id, None, "crocodile-is-dog"):
             return await message.channel.send(
                 "https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045"
             )
@@ -862,7 +862,7 @@ async def qdb_add_function(message, client, args):
                     logger.warning("QAF: Fletcher is not in guild ID " + str(guild_id))
                     return
                 channel = guild.get_channel(channel_id)
-                target_message = await channel.fetch_message(message_id)
+                target_message = await channel.fetch_message_fast(message_id)
                 content = f"[{target_message.created_at}] #{target_message.channel.name} <{target_message.author.display_name}>: {target_message.content}\n<https://discordapp.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}>"
                 cur = conn.cursor()
                 cur.execute(

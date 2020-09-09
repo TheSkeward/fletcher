@@ -176,9 +176,7 @@ async def load_webhooks(ch=None):
                     ):
                         logger.debug(f"LWH: * {webhook.name}")
                         toChannelName = (
-                            guild.name
-                            + ":"
-                            + str(guild.get_channel(webhook.channel_id))
+                            f"{guild.name}:{guild.get_channel(webhook.channel_id).name}"
                         )
                         fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
                         fromTuple[0] = messagefuncs.expand_guild_name(
@@ -501,7 +499,7 @@ async def on_raw_message_edit(payload):
         else:
             fromChannel = client.get_channel(int(message["channel_id"]))
         try:
-            fromMessage = await fromChannel.fetch_message(message_id)
+            fromMessage = await fromChannel.fetch_message_fast(message_id)
         except discord.NotFound as e:
             exc_type, exc_obj, exc_tb = exc_info()
             extra = {"MESSAGE_ID": str(message_id), "payload": str(payload)}
@@ -629,7 +627,7 @@ async def on_raw_message_delete(message):
                 toMessage = None
                 while not toMessage:
                     try:
-                        toMessage = await toChannel.fetch_message(metuple[2])
+                        toMessage = await toChannel.fetch_message_fast(metuple[2])
                     except discord.NotFound as e:
                         exc_type, exc_obj, exc_tb = exc_info()
                         logger.error(

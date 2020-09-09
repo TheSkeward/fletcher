@@ -216,7 +216,7 @@ async def table_exec_function():
                 from_channel = guild.get_channel(channel_id)
                 target_message = None
                 try:
-                    target_message = await from_channel.fetch_message(message_id)
+                    target_message = await from_channel.fetch_message_fast(message_id)
                     # created_at is naîve, but specified as UTC by Discord API docs
                 except (discord.NotFound, AttributeError) as e:
                     pass
