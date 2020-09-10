@@ -602,6 +602,29 @@ async def azlyrics_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def fox_function(message, client, args):
+    global ch
+    try:
+        url = None
+        input_image_blob = None
+        file_name = None
+        async with session.get("https://randomfox.ca/floof/") as resp:
+            request_body = await resp.json()
+            url = request_body["image"]
+            input_image_blob = await netcode.simple_get_image(url)
+            file_name = url.split("/")[-1]
+        try:
+            await message.channel.send(
+                files=[discord.File(input_image_blob, file_name)]
+            )
+        except discord.HTTPException:
+            await message.channel.send(url)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("FF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def dog_function(message, client, args):
     global ch
     try:
@@ -1307,6 +1330,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Article name"],
             "description": "Search wikipedia for article",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!fox"],
+            "function": fox_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "^W^",
         }
     )
     ch.add_command(
