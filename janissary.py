@@ -1243,9 +1243,10 @@ async def add_inbound_sync_function(message, client, args):
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
         toAdmin = ch.is_admin(toChannel, message.author)
+        logger.debug(toAdmin)
         if not toAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
-            await message.author.send("Insufficient target channel permissions")
+            await message.author.send("You aren't an admin for the target channel, refusing.")
             return
 
         soon = client.get_emoji(664472443053932604)
