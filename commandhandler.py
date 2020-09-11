@@ -901,7 +901,7 @@ class CommandHandler:
                     await messagefuncs.sendWrappedMessage(str(result), user)
                     Ans = result
             except Exception as e:
-                await messagefuncs.sendWrappedMessage(f"Error {e}", user)
+                await messagefuncs.sendWrappedMessage(f"{traceback.format_exc()}\nEVAL: {type(e).__name__} {e}", user)
 
         await self.bridge_message(message)
         if user == client.user:
