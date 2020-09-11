@@ -1209,7 +1209,7 @@ class CommandHandler:
                 user = channel.guild.get_member(message.author.id) or message.author
             except AttributeError:
                 user = message.author
-        if user.guild.id != channel.guild.id:
+        if type(user) is discord.Member and user.guild.id != channel.guild.id:
             try:
                 user = channel.guild.get_member(user)
             except AttributeError:
