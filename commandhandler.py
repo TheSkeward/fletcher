@@ -1209,6 +1209,11 @@ class CommandHandler:
                 user = channel.guild.get_member(message.author.id) or message.author
             except AttributeError:
                 user = message.author
+        if user.guild.id != channel.guild.id:
+            try:
+                user = channel.guild.get_member(user)
+            except AttributeError:
+                user = client.get_user(user.id)
         globalAdmin = user.id == config["discord"].get("globalAdmin", 0)
         serverAdmin = (
             globalAdmin and config["discord"].get("globalAdminIsServerAdmin", False)
