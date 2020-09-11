@@ -1254,7 +1254,7 @@ async def add_inbound_sync_function(message, client, args):
         except (discord.Forbidden, discord.InvalidArgument):
             soon = "🔜"
             await message.add_reaction(soon)
-        webhhook = await message.channel.create_webhook(
+        webhook = await message.channel.create_webhook(
             name=config.get("discord", dict()).get("botNavel", "botNavel")
             + " ("
             + toChannel.guild.name.replace(" ", "_")
