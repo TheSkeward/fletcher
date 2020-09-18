@@ -705,15 +705,17 @@ async def scp_function(message, client, args):
         elif len(args):
             url = "http://www.scpwiki.com/" + "-".join(args).lower()
         else:
-            await message.channel.send(
-                "Please specify a SCP number from http://www.scpwiki.com/"
-            )
+            if not (len(args) == 2 and args[1] == "INTPROC"):
+                await message.channel.send(
+                    "Please specify a SCP number from http://www.scpwiki.com/"
+                )
             return
         async with session.get(url) as resp:
             if resp.status != 200:
-                await message.channel.send(
-                    f"Please specify a SCP number from http://www.scpwiki.com/ (HTTP {resp.status} for {url})"
-                )
+                if not (len(args) == 2 and args[1] == "INTPROC"):
+                    await message.channel.send(
+                        f"Please specify a SCP number from http://www.scpwiki.com/ (HTTP {resp.status} for {url})"
+                    )
                 return
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
@@ -783,7 +785,10 @@ async def scp_function(message, client, args):
                 ),
                 inline=True,
             )
-            resp = await message.channel.send(embed=embedPreview)
+            if len(args) == 2 and args[1] == "INTPROC":
+                return embedPreview
+            else:
+                resp = await message.channel.send(embed=embedPreview)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SCP[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))

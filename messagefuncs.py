@@ -234,7 +234,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html)",
+        "(?<!<)(https?://www1.flightrising.com/(?:dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)\?[^ ]+|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*)",
     re.IGNORECASE,
 )
 
@@ -272,7 +272,7 @@ async def preview_messagelink_function(message, client, args):
                 )
                 return
             channel = guild.get_channel(channel_id)
-            target_message = await channel.fetch_message(message_id)
+            target_message = await channel.fetch_message_fast(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
             sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
@@ -369,6 +369,13 @@ async def preview_messagelink_function(message, client, args):
                 content = await swag.azlyrics_function(
                     message, client, [previewable_parts[0], "INTPROC"],
                 )
+            elif "scpwiki.com" in previewable_parts[0]:
+                import swag
+
+                embed = await swag.scp_function(
+                    message, client, [previewable_parts[0], "INTPROC"],
+                )
+                content = "SCP Preview"
         # TODO 🔭 to preview?
         if content:
             return await sendWrappedMessage(
@@ -390,7 +397,7 @@ async def messagelink_function(message, client, args):
         msg = None
         for channel in message.channel.guild.text_channels:
             try:
-                msg = await channel.fetch_message(int(args[0]))
+                msg = await channel.fetch_message_fast(int(args[0]))
                 break
             except discord.Forbidden as e:
                 pass
