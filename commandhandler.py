@@ -1118,9 +1118,13 @@ class CommandHandler:
                     command["whitelist_guild"] = []
                 command["whitelist_guild"].append(guild_id)
                 logger.debug(f"Whitelisting {command} on guild {guild_id}")
-                if command.get("blacklist_guild") and guild_id in command.get("blacklist_guild"):
+                if command.get("blacklist_guild") and guild_id in command.get(
+                    "blacklist_guild"
+                ):
                     command["blacklist_guild"].remove(guild_id)
-                    logger.debug(f"Whitelist overwrites blacklist for {command} on guild {guild_id}")
+                    logger.debug(
+                        f"Whitelist overwrites blacklist for {command} on guild {guild_id}"
+                    )
         else:
             logger.error(
                 f"Couldn't find {command_name} for whitelisting on guild {guild_id}"
@@ -1131,6 +1135,8 @@ class CommandHandler:
             commands = self.commands
         else:
             commands = self.get_command("!" + command_name)
+            if not len(commands):
+                commands = self.get_command(command_name)
         if len(commands):
             for command in commands:
                 if not command.get("blacklist_guild"):
