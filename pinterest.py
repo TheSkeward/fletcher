@@ -1,4 +1,5 @@
 import aiohttp
+import copy
 import discord
 from py3pin.Pinterest import Pinterest
 import io
@@ -19,11 +20,13 @@ async def pinterest_randomize_function(message, client, args):
     username = args[0]
     boardname = " ".join(args[1:])
     cachekey = f"u:{username},b:{boardname}"
-    board = board_cache.get(cachekey)
-    if board is None or not len(board):
-        board_cache[cachekey] = get_board(username, boardname)
+    try:
+        board_entry = board_cache[cachekey].pop()
+    except (IndexError, KeyError):
+        await message.channel.trigger_typing()
+        board_cache[cachekey] = copy.deepcopy(get_board(username, boardname))
         random.shuffle(board_cache[cachekey])
-    board_entry = board_cache[cachekey].pop()
+        board_entry = board_cache[cachekey].pop()
     logger.debug(board_entry)
     title = board_entry.get("grid_title", "")
     attribution = board_entry.get("attribution", {}) or {}
@@ -74,12 +77,36 @@ def autoload(ch):
     global pinterest
     ch.add_command(
         {
+            "trigger": ["!debug_prt"],
+            "function": lambda message, client, args: get_boards(args[0]),
+            "async": False,
+            "admin": False,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["username"],
+            "description": "Return a random image from the board specified",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!prt"],
             "function": pinterest_randomize_function,
             "async": True,
             "admin": False,
             "hidden": True,
             "args_num": 2,
+            "args_name": ["username", "board"],
+            "description": "Return a random image from the board specified",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!possum"],
+            "function": lambda message, client, args: pinterest_randomize_function(message, client, ["jerryob1", "Opossums"]),
+            "async": True,
+            "admin": False,
+            "hidden": False,
+            "args_num": 0,
             "args_name": ["username", "board"],
             "description": "Return a random image from the board specified",
         }
@@ -92,7 +119,7 @@ def autoload(ch):
         username=ch.config.get(section="pinterest", key="username"),
         cred_root=ch.config.get(section="pinterest", key="tmpdir"),
     )
-    pinterest.login()
+    # pinterest.login()
 
 
 async def autounload(ch):
