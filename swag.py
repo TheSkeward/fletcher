@@ -1113,8 +1113,8 @@ class sliding_puzzle:
         response = await client.wait_for(
             "raw_reaction_add",
             timeout=timeout,
-            check=lambda reaction: str(reaction.emoji) in allowed_reactions
-            and reaction.message_id == message,
+            check=lambda reaction: reaction.emoji in allowed_reactions
+            and reaction.message_id == message.id,
         )
         try:
             if type(message.channel) != discord.DMChannel:
