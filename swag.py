@@ -1113,7 +1113,7 @@ class sliding_puzzle:
         response = await client.wait_for(
             "raw_reaction_add",
             timeout=timeout,
-            check=lambda reaction: reaction.emoji in allowed_reactions
+            check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
             and reaction.message_id == message.id,
         )
         try:
@@ -1189,7 +1189,7 @@ class sliding_puzzle:
         if not hasattr(self, "status_message"):
             self.status_message = await self.print(outstring)
         else:
-            await self.status_message.edit(outstring)
+            await self.status_message.edit(content=outstring)
 
     async def sliding_puzzle_function(message, client, args):
         try:
