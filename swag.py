@@ -1110,12 +1110,24 @@ class sliding_puzzle:
         return await messagefuncs.sendWrappedMessage(message, self.channel)
 
     async def input(self, message, allowed_reactions, timeout=3600.0):
-        response = await client.wait_for(
+        response
+        waits = [client.wait_for(
             "raw_reaction_add",
             timeout=timeout,
             check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
             and reaction.message_id == message.id,
-        )
+        )]
+        if type(message.channel) == discord.DMChannel:
+            waits.append(client.wait_for(
+                "raw_reaction_remove",
+                timeout=timeout,
+                check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
+                and reaction.message_id == message.id,
+                ))
+        done, pending = await asyncio.wait(waits, return_when=asyncio.FIRST_COMPLETED)
+        for task in pending:
+            task.cancel()
+        response = await done[0]
         try:
             if type(message.channel) != discord.DMChannel:
                 await message.remove_reaction(
@@ -1162,7 +1174,10 @@ class sliding_puzzle:
         ]
 
     async def pretty_print(self):
-        outstring = "＿＿＿＿\n"
+        if self.winning():
+            outstring = "＿＿＿＿\n"
+        else:
+            outstring = "Enter a direction with the reactions 🇺 🇩 🇱 🇷\n"
         mapping = [
             "　",
             "①",
@@ -1185,8 +1200,6 @@ class sliding_puzzle:
             for item in row:
                 outstring += mapping[item]
             outstring += "\n"
-        if not self.winning():
-            outstring += "Enter a direction with the reactions 🇺 🇩 🇱 🇷"
         if not hasattr(self, "status_message"):
             self.status_message = await self.print(outstring)
         else:
