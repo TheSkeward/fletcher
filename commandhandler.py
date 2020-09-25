@@ -1112,12 +1112,10 @@ class CommandHandler:
 
     def whitelist_command(self, command_name, guild_id):
         commands = self.get_command("!" + command_name)
+        if not commands:
+            commands = self.get_command(command_name)
         if len(commands):
             for command in commands:
-                if not command.get("whitelist_guild"):
-                    command["whitelist_guild"] = []
-                command["whitelist_guild"].append(guild_id)
-                logger.debug(f"Whitelisting {command} on guild {guild_id}")
                 if command.get("blacklist_guild") and guild_id in command.get(
                     "blacklist_guild"
                 ):
@@ -1125,6 +1123,21 @@ class CommandHandler:
                     logger.debug(
                         f"Whitelist overwrites blacklist for {command} on guild {guild_id}"
                     )
+        else:
+            logger.error(
+                f"Couldn't find {command_name} for whitelisting on guild {guild_id}"
+            )
+
+    def whitelist_limit_command(self, command_name, guild_id):
+        commands = self.get_command("!" + command_name)
+        if not commands:
+            commands = self.get_command(command_name)
+        if len(commands):
+            for command in commands:
+                if not command.get("whitelist_guild"):
+                    command["whitelist_guild"] = []
+                command["whitelist_guild"].append(guild_id)
+                logger.debug(f"Whitelisting {command} on guild {guild_id}")
         else:
             logger.error(
                 f"Couldn't find {command_name} for whitelisting on guild {guild_id}"
@@ -1662,6 +1675,10 @@ def load_guild_config(ch):
             guild_config = ch.scope_config(guild=guild)
             for command_name in guild_config.get("whitelist-commands", []):
                 ch.whitelist_command(command_name, guild.id)
+        for guild in ch.client.guilds:
+            guild_config = ch.scope_config(guild=guild)
+            for command_name in guild_config.get("optinlist-commands", []):
+                ch.whitelist_limit_command(command_name, guild.id)
 
     logger.debug("LBL")
     load_blacklists(ch)
