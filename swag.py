@@ -1162,7 +1162,7 @@ class sliding_puzzle:
         ]
 
     async def pretty_print(self):
-        outstring = ""
+        outstring = "＿＿＿＿\n"
         mapping = [
             "　",
             "①",
