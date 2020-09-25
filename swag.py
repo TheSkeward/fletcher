@@ -1159,7 +1159,7 @@ class sliding_puzzle:
                 outstring.append(str(item))
                 outstring.append("  ")
             message_contents += "".join(outstring) + "\n"
-        await self.print(message_contents)
+        await self.print(f"```{message_contents}```")
 
     async def sliding_puzzle_function(message, client, args):
         try:
