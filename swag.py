@@ -1171,7 +1171,7 @@ class sliding_puzzle:
             await self.print(
                 f"{random.choice(self.victory_msgs)}\nMoves used: {self.moves}",
             )
-            outstring = "＿＿＿＿\n"
+            outstring = "☆☆☆☆☆☆☆☆\n"
         else:
             outstring = "Slide the tiles with the reactions below:\n"
         mapping = [
