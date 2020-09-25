@@ -1137,7 +1137,7 @@ class sliding_puzzle:
         exposition = """You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space."""
 
         await self.print(exposition)
-        moves = 0
+        self.moves = 0
         for row in range(4):
             if 0 in self.grid[row]:
                 self.blank_y = row
@@ -1151,14 +1151,11 @@ class sliding_puzzle:
             direction = self.direction_parsing[direction]
             if direction != "":
                 direction()
-                moves += 1
+                self.moves += 1
             else:
                 continue
             await self.pretty_print()
             if self.winning():
-                await self.print(
-                    f"{random.choice(self.victory_msgs)}\nMoves used: {moves}",
-                )
                 return
 
     def winning(self):
@@ -1171,6 +1168,9 @@ class sliding_puzzle:
 
     async def pretty_print(self):
         if self.winning():
+            await self.print(
+                f"{random.choice(self.victory_msgs)}\nMoves used: {self.moves}",
+            )
             outstring = "＿＿＿＿\n"
         else:
             outstring = "Slide the tiles with the reactions below:\n"
