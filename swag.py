@@ -1108,7 +1108,10 @@ class sliding_puzzle:
     async def input(self, message, regex, re_flags=re.IGNORECASE, timeout=3600.0):
         await self.print(message)
         response = await client.wait_for(
-            "message", timeout=timeout, check=lambda m: m.channel == self.channel and re.search(regex, m.content, re_flags),
+            "message",
+            timeout=timeout,
+            check=lambda m: m.channel == self.channel
+            and re.search(regex, m.content, re_flags),
         )
         return response.clean_content
 
@@ -1120,7 +1123,6 @@ class sliding_puzzle:
         for row in range(4):
             if 0 in self.grid[row]:
                 self.blank_y = row
-                self.blank_x = self.grid[row].index(0)
         await self.pretty_print()
         while True:
             direction = await self.input(
@@ -1156,7 +1158,7 @@ class sliding_puzzle:
                     outstring.append(" ")
                 outstring.append(str(item))
                 outstring.append("  ")
-            message_contents += "".join(outstring)
+            message_contents += "".join(outstring) + "\n"
         await self.print(message_contents)
 
     async def sliding_puzzle_function(message, client, args):
