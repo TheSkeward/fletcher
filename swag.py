@@ -1123,7 +1123,7 @@ class sliding_puzzle:
                 )
         except discord.Forbidden:
             pass
-        return response.emoji
+        return str(response.emoji)
 
     async def play(self):
         exposition = """You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space."""
@@ -1137,6 +1137,7 @@ class sliding_puzzle:
         allowed_reactions = ["🇺", "🇩", "🇱", "🇷"]
         for reaction in allowed_reactions:
             await self.status_message.add_reaction(reaction)
+        await asyncio.sleep(1)
         while True:
             direction = await self.input(self.status_message, allowed_reactions)
             direction = self.direction_parsing[direction]
