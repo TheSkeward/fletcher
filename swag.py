@@ -1110,20 +1110,23 @@ class sliding_puzzle:
         return await messagefuncs.sendWrappedMessage(message, self.channel)
 
     async def input(self, message, allowed_reactions, timeout=3600.0):
-        response
-        waits = [client.wait_for(
-            "raw_reaction_add",
-            timeout=timeout,
-            check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
-            and reaction.message_id == message.id,
-        )]
-        if type(message.channel) == discord.DMChannel:
-            waits.append(client.wait_for(
-                "raw_reaction_remove",
+        waits = [
+            client.wait_for(
+                "raw_reaction_add",
                 timeout=timeout,
                 check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
                 and reaction.message_id == message.id,
-                ))
+            )
+        ]
+        if type(message.channel) == discord.DMChannel:
+            waits.append(
+                client.wait_for(
+                    "raw_reaction_remove",
+                    timeout=timeout,
+                    check=lambda reaction: (str(reaction.emoji) in allowed_reactions)
+                    and reaction.message_id == message.id,
+                )
+            )
         done, pending = await asyncio.wait(waits, return_when=asyncio.FIRST_COMPLETED)
         for task in pending:
             task.cancel()
