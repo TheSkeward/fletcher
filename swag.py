@@ -1045,12 +1045,16 @@ class sliding_puzzle:
     def __init__(self, message):
         self.channel = message.channel
         self.direction_parsing = defaultdict(str)
+        self.direction_parsing["🇺"] = self.shift_up
         self.direction_parsing["u"] = self.shift_up
         self.direction_parsing["up"] = self.shift_up
+        self.direction_parsing["🇩"] = self.shift_down
         self.direction_parsing["d"] = self.shift_down
         self.direction_parsing["down"] = self.shift_down
+        self.direction_parsing["🇱"] = self.shift_left
         self.direction_parsing["l"] = self.shift_left
         self.direction_parsing["left"] = self.shift_left
+        self.direction_parsing["🇷"] = self.shift_right
         self.direction_parsing["r"] = self.shift_right
         self.direction_parsing["right"] = self.shift_right
         self.victory_msgs = ["You win!"]
@@ -1103,17 +1107,20 @@ class sliding_puzzle:
         self.blank_x -= 1
 
     async def print(self, message):
-        await messagefuncs.sendWrappedMessage(message, self.channel)
+        return await messagefuncs.sendWrappedMessage(message, self.channel)
 
-    async def input(self, message, regex, re_flags=re.IGNORECASE, timeout=3600.0):
-        await self.print(message)
+    async def input(self, message, allowed_reactions, timeout=3600.0):
         response = await client.wait_for(
-            "message",
+            "raw_reaction_add",
             timeout=timeout,
-            check=lambda m: m.channel == self.channel
-            and re.search(regex, m.content, re_flags),
+            check=lambda reaction: str(reaction.emoji) in allowed_reactions and reaction.message_id == message
         )
-        return response.clean_content
+        try:
+            if type(message.channel) != discord.DMChannel:
+                await message.remove_reaction(response.emoji, message.guild.get_member(response.user_id))
+        except discord.Forbidden:
+            pass
+        return response.emoji
 
     async def play(self):
         exposition = """You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space."""
@@ -1124,22 +1131,23 @@ class sliding_puzzle:
             if 0 in self.grid[row]:
                 self.blank_y = row
         await self.pretty_print()
+        allowed_reactions = ["🇺", "🇩", "🇱", "🇷"]
+        for reaction in allowed_reactions:
+            await self.status_message.add_reaction(reaction)
         while True:
-            direction = await self.input(
-                "Enter a direction with 'u', 'd', 'l', or 'r': ", regex=r"^[udlr]"
-            )
-            direction = self.direction_parsing[direction.lower()]
+            direction = await self.input(self.status_message, allowed_reactions)
+            direction = self.direction_parsing[direction]
             if direction != "":
                 direction()
                 moves += 1
             else:
                 continue
+            await self.pretty_print()
             if self.winning():
                 await self.print(
                     f"{random.choice(self.victory_msgs)}\nMoves used: {moves}",
                 )
                 return
-            await self.pretty_print()
 
     def winning(self):
         return self.grid == [
@@ -1150,16 +1158,18 @@ class sliding_puzzle:
         ]
 
     async def pretty_print(self):
-        message_contents = ""
+        outstring = ""
+        mapping = ["　", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮"]
         for row in self.grid:
-            outstring = []
             for item in row:
-                if item < 10:
-                    outstring.append(" ")
-                outstring.append(str(item))
-                outstring.append("  ")
-            message_contents += "".join(outstring) + "\n"
-        await self.print(f"```{message_contents}```")
+                outstring += mapping[item]
+            outstring += "\n"
+        if not self.winning():
+            outstring += "Enter a direction with the reactions 🇺 🇩 🇱 🇷"
+        if not self.status_message:
+            self.status_message = await self.print(outstring)
+        else:
+            await self.status_message.edit(outstring)
 
     async def sliding_puzzle_function(message, client, args):
         try:
