@@ -1105,20 +1105,15 @@ class sliding_puzzle:
     async def print(self, message):
         await messagefuncs.sendWrappedMessage(message, self.channel)
 
-    async def input(self, message, timeout=3600.0):
+    async def input(self, message, regex, re_flags=re.IGNORECASE, timeout=3600.0):
         await self.print(message)
         response = await client.wait_for(
-            "message", timeout=6000.0, check=lambda m: m.channel == self.channel,
+            "message", timeout=timeout, check=lambda m: m.channel == self.channel and re.search(regex, m.content, re_flags),
         )
         return response.clean_content
 
     async def play(self):
-        exposition = """You see a grid of tiles built into the top of
-a pedestal. The tiles can slide around in the grid,
-but can't be removed without breaking them. There are
-fifteen tiles, taking up fifteen spaces in a 4x4 grid,
-so any of the tiles that are adjacent to the empty space
-can be slid into the empty space."""
+        exposition = """You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space."""
 
         await self.print(exposition)
         moves = 0
@@ -1126,10 +1121,10 @@ can be slid into the empty space."""
             if 0 in self.grid[row]:
                 self.blank_y = row
                 self.blank_x = self.grid[row].index(0)
-        self.pretty_print()
+        await self.pretty_print()
         while True:
             direction = await self.input(
-                "Enter a direction with 'u', 'd', 'l', or 'r': "
+                "Enter a direction with 'u', 'd', 'l', or 'r': ", regex=r"^[udlr]"
             )
             direction = self.direction_parsing[direction.lower()]
             if direction != "":
@@ -1142,7 +1137,7 @@ can be slid into the empty space."""
                     f"{random.choice(self.victory_msgs)}\nMoves used: {moves}",
                 )
                 return
-            self.pretty_print()
+            await self.pretty_print()
 
     def winning(self):
         return self.grid == [
