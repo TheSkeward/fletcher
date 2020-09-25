@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-from collections import Counter
+from collections import Counter, defaultdict
 import chronos
 import time
 import discord
@@ -1041,6 +1041,143 @@ async def ttl(url, message, client, args):
         await message.channel.send(f"{url}: TimeoutEror")
 
 
+class sliding_puzzle:
+    def __init__(self, message):
+        self.channel = message.channel
+        self.direction_parsing = defaultdict(str)
+        self.direction_parsing["u"] = self.shift_up
+        self.direction_parsing["up"] = self.shift_up
+        self.direction_parsing["d"] = self.shift_down
+        self.direction_parsing["down"] = self.shift_down
+        self.direction_parsing["l"] = self.shift_left
+        self.direction_parsing["left"] = self.shift_left
+        self.direction_parsing["r"] = self.shift_right
+        self.direction_parsing["right"] = self.shift_right
+        self.victory_msgs = ["You win!"]
+
+        # make a solved board
+        self.grid = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
+        self.blank_x = 3
+        self.blank_y = 3
+        # scramble it with legal moves so it stays solvable
+        for i in range(1000):
+            move = random.choice(
+                [self.shift_up, self.shift_down, self.shift_left, self.shift_right]
+            )
+            move()
+
+    # move the tile below the empty space (0) up one if possible
+    def shift_up(self):
+        if self.blank_y == 3:
+            return
+        value_to_move = self.grid[self.blank_y + 1][self.blank_x]
+        self.grid[self.blank_y][self.blank_x] = value_to_move
+        self.grid[self.blank_y + 1][self.blank_x] = 0
+        self.blank_y += 1
+
+    # move the tile above the empty space (0) down one if possible
+    def shift_down(self):
+        if self.blank_y == 0:
+            return
+        value_to_move = self.grid[self.blank_y - 1][self.blank_x]
+        self.grid[self.blank_y][self.blank_x] = value_to_move
+        self.grid[self.blank_y - 1][self.blank_x] = 0
+        self.blank_y -= 1
+
+    # move the tile right of the empty space (0) left one if possible
+    def shift_left(self):
+        if self.blank_x == 3:
+            return
+        value_to_move = self.grid[self.blank_y][self.blank_x + 1]
+        self.grid[self.blank_y][self.blank_x] = value_to_move
+        self.grid[self.blank_y][self.blank_x + 1] = 0
+        self.blank_x += 1
+
+    # move the tile left of the empty space (0) right one if possible
+    def shift_right(self):
+        if self.blank_x == 0:
+            return
+        value_to_move = self.grid[self.blank_y][self.blank_x - 1]
+        self.grid[self.blank_y][self.blank_x] = value_to_move
+        self.grid[self.blank_y][self.blank_x - 1] = 0
+        self.blank_x -= 1
+
+    async def print(self, message):
+        await messagefuncs.sendWrappedMessage(message, self.channel)
+
+    async def input(self, message, timeout=3600.0):
+        await self.print(message)
+        response = await client.wait_for(
+            "message", timeout=6000.0, check=lambda m: m.channel == self.channel,
+        )
+        return response.clean_content
+
+    async def play(self):
+        exposition = """You see a grid of tiles built into the top of
+a pedestal. The tiles can slide around in the grid,
+but can't be removed without breaking them. There are
+fifteen tiles, taking up fifteen spaces in a 4x4 grid,
+so any of the tiles that are adjacent to the empty space
+can be slid into the empty space."""
+
+        await self.print(exposition)
+        moves = 0
+        for row in range(4):
+            if 0 in self.grid[row]:
+                self.blank_y = row
+                self.blank_x = self.grid[row].index(0)
+        self.pretty_print()
+        while True:
+            direction = await self.input(
+                "Enter a direction with 'u', 'd', 'l', or 'r': "
+            )
+            direction = self.direction_parsing[direction.lower()]
+            if direction != "":
+                direction()
+                moves += 1
+            else:
+                continue
+            if self.winning():
+                await self.print(
+                    f"{random.choice(self.victory_msgs)}\nMoves used: {moves}",
+                )
+                return
+            self.pretty_print()
+
+    def winning(self):
+        return self.grid == [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10, 11, 12],
+            [13, 14, 15, 0],
+        ]
+
+    async def pretty_print(self):
+        message_contents = ""
+        for row in self.grid:
+            outstring = []
+            for item in row:
+                if item < 10:
+                    outstring.append(" ")
+                outstring.append(str(item))
+                outstring.append("  ")
+            message_contents += "".join(outstring)
+        await self.print(message_contents)
+
+    async def sliding_puzzle_function(message, client, args):
+        try:
+            puzzle = sliding_puzzle(message)
+            return await puzzle.play()
+        except asyncio.TimeoutError:
+            await messagefuncs.sendWrappedMessage(
+                "Puzzle failed due to timeout", message.channel
+            )
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.error("SPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+            await message.add_reaction("🚫")
+
+
 async def autounload(ch):
     global session
     if session:
@@ -1365,6 +1502,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Check if Glowfic site is up",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!slidingpuzzle"],
+            "function": sliding_puzzle.sliding_puzzle_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "A fun little sliding puzzle",
         }
     )
     session = aiohttp.ClientSession(
