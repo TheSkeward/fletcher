@@ -1046,15 +1046,19 @@ class sliding_puzzle:
         self.channel = message.channel
         self.direction_parsing = defaultdict(str)
         self.direction_parsing["🇺"] = self.shift_up
+        self.direction_parsing["⬆️"] = self.shift_up
         self.direction_parsing["u"] = self.shift_up
         self.direction_parsing["up"] = self.shift_up
         self.direction_parsing["🇩"] = self.shift_down
+        self.direction_parsing["⬇️"] = self.shift_down
         self.direction_parsing["d"] = self.shift_down
         self.direction_parsing["down"] = self.shift_down
         self.direction_parsing["🇱"] = self.shift_left
+        self.direction_parsing["⬅️"] = self.shift_left
         self.direction_parsing["l"] = self.shift_left
         self.direction_parsing["left"] = self.shift_left
         self.direction_parsing["🇷"] = self.shift_right
+        self.direction_parsing["➡️"] = self.shift_right
         self.direction_parsing["r"] = self.shift_right
         self.direction_parsing["right"] = self.shift_right
         self.victory_msgs = ["You win!"]
@@ -1150,7 +1154,7 @@ class sliding_puzzle:
             if 0 in self.grid[row]:
                 self.blank_y = row
         await self.pretty_print()
-        allowed_reactions = ["🇺", "🇩", "🇱", "🇷"]
+        allowed_reactions = ["⬆️", "⬇️", "⬅️", "➡️"]
         for reaction in allowed_reactions:
             await self.status_message.add_reaction(reaction)
         await asyncio.sleep(1)
@@ -1181,7 +1185,7 @@ class sliding_puzzle:
         if self.winning():
             outstring = "＿＿＿＿\n"
         else:
-            outstring = "Enter a direction with the reactions 🇺 🇩 🇱 🇷\n"
+            outstring = "Slide the tiles with the reactions below:\n"
         mapping = [
             "　",
             "①",
