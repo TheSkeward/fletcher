@@ -1130,7 +1130,8 @@ class sliding_puzzle:
         done, pending = await asyncio.wait(waits, return_when=asyncio.FIRST_COMPLETED)
         for task in pending:
             task.cancel()
-        response = await done[0]
+        for task in done:
+            response = await task
         try:
             if type(message.channel) != discord.DMChannel:
                 await message.remove_reaction(
