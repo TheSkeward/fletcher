@@ -1113,11 +1113,14 @@ class sliding_puzzle:
         response = await client.wait_for(
             "raw_reaction_add",
             timeout=timeout,
-            check=lambda reaction: str(reaction.emoji) in allowed_reactions and reaction.message_id == message
+            check=lambda reaction: str(reaction.emoji) in allowed_reactions
+            and reaction.message_id == message,
         )
         try:
             if type(message.channel) != discord.DMChannel:
-                await message.remove_reaction(response.emoji, message.guild.get_member(response.user_id))
+                await message.remove_reaction(
+                    response.emoji, message.guild.get_member(response.user_id)
+                )
         except discord.Forbidden:
             pass
         return response.emoji
@@ -1159,14 +1162,31 @@ class sliding_puzzle:
 
     async def pretty_print(self):
         outstring = ""
-        mapping = ["　", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮"]
+        mapping = [
+            "　",
+            "①",
+            "②",
+            "③",
+            "④",
+            "⑤",
+            "⑥",
+            "⑦",
+            "⑧",
+            "⑨",
+            "⑩",
+            "⑪",
+            "⑫",
+            "⑬",
+            "⑭",
+            "⑮",
+        ]
         for row in self.grid:
             for item in row:
                 outstring += mapping[item]
             outstring += "\n"
         if not self.winning():
             outstring += "Enter a direction with the reactions 🇺 🇩 🇱 🇷"
-        if not self.status_message:
+        if not hasattr(self, "status_message"):
             self.status_message = await self.print(outstring)
         else:
             await self.status_message.edit(outstring)
