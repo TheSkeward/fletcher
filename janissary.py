@@ -1246,7 +1246,9 @@ async def add_inbound_sync_function(message, client, args):
         logger.debug(toAdmin)
         if not toAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
-            await message.author.send("You aren't an admin for the target channel, refusing.")
+            await message.author.send(
+                "You aren't an admin for the target channel, refusing."
+            )
             return
 
         soon = client.get_emoji(664472443053932604)

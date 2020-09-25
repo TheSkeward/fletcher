@@ -482,18 +482,6 @@ async def roll_function(message, client, args):
         logger.error("RDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
-def pingme_function(message, client, args):
-    return f"Pong {message.author.mention}!"
-
-
-def ping_function(message, client, args):
-    return "Pong!"
-
-
-def fling_function(message, client, args):
-    return "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ " + " ".join(args)
-
-
 async def pick_function(message, client, args):
     global ch
     try:
@@ -1391,7 +1379,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!pingme"],
-            "function": pingme_function,
+            "function": lambda message, client, args: f"Pong {message.author.mention}!",
             "async": False,
             "args_num": 0,
             "long_run": False,
@@ -1402,7 +1390,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!ping"],
-            "function": ping_function,
+            "function": lambda message, client, args: f"Pong!",
             "async": False,
             "args_num": 0,
             "long_run": False,
@@ -1413,7 +1401,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!fling"],
-            "function": fling_function,
+            "function": lambda message, client, args: f"(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ {message.content[7:]}",
             "async": False,
             "args_num": 0,
             "long_run": False,

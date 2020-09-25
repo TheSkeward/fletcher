@@ -102,7 +102,9 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!possum"],
-            "function": lambda message, client, args: pinterest_randomize_function(message, client, ["jerryob1", "Opossums"]),
+            "function": lambda message, client, args: pinterest_randomize_function(
+                message, client, ["jerryob1", "Opossums"]
+            ),
             "async": True,
             "admin": False,
             "hidden": False,
