@@ -204,6 +204,7 @@ class CommandHandler:
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=False, roles=False
                 ),
+                wait = True
             )
             cur = conn.cursor()
             cur.execute(
