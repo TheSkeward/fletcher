@@ -1322,7 +1322,7 @@ async def delete_my_message_function(message, client, args):
                     query_param,
                 )
                 subtuple = cur.fetchone()
-                if subtuple and subtuple[0] == args[1].id:
+                if subtuple and int(subtuple[0]) == args[1].id:
                     await message.delete()
                 conn.commit()
             except discord.Forbidden as e:
