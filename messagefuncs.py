@@ -91,12 +91,14 @@ def xchannel(targetChannel, currentGuild):
     return toChannel
 
 
-async def sendWrappedMessage(msg, target, files=[], embed=None):
-    msg_chunks = textwrap.wrap(msg, 2000, replace_whitespace=False)
+async def sendWrappedMessage(msg, target, files=[], embed=None, delete_after=None):
+    msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
     last_chunk = msg_chunks.pop()
     for chunk in msg_chunks:
-        await target.send(chunk)
-    return await target.send(last_chunk, files=files, embed=embed)
+        await target.send(chunk, delete_after=delete_after)
+    return await target.send(
+        last_chunk, files=files, embed=embed, delete_after=delete_after
+    )
 
 
 extract_identifiers_messagelink = re.compile(
@@ -118,8 +120,9 @@ async def teleport_function(message, client, args):
             and not message.author.guild_permissions.manage_webhooks
         ):
             await message.add_reaction("🚫")
-            await fromChannel.send(
+            await messagefuncs.sendWrappedMessage(
                 "Portals out of this channel have been administratively disabled.",
+                fromChannel,
                 delete_after=60,
             )
             return
@@ -129,50 +132,55 @@ async def teleport_function(message, client, args):
             toChannel = xchannel(toChannelName, fromGuild)
         except AttributeError:
             await message.add_reaction("🚫")
-            await fromChannel.send(
-                "Cannot teleport out of a DMChannel.", delete_after=60
+            await messagefuncs.sendWrappedMessage(
+                "Cannot teleport out of a DMChannel.", fromChannel, delete_after=60
             )
             return
         except ValueError:
             pass
         if toChannel is None:
             await message.add_reaction("🚫")
-            await fromChannel.send(
+            await messagefuncs.sendWrappedMessage(
                 f"Could not find channel {toChannelName}, please check for typos.",
+                fromChannel,
                 delete_after=60,
             )
             return
         toGuild = toChannel.guild
         if fromChannel.id == toChannel.id:
             await message.add_reaction("🚫")
-            await fromChannel.send(
-                "You cannot open an overlapping portal! Access denied.", delete_after=60
+            await messagefuncs.sendWrappedMessage(
+                "You cannot open an overlapping portal! Access denied.",
+                fromChannel,
+                delete_after=60,
             )
             return
         if not toChannel.permissions_for(
             toGuild.get_member(message.author.id)
         ).send_messages:
             await message.add_reaction("🚫")
-            await fromChannel.send(
+            await messagefuncs.sendWrappedMessage(
                 "You do not have permission to post in that channel! Access denied.",
+                fromChannel,
                 delete_after=60,
             )
             return
         logger.debug("Entering in " + str(fromChannel))
         try:
-            fromMessage = await fromChannel.send(
-                f"Opening Portal To <#{toChannel.id}> ({toGuild.name})"
+            fromMessage = await messagefuncs.sendWrappedMessage(
+                f"Opening Portal To <#{toChannel.id}> ({toGuild.name})", fromChannel
             )
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
-            await message.author.send(
-                content=f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied."
+            await messagefuncs.sendWrappedMessage(
+                f"Failed to open portal due to missing send permission on #{fromChannel.name}! Access denied.",
+                message.author,
             )
             return
         try:
-            logger.debug("Exiting in " + str(toChannel))
-            toMessage = await toChannel.send(
-                f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})"
+            logger.debug(f"Exiting in {toChannel}")
+            toMessage = await messagefuncs.sendWrappedMessage(
+                f"Portal Opening From <#{fromChannel.id}> ({fromGuild.name})", toChannel
             )
         except discord.Forbidden as e:
             await message.add_reaction("🚫")
@@ -267,8 +275,9 @@ async def preview_messagelink_function(message, client, args):
             guild = client.get_guild(guild_id)
             if guild is None:
                 logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
-                await message.author.send(
-                    f"Tried unrolling message link in your message <https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
+                await messagefuncs.sendWrappedMessage(
+                    f"Tried unrolling message link in your message <https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)",
+                    message.author,
                 )
                 return
             channel = guild.get_channel(channel_id)
@@ -382,8 +391,9 @@ async def preview_messagelink_function(message, client, args):
                 content, message.channel, files=attachments, embed=embed
             )
     except discord.Forbidden as e:
-        await message.author.send(
-            f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)"
+        await messagefuncs.sendWrappedMessage(
+            f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)",
+            message.author,
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -404,10 +414,9 @@ async def messagelink_function(message, client, args):
             except discord.NotFound as e:
                 pass
         if msg and not (len(args) == 2 and args[1] == "INTPROC"):
-            await message.channel.send(
-                "Message link on behalf of {}: https://discord.com/channels/{}/{}/{}".format(
-                    message.author, msg.channel.guild.id, msg.channel.id, msg.id
-                )
+            await messagefuncs.sendWrappedMessage(
+                f"Message link on behalf of {message.author}: https://discord.com/channels/{msg.channel.guild.id}/{msg.channel.id}/{msg.id}",
+                message.channel,
             )
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
                 await message.delete()
@@ -417,7 +426,9 @@ async def messagelink_function(message, client, args):
                 msg.channel.guild.id, msg.channel.id, msg.id
             )
         else:
-            return await message.channel.send("Message not found", delete_after=60)
+            return await messagefuncs.sendWrappedMessage(
+                "Message not found", message.channel, delete_after=60
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("MLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -468,13 +479,12 @@ async def bookmark_function(message, client, args):
                         ):
                             return
             elif str(args[0].emoji) == "🔗":
-                return await args[1].send(
-                    "https://discord.com/channels/{}/{}/{}".format(
-                        message.guild.id, message.channel.id, message.id
-                    )
+                return await messagefuncs.sendWrappedMessage(
+                    f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
+                    args[1],
                 )
         else:
-            await sendWrappedMessage(
+            await messagefuncs.sendWrappedMessage(
                 "Bookmark to conversation in #{} ({}) https://discord.com/channels/{}/{}/{} {}".format(
                     message.channel.recipient
                     if type(message.channel) is discord.DMChannel
@@ -509,8 +519,8 @@ async def paste_function(message, client, args):
                         attachments.append(
                             discord.File(attachment_blob, attachment.filename)
                         )
-                paste_message = await message.channel.send(
-                    paste_content, files=attachments
+                paste_message = await messagefuncs.sendWrappedMessage(
+                    paste_content, message.channel, files=attachments
                 )
                 await preview_messagelink_function(paste_message, client, args)
                 return
@@ -537,8 +547,9 @@ async def subscribe_function(message, client, args):
                 conn.commit()
                 if args[1].id not in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].append(args[1].id)
-                await args[1].send(
-                    f"By reacting with {args[0].emoji}, you subscribed to reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications."
+                await messagefuncs.sendWrappedMessage(
+                    f"By reacting with {args[0].emoji}, you subscribed to reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications.",
+                    args[1],
                 )
             else:
                 cur.execute(
@@ -548,8 +559,9 @@ async def subscribe_function(message, client, args):
                 conn.commit()
                 if args[1].id in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].remove(args[1].id)
-                await args[1].send(
-                    f"By unreacting with {args[0].emoji}, you unsubscribed from reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name})."
+                await messagefuncs.sendWrappedMessage(
+                    f"By unreacting with {args[0].emoji}, you unsubscribed from reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}).",
+                    args[1],
                 )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():

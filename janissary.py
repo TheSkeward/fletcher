@@ -38,7 +38,9 @@ async def set_role_color_function(message, client, args):
         if role is not None:
             if args[1].startswith("random"):
                 args[1] = "#%06x" % random.randint(0, 0xFFFFFF)
-                await message.channel.send(f"Setting color of {args[0]} to {args[1]}")
+                await messagefuncs.sendWrappedMessage(
+                    f"Setting color of {args[0]} to {args[1]}", message.channel
+                )
             if args[1].startswith("#"):
                 args[1] = args[1][1:]
             rgb = [
@@ -58,12 +60,14 @@ async def set_role_color_function(message, client, args):
                 )
             await message.add_reaction("✅")
         else:
-            await message.author.send(
-                "Unable to find matching role to set color, create this role before trying to set its color."
+            await messagefuncs.sendWrappedMessage(
+                "Unable to find matching role to set color, create this role before trying to set its color.",
+                message.author,
             )
     except discord.Forbidden as e:
-        await message.author.send(
-            "Unable to set role color, am I allowed to edit this role?  My role must be above the target in the heirarchy, and I must have the Manage Roles permission."
+        await message.sendWrappedMessage(
+            "Unable to set role color, am I allowed to edit this role?  My role must be above the target in the heirarchy, and I must have the Manage Roles permission.",
+            message.author,
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -110,39 +114,15 @@ async def addrole_function(message, client, args):
                     or message.channel.permissions_for(message.author).manage_messages
                 ):
                     if role in message.author.roles:
-                        err = (
-                            err
-                            + " `!revoke "
-                            + role.name
-                            + " from me` to remove this role from yourself."
-                        )
+                        err = f"{err} `!revoke {role.name} to me` to remove this role from yourself."
                     else:
-                        err = (
-                            err
-                            + " `!assign "
-                            + role.name
-                            + " to me` to add this role to yourself."
-                        )
+                        err = f"{err} `!assign {role.name} to me` to add this role to yourself."
                 else:
                     if role in message.author.roles:
-                        err = (
-                            err
-                            + " An administrator can `!revoke "
-                            + role.name
-                            + " from @"
-                            + str(message.author.id)
-                            + "` to remove this role from you."
-                        )
+                        err = f"{err} An administrator can `!revoke {role.name} to @{message.author.id}` to remove this role from you."
                     else:
-                        err = (
-                            err
-                            + " An administrator can `!assign "
-                            + role.name
-                            + " to @"
-                            + str(message.author.id)
-                            + "` to add this role to you."
-                        )
-                return await message.channel.send(err)
+                        err = f"{err} An administrator can `!assign {role.name} to @{message.author.id}` to add this role to you."
+                return await messagefuncs.sendWrappedMessage(err, message.channel)
             else:
                 role = await message.channel.guild.create_role(
                     name=roleProperties["name"],
@@ -150,8 +130,8 @@ async def addrole_function(message, client, args):
                     mentionable=True,
                     reason="Role added on behalf of " + str(message.author.id),
                 )
-                await message.channel.send(
-                    "Role " + role.mention + " successfully created."
+                await messagefuncs.sendWrappedMessage(
+                    f"Role {role.mention} successfully created.", message.channel
                 )
                 await role.edit(mentionable=roleProperties["mentionable"])
                 if "snappy" in config["discord"] and config["discord"]["snappy"]:
@@ -181,10 +161,9 @@ async def assignrole_function(message, client, args):
                     or message.channel.permissions_for(message.author).manage_messages
                 ):
                     if role in message.author.roles:
-                        return await message.channel.send(
-                            "You already have that role, `!revoke "
-                            + role.name
-                            + " from me` to remove this role from yourself."
+                        return await messagefuncs.sendWrappedMessage(
+                            f"You already have that role, `!revoke {role.name} from me` to remove this role from yourself.",
+                            message.channel,
                         )
                     else:
                         if (
@@ -195,38 +174,22 @@ async def assignrole_function(message, client, args):
                         await message.author.add_roles(
                             role, reason="Self-assigned", atomic=False
                         )
-                        return await message.channel.send(
-                            "Role assigned, `!revoke "
-                            + role.name
-                            + " from me` to remove this role from yourself."
+                        return await messagefuncs.sendWrappedMessage(
+                            f"Role assigned, `!revoke {role.name} from me` to remove this role from yourself.",
+                            message.channel,
                         )
                 else:
                     # TODO unimplemented
                     pass
                     if role in message.author.roles:
-                        err = (
-                            err
-                            + " An administrator can `!revoke "
-                            + role.name
-                            + " from @"
-                            + str(message.author.id)
-                            + "` to remove this role from you."
-                        )
+                        err = f"{err} An administrator can `!revoke {role.name} to @{message.author.id}` to remove this role from you."
                     else:
-                        err = (
-                            err
-                            + " An administrator can `!assign "
-                            + role.name
-                            + " to @"
-                            + str(message.author.id)
-                            + "` to add this role to you."
-                        )
-                return await message.channel.send(err)
+                        err = f"{err} An administrator can `!assign {role.name} to @{message.author.id}` to add this role to you."
+                return await messagefuncs.sendWrappedMessage(err, message.channel)
             else:
-                await message.channel.send(
-                    "Role "
-                    + roleProperties["name"]
-                    + " does not exist, use the addrole command to create it."
+                await messagefuncs.sendWrappedMessage(
+                    f"Role {roleProperties['name']} does not exist, use the addrole command to create it.",
+                    message.channel,
                 )
                 if "snappy" in config["discord"] and config["discord"]["snappy"]:
                     await message.delete()
@@ -263,44 +226,27 @@ async def revokerole_function(message, client, args):
                         await message.author.remove_roles(
                             role, reason="Self-assigned", atomic=False
                         )
-                        return await message.channel.send(
-                            "Role revoked, `!assign "
-                            + role.name
-                            + " to me` to add this role to yourself."
+                        return await messagefuncs.sendWrappedMessage(
+                            f"Role revoked, `!assign {role.name} to me` to add this role to yourself.",
+                            message.channel,
                         )
                     else:
-                        return await message.channel.send(
-                            "You don't have that role, `!assign "
-                            + role.name
-                            + " to me` to assign this role to yourself."
+                        return await messagefuncs.sendWrappedMessage(
+                            f"You don't have that role, `!assign {role.name} to me` to assign this role to yourself.",
+                            message.channel,
                         )
                 else:
                     # TODO unimplemented
                     pass
                     if role in message.author.roles:
-                        err = (
-                            err
-                            + " An administrator can `!revoke "
-                            + role.name
-                            + " from @"
-                            + str(message.author.id)
-                            + "` to remove this role from you."
-                        )
+                        err = f"{err} An administrator can `!revoke {role.name} from @{message.author.id}` to remove this role from you."
                     else:
-                        err = (
-                            err
-                            + " An administrator can `!assign "
-                            + role.name
-                            + " to @"
-                            + str(message.author.id)
-                            + "` to add this role to you."
-                        )
-                return await message.channel.send(err)
+                        err = f"{err} An administrator can `!assign {role.name} to @{message.author.id}` to add this role to you."
+                return await messagefuncs.sendWrappedMessage(err, message.channel)
             else:
-                await message.channel.send(
-                    "Role "
-                    + roleProperties["name"]
-                    + " does not exist, use the addrole command to create it."
+                await messagefuncs.sendWrappedMessage(
+                    f"Role {roleProperties['name']} does not exist, use the addrole command to create it.",
+                    message.channel,
                 )
                 if "snappy" in config["discord"] and config["discord"]["snappy"]:
                     await message.delete()
@@ -324,27 +270,21 @@ async def delrole_function(message, client, args):
             if role is not None:
                 if message.channel.permissions_for(message.author).manage_messages:
                     await role.delete(reason="On behalf of " + str(message.author))
-                    await message.channel.send(
-                        "Role `@" + roleProperties["name"] + "` deleted."
+                    await messagefuncs.sendWrappedMessage(
+                        f"Role `@{roleProperties['name']}` deleted.", message.channel
                     )
                 else:
-                    await message.channel.send(
-                        "You do not have permission to delete role `@"
-                        + roleProperties["name"]
-                        + "`."
+                    await messagefuncs.sendWrappedMessage(
+                        f"You do not have permission to delete role `@{roleProperties['name']}`.",
+                        message.channel,
                     )
             else:
-                err = "Role `@" + roleProperties["name"] + "` does not exist!"
+                err = f"Role `@{roleProperties['name']}` does not exist!"
                 if message.channel.permissions_for(message.author).manage_messages:
-                    err = err + " `!addrole " + role.name + "` to add this role."
+                    err += f" `!addrole {role.name}` to add this role."
                 else:
-                    err = (
-                        err
-                        + " An administrator can `!addrole "
-                        + role.name
-                        + "` to add this role."
-                    )
-                await message.channel.send(err)
+                    err += f" An administrator can `!addrole {role.name}` to add this role."
+                await messagefuncs.sendWrappedMessage(err, message.channel)
                 if "snappy" in config["discord"] and config["discord"]["snappy"]:
                     await message.delete()
     except Exception as e:
@@ -386,8 +326,8 @@ async def modping_function(message, client, args):
             lay_mentionable = role.mentionable
             if not lay_mentionable:
                 await role.edit(mentionable=True)
-            mentionPing = await message.channel.send(
-                message.author.name + " pinging " + role.mention
+            mentionPing = await messagefuncs.sendWrappedMessage(
+                f"{message.author.name} pinging {role.mention}", message.channel
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
@@ -660,17 +600,11 @@ async def lockout_user_function(message, client, args):
                         await channel.set_permissions(
                             member,
                             overwrite=None,
-                            reason="Admin reset lockout obo " + message.author.name,
+                            reason=f"Admin reset lockout obo {message.author.name}",
                         )
-                        logMessage = (
-                            str(member)
-                            + " from non-category channel "
-                            + str(channel)
-                            + " in "
-                            + str(member.guild)
-                        )
+                        logMessage = f"{member} from non-category channel {channel} in {member.guild}"
                         logger.debug("LUF: " + logMessage)
-                        log = log + "\n" + logMessage
+                        log += f"\n{logMessage}"
                     else:
                         try:
                             await channel.set_permissions(
@@ -678,21 +612,15 @@ async def lockout_user_function(message, client, args):
                                 read_messages=False,
                                 read_message_history=False,
                                 send_messages=False,
-                                reason="Admin requested lockout obo "
-                                + message.author.name,
+                                reason=f"Admin requested lockout obo {message.author.name}",
                             )
-                            logMessage = (
-                                str(member)
-                                + " from non-category channel "
-                                + str(channel)
-                                + " in "
-                                + str(member.guild)
-                            )
+                            logMessage = f"{member} from non-category channel {channel} in {member.guild}"
                             logger.debug("LUF: " + logMessage)
-                            log = log + "\n" + logMessage
+                            log += f"\n{logMessage}"
                         except discord.Forbidden as e:
-                            message.author.send(
-                                f"Forbidden to set permissions on {channel}"
+                            await messagefuncs.sendWrappedMessage(
+                                f"Forbidden to set permissions on {channel}",
+                                message.author,
                             )
         await messagefuncs.sendWrappedMessage(log, message.author)
     except Exception as e:
@@ -705,8 +633,9 @@ async def part_channel_function(message, client, args):
         if len(message.channel_mentions) > 0:
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
-            return await message.author.send(
-                "Parting a channel requires server and channel to be specified (e.g. `!part server:channel [hours]`)"
+            return await messagefuncs.sendWrappedMessage(
+                "Parting a channel requires server and channel to be specified (e.g. `!part server:channel [hours]`)",
+                message.author,
             )
         elif len(args) == 0:
             channels = [message.channel]
@@ -722,8 +651,9 @@ async def part_channel_function(message, client, args):
             try:
                 channel = messagefuncs.xchannel(args[0].strip(), message.guild)
             except (exceptions.DirectMessageException, AttributeError):
-                return await message.author.send(
-                    "Parting a channel via DM requires server to be specified (e.g. `!part server:channel [hours]`)"
+                return await messagefuncs.sendWrappedMessage(
+                    "Parting a channel via DM requires server to be specified (e.g. `!part server:channel [hours]`)",
+                    message.author,
                 )
             if channel is None:
                 channel = message.channel
@@ -738,8 +668,8 @@ async def part_channel_function(message, client, args):
             guild = channel.guild
         else:
             await message.add_reaction("🚫")
-            return await message.channel.send(
-                "Failed to locate channel, please check spelling."
+            return await messagefuncs.sendWrappedMessage(
+                "Failed to locate channel, please check spelling.", message.channel
             )
         channel_names = ""
         for channel in channels:
@@ -748,13 +678,15 @@ async def part_channel_function(message, client, args):
                 read_messages=False,
                 read_message_history=False,
                 send_messages=False,
-                reason="User requested part " + message.author.name,
+                reason=f"User requested part {message.author.name}",
             )
             channel_names += f"{channel.guild.name}:{channel.name}, "
         await message.add_reaction("✅")
-        await message.author.send(f"Parted from {channel_names[0:-2]}")
+        await messagefuncs.sendWrappedMessage(
+            f"Parted from {channel_names[0:-2]}", message.author
+        )
     except discord.NotFound as e:
-        await message.author.send(e)
+        await messagefuncs.sendWrappedMessage(e, message.author)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -775,8 +707,9 @@ async def snooze_channel_function(message, client, args):
         if len(message.channel_mentions) > 0:
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
-            return await message.author.send(
-                "Snoozing a channel requires server and channel to be specified (e.g. `!snooze server:channel [hours]`)"
+            return await messagefuncs.sendWrappedMessage(
+                "Snoozing a channel requires server and channel to be specified (e.g. `!snooze server:channel [hours]`)",
+                message.author,
             )
         elif len(args) == 0:
             channel = message.channel
@@ -804,8 +737,9 @@ async def snooze_channel_function(message, client, args):
                 channel_name = channel_name.lstrip()
                 channel = messagefuncs.xchannel(channel_name, message.guild)
             except exceptions.DirectMessageException:
-                return await message.author.send(
-                    "Snoozing a channel via DM requires server to be specified (e.g. `!snooze server:channel [hours]`)"
+                return await messagefuncs.sendWrappedMessage(
+                    "Snoozing a channel via DM requires server to be specified (e.g. `!snooze server:channel [hours]`)",
+                    message.author,
                 )
             if channel is None:
                 channel = message.channel
@@ -820,8 +754,8 @@ async def snooze_channel_function(message, client, args):
             guild = channel.guild
         else:
             await message.add_reaction("🚫")
-            return await message.channel.send(
-                "Failed to locate channel, please check spelling."
+            return await messagefuncs.sendWrapppedMessage(
+                "Failed to locate channel, please check spelling.", message.author
             )
         if (
             channel
@@ -833,8 +767,9 @@ async def snooze_channel_function(message, client, args):
             and not guild.get_member(client.user.id).guild_permissions.manage_roles
         ):
             await message.add_reaction("🚫")
-            return await message.channel.send(
-                "Unable to snooze the requested channel(s) - owner has not granted Fletcher Manage Permissions."
+            return await messagefuncs.sendWrappedMessage(
+                "Unable to snooze the requested channel(s) - owner has not granted Fletcher Manage Permissions.",
+                message.author,
             )
         cur = conn.cursor()
         if len(args) == 2:
@@ -895,7 +830,7 @@ async def snooze_channel_function(message, client, args):
                 read_message_history=False,
                 send_messages=False,
                 embed_links=False,
-                reason="User requested snooze " + message.author.name,
+                reason=f"User requested snooze {message.author.name}",
             )
             channel_names += f"{channel.guild.name}:{channel.name}, "
         channel_names = channel_names[:-2]
@@ -904,20 +839,22 @@ async def snooze_channel_function(message, client, args):
         conn.commit()
         await message.add_reaction("✅")
         if type(interval) == float:
-            await message.author.send(
-                f"Snoozed {channel_names} for {interval} hours (`!part` to leave channel permanently)"
+            await messagefuncs.sendWrappedMessage(
+                f"Snoozed {channel_names} for {interval} hours (`!part` to leave channel permanently)",
+                message.author,
             )
         else:
-            await message.author.send(
-                f"Snoozed {channel_names} until {interval} (`!part` to leave channel permanently)"
+            await messagefuncs.sendWrappedMessage(
+                f"Snoozed {channel_names} until {interval} (`!part` to leave channel permanently)",
+                message.author,
             )
     except discord.Forbidden as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.info(f"SNCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-        await message.channel.send(
-            "Snooze forbidden! I don't have the authority to do that."
+        await messagefuncs.sendWrappedMessage(
+            "Snooze forbidden! I don't have the authority to do that.", message.channel
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
@@ -1090,7 +1027,7 @@ async def chanlog_function(message, client, args):
             if before:
                 content += await log_message(before, last_created_at, last_author_name)
         link = text_manipulators.fiche_function(content, message.id)
-        await message.author.send(link)
+        await messagefuncs.sendWrappedMessage(link, message.author)
         await message.remove_reaction("🔜", client.user)
         await message.add_reaction("✅")
     except Exception as e:
@@ -1177,8 +1114,8 @@ async def copy_emoji_function(message, client, args):
             elif len(emoji):
                 emoji = emoji[0]
             else:
-                await message.channel.send(
-                    "Emoji not found on any Fletcher-enabled server."
+                await messagefuncs.sendWrappedMessage(
+                    "Emoji not found on any Fletcher-enabled server.", message.channel
                 )
                 return
             if len(args) > 0:
@@ -1187,8 +1124,9 @@ async def copy_emoji_function(message, client, args):
                 emoji_name = emoji.name
             url = emoji.url
         if url:
-            target = await message.channel.send(
-                f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?"
+            target = await messagefuncs.sendWrappedMessage(
+                f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?",
+                message.channel,
             )
             await target.add_reaction("✅")
             try:
@@ -1196,7 +1134,9 @@ async def copy_emoji_function(message, client, args):
                     "reaction_add",
                     timeout=6000.0,
                     check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
-                    and user.permissions_in(message.channel).manage_emojis,
+                    and user.permissions_in(message.channel).manage_emojis
+                    and user.id != client.user.id
+                    and reaction.message.id == target.id,
                 )
             except asyncio.TimeoutError:
                 await target.edit(message="Cancelled, timeout.")
@@ -1207,10 +1147,11 @@ async def copy_emoji_function(message, client, args):
                 image=(await netcode.simple_get_image(url)).read(),
                 reason=f"Synced{' from '+str(emoji.guild) if emoji else ' '+emoji_name} for {message.author.name}",
             )
-            await message.channel.send(custom_emoji)
+            await messagefuncs.sendWrappedMessage(custom_emoji, message.channel)
     except discord.Forbidden as e:
-        await message.author.send(
-            "There was a permissions error when executing this command, please grant me the Manage Emojis permission and try again!"
+        await messagefuncs.sendWrappedMessage(
+            "There was a permissions error when executing this command, please grant me the Manage Emojis permission and try again!",
+            message.author,
         )
         exc_type, exc_obj, exc_tb = exc_info()
         logger.info(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1242,12 +1183,13 @@ async def add_inbound_sync_function(message, client, args):
         toChannelName = " ".join(args).strip()
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
+        logger.debug(f"Checking permissions for {message.author} on {toChannel}")
         toAdmin = ch.is_admin(toChannel, message.author)
         logger.debug(toAdmin)
         if not toAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
-            await message.author.send(
-                "You aren't an admin for the target channel, refusing."
+            await messagefuncs.sendWrappedMessage(
+                "You aren't an admin for the target channel, refusing.", message.author
             )
             return
 
@@ -1258,12 +1200,7 @@ async def add_inbound_sync_function(message, client, args):
             soon = "🔜"
             await message.add_reaction(soon)
         webhook = await message.channel.create_webhook(
-            name=config.get("discord", dict()).get("botNavel", "botNavel")
-            + " ("
-            + toChannel.guild.name.replace(" ", "_")
-            + ":"
-            + toChannel.name.replace(" ", "_")
-            + ")",
+            name=f'{config.get("discord", dict()).get("botNavel", "botNavel")} ({toChannel.guild.name.replace(" ", "_")}:{toChannel.name.replace(" ", "_")})',
             reason=f"On behalf of {message.author.name}",
         )
         await message.remove_reaction(soon, client.user)
@@ -1271,17 +1208,18 @@ async def add_inbound_sync_function(message, client, args):
         if not ch.config.get(
             channel=message.channel.id, guild=message.guild.id, key="synchronize"
         ):
-            await message.author.send(
-                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun"
+            await messagefuncs.sendWrappedMessage(
+                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun",
+                message.author,
             )
         else:
             ch.webhook_sync_registry[
                 message.guild.name + ":" + message.channel.name
             ] = {
-                "toChannelObject": toChannel,
+                "toChannelObject": message.channel,
                 "toWebhook": webhook,
-                "toChannelName": toChannel.name,
-                "fromChannelObject": message.channel,
+                "toChannelName": message.channel.name,
+                "fromChannelObject": toChannel,
                 "fromWebhook": None,
             }
     except Exception as e:
@@ -1419,16 +1357,19 @@ async def unpin_message_function(message, client, args):
             try:
                 await message.unpin()
             except discord.HTTPException:
-                await args[1].send(
-                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again."
+                await messagefuncs.sendWrappedMessage(
+                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
+                    args[1],
                 )
             except discord.Forbidden:
-                await args[1].send(
-                    "I don't have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again."
+                await messagefuncs.sendWrappedMessage(
+                    "I don't have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
+                    args[1],
                 )
         else:
-            await args[1].send(
-                "Server is not configured to allow you to unpin messages in this channel. Ask an admin to set `allow_unprivileged_unpins` or `allow_unprivileged_selfunpins` to `On` to use this feature."
+            await messagefuncs.sendWrappedMessage(
+                "Server is not configured to allow you to unpin messages in this channel. Ask an admin to set `allow_unprivileged_unpins` or `allow_unprivileged_selfunpins` to `On` to use this feature.",
+                args[1],
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1450,16 +1391,19 @@ async def pin_message_function(message, client, args):
             try:
                 await message.pin()
             except discord.HTTPException:
-                await args[1].send(
-                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again."
+                await messagefuncs.sendWrappedMessage(
+                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
+                    args[1],
                 )
             except discord.Forbidden:
-                await args[1].send(
-                    "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again."
+                await messagefuncs.sendWrappedMessage(
+                    "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
+                    args[1],
                 )
         else:
-            await args[1].send(
-                "Server is not configured to allow you to pin messages in this channel. Ask an admin to set `allow_unprivileged_pins` or `allow_unprivileged_selfpins` to `On` to use this feature."
+            await messagefuncs.sendWrappedMessage(
+                "Server is not configured to allow you to pin messages in this channel. Ask an admin to set `allow_unprivileged_pins` or `allow_unprivileged_selfpins` to `On` to use this feature.",
+                args[1],
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1476,19 +1420,23 @@ async def invite_function(message, client, args):
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
         if not member:
-            await message.author.send(f"Could not find user matching {name}")
+            await messagefuncs.sendWrappedMessage(
+                f"Could not find user matching {name}", message.author
+            )
             return
         else:
             await message.add_reaction(soon)
         if not member.bot:
             try:
-                target = await member.send(
-                    f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅"
+                target = await messagefuncs.sendWrappedMessage(
+                    f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅",
+                    member,
                 )
                 await target.add_reaction("✅")
             except discord.Forbidden:
-                return await message.author.send(
-                    f"Couldn't send invite to {member}: discord.Forbidden"
+                return await messagefuncs.sendWrappedMessage(
+                    f"Couldn't send invite to {member}: discord.Forbidden",
+                    message.author,
                 )
             try:
                 reaction, user = await client.wait_for(
@@ -1511,14 +1459,15 @@ async def invite_function(message, client, args):
                 send_messages=True,
                 reason="Invited by channel admin",
             )
-            await message.author.send(
-                f"{member} accepted your invite to {channel.mention}"
+            await messagefuncs.sendWrappedMessage(
+                f"{member} accepted your invite to {channel.mention}", message.author
             )
             await message.remove_reaction(soon, client.user)
             await message.add_reaction("✅")
         except discord.Forbidden:
-            return await message.author.send(
-                f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden"
+            return await messagefuncs.sendWrappedMessage(
+                f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden",
+                message.author,
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1531,13 +1480,15 @@ async def self_service_channel_function(message, client, args, autoclose=False):
         if not len(message.channel_mentions):
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
-            await message.author.send(
-                "You don't have permission to set up a self-service channel reaction function because you don't have channel admin permissions."
+            await messagefuncs.sendWrappedMessage(
+                "You don't have permission to set up a self-service channel reaction function because you don't have channel admin permissions.",
+                message.author,
             )
             return
         if not ch.is_admin(message.channel, message.author)["channel"] and autoclose:
-            await message.author.send(
-                "You don't have permission to set up an autoclosing self-service channel reaction function because you don't have channel admin permissions."
+            await messagefuncs.sendWrappedMessage(
+                "You don't have permission to set up an autoclosing self-service channel reaction function because you don't have channel admin permissions.",
+                message.author,
             )
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
@@ -1550,11 +1501,13 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                         read_message_history=True,
                     )
                     if not autoclose:
-                        await message.author.send(
-                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}"
+                        await messagefuncs.sendWrappedMessage(
+                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}",
+                            message.author,
                         )
-                        await args[1].send(
-                            f"Added you to channel #{message.channel_mentions[0].name}"
+                        await messagefuncs.sendWrappedMessage(
+                            f"Added you to channel #{message.channel_mentions[0].name}",
+                            args[1],
                         )
                     else:
                         await message.channel.set_permissions(
@@ -1563,15 +1516,18 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                             send_messages=False,
                             read_message_history=False,
                         )
-                        await message.author.send(
-                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}, and removed {args[1]} from channel #{message.channel.name}"
+                        await messagefuncs.sendWrappedMessage(
+                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}, and removed {args[1]} from channel #{message.channel.name}",
+                            message.author,
                         )
-                        await args[1].send(
-                            f"Added you to channel #{message.channel_mentions[0].name}, and removed you from channel #{message.channel.name}"
+                        await messagefuncs.sendWrappedMessage(
+                            f"Added you to channel #{message.channel_mentions[0].name}, and removed you from channel #{message.channel.name}",
+                            args[1],
                         )
                 except discord.Forbidden:
-                    await message.author.send(
-                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add."
+                    await messagefuncs.sendWrappedMessage(
+                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add.",
+                        message.author,
                     )
             else:
                 try:
@@ -1581,15 +1537,18 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                         send_messages=False,
                         read_message_history=False,
                     )
-                    await message.author.send(
-                        f"Removed {args[1]} from channel #{message.channel_mentions[0].name}"
+                    await messagefuncs.sendWrappedMessage(
+                        f"Removed {args[1]} from channel #{message.channel_mentions[0].name}",
+                        message.author,
                     )
-                    await args[1].send(
-                        f"Removed you from channel #{message.channel_mentions[0].name}"
+                    await messagefuncs.sendWrappedMessage(
+                        f"Removed you from channel #{message.channel_mentions[0].name}",
+                        args[1],
                     )
                 except discord.Forbidden:
-                    await message.author.send(
-                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal."
+                    await messagefuncs.sendWrappedMessage(
+                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal.",
+                        message.author,
                     )
         else:
             cur = conn.cursor()
@@ -1627,8 +1586,9 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                 },
             )
             await message.add_reaction("🚪")
-            await message.author.send(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history on #{message.channel_mentions[0].name}"
+            await messagefuncs.sendWrappedMessage(
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history on #{message.channel_mentions[0].name}",
+                message.author,
             )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():

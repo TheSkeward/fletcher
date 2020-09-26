@@ -247,7 +247,9 @@ async def table_exec_function():
         exc_type, exc_obj, exc_tb = exc_info()
         if "ctid" in locals():
             logger.info(f"TXF: Error in ctid row {ctid}")
-            await ch.global_admin.send(f"TXF: Error in ctid row {ctid}")
+            await messagefuncs.sendWrappedMessage(
+                f"TXF: Error in ctid row {ctid}", ch.global_admin
+            )
         logger.info(traceback.format_exc())
         logger.error(f"TXF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 

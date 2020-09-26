@@ -175,8 +175,9 @@ class CommandHandler:
                 try:
                     webhooks = await message.channel.webhooks()
                 except discord.Forbidden:
-                    await user.send(
-                        f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that."
+                    await messagefuncs.sendWrappedMessage(
+                        f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.",
+                        user,
                     )
                     continue
                 if len(webhooks) > 0:
@@ -209,8 +210,9 @@ class CommandHandler:
             except discord.NotFound:
                 return
             except discord.Forbidden:
-                return await user.send(
-                    f"Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that."
+                return await messagefuncs.sendWrappedMessage(
+                    f"Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.",
+                    user,
                 )
 
     async def web_handler(self, request):
@@ -294,8 +296,9 @@ class CommandHandler:
                     return await message.remove_reaction(messageContent, user)
                 if guild_config.get("subscribe", {}).get(message.id):
                     for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        preview_message = await message.guild.get_member(user_id).send(
-                            f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {messageContent} to https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                        preview_message = await messagefuncs.sendWrappedMessage(
+                            f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {messageContent} to https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
+                            message.guild.get_member(user_id),
                         )
                         await messagefuncs.preview_messagelink_function(
                             preview_message, self.client, None
@@ -513,8 +516,9 @@ class CommandHandler:
                         channel_config = {}
                 if guild_config.get("subscribe", {}).get(message.id):
                     for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        preview_message = await message.guild.get_member(user_id).send(
-                            f"{user.display_name} ({user.name}#{user.discriminator}) removed reaction of {messageContent} from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+                        preview_message = await messagefuncs.sendWrappedMessage(
+                            f"{user.display_name} ({user.name}#{user.discriminator}) removed reaction of {messageContent} from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
+                            message.guild.get_member(user_id),
                         )
                         await messagefuncs.preview_messagelink_function(
                             preview_message, self.client, None
@@ -577,11 +581,12 @@ class CommandHandler:
                 },
             )
             if scoped_config.get("name_change_notify", False):
-                await after.send(
+                await messagefuncs.sendWrappedMessage(
                     scoped_confg.get(
                         "name_change_notify_prefix",
                         "Name changed from {before.name} to {after.name}",
-                    ).format(before=before, after=after)
+                    ).format(before=before, after=after),
+                    after,
                 )
         if type(before) == discord.TextChannel and before.topic != after.topic:
             logger.info(
@@ -592,11 +597,12 @@ class CommandHandler:
                 },
             )
             if scoped_config.get("topic_change_notify", False):
-                await after.send(
+                await messagefuncs.sendWrappedMessage(
                     scoped_confg.get(
                         "topic_change_notify_prefix",
                         "Topic changed from {before.topic} to {after.topic}",
-                    ).format(before=before, after=after)
+                    ).format(before=before, after=after),
+                    after,
                 )
 
     async def reload_handler(self):
@@ -1835,7 +1841,7 @@ def preference_function(message, client, args):
 
 async def dumptasks_function(message, client, args):
     tasks = await client.loop.all_tasks()
-    await message.author.send(f"{tasks}")
+    await messagefuncs.sendWrappedMessage(tasks, message.author)
 
 
 async def autounload(ch):

@@ -2,6 +2,7 @@ from sys import exc_info
 import aiohttp
 import discord
 import logging
+import messagefuncs
 import os
 
 logger = logging.getLogger("fletcher")
@@ -21,7 +22,7 @@ async def github_search_function(message, client, args):
         get_url = "/search/issues"
         async with aiohttp.ClientSession(
             headers={
-                "Authorization": "token " + config["github"]["personalAccessToken"]
+                "Authorization": f"token {config['github']['personalAccessToken']}"
             }
         ) as session:
             url = base_url + get_url
@@ -31,19 +32,24 @@ async def github_search_function(message, client, args):
             ) as response:
                 response_body = await response.json()
                 if response_body["total_count"] == 0:
-                    return await message.channel.send("No results found.")
+                    return await messagefuncs.sendWrappedMessage(
+                        "No results found.", message.channel
+                    )
                 elif response_body["total_count"] <= 5:
                     for issue in response_body["items"]:
-                        await message.channel.send(
-                            embed=issue_to_embed(issue, issue["user"]["login"])
+                        await messagefuncs.sendWrappedMessage(
+                            target=message.channel,
+                            embed=issue_to_embed(issue, issue["user"]["login"]),
                         )
                 else:
                     for issue in response_body["items"][:5]:
-                        await message.channel.send(
-                            embed=issue_to_embed(issue, issue["user"]["login"])
+                        await messagefuncs.sendWrappedMessage(
+                            target=message.channel,
+                            embed=issue_to_embed(issue, issue["user"]["login"]),
                         )
-                    await message.channel.send(
-                        f"Results truncated, {response_body['total_count']} total responses"
+                    await messagefuncs.sendWrappedMessage(
+                        f"Results truncated, {response_body['total_count']} total responses",
+                        message.channel,
                     )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -82,8 +88,9 @@ async def github_report_function(message, client, args):
                 url, json={"title": title, "body": content}
             ) as response:
                 response_body = await response.json()
-                await message.channel.send(
-                    embed=issue_to_embed(response_body, message.author.display_name)
+                await messagefuncs.sendWrappedMessage(
+                    target=message.channel,
+                    embed=issue_to_embed(response_body, message.author.display_name),
                 )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()

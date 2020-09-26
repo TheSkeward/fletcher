@@ -5,6 +5,7 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import io
 import logging
+import messagefuncs
 import random
 from sys import exc_info
 
@@ -98,8 +99,9 @@ async def lesbaru_function(message, client, args):
                                 + str(resp.status)
                                 + " Retrieving image failed!"
                             )
-                        await message.channel.send(
-                            files=[discord.File(buffer, image.get("filename"))]
+                        await messagefuncs.sendWrappedMessage(
+                            target=message.channel,
+                            files=[discord.File(buffer, image.get("filename"))],
                         )
                         break
             except (
@@ -144,8 +146,9 @@ async def twilestia_function(message, client, args):
                                 + str(resp.status)
                                 + " Retrieving image failed!"
                             )
-                        await message.channel.send(
-                            files=[discord.File(buffer, image.get("filename"))]
+                        await messagefuncs.sendWrappedMessage(
+                            target=message.channel,
+                            files=[discord.File(buffer, image.get("filename"))],
                         )
                         break
             except (

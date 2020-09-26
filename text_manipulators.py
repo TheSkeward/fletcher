@@ -2690,8 +2690,10 @@ async def ocr_function(message, client, args):
             input_image_blob = await netcode.simple_get_image(url)
         except Exception as e:
             await message.add_reaction("🚫")
-            await message.channel.send(
-                "Could not retrieve image with url {url} ({e})", delete_after=60,
+            await messagefuncs.sendWrappedMessage(
+                "Could not retrieve image with url {url} ({e})",
+                message.channel,
+                delete_after=60,
             )
             return
         input_image_blob.seek(0)
@@ -2759,8 +2761,9 @@ async def mobilespoil_function(message, client, args):
             channel = message.channel
         content = f"Spoilered for {message.author.display_name}{content}"
         input_image_blob.seek(0)
-        output_message = await channel.send(
-            content=content,
+        output_message = await messagefuncs.sendWrappedMessage(
+            content,
+            channel,
             files=[
                 discord.File(
                     input_image_blob, "SPOILER_" + message.attachments[0].filename
@@ -2794,18 +2797,15 @@ async def scramble_function(message, client, args):
                         "Forbidden to delete message in " + str(message.channel)
                     )
                 pass
-        if len(args) == 3 and type(args[1]) is discord.Member:
-            output_message = await args[1].send(
-                content="Scrambling image... ("
-                + str(input_image_blob.getbuffer().nbytes)
-                + " bytes loaded)"
-            )
-        else:
-            output_message = await message.channel.send(
-                content="Scrambling image...("
-                + str(input_image_blob.getbuffer().nbytes)
-                + " bytes loaded)"
-            )
+        target = (
+            args[1]
+            if len(args) == 3 and type(args[1]) is discord.Member
+            else message.channel
+        )
+        output_message = await messagefuncs.sendWrappedMessage(
+            f"Scrambling image... ({input_image_blob.getbuffer().nbytes} bytes loaded)",
+            target,
+        )
         input_image_blob.seek(0)
         input_image = Image.open(input_image_blob)
         if input_image.size == (1, 1):
@@ -2822,8 +2822,9 @@ async def scramble_function(message, client, args):
         output_image.save(output_image_blob, format="PNG", optimize=True)
         output_image_blob.seek(0)
         await output_message.delete()
-        output_message = await output_message.channel.send(
-            content="Scrambled for " + message.author.display_name,
+        output_message = await messagefuncs.sendWrappedMessage(
+            f"Scrambled for {message.author.display_name}",
+            output_message.channel,
             files=[discord.File(output_image_blob, message.attachments[0].filename)],
         )
         await output_message.add_reaction("🔎")
@@ -2972,7 +2973,7 @@ async def rot13_function(message, client, args):
         if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
             if message.author.id == client.user.id:
                 if message.content.startswith("Mod Report"):
-                    return await args[1].send(
+                    return await messagefuncs.sendWrappedMessage(
                         codecs.encode(
                             message.content.split(
                                 " via reaction to "
@@ -2981,10 +2982,11 @@ async def rot13_function(message, client, args):
                                 1,
                             )[1],
                             "rot_13",
-                        )
+                        ),
+                        args[1],
                     )
                 else:
-                    return await args[1].send(
+                    return await messagefuncs.sendWrappedMessage(
                         "Spoiler from conversation in <#{}> ({}) <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                             message.channel.id,
                             message.channel.guild.name,
@@ -2993,10 +2995,11 @@ async def rot13_function(message, client, args):
                             message.id,
                             message.content.split(": ", 1)[0],
                             codecs.encode(message.content.split(": ", 1)[1], "rot_13"),
-                        )
+                        ),
+                        args[1],
                     )
             elif not args[1].bot:
-                return await args[1].send(
+                return await messagefuncs.sendWrappedMessage(
                     "Spoiler from conversation in <#{}> ({}) <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                         message.channel.id,
                         message.channel.guild.name,
@@ -3005,7 +3008,8 @@ async def rot13_function(message, client, args):
                         message.id,
                         message.author.display_name,
                         codecs.encode(message.content, "rot_13"),
-                    )
+                    ),
+                    args[1],
                 )
             else:
                 return logger.debug("Ignoring bot trigger")
@@ -3024,13 +3028,10 @@ async def rot13_function(message, client, args):
                 and not args[1].bot
             ):
                 logger.debug(args[1])
-            messageContent = (
-                "**"
-                + message.author.display_name
-                + "**: "
-                + codecs.encode(" ".join(args), "rot_13")
+            messageContent = f"**{message.author.display_name}**: {codecs.encode(' '.join(args), 'rot_13')}"
+            botMessage = await messagefuncs.sendWrappedMessage(
+                messageContent, message.channel
             )
-            botMessage = await message.channel.send(messageContent)
             await botMessage.add_reaction(
                 client.get_emoji(int(config["discord"]["rot13"]))
             )
@@ -3061,16 +3062,17 @@ async def spoiler_function(message, client, args):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if message.author.id == 429368441577930753:
                 if type(message.channel) == discord.DMChannel:
-                    return await args[1].send(
+                    return await messagefuncs.sendWrappedMessage(
                         "Spoiler from DM {}**: {}".format(
                             message.clean_content.split("**: ", 1)[0],
                             rotate_function(
                                 swapcasealpha(message.clean_content.split("**: ", 1)[1])
                             ).replace("\n", " "),
-                        )
+                        ),
+                        args[1],
                     )
                 else:
-                    return await args[1].send(
+                    return await messagefuncs.sendWrappedMessage(
                         "Spoiler from conversation in <#{}> ({}) <https://discordapp.com/channels/{}/{}/{}>\n{}**: {}".format(
                             message.channel.id,
                             message.channel.guild.name,
@@ -3081,7 +3083,8 @@ async def spoiler_function(message, client, args):
                             rotate_function(
                                 swapcasealpha(message.clean_content.split("**: ", 1)[1])
                             ).replace("\n", " "),
-                        )
+                        ),
+                        args[1],
                     )
             else:
                 logger.debug("MFF: Backing out, not my message.")
@@ -3095,15 +3098,15 @@ async def spoiler_function(message, client, args):
                 + "**: "
                 + swapcasealpha(rotate_function(content_parts[1].replace(" ", "\n")))
             )
-            botMessage = await message.channel.send(messageContent)
+            botMessage = await messagefuncs.sendWrappedMessage(
+                messageContent, message.channel
+            )
             await botMessage.add_reaction("🙈")
             try:
                 await message.delete()
             except discord.Forbidden as e:
                 if type(message.channel) != discord.DMChannel:
-                    logger.error(
-                        "Forbidden to delete message in " + str(message.channel)
-                    )
+                    logger.error(f"Forbidden to delete message in {message.channel}")
                 pass
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -3240,8 +3243,9 @@ async def reaction_request_function(message, client, args):
             pass
     except IndexError as e:
         await message.add_reaction("🚫")
-        await message.author.send(
-            f"XRF: Couldn't find reaction with name {emoji_query}, please check spelling or name {e}"
+        await messagefuncs.sendWrappedMessage(
+            f"XRF: Couldn't find reaction with name {emoji_query}, please check spelling or name {e}",
+            message.author,
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -3267,8 +3271,9 @@ async def blockquote_embed_function(message, client, args):
                 if guild is None:
                     logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
                     await message.add_reaction("🚫")
-                    return await message.author.send(
-                        "I don't have permission to access that message, please check server configuration."
+                    return await messagefuncs.sendWrappedMessage(
+                        "I don't have permission to access that message, please check server configuration.",
+                        message.author,
                     )
                 channel = guild.get_channel(channel_id)
                 target_message = await channel.fetch_message_fast(message_id)
@@ -3340,11 +3345,12 @@ async def blockquote_embed_function(message, client, args):
             rollup = None
         else:
             # TODO send multiple embeds instead
-            await message.author.send(
-                "Message too long, maximum quotable character count is 25 * 1024"
+            await messagefuncs.sendWrappedMessage(
+                "Message too long, maximum quotable character count is 25 * 1024",
+                message.author,
             )
         if not rollup:
-            await message.channel.send(embed=embed)
+            await messagefuncs.sendWrappedMessage(target=message.channel, embed=embed)
             try:
                 if config["discord"].get("snappy"):
                     for message in historical_messages:
@@ -3360,7 +3366,9 @@ async def blockquote_embed_function(message, client, args):
 
 async def zalgo_function(message, client, args):
     try:
-        await message.channel.send(zalgo.zalgo(" ".join(args)))
+        await messagefuncs.sendWrappedMessage(
+            zalgo.zalgo(" ".join(args)), message.channel
+        )
         try:
             if config["discord"].get("snappy"):
                 await message.delete()

@@ -46,8 +46,9 @@ async def fetch(client, url):
 async def buglist_function(message, client, args):
     try:
         if len(args) == 0:
-            return await message.channel.send(
-                "Tracker available at https://todo.sr.ht/~nova/fletcher/, specify issue number for details."
+            return await messagefuncs.sendWrappedMessage(
+                "Tracker available at https://todo.sr.ht/~nova/fletcher/, specify issue number for details.",
+                message.client,
             )
         source_url = f"https://todo.sr.ht/~nova/fletcher/{args[0]}"
         async with aiohttp.ClientSession() as session:
@@ -86,7 +87,7 @@ async def buglist_function(message, client, args):
         if args[-1] == "INTPROC":
             return embed
         else:
-            await message.channel.send(embed=embed)
+            await messagefuncs.sendWrappedMessage(target=message.channel, embed=embed)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("BLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))

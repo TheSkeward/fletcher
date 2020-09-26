@@ -71,7 +71,9 @@ async def uwu_function(message, client, args, responses=uwu_responses):
             and type(args[1]) is discord.Member
             and message.author.id == client.user.id
         ):
-            return await args[1].send(random.choice(responses["private"]))
+            return await messagefuncs.sendWrappedMessage(
+                random.choice(responses["private"]), args[1]
+            )
         elif (
             len(args) == 0
             or "fletch" in message.clean_content.lower()
@@ -83,7 +85,9 @@ async def uwu_function(message, client, args, responses=uwu_responses):
                 reaction = random.choice(responses["reaction"])
                 await messagefuncs.add_reaction(message, reaction)
             else:
-                return await message.channel.send(random.choice(responses["public"]))
+                return await messagefuncs.sendWrappedMessage(
+                    random.choice(responses["public"]), message.channel
+                )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("UWU[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -143,8 +147,9 @@ async def retrowave_function(message, client, args):
                 root.xpath('//a[@class="download-button"]')[0].attrib["href"]
             ) as resp:
                 buffer = io.BytesIO(await resp.read())
-            return await message.channel.send(
+            return await messagefuncs.sendWrappedMessage(
                 f"On behalf of {message.author.display_name}",
+                message.channel,
                 files=[discord.File(buffer, "retrowave.jpg")],
             )
     except Exception as e:
@@ -192,7 +197,9 @@ async def wiki_otd_function(message, client, args):
                 value=titlebar.getnext().getnext().getnext().text_content().strip(),
                 inline=True,
             )
-            resp = await message.channel.send(embed=embedPreview)
+            resp = await messagefuncs.sendWrappedMessage(
+                target=message.channel, embed=embedPreview
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("WOTD[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -212,10 +219,11 @@ async def shindan_function(message, client, args):
                     async with session.post(message.embeds[0].url, data=params) as resp:
                         request_body = (await resp.read()).decode("UTF-8")
                         root = html.document_fromstring(request_body)
-                        return await args[1].send(
+                        return await messagefuncs.sendWrappedMessage(
                             root.xpath('//div[@class="result2"]')[0]
                             .text_content()
-                            .strip()
+                            .strip(),
+                            args[1],
                         )
         else:
             url = None
@@ -224,8 +232,9 @@ async def shindan_function(message, client, args):
             elif len(args) and args[0].startswith("https://en.shindanmaker.com/"):
                 url = args[0]
             else:
-                await message.channel.send(
-                    "Please specify a name-based shindan to use from https://en.shindanmaker.com/"
+                await messagefuncs.sendWrappedMessage(
+                    "Please specify a name-based shindan to use from https://en.shindanmaker.com/",
+                    message.channel,
                 )
                 return
             async with session.get(url) as resp:
@@ -253,7 +262,9 @@ async def shindan_function(message, client, args):
                         author, message.author.display_name
                     ),
                 )
-                resp = await message.channel.send(embed=embedPreview)
+                resp = await messagefuncs.sendWrappedMessage(
+                    target=message.channel, embed=embedPreview
+                )
                 await resp.add_reaction("📛")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -513,12 +524,12 @@ async def pick_function(message, client, args):
         if len(choices) == 1:
             choices = args
         try:
-            return await message.channel.send(
-                "I'd say " + ", ".join(random.sample(choices, many))
+            return await messagefuncs.sendWrappedMessage(
+                f"I'd say {', '.join(random.sample(choices, many))}", message.channel
             )
         except ValueError:
-            return await message.channel.send(
-                "I can't pick that many! Not enough options"
+            return await messagefuncs.sendWrappedMessage(
+                "I can't pick that many! Not enough options", message.channel
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -545,8 +556,9 @@ async def flightrising_function(message, client, args):
             ) as resp:
                 if resp.status != 200:
                     if not (len(args) == 2 and args[1] == "INTPROC"):
-                        await message.channel.send(
-                            f"Couldn't find that FlightRising page ({url})"
+                        await messagefuncs.sendWrappedMessage(
+                            f"Couldn't find that FlightRising page ({url})",
+                            message.channel,
                         )
                     return
                 request_body = await resp.json()
@@ -572,8 +584,8 @@ async def azlyrics_function(message, client, args):
         async with session.get(url) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
-                    await message.channel.send(
-                        f"Couldn't find that AZLyrics page ({url})"
+                    await messagefuncs.sendWrappedMessage(
+                        f"Couldn't find that AZLyrics page ({url})", message.channel
                     )
                 return
             request_body = (await resp.read()).decode("UTF-8")
@@ -602,11 +614,12 @@ async def fox_function(message, client, args):
             input_image_blob = await netcode.simple_get_image(url)
             file_name = url.split("/")[-1]
         try:
-            await message.channel.send(
-                files=[discord.File(input_image_blob, file_name)]
+            await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(input_image_blob, file_name)],
             )
         except discord.HTTPException:
-            await message.channel.send(url)
+            await messagefuncs.sendWrappedMessage(url, message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -617,8 +630,9 @@ async def dog_function(message, client, args):
     global ch
     try:
         if ch.user_config(message.author.id, None, "crocodile-is-dog"):
-            return await message.channel.send(
-                "https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045"
+            return await messagefuncs.sendWrappedMessage(
+                "https://tenor.com/view/crocodile-slow-moving-dangerous-attack-predator-gif-13811045",
+                message.channel,
             )
         url = None
         input_image_blob = None
@@ -629,11 +643,12 @@ async def dog_function(message, client, args):
             input_image_blob = await netcode.simple_get_image(url)
             file_name = url.split("/")[-1]
         try:
-            await message.channel.send(
-                files=[discord.File(input_image_blob, file_name)]
+            await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(input_image_blob, file_name)],
             )
         except discord.HTTPException:
-            await message.channel.send(url)
+            await messagefuncs.sendWrappedMessage(url, message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -649,7 +664,9 @@ async def vine_function(message, client, args):
         async with session.get(f"https://archive.vine.co/posts/{url}.json",) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
-                    await message.channel.send(f"Couldn't find that Vine page ({url})")
+                    await messagefuncs.sendWrappedMessage(
+                        f"Couldn't find that Vine page ({url})", message.channel
+                    )
                 return
             request_body = await resp.json()
             input_image_blob = await netcode.simple_get_image(request_body["videoUrl"])
@@ -694,15 +711,17 @@ async def scp_function(message, client, args):
             url = "http://www.scpwiki.com/" + "-".join(args).lower()
         else:
             if not (len(args) == 2 and args[1] == "INTPROC"):
-                await message.channel.send(
-                    "Please specify a SCP number from http://www.scpwiki.com/"
+                await messagefuncs.sendWrappedMessage(
+                    "Please specify a SCP number from http://www.scpwiki.com/",
+                    message.channel,
                 )
             return
         async with session.get(url) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
-                    await message.channel.send(
-                        f"Please specify a SCP number from http://www.scpwiki.com/ (HTTP {resp.status} for {url})"
+                    await messagefuncs.sendWrappedMessage(
+                        f"Please specify a SCP number from http://www.scpwiki.com/ (HTTP {resp.status} for {url})",
+                        message.channel,
                     )
                 return
             request_body = (await resp.read()).decode("UTF-8")
@@ -776,7 +795,9 @@ async def scp_function(message, client, args):
             if len(args) == 2 and args[1] == "INTPROC":
                 return embedPreview
             else:
-                resp = await message.channel.send(embed=embedPreview)
+                resp = await messagefuncs.sendWrappedMessage(
+                    target=message.channel, embed=embedPreview
+                )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SCP[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -790,8 +811,9 @@ async def lifx_function(message, client, args):
     try:
         guild_config = ch.scope_config(guild=message.guild)
         if "lifx-token" not in guild_config:
-            await message.author.send(
-                "No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration."
+            await messagefuncs.sendWrappedMessage(
+                "No LIFX integration set for this server! Generate a token at https://cloud.lifx.com/settings and add it as `lifx-token` in the server configuration.",
+                message.channel,
             )
             return await message.add_reaction("🚫")
         selector = None
@@ -809,8 +831,9 @@ async def lifx_function(message, client, args):
         if data["color"] == "":
             del data["color"]
         if not ("color" in data or "power" in data):
-            return await message.channel.send(
-                "LIFX Parsing Error: specify either a color parameter or a power parameter (on|off)."
+            return await messagefuncs.sendWrappedMessage(
+                "LIFX Parsing Error: specify either a color parameter or a power parameter (on|off).",
+                message.channel,
             )
         async with session.put(
             f"https://api.lifx.com/v1/lights/{selector}/state",
@@ -819,8 +842,9 @@ async def lifx_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             if "error" in request_body:
-                return await message.channel.send(
-                    f"LIFX Error: {request_body['error']} (data sent was `{data}`, selector was `selector`"
+                return await messagefuncs.sendWrappedMessage(
+                    f"LIFX Error: {request_body['error']} (data sent was `{data}`, selector was `selector`",
+                    message.channel,
                 )
                 await message.add_reaction("🚫")
             embedPreview = discord.Embed(title=f"Updated Lights: {data}")
@@ -839,7 +863,9 @@ async def lifx_function(message, client, args):
                 embedPreview.add_field(
                     name=light["label"], value=light["status"], inline=True,
                 )
-            resp = await message.channel.send(embed=embedPreview)
+            resp = await messagefuncs.sendWrappedMessage(
+                target=message.channel, embed=embedPreview
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LFX[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -1022,11 +1048,12 @@ async def ttl(url, message, client, args):
         async with session.get(url, timeout=60) as response:
             result = await response.text()
             end = time.time()
-            await message.channel.send(
-                f"{response.method} {response.url}: {response.status} {response.reason} in {(end - start):0.3g} seconds"
+            await messagefuncs.sendMessageWrapped(
+                f"{response.method} {response.url}: {response.status} {response.reason} in {(end - start):0.3g} seconds",
+                message.channel,
             )
     except asyncio.TimeoutError:
-        await message.channel.send(f"{url}: TimeoutEror")
+        await messagefuncs.sendMessageWrapped(f"{url}: TimeoutEror", message.channel)
 
 
 class sliding_puzzle:
@@ -1216,7 +1243,7 @@ class sliding_puzzle:
 
 
 def memo_function(message, client, args):
-    value = message.clean_content.split(args[0]+" ", 1)[1] if len(args) > 1 else None
+    value = message.clean_content.split(args[0] + " ", 1)[1] if len(args) > 1 else None
     return ch.user_config(
         message.author.id,
         message.guild,

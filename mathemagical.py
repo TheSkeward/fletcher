@@ -59,8 +59,9 @@ async def latex_render_function(message, client, args):
             )
         else:
             preamble = ""
-        await message.channel.send(
+        await messagefuncs.sendWrappedMessage(
             "||```tex\n" + renderstring + "```||",
+            message.channel,
             file=discord.File(
                 renderLatex(renderstring, format="png", preamble=preamble),
                 filename="fletcher-render.png",

@@ -1,4 +1,5 @@
 import aiohttp
+import messagefuncs
 from base64 import b64encode
 from asyncache import cached
 from cachetools import TTLCache
@@ -42,10 +43,14 @@ async def posts_search_function(message, client, args):
 
         post_count = await count_search_function(tags)
         if not post_count or post_count == 0:
-            return await message.channel.send("No images found for query")
+            return await messagefunces.sendWrappedMessage(
+                "No images found for query", message.channel
+            )
         search_results = await warm_post_cache(tags)
         if len(search_results) == 0:
-            return await message.channel.send("No images found for query")
+            return await messagefunces.sendWrappedMessage(
+                "No images found for query", message.channel
+            )
         search_result = search_results.pop()
         if search_result["file_size"] > 8000000:
             url = search_result["preview_file_url"]
@@ -59,11 +64,12 @@ async def posts_search_function(message, client, args):
                     + str(resp.status)
                     + " Retrieving image failed!"
                 )
-            await message.channel.send(
+            await messagefuncs.sendWrapepdMessages(
                 f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
+                message.channel,
                 files=[
                     discord.File(
-                        buffer, search_result["md5"] + "." + search_result["file_ext"]
+                        buffer, f"{search_result['md5']}.{search_result['file_ext']}"
                     )
                 ],
             )

@@ -2,6 +2,7 @@ import asyncio
 import discord
 import io
 import logging
+import messagefuncs
 import random
 import re
 from sys import exc_info
@@ -41,8 +42,9 @@ async def restorerole_function(member, client, config):
         )
         await member.edit(nick=name, roles=roles, reason="Restoring Previous Roles")
     except discord.Forbidden as e:
-        await member.guild.owner.send(
-            f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}'
+        await messagefuncs.sendWrappedMessage(
+            f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}',
+            member.guild.owner,
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
@@ -115,11 +117,10 @@ async def lockout_function(member, client, config):
                             send_messages=False,
                             reason="Lockout policy for new members",
                         )
-            await member.send(config["lockout_message"])
-            await member.send(
-                "If you would like access to this guild, reply to this message with `I agree` to indicate that you have read the rules and conditions. If not, do nothing and you will be automatically removed in "
-                + config["lockout_timeout"]
-                + " seconds."
+            await messagefuncs.sendWrappedMessage(config["lockout_message"], member)
+            await messagefuncs.sendWrappedMessage(
+                f"If you would like access to this guild, reply to this message with `I agree` to indicate that you have read the rules and conditions. If not, do nothing and you will be automatically removed in {config['lockout_timeout']} seconds.",
+                member,
             )
 
             def check(m):
@@ -134,23 +135,20 @@ async def lockout_function(member, client, config):
                     "message", timeout=float(config["lockout_timeout"]), check=check
                 )
             except asyncio.TimeoutError:
-                await member.send(
-                    "Timed out waiting for agreement to rules. You have been automatically kicked from the server."
+                await messagefuncs.sendWrappedMessage(
+                    "Timed out waiting for agreement to rules. You have been automatically kicked from the server.",
+                    member,
                 )
                 await member.kick(reason="Failed to agree to rules in timely manner.")
             else:
-                await member.send(
-                    "Thank you for your cooperation! Granting you member permissions. Please note that this server may have additional roles that restrict channels."
+                await memssagefuncs.sendWrappedMessage(
+                    "Thank you for your cooperation! Granting you member permissions. Please note that this server may have additional roles that restrict channels.",
+                    member,
                 )
                 for category, channels in member.guild.by_category():
                     if category is not None:
                         logger.debug(
-                            "LOF: "
-                            + str(member)
-                            + " from category "
-                            + str(category)
-                            + " in "
-                            + str(member.guild)
+                            f"LOF: {member} from category {category} in {member.guild}"
                         )
                         await category.set_permissions(
                             member,
@@ -160,12 +158,7 @@ async def lockout_function(member, client, config):
                     else:
                         for channel in channels:
                             logger.debug(
-                                "LOF: "
-                                + str(member)
-                                + " from non-category channel "
-                                + str(channel)
-                                + " in "
-                                + str(member.guild)
+                                f"LOF: {member} from non-category channel {channel} in {member.guild}"
                             )
                             await channel.set_permissions(
                                 member,
@@ -304,8 +297,9 @@ async def regex_filter(message, client, config):
                         timeout = None
                 else:
                     timeout = 60
-                await target.send(
+                await messagefuncs.sendWrappedMessage(
                     config["regex-warn"].replace("\\n", "\n").format(**vars()),
+                    target,
                     delete_after=timeout,
                 )
 

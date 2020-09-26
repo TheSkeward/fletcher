@@ -41,7 +41,7 @@ async def pinterest_randomize_function(message, client, args):
         text=f"On behalf of {message.author.display_name}",
     )
     embedPreview.set_image(url=orig_url)
-    await message.channel.send(embed=embedPreview)
+    await messagefuncs.sendWrappedMessage(target=message.channel, embed=embedPreview)
 
 
 @cached(TTLCache(1024, 600))
