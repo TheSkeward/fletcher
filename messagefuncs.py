@@ -6,6 +6,7 @@ import io
 import logging
 import re
 import textwrap
+from sentry_sdk import configure_scope
 
 logger = logging.getLogger("fletcher")
 
@@ -92,13 +93,31 @@ def xchannel(targetChannel, currentGuild):
 
 
 async def sendWrappedMessage(msg, target, files=[], embed=None, delete_after=None):
-    msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
-    last_chunk = msg_chunks.pop()
-    for chunk in msg_chunks:
-        await target.send(chunk, delete_after=delete_after)
-    return await target.send(
-        last_chunk, files=files, embed=embed, delete_after=delete_after
-    )
+    with configure_scope() as scope:
+        current_user_id = scope._user["id"]
+        # current_message_id = scope._tags.get('message_id')
+        # current_channel_id = scope._tags.get('channel_id')
+        # current_guild_id = scope._tags.get('guild_id')
+        msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
+        last_chunk = msg_chunks.pop()
+        for chunk in msg_chunks:
+            sent_message = await target.send(chunk, delete_after=delete_after)
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                [current_user_id, None, None, None, message.id, message.channel.id, message.guild.id if type(message.channel) is not discord.DMChannel else None]
+            )
+            conn.commit()
+        sent_message = await target.send(
+            last_chunk, files=files, embed=embed, delete_after=delete_after
+        )
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                [current_user_id, None, None, None, message.id, message.channel.id, message.guild.id if type(message.channel) is not discord.DMChannel else None]
+        )
+        conn.commit()
+        return sent_message
 
 
 extract_identifiers_messagelink = re.compile(

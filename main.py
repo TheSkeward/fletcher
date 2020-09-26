@@ -27,7 +27,21 @@ sentry_sdk.init(
 import signal
 import traceback
 
-"""fletcher=# \d parlay
+"""
+fletcher=# \d attributions
+                              Table "public.attributions"
+    Column    |            Type             | Collation | Nullable |      Default
+--------------+-----------------------------+-----------+----------+-------------------
+ added        | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+ author_id    | bigint                      |           |          |
+ from_message | bigint                      |           |          |
+ from_channel | bigint                      |           |          |
+ from_guild   | bigint                      |           |          |
+ message      | bigint                      |           |          |
+ channel      | bigint                      |           |          |
+ guild        | bigint                      |           |          |
+
+fletcher=# \d parlay
                                       Table "public.parlay"
     Column    |            Type             | Collation | Nullable |           Default            
 --------------+-----------------------------+-----------+----------+------------------------------
