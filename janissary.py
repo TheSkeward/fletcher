@@ -1319,7 +1319,7 @@ async def delete_my_message_function(message, client, args):
                     query_param.append(message.guild.id)
                 cur.execute(
                     f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is discord.DMChannel else 'IS NULL'}",
-                    query_param
+                    query_param,
                 )
                 subtuple = cur.fetchone()
                 if subtuple and subtuple[0] == args[1].id:
@@ -1899,7 +1899,6 @@ def autoload(ch):
             "function": delete_my_message_function,
             "async": True,
             "hidden": False,
-            "admin": "server",
             "args_num": 0,
             "args_name": [],
             "description": "Delete a Fletcher message if you're responsible for it",
