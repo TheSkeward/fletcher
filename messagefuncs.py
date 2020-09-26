@@ -105,7 +105,17 @@ async def sendWrappedMessage(msg, target, files=[], embed=None, delete_after=Non
             cur = conn.cursor()
             cur.execute(
                 "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
-                [current_user_id, None, None, None, message.id, message.channel.id, message.guild.id if type(message.channel) is not discord.DMChannel else None]
+                [
+                    current_user_id,
+                    None,
+                    None,
+                    None,
+                    sent_message.id,
+                    sent_message.channel.id,
+                    sent_message.guild.id
+                    if type(sent_message.channel) is not discord.DMChannel
+                    else None,
+                ],
             )
             conn.commit()
         sent_message = await target.send(
@@ -114,7 +124,17 @@ async def sendWrappedMessage(msg, target, files=[], embed=None, delete_after=Non
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
-                [current_user_id, None, None, None, message.id, message.channel.id, message.guild.id if type(message.channel) is not discord.DMChannel else None]
+            [
+                current_user_id,
+                None,
+                None,
+                None,
+                sent_message.id,
+                sent_message.channel.id,
+                sent_message.guild.id
+                if type(sent_message.channel) is not discord.DMChannel
+                else None,
+            ],
         )
         conn.commit()
         return sent_message
