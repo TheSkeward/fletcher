@@ -1311,8 +1311,20 @@ async def delete_my_message_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
             try:
-                if message.author == client.user:
+                if message.author != client.user:
+                    return
+                cur = conn.cursor()
+                query_params = [message.id, message.channel.id]
+                if type(message.channel) is not discord.DMChannel:
+                    query_param.append(message.guild.id)
+                cur.execute(
+                    f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is discord.DMChannel else 'IS NULL'}",
+                    query_param
+                )
+                subtuple = cur.fetchone()
+                if subtuple and subtuple[0] == args[1].id:
                     await message.delete()
+                conn.commit()
             except discord.Forbidden as e:
                 logger.warning("DMMF: Forbidden to delete self-message")
                 pass
