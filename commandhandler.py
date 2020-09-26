@@ -191,7 +191,7 @@ class CommandHandler:
                     )
                 webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
 
-            await webhook.send(
+            sent_message = await webhook.send(
                 content=content,
                 username=fromMessageName,
                 avatar_url=sync.get(
@@ -205,6 +205,22 @@ class CommandHandler:
                     everyone=False, users=False, roles=False
                 ),
             )
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                [
+                    user.id,
+                    None,
+                    None,
+                    None,
+                    sent_message.id,
+                    sent_message.channel.id,
+                    sent_message.guild.id
+                    if type(sent_message.channel) is not discord.DMChannel
+                    else None,
+                ],
+            )
+            conn.commit()
             try:
                 return await message.delete()
             except discord.NotFound:
