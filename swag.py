@@ -1214,6 +1214,9 @@ class sliding_puzzle:
             logger.error("SPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
             await message.add_reaction("🚫")
 
+def memo_function(message, client, args):
+    value = " ".join(args[1:]) if len(args) > 1 else None
+    return ch.user_config(message.author.id, message.guild, "memo-"+args[0], value=value, allow_global_substitute=True)
 
 async def autounload(ch):
     global session
@@ -1551,7 +1554,18 @@ def autoload(ch):
             "args_name": [],
             "description": "A fun little sliding puzzle",
         }
-    )
+        )
+    ch.add_command(
+            {
+                "trigger": ["!memo"],
+                "function": memo_function,
+                "async": False,
+                "hidden": False,
+                "args_num": 1,
+                "args_name": ["memo key", "value"],
+                "description": "Take a personal memo to be retrieved later",
+                }
+            )
     session = aiohttp.ClientSession(
         headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
     )
