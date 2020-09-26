@@ -1307,18 +1307,17 @@ async def error_report_function(error_str, guild, client):
 
 
 async def delete_my_message_function(message, client, args):
-    global config
     try:
-        if len(args) == 3 and type(args[1]) is discord.Member:
+        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
             try:
-                if message.author != client.user:
+                if message.author.id != client.user.id:
                     return
                 cur = conn.cursor()
-                query_params = [message.id, message.channel.id]
+                query_param = [message.id, message.channel.id]
                 if type(message.channel) is not discord.DMChannel:
                     query_param.append(message.guild.id)
                 cur.execute(
-                    f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is discord.DMChannel else 'IS NULL'}",
+                    f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
                     query_param,
                 )
                 subtuple = cur.fetchone()
