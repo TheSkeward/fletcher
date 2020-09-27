@@ -62,10 +62,10 @@ async def latex_render_function(message, client, args):
         await messagefuncs.sendWrappedMessage(
             "||```tex\n" + renderstring + "```||",
             message.channel,
-            file=discord.File(
+            files=[discord.File(
                 renderLatex(renderstring, format="png", preamble=preamble),
                 filename="fletcher-render.png",
-            ),
+            )],
         )
     except RuntimeError as e:
         exc_type, exc_obj, exc_tb = exc_info()
