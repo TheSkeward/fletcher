@@ -1,5 +1,6 @@
 import aiohttp
 import copy
+import datetime
 import discord
 from py3pin.Pinterest import Pinterest
 import io
@@ -41,7 +42,9 @@ async def pinterest_randomize_function(message, client, args):
         text=f"On behalf of {message.author.display_name}",
     )
     embedPreview.set_image(url=orig_url)
-    await messagefuncs.sendWrappedMessage("", target=message.channel, embed=embedPreview)
+    await messagefuncs.sendWrappedMessage(
+        "", target=message.channel, embed=embedPreview
+    )
 
 
 @cached(TTLCache(1024, 600))
@@ -121,7 +124,8 @@ def autoload(ch):
         username=ch.config.get(section="pinterest", key="username"),
         cred_root=ch.config.get(section="pinterest", key="tmpdir"),
     )
-    # pinterest.login()
+    if datetime.datetime.now() == 8:
+        pinterest.login()
 
 
 async def autounload(ch):
