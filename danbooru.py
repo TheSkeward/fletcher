@@ -64,7 +64,7 @@ async def posts_search_function(message, client, args):
                     + str(resp.status)
                     + " Retrieving image failed!"
                 )
-            await messagefuncs.sendWrapepdMessages(
+            await messagefuncs.sendWrappedMessage(
                 f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
                 message.channel,
                 files=[
