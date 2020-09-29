@@ -98,26 +98,29 @@ async def sendWrappedMessage(msg, target, files=[], embed=None, delete_after=Non
         # current_message_id = scope._tags.get('message_id')
         # current_channel_id = scope._tags.get('channel_id')
         # current_guild_id = scope._tags.get('guild_id')
-        msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
-        last_chunk = msg_chunks.pop()
-        for chunk in msg_chunks:
-            sent_message = await target.send(chunk, delete_after=delete_after)
-            cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
-                [
-                    current_user_id,
-                    None,
-                    None,
-                    None,
-                    sent_message.id,
-                    sent_message.channel.id,
-                    sent_message.guild.id
-                    if type(sent_message.channel) is not discord.DMChannel
-                    else None,
-                ],
-            )
-            conn.commit()
+        if msg:
+            msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
+            last_chunk = msg_chunks.pop()
+            for chunk in msg_chunks:
+                sent_message = await target.send(chunk, delete_after=delete_after)
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                    [
+                        current_user_id,
+                        None,
+                        None,
+                        None,
+                        sent_message.id,
+                        sent_message.channel.id,
+                        sent_message.guild.id
+                        if type(sent_message.channel) is not discord.DMChannel
+                        else None,
+                    ],
+                )
+                conn.commit()
+        else:
+            last_chunk = None
         sent_message = await target.send(
             last_chunk, files=files, embed=embed, delete_after=delete_after
         )
