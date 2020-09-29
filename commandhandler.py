@@ -204,7 +204,7 @@ class CommandHandler:
                 allowed_mentions=discord.AllowedMentions(
                     everyone=False, users=False, roles=False
                 ),
-                wait = True
+                wait=True,
             )
             cur = conn.cursor()
             cur.execute(
@@ -440,6 +440,8 @@ class CommandHandler:
                             toGuild = self.client.get_guild(metuple[0])
                             toChannel = toGuild.get_channel(metuple[1])
                             toMessage = await toChannel.fetch_message_fast(metuple[2])
+                            if not toMessage:
+                                return
                             if toMessage.author.id in config.get(
                                 section="moderation",
                                 key="blacklist-user-usage",
