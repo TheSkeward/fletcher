@@ -325,7 +325,7 @@ async def preview_messagelink_function(message, client, args):
                 )
                 return
             channel = guild.get_channel(channel_id)
-            target_message = await channel.fetch_message_fast(message_id)
+            target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
             sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
@@ -451,7 +451,7 @@ async def messagelink_function(message, client, args):
         msg = None
         for channel in message.channel.guild.text_channels:
             try:
-                msg = await channel.fetch_message_fast(int(args[0]))
+                msg = await channel.fetch_message(int(args[0]))
                 break
             except discord.Forbidden as e:
                 pass

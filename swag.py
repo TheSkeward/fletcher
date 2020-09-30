@@ -904,7 +904,7 @@ async def qdb_add_function(message, client, args):
                     logger.warning("QAF: Fletcher is not in guild ID " + str(guild_id))
                     return
                 channel = guild.get_channel(channel_id)
-                target_message = await channel.fetch_message_fast(message_id)
+                target_message = await channel.fetch_message(message_id)
                 content = f"[{target_message.created_at}] #{target_message.channel.name} <{target_message.author.display_name}>: {target_message.content}\n<https://discordapp.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}>"
                 cur = conn.cursor()
                 cur.execute(

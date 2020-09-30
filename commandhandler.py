@@ -258,7 +258,7 @@ class CommandHandler:
                     "channel",
                     channel.name if type(channel) is not discord.DMChannel else "DM",
                 )
-                message = await channel.fetch_message_fast(reaction.message_id)
+                message = await channel.fetch_message(reaction.message_id)
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
                     scope.set_tag("guild", message.guild.name)
@@ -402,7 +402,7 @@ class CommandHandler:
                         if metuple is not None:
                             fromGuild = self.client.get_guild(metuple[0])
                             fromChannel = fromGuild.get_channel(metuple[1])
-                            fromMessage = await fromChannel.fetch_message_fast(
+                            fromMessage = await fromChannel.fetch_message(
                                 metuple[2]
                             )
                             if fromMessage.author.id in config.get(
@@ -439,7 +439,7 @@ class CommandHandler:
                         if metuple is not None:
                             toGuild = self.client.get_guild(metuple[0])
                             toChannel = toGuild.get_channel(metuple[1])
-                            toMessage = await toChannel.fetch_message_fast(metuple[2])
+                            toMessage = await toChannel.fetch_message(metuple[2])
                             if not toMessage:
                                 return
                             if toMessage.author.id in config.get(
@@ -494,7 +494,7 @@ class CommandHandler:
                     user = channel.guild.get_member(reaction.user_id)
                     scope.set_tag("guild", channel.guild.name)
                 scope.user = {"id": user.id, "username": str(user)}
-                message = await channel.fetch_message_fast(reaction.message_id)
+                message = await channel.fetch_message(reaction.message_id)
                 if type(channel) is discord.TextChannel:
                     logger.info(
                         f"#{channel.guild.name}:{channel.name} <{user.name}:{user.id}> unreacting with {messageContent} from {message.id}",
@@ -822,7 +822,7 @@ class CommandHandler:
         if metuple is not None:
             toGuild = self.client.get_guild(metuple[0])
             toChannel = toGuild.get_channel(metuple[1])
-            toMessage = await toChannel.fetch_message_fast(metuple[2])
+            toMessage = await toChannel.fetch_message(metuple[2])
             if message.pinned:
                 await toMessage.pin()
                 return

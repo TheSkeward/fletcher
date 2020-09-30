@@ -983,12 +983,12 @@ async def chanlog_function(message, client, args):
 
         if len(args) > 0:
             content += f" before {args[0]}"
-            before = await message.channel.fetch_message_fast(id=args[0])
+            before = await message.channel.fetch_message(id=args[0])
         else:
             before = None
         if len(args) > 1:
             content += f" after {args[1]}"
-            after = await message.channel.fetch_message_fast(id=args[1])
+            after = await message.channel.fetch_message(id=args[1])
         else:
             after = None
 
@@ -1493,7 +1493,7 @@ async def self_service_role_function(message, client, args):
         if (
             not message.author.guild_permissions.manage_roles
             or message.author.id
-            in ch.config.get(
+            not in ch.config.get(
                 guild=message.guild,
                 key=f"roleadmin-{message.role_mentions[0].name}-list",
                 default=[],
