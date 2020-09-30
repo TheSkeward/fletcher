@@ -1490,11 +1490,15 @@ async def self_service_role_function(message, client, args):
     try:
         if not len(message.role_mentions):
             return
-        if not message.author.guild_permissions.manage_roles or message.author.id in ch.config.get(
-            guild=message.guild,
-            section="roleadmin",
-            key=message.role_mentions[0].name + "-list",
-            default=[],
+        if (
+            not message.author.guild_permissions.manage_roles
+            or message.author.id
+            in ch.config.get(
+                guild=message.guild,
+                section="roleadmin",
+                key=message.role_mentions[0].name + "-list",
+                default=[],
+            )
         ):
             await messagefuncs.sendWrappedMessage(
                 "You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
@@ -1510,7 +1514,7 @@ async def self_service_role_function(message, client, args):
                         message.author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Added you to role @{message.role_mentions[0].name}", args[1],
+                        f"Added you to role __@{message.role_mentions[0].name}__", args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
@@ -1604,11 +1608,11 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                     )
                     if not autoclose:
                         await messagefuncs.sendWrappedMessage(
-                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}",
+                            f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__",
                             message.author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel #{message.channel_mentions[0].name}",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__",
                             args[1],
                         )
                     else:
@@ -1619,16 +1623,16 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                             read_message_history=False,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added {args[1]} to channel #{message.channel_mentions[0].name}, and removed {args[1]} from channel #{message.channel.name}",
+                            f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
                             message.author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel #{message.channel_mentions[0].name}, and removed you from channel #{message.channel.name}",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__",
                             args[1],
                         )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested an add.",
+                        f"I don't have permission to manage members of __#{message.channel_mentions[0].name}__, and {args[1]} requested an add.",
                         message.author,
                     )
             else:
@@ -1640,16 +1644,16 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                         read_message_history=False,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed {args[1]} from channel #{message.channel_mentions[0].name}",
+                        f"Removed {args[1]} from channel __#{message.channel_mentions[0].name}__",
                         message.author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed you from channel #{message.channel_mentions[0].name}",
+                        f"Removed you from channel __#{message.channel_mentions[0].name}__",
                         args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members of #{message.channel_mentions[0].name}, and {args[1]} requested removal.",
+                        f"I don't have permission to manage members of __#{message.channel_mentions[0].name}__, and {args[1]} requested removal.",
                         message.author,
                     )
         else:
