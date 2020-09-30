@@ -1490,7 +1490,12 @@ async def self_service_role_function(message, client, args):
     try:
         if not len(message.role_mentions):
             return
-        if not message.author.manage_roles or ch.config.get(guild=message.guild, section="roleadmin", key=message.role_mentions[0].name+"-list", default=[]):
+        if not message.author.guild_permissions.manage_roles or ch.config.get(
+            guild=message.guild,
+            section="roleadmin",
+            key=message.role_mentions[0].name + "-list",
+            default=[],
+        ):
             await messagefuncs.sendWrappedMessage(
                 "You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
                 message.author,
@@ -1505,8 +1510,7 @@ async def self_service_role_function(message, client, args):
                         message.author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Added you to role #{message.role_mentions[0].name}",
-                        args[1],
+                        f"Added you to role #{message.role_mentions[0].name}", args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
