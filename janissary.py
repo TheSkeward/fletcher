@@ -1506,31 +1506,31 @@ async def self_service_role_function(message, client, args):
                 try:
                     await args[1].add_roles(message.role_mentions[0])
                     await messagefuncs.sendWrappedMessage(
-                        f"Added {args[1]} to role __#{message.role_mentions[0].name}__",
+                        f"Added {args[1]} to role __@{message.role_mentions[0].name}__",
                         message.author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Added you to role #{message.role_mentions[0].name}", args[1],
+                        f"Added you to role @{message.role_mentions[0].name}", args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage role __#{message.role_mentions[0].name}__, and {args[1]} requested an add.",
+                        f"I don't have permission to manage role __@{message.role_mentions[0].name}__, and {args[1]} requested an add.",
                         message.author,
                     )
             else:
                 try:
                     await args[1].remove_roles(message.role_mentions[0])
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed {args[1]} from role __#{message.role_mentions[0].name}__",
+                        f"Removed {args[1]} from role __@{message.role_mentions[0].name}__",
                         message.author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed you from role __#{message.role_mentions[0].name}__",
+                        f"Removed you from role __@{message.role_mentions[0].name}__",
                         args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage role __#{message.role_mentions[0].name}__, and {args[1]} requested removal.",
+                        f"I don't have permission to manage role __@{message.role_mentions[0].name}__, and {args[1]} requested removal.",
                         message.author,
                     )
         else:
@@ -2161,7 +2161,7 @@ def autoload(ch):
                 [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": self_service_role_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
@@ -2173,7 +2173,7 @@ def autoload(ch):
                 [message_id],
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_channel_function,
+                    "function": self_service_role_function,
                     "exclusive": True,
                     "async": True,
                     "args_num": 0,
