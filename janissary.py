@@ -1485,6 +1485,93 @@ async def invite_function(message, client, args):
         logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def self_service_role_function(message, client, args):
+    global ch
+    try:
+        if not len(message.role_mentions):
+            return
+        if not message.author.manage_roles or ch.config.get(guild=message.guild, section="roleadmin", key=message.role_mentions[0].name+"-list", default=[]):
+            await messagefuncs.sendWrappedMessage(
+                "You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
+                message.author,
+            )
+            return
+        if len(args) == 3 and type(args[1]) is discord.Member:
+            if args[2] == "add":
+                try:
+                    await args[1].add_roles(roles=[message.role_mentions[0]])
+                    await messagefuncs.sendWrappedMessage(
+                        f"Added {args[1]} to role __#{message.role_mentions[0].name}__",
+                        message.author,
+                    )
+                    await messagefuncs.sendWrappedMessage(
+                        f"Added you to role #{message.role_mentions[0].name}",
+                        args[1],
+                    )
+                except discord.Forbidden:
+                    await messagefuncs.sendWrappedMessage(
+                        f"I don't have permission to manage role __#{message.role_mentions[0].name}__, and {args[1]} requested an add.",
+                        message.author,
+                    )
+            else:
+                try:
+                    await args[1].remove_roles(roles=[message.role_mentions[0]])
+                    await messagefuncs.sendWrappedMessage(
+                        f"Removed {args[1]} from role __#{message.role_mentions[0].name}__",
+                        message.author,
+                    )
+                    await messagefuncs.sendWrappedMessage(
+                        f"Removed you from role __#{message.role_mentions[0].name}__",
+                        args[1],
+                    )
+                except discord.Forbidden:
+                    await messagefuncs.sendWrappedMessage(
+                        f"I don't have permission to manage role __#{message.role_mentions[0].name}__, and {args[1]} requested removal.",
+                        message.author,
+                    )
+        else:
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'roleselfmanage-{message.id}', %s) ON CONFLICT DO NOTHING;",
+                [message.author.id, message.guild.id, str(message.id)],
+            )
+            conn.commit()
+            ch.add_message_reaction_remove_handler(
+                [message.id],
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": self_service_role_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "remove user from role for a given message",
+                },
+            )
+            ch.add_message_reaction_handler(
+                [message.id],
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": self_service_role_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "add user to role for a given message",
+                },
+            )
+            await message.add_reaction("🚪")
+            await messagefuncs.sendWrappedMessage(
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to role __#{message.role_mentions[0].name}__",
+                message.author,
+            )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("SSRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def self_service_channel_function(message, client, args, autoclose=False):
     global ch
     try:
@@ -2045,6 +2132,54 @@ def autoload(ch):
             subtuple = cur.fetchone()
         conn.commit()
 
+    ch.add_command(
+        {
+            "trigger": ["!openrole"],
+            "function": self_service_role_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 1,
+            "args_name": ["@role"],
+            "description": "Create message that will automatically add and remove users from a role",
+        }
+    )
+
+    def load_self_service_roles(ch):
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key LIKE 'roleselfmanage%';"
+        )
+        subtuple = cur.fetchone()
+        while subtuple:
+            message_id = int(subtuple[3])
+            logger.debug(f"adding role management message handler {subtuple}")
+            ch.add_message_reaction_remove_handler(
+                [message_id],
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": self_service_channel_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "remove user from role for a given message",
+                },
+            )
+            ch.add_message_reaction_handler(
+                [message_id],
+                {
+                    "trigger": [""],  # empty string: a special catch-all trigger
+                    "function": self_service_channel_function,
+                    "exclusive": True,
+                    "async": True,
+                    "args_num": 0,
+                    "args_name": [],
+                    "description": "add user to role for a given message",
+                },
+            )
+            subtuple = cur.fetchone()
+        conn.commit()
+
     for guild in ch.client.guilds:
         rml = ch.config.get(guild=guild, key="role-message-list")
         if rml and len(rml):
@@ -2077,6 +2212,7 @@ def autoload(ch):
             )
 
     load_self_service_channels(ch)
+    load_self_service_roles(ch)
 
 
 async def autounload(ch):

@@ -92,7 +92,9 @@ def xchannel(targetChannel, currentGuild):
     return toChannel
 
 
-async def sendWrappedMessage(msg=None, target=None, files=[], embed=None, delete_after=None):
+async def sendWrappedMessage(
+    msg=None, target=None, files=[], embed=None, delete_after=None
+):
     with configure_scope() as scope:
         current_user_id = scope._user["id"]
         # current_message_id = scope._tags.get('message_id')
