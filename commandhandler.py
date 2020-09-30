@@ -283,20 +283,20 @@ class CommandHandler:
                         extra={
                             "GUILD_IDENTIFIER": channel.guild.name,
                             "CHANNEL_IDENTIFIER": channel.name,
-                            "SENDER_NAME": user.name,
-                            "SENDER_ID": user.id,
+                            "SENDER_NAME": user.name if user else 'Unkown User',
+                            "SENDER_ID": reaction.user_id,
                             "MESSAGE_ID": str(message.id),
                             "REACTION_IDENTIFIER": messageContent,
                         },
                     )
                 elif type(channel) is discord.DMChannel:
                     logger.info(
-                        f"@{channel.recipient.name} <{user.name}:{user.id}> reacting with {messageContent} to {message.id}",
+                        f"@{channel.recipient.name} <{user.name if user else 'Unkown User'}:{reaction.user_id}> reacting with {messageContent} to {message.id}",
                         extra={
                             "GUILD_IDENTIFIER": "@",
                             "CHANNEL_IDENTIFIER": channel.recipient.name,
-                            "SENDER_NAME": user.name,
-                            "SENDER_ID": user.id,
+                            "SENDER_NAME": user.name if user else 'Unkown User',
+                            "SENDER_ID": reaction.user_id,
                             "MESSAGE_ID": str(message.id),
                             "REACTION_IDENTIFIER": messageContent,
                         },
