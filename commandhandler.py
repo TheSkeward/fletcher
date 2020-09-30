@@ -264,7 +264,7 @@ class CommandHandler:
                     scope.set_tag("guild", message.guild.name)
                 else:
                     user = self.client.get_user(reaction.user_id)
-                scope.user = {"id": user.id if user else None, "username": str(user)}
+                scope.user = {"id": reaction.user_id, "username": str(user)}
                 admin = self.is_admin(message, user)
                 args = [reaction, user, "add"]
                 try:
@@ -279,7 +279,7 @@ class CommandHandler:
                         channel_config = {}
                 if type(channel) is discord.TextChannel:
                     logger.info(
-                        f"#{channel.guild.name}:{channel.name} <{user.name}:{user.id}> reacting with {messageContent} to {message.id}",
+                        f"#{channel.guild.name}:{channel.name} <{user.name if user else 'Unknown User'}:{reaction.user_id}> reacting with {messageContent} to {message.id}",
                         extra={
                             "GUILD_IDENTIFIER": channel.guild.name,
                             "CHANNEL_IDENTIFIER": channel.name,
