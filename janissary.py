@@ -1490,7 +1490,7 @@ async def self_service_role_function(message, client, args):
     try:
         if not len(message.role_mentions):
             return
-        if not message.author.guild_permissions.manage_roles or ch.config.get(
+        if not message.author.guild_permissions.manage_roles or message.author.id in ch.config.get(
             guild=message.guild,
             section="roleadmin",
             key=message.role_mentions[0].name + "-list",
