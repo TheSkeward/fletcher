@@ -1504,7 +1504,7 @@ async def self_service_role_function(message, client, args):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add":
                 try:
-                    await args[1].add_roles(roles=[message.role_mentions[0]])
+                    await args[1].add_roles(message.role_mentions[0])
                     await messagefuncs.sendWrappedMessage(
                         f"Added {args[1]} to role __#{message.role_mentions[0].name}__",
                         message.author,
@@ -1519,7 +1519,7 @@ async def self_service_role_function(message, client, args):
                     )
             else:
                 try:
-                    await args[1].remove_roles(roles=[message.role_mentions[0]])
+                    await args[1].remove_roles(message.role_mentions[0])
                     await messagefuncs.sendWrappedMessage(
                         f"Removed {args[1]} from role __#{message.role_mentions[0].name}__",
                         message.author,
