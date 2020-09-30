@@ -1490,14 +1490,14 @@ async def self_service_role_function(message, client, args):
     try:
         if not len(message.role_mentions):
             return
-        if (
-            not message.author.guild_permissions.manage_roles
-            or message.author.id
-            not in ch.config.get(
+        if not (
+            message.author.id
+            in ch.config.get(
                 guild=message.guild,
                 key=f"roleadmin-{message.role_mentions[0].name}-list",
                 default=[],
-            )
+            ) or 
+            message.author.guild_permissions.manage_roles
         ):
             await messagefuncs.sendWrappedMessage(
                 "You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
