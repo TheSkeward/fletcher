@@ -137,7 +137,7 @@ logger.addHandler(
 )
 logger.setLevel(logging.DEBUG)
 
-client = discord.Client()
+client = discord.Client(intents=discord.intents.all())
 
 # token from https://discordapp.com/developers
 token = config.get(section="discord", key="botToken")
