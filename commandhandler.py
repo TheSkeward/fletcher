@@ -283,7 +283,7 @@ class CommandHandler:
                         extra={
                             "GUILD_IDENTIFIER": channel.guild.name,
                             "CHANNEL_IDENTIFIER": channel.name,
-                            "SENDER_NAME": user.name if user else 'Unkown User',
+                            "SENDER_NAME": user.name if user else "Unkown User",
                             "SENDER_ID": reaction.user_id,
                             "MESSAGE_ID": str(message.id),
                             "REACTION_IDENTIFIER": messageContent,
@@ -295,7 +295,7 @@ class CommandHandler:
                         extra={
                             "GUILD_IDENTIFIER": "@",
                             "CHANNEL_IDENTIFIER": channel.recipient.name,
-                            "SENDER_NAME": user.name if user else 'Unkown User',
+                            "SENDER_NAME": user.name if user else "Unkown User",
                             "SENDER_ID": reaction.user_id,
                             "MESSAGE_ID": str(message.id),
                             "REACTION_IDENTIFIER": messageContent,
@@ -391,7 +391,6 @@ class CommandHandler:
                                 )
                         if not processed_emoji:
                             return
-                        logger.debug(f"RXH: syncing reaction {processed_emoji}")
                         cur = conn.cursor()
                         cur.execute(
                             "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
@@ -412,7 +411,7 @@ class CommandHandler:
                                     "Demurring to bridge reaction to message of users on the blacklist"
                                 )
                                 return
-                            logger.debug(f"RXH: -> {fromMessage}")
+                            logger.debug(f"RXH: {processed_emoji} -> {fromMessage.id}")
                             syncReaction = await fromMessage.add_reaction(
                                 processed_emoji
                             )
@@ -449,7 +448,7 @@ class CommandHandler:
                                     "Demurring to bridge reaction to message of users on the blacklist"
                                 )
                                 return
-                            logger.debug(f"RXH: -> {toMessage}")
+                            logger.debug(f"RXH: {processed_emoji} -> {toMessage.id}")
                             syncReaction = await toMessage.add_reaction(processed_emoji)
                             # cur = conn.cursor()
                             # cur.execute(
@@ -807,14 +806,13 @@ class CommandHandler:
             await asyncio.sleep(1)
             cur = conn.cursor()
             query_params = [fromGuild.id, fromChannel.id, message.id]
-            logger.debug(f"[Bridge] looking up {query_params}")
             cur.execute(
                 "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
                 query_params,
             )
             metuple = cur.fetchone()
             conn.commit()
-            logger.debug(f"[Bridge] {metuple}")
+            logger.debug(f"[Bridge] {query_params} -> {metuple}")
         else:
             metuple = None
         if metuple is not None:
