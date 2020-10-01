@@ -350,12 +350,16 @@ async def alphabetize_channels(guild, client, config):
                     f'Alphabetizing {category_tuple[0].name if category_tuple[0] and category_tuple[0].name else "Unnamed Category"}',
                     extra={"FLETCHER_MODULE": "alphabetize_channels"},
                 )
+                moves = 0
                 for channel in az_channels:
                     logger.debug(
                         f"#{channel.name} {channel.position} -> {position}",
                         extra={"FLETCHER_MODULE": "alphabetize_channels"},
                     )
                     if channel.position != position:
+                        moves += 1
+                        if not moves % 10:
+                            await asyncio.sleep(60)
                         runagain = True
                         logger.info(
                             f"Moving {channel} to {position} from {channel.position}",
