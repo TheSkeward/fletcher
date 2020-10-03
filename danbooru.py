@@ -43,12 +43,12 @@ async def posts_search_function(message, client, args):
 
         post_count = await count_search_function(tags)
         if not post_count or post_count == 0:
-            return await messagefunces.sendWrappedMessage(
+            return await messagefuncs.sendWrappedMessage(
                 "No images found for query", message.channel
             )
         search_results = await warm_post_cache(tags)
         if len(search_results) == 0:
-            return await messagefunces.sendWrappedMessage(
+            return await messagefuncs.sendWrappedMessage(
                 "No images found for query", message.channel
             )
         search_result = search_results.pop()
