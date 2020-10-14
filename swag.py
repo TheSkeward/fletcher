@@ -1,6 +1,7 @@
 import asyncio
+import traceback
 import aiohttp
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, deque
 import chronos
 import time
 import discord
@@ -1242,6 +1243,257 @@ class sliding_puzzle:
             await message.add_reaction("🚫")
 
 
+class Deck(object):
+    def __init__(self):
+        self.draw_pile = deque()
+        self.discard_pile = deque()
+        self.hands = list()
+
+    def discard(self, *cards):
+        self.discard_pile.extend(cards)
+
+    def shuffle(self, discard_in=True):
+        if discard_in:
+            self.draw_pile.extend(self.discard_pile)
+            self.discard_pile = deque()
+        draw_pile = list(self.draw_pile)
+        random.shuffle(draw_pile)
+        self.draw_pile = deque(draw_pile)
+
+    def deal(self, number_of_hands=2, number_of_cards=7, exclude_hands=[]):
+        self.hands = [deque() for i in range(number_of_hands)]
+        for i in range(number_of_cards):
+            for hand_offset_pointer in range(number_of_hands):
+                if hand_offset_pointer not in exclude_hands:
+                    self.draw(hand_offset_pointer, 1)
+
+    def draw(self, hand_number, number_of_cards=1, reshuffle_on_empty=True):
+        self.hands[hand_number]
+        for i in range(number_of_cards):
+            try:
+                self.hands[hand_number].append(self.draw_pile.popleft())
+            except IndexError as e:
+                if reshuffle_on_empty:
+                    self.shuffle(discard_in=True)
+                    self.hands[hand_number].append(self.draw_pile.popleft())
+                else:
+                    raise e
+
+    def peek(self, number_of_cards=1, show_remaining_if_empty=True):
+        if number_of_cards > len(self.draw_pile) and show_remaining_if_empty:
+            number_of_cards = len(self.draw_pile)
+        return self.draw_pile[0:number_of_cards]
+
+    async def load(self, attachment, append_to_deck=True):
+        raw_str = (await attachment.read()).decode("UTF-8")
+        cards = [Deck.Card.load_from_str(line) for line in raw_str.splitlines()]
+        if append_to_deck:
+            self.draw_pile.extend(cards)
+        else:
+            self.draw_pile = deque(cards)
+
+    class Card(object):
+        def __init__(self, name_of_card, rank=None, comment=""):
+            self.name = name_of_card
+            self.rank = int(rank) if rank else None
+            self.comment = comment
+
+        def load_from_str(raw_str, separator="\t"):
+            tokens = raw_str.split(separator)
+            if len(tokens) == 1:
+                return Deck.Card(name_of_card=tokens[0])
+            elif len(tokens) == 2:
+                if tokens[1].isnumeric():
+                    return Deck.Card(name_of_card=tokens[0], rank=tokens[1])
+                else:
+                    return Deck.Card(name_of_card=tokens[0], comment=tokens[1])
+            elif len(tokens) == 3:
+                return Deck.Card(
+                    name_of_card=tokens[0], rank=tokens[1], comment=tokens[3]
+                )
+            else:
+                raise ValueError(
+                    f"Incorrect number of tokens ({len(tokens)}, must be 1-3) parsing {raw_str}"
+                )
+
+        def __str__(self):
+            return f"Card __{'#'+str(self.rank)+' ' if self.rank else ''}{self.name}__"
+
+
+async def card_choice_game_function(message, client, args):
+    try:
+        deck = Deck()
+        if len(message.attachments) and message.attachments[0].filename.endswith(
+            ".txt"
+        ):
+            await deck.load(message.attachments[0])
+        if not len(deck.draw_pile):
+            return await messagefuncs.sendWrappedMessage(
+                "Unable to load cards for game (draw pile is empty).", message.channel
+            )
+        else:
+            await messagefuncs.sendWrappedMessage(
+                f"Loaded {len(deck.draw_pile)} cards from {message.attachments[0].filename}",
+                message.channel,
+            )
+
+            class Player(object):
+                def __init__(
+                    self, hand_number=None, user=None, score=0, deck=None, hand=None
+                ):
+                    self.hand_number = hand_number
+                    self.user = user
+                    self.score = score
+                    if hand:
+                        self.hand = hand
+                    else:
+                        self.hand = deck.hands[hand_number]
+                    self.deck = deck
+
+                def card_names(self):
+                    return [card.name.lower() for card in self.hand]
+
+                def get_card_by_name(self, name):
+                    i = self.card_names().index(name.lower())
+                    return (i, self.hand[i])
+
+                def pop(self, name):
+                    card = self.get_card_by_name(name)
+                    self.hand.remove(card[1])
+                    if deck:
+                        self.deck.discard(card[1])
+                    return card
+
+                def __str__(self):
+                    return "; ".join([card.name for card in self.hand])
+
+            deck.shuffle()
+            deck.deal(len(message.mentions), 6)
+            deck.draw(0, 1)
+            players = deque(
+                [
+                    Player(i, message.mentions[i], deck=deck)
+                    for i in range(len(deck.hands))
+                ]
+            )
+            game_ongoing = True
+
+            async def input_from_list(message, channel, options=[], timeout=3600.0):
+                await messagefuncs.sendWrappedMessage(message, channel)
+                response = await client.wait_for(
+                    "message",
+                    timeout=timeout,
+                    check=lambda m: m.channel == channel
+                    and m.clean_content.lower() in options,
+                )
+
+                return response.clean_content
+
+            async def pick_card_from_hand(player, is_leader=False):
+                options = player.card_names()
+                options.append("pass")
+                if is_leader:
+                    options.append("quit")
+                target = (
+                    player.user.dm_channel
+                    if player.user.dm_channel
+                    else await player.user.create_dm()
+                )
+                return await input_from_list(
+                    f"Pick a card from your hand to start the round.\nYour hand contains {player}. You can also say `PASS` to pass this round to the next leader{', or `QUIT` to end the game' if is_leader else ''}.",
+                    target,
+                    options,
+                )
+
+            async def scoreboard(players, channel, show_winner=False):
+                scoreboard = list(sorted(players, key=lambda player: -player.score))
+                message = "\n".join(
+                    [
+                        f"• {player.user.display_name}: {player.score} points"
+                        for player in scoreboard
+                    ]
+                )
+                if show_winner:
+                    message = "__Final Scores__\n{message}\n{scoreboard[0].user.mention} is the winner!"
+                return await messagefuncs.sendWrappedMessage(message, channel)
+
+            while game_ongoing:
+                leader = players[0]
+                players.rotate()
+                await scoreboard(players, message.channel)
+                try:
+                    choice = await pick_card_from_hand(leader, is_leader=True)
+                except asyncio.TimeoutError:
+                    choice = "PASS"
+                if choice.lower() == "quit":
+                    game_ongoing = False
+                    continue
+                elif choice.lower() == "pass":
+                    continue
+                else:
+                    card = leader.pop(choice)[1]
+                deck.deal(len(players), 1, exclude_hands=[leader.hand_number])
+                status_message = None
+                player_choices = players.copy()
+                player_choices.pop()
+
+                async def current_status(status_message, channel=None):
+                    players_left = sum(
+                        1 for player in player_choices if type(player) is Player
+                    )
+                    message = f"{leader.user.mention} chose {card}.\n"
+                    if players_left:
+                        message += f"Awaiting {players_left} players"
+                    else:
+                        message += f"Choice cards are {'; '.join([card.name for card in player_choices])}"
+                    if not status_message:
+                        return await messagefuncs.sendWrappedMessage(message, channel)
+                    else:
+                        await status_message.edit(content=message)
+
+                status_message = await current_status(status_message, message.channel)
+
+                async def choose_card(player, status_message):
+                    try:
+                        choice = await pick_card_from_hand(player, is_leader=False)
+                    except asyncio.TimeoutError:
+                        choice = "PASS"
+                    player_choices[player_choices.index(player)] = (
+                        None if choice.lower() == "pass" else player.pop(choice)[1]
+                    )
+                    await current_status(status_message)
+
+                await asyncio.gather(
+                    *[choose_card(player, status_message) for player in player_choices]
+                )
+                options = list(filter(lambda card: card is not None, player_choices))
+                player = Player(hand=options, user=leader.user)
+                try:
+                    choice = await pick_card_from_hand(player, is_leader=True)
+                except asyncio.TimeoutError:
+                    choice = "quit"
+                if choice.lower() == "quit":
+                    game_ongoing = False
+                    continue
+                else:
+                    winning_player = players[
+                        player_choices.index(player.get_card_by_name(choice)[1])
+                    ]
+                    winning_player.score += 1
+                    await messagefuncs.sendWrappedMessage(
+                        f"Player {winning_player.user.mention} won that round! Their score is {winning_player.score}",
+                        message.channel,
+                    )
+                    deck.discard(*options)
+                    deck.deal(len(players), 1, exclude_hands=[leader.hand_number])
+            await scoreboard(players, message.channel, show_winner=Trure)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("CCGF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.info(traceback.format_exc())
+        await message.add_reaction("🚫")
+
+
 def memo_function(message, client, args):
     value = message.clean_content.split(args[0] + " ", 1)[1] if len(args) > 1 else None
     return ch.user_config(
@@ -1599,6 +1851,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["memo key", "value"],
             "description": "Take a personal memo to be retrieved later",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!slash"],
+            "function": card_choice_game_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 2,
+            "args_name": ["@player1 @player2 ...", "Attachment: deck"],
+            "description": "Card choice game",
         }
     )
     session = aiohttp.ClientSession(
