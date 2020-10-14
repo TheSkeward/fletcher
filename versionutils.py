@@ -1,6 +1,7 @@
 import aiohttp
 import discord
 import logging
+import messagefuncs
 from git import Repo
 from io import StringIO
 from lxml import html
