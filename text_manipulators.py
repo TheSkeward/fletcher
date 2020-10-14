@@ -3159,8 +3159,8 @@ async def reaction_request_function(message, client, args):
                     emoji_query = emoji_query[0]
                     try:
                         image_blob = await netcode.simple_get_image(
-                                f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png"
-                                )
+                            f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png"
+                        )
                     except Exception as e:
                         logger.debug("404 Image Not Found")
                         await message.add_reaction("🚫")
