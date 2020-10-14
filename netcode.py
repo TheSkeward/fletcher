@@ -21,6 +21,8 @@ async def simple_get_image(url):
                     )
                 return buffer
     except Exception as e:
+        if str(e).startswith("HttpProcessingError"):
+            raise e
         logger.debug(traceback.format_exc())
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SGI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
