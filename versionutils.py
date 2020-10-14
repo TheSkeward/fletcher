@@ -49,7 +49,7 @@ async def buglist_function(message, client, args):
         if len(args) == 0:
             return await messagefuncs.sendWrappedMessage(
                 "Tracker available at https://todo.sr.ht/~nova/fletcher/, specify issue number for details.",
-                message.client,
+                message.channel,
             )
         source_url = f"https://todo.sr.ht/~nova/fletcher/{args[0]}"
         async with aiohttp.ClientSession() as session:
