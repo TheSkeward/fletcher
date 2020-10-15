@@ -1069,6 +1069,11 @@ class CommandHandler:
                     )
                 )
         searchString = message.content
+        if guild_config.get("prefix-replace", None):
+            if searchString.startswith(guild_config["prefix-replace"]):
+                searchString = searchString.replace(guild_config["prefix-replace"], "!", 1)
+            elif searchString.startswith("!"):
+                searchString = searchString.replace("!", "", 1)
         if self.tag_id_as_command.search(searchString):
             searchString = self.tag_id_as_command.sub("!", searchString)
             if len(searchString) and searchString[-1] == "!":
