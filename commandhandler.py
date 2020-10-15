@@ -974,12 +974,10 @@ class CommandHandler:
                     multipart = None
                     files_to_pass = None
 
-                BASE = 'https://discord.com/api/v7'
-                _request_url = '{0}/webhooks/{1}/{2}'.format(BASE, self.id, self.token)
-                url = "%s/messages/%d?wait=%d" % (_request_url, message_id, wait)
+                url = "%s/messages/%d?wait=%d" % (self._adapter._request_url, message_id, wait)
                 maybe_coro = None
                 try:
-                    maybe_coro = self.request(
+                    maybe_coro = self._adapter.request(
                         "PATCH",
                         url,
                         multipart=multipart,
@@ -991,12 +989,12 @@ class CommandHandler:
                         if not asyncio.iscoroutine(maybe_coro):
                             cleanup()
                         else:
-                            maybe_coro = self._wrap_coroutine_and_cleanup(
+                            maybe_coro = self._adapter._wrap_coroutine_and_cleanup(
                                 maybe_coro, cleanup
                             )
 
                 # if request raises up there then this should never be `None`
-                return self.handle_execution_response(maybe_coro, wait=wait)
+                return self._adapter.handle_execution_response(maybe_coro, wait=wait)
 
             syncMessage = await webhook_edit(
                 self.webhook_sync_registry[
