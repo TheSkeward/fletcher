@@ -903,7 +903,9 @@ class CommandHandler:
 
                 if embeds is not None:
                     if len(embeds) > 10:
-                        raise discord.errors.InvalidArgument("embeds has a maximum of 10 elements.")
+                        raise discord.errors.InvalidArgument(
+                            "embeds has a maximum of 10 elements."
+                        )
                     payload["embeds"] = [e.to_dict() for e in embeds]
 
                 if embed is not None:
@@ -972,7 +974,9 @@ class CommandHandler:
                     multipart = None
                     files_to_pass = None
 
-                url = "%s/messages/%d?wait=%d" % (self._request_url, message_id, wait)
+                BASE = 'https://discord.com/api/v7'
+                _request_url = '{0}/webhooks/{1}/{2}'.format(BASE, self.id, self.token)
+                url = "%s/messages/%d?wait=%d" % (_request_url, message_id, wait)
                 maybe_coro = None
                 try:
                     maybe_coro = self.request(
