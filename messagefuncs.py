@@ -325,6 +325,8 @@ async def preview_messagelink_function(message, client, args):
                 )
                 return
             channel = guild.get_channel(channel_id)
+            if not (guild.get_member(message.author.id) and channel.permissions_for(guild.get_member(message.author.id)).read_message_history):
+                return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
             sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
