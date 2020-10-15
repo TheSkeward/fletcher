@@ -837,7 +837,8 @@ class CommandHandler:
                 use_category_as_channel_fallback=False,
             ):
                 try:
-                    await toMessage.delete()
+                    # await toMessage.delete()
+                    pass
                 except discord.NotFound:
                     return
                 except discord.Forbidden:
@@ -870,9 +871,89 @@ class CommandHandler:
             fromMessageName = fromMessage.author.display_name
             if toGuild.get_member(fromMessage.author.id) is not None:
                 fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
-            syncMessage = await self.webhook_sync_registry[
+            async def webhook_edit(self, content=None, *, wait=False, username=None, avatar_url=None, tts=False, file=None, files=None, embed=None, embeds=None, allowed_mentions=None, message_id=None):
+                payload = {}
+                if self.token is None:
+                    raise InvalidArgument('This webhook does not have a token associated with it')
+                if files is not None and file is not None:
+                    raise InvalidArgument('Cannot mix file and files keyword arguments.')
+                if embeds is not None and embed is not None:
+                    raise InvalidArgument('Cannot mix embed and embeds keyword arguments.')
+             
+                if embeds is not None:
+                    if len(embeds) > 10:
+                        raise InvalidArgument('embeds has a maximum of 10 elements.')
+                    payload['embeds'] = [e.to_dict() for e in embeds]
+             
+                if embed is not None:
+                    payload['embeds'] = [embed.to_dict()]
+             
+                if content is not None:
+                    payload['content'] = str(content)
+             
+                payload['tts'] = tts
+                if avatar_url:
+                    payload['avatar_url'] = str(avatar_url)
+                if username:
+                    payload['username'] = username
+             
+                previous_mentions = getattr(self._state, 'allowed_mentions', None)
+             
+                if allowed_mentions:
+                    if previous_mentions is not None:
+                        payload['allowed_mentions'] = previous_mentions.merge(allowed_mentions).to_dict()
+                    else:
+                        payload['allowed_mentions'] = allowed_mentions.to_dict()
+                elif previous_mentions is not None:
+                    payload['allowed_mentions'] = previous_mentions.to_dict()
+             
+                return execute_webhook(self, wait=wait, file=file, files=files, payload=payload, message_id=message_id)
+
+            def execute_webhook(self, *, payload, wait=False, file=None, files=None, message_id=None):
+                cleanup = None
+                if file is not None:
+                    multipart = {
+                        'file': (file.filename, file.fp, 'application/octet-stream'),
+                        'payload_json': utils.to_json(payload)
+                    }
+                    data = None
+                    cleanup = file.close
+                    files_to_pass = [file]
+                elif files is not None:
+                    multipart = {
+                        'payload_json': utils.to_json(payload)
+                    }
+                    for i, file in enumerate(files):
+                        multipart['file%i' % i] = (file.filename, file.fp, 'application/octet-stream')
+                    data = None
+  
+                    def _anon():
+                        for f in files:
+                            f.close()
+  
+                    cleanup = _anon
+                    files_to_pass = files
+                else:
+                    data = payload
+                    multipart = None
+                    files_to_pass = None
+  
+                url = '%s/messages/%d?wait=%d' % (self._request_url, message_id, wait)
+                maybe_coro = None
+                try:
+                    maybe_coro = self.request('PATCH', url, multipart=multipart, payload=data, files=files_to_pass)
+                finally:
+                    if maybe_coro is not None and cleanup is not None:
+                        if not asyncio.iscoroutine(maybe_coro):
+                            cleanup()
+                        else:
+                            maybe_coro = self._wrap_coroutine_and_cleanup(maybe_coro, cleanup)
+  
+                # if request raises up there then this should never be `None`
+                return self.handle_execution_response(maybe_coro, wait=wait)
+            syncMessage = await webhook_edit(self.webhook_sync_registry[
                 f"{fromMessage.guild.name}:{fromMessage.channel.name}"
-            ]["toWebhook"].send(
+            ]["toWebhook"], 
                 content=content,
                 username=fromMessageName,
                 avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
@@ -883,6 +964,7 @@ class CommandHandler:
                 allowed_mentions=discord.AllowedMentions(
                     users=False, roles=False, everyone=False
                 ),
+                message_id=toMessage.id
             )
             cur = conn.cursor()
             cur.execute(
@@ -1071,7 +1153,9 @@ class CommandHandler:
         searchString = message.content
         if guild_config.get("prefix-replace", None):
             if searchString.startswith(guild_config["prefix-replace"]):
-                searchString = searchString.replace(guild_config["prefix-replace"], "!", 1)
+                searchString = searchString.replace(
+                    guild_config["prefix-replace"], "!", 1
+                )
             elif searchString.startswith("!"):
                 searchString = searchString.replace("!", "", 1)
         if self.tag_id_as_command.search(searchString):
