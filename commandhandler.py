@@ -945,36 +945,15 @@ class CommandHandler:
                 self, *, payload, wait=False, file=None, files=None, message_id=None
             ):
                 cleanup = None
-                if file is not None:
-                    multipart = {
-                        "file": (file.filename, file.fp, "application/octet-stream"),
-                        "payload_json": discord.utils.to_json(payload),
-                    }
-                    data = None
-                    cleanup = file.close
-                    files_to_pass = [file]
-                elif files is not None:
-                    multipart = {"payload_json": discord.utils.to_json(payload)}
-                    for i, file in enumerate(files):
-                        multipart["file%i" % i] = (
-                            file.filename,
-                            file.fp,
-                            "application/octet-stream",
-                        )
-                    data = None
+                data = payload
+                multipart = None
+                files_to_pass = None
 
-                    def _anon():
-                        for f in files:
-                            f.close()
-
-                    cleanup = _anon
-                    files_to_pass = files
-                else:
-                    data = payload
-                    multipart = None
-                    files_to_pass = None
-
-                url = "%s/messages/%d?wait=%d" % (self._adapter._request_url, message_id, wait)
+                url = "%s/messages/%d?wait=%d" % (
+                    self._adapter._request_url,
+                    message_id,
+                    wait,
+                )
                 maybe_coro = None
                 try:
                     maybe_coro = self._adapter.request(
@@ -1012,6 +991,7 @@ class CommandHandler:
                 ),
                 message_id=toMessage.id,
             )
+            syncMessage = await syncMessage
             cur = conn.cursor()
             cur.execute(
                 "UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
@@ -2052,6 +2032,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["key", "[value]"],
             "description": "Set or get user preference for this guild",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!privacy"],
+            "function": lambda message, client, args: "Privacy policy is available at https://fletcher.fun/#privacy. For data deletion requests, please email fletcher@noblejury.com.",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Privacy policy",
         }
     )
     ch.add_command(
