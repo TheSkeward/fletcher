@@ -949,7 +949,11 @@ class CommandHandler:
                 multipart = None
                 files_to_pass = None
 
-                url = "%s/messages/%d?wait=%d" % (self._adapter._request_url, message_id, wait)
+                url = "%s/messages/%d?wait=%d" % (
+                    self._adapter._request_url,
+                    message_id,
+                    wait,
+                )
                 maybe_coro = None
                 try:
                     maybe_coro = self._adapter.request(
@@ -2028,6 +2032,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["key", "[value]"],
             "description": "Set or get user preference for this guild",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!privacy"],
+            "function": lambda message, client, args: "Privacy policy is available at https://fletcher.fun/#privacy. For data deletion requests, please email fletcher@noblejury.com.",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Privacy policy",
         }
     )
     ch.add_command(
