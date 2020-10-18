@@ -84,7 +84,7 @@ class CommandHandler:
         self.global_admin = client.get_user(config["discord"].get("globalAdmin", 0))
 
     def add_command(self, command):
-        command["module"] = inspect.stack()[1][1].split("/")[-1].rstrip(".py")
+        command["module"] = inspect.stack()[1][1].split("/")[-1][:-3]
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
         logger.debug(f"Loading command {command}")
