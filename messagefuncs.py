@@ -93,7 +93,7 @@ def xchannel(targetChannel, currentGuild):
 
 
 async def sendWrappedMessage(
-    msg=None, target=None, files=[], embed=None, delete_after=None, **kwargs
+    msg=None, target=None, files=[], embed=None, delete_after=None, allowed_mentions=discord.AllowedMentions(everyone=False), **kwargs
 ):
     with configure_scope() as scope:
         current_user_id = scope._user["id"]
@@ -104,7 +104,9 @@ async def sendWrappedMessage(
             msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
             for chunk in msg_chunks:
-                sent_message = await target.send(chunk, delete_after=delete_after, **kwargs)
+                sent_message = await target.send(
+                    chunk, delete_after=delete_after, allowed_mentions=allowed_mentions **kwargs
+                )
                 cur = conn.cursor()
                 cur.execute(
                     "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
@@ -124,7 +126,7 @@ async def sendWrappedMessage(
         else:
             last_chunk = None
         sent_message = await target.send(
-            last_chunk, files=files, embed=embed, delete_after=delete_after, **kwargs
+            last_chunk, files=files, embed=embed, delete_after=delete_after, allowed_mentions=allowed_mentions, **kwargs
         )
         cur = conn.cursor()
         cur.execute(
@@ -439,7 +441,11 @@ async def preview_messagelink_function(message, client, args):
         # TODO 🔭 to preview?
         if content:
             return await sendWrappedMessage(
-                content, message.channel, files=attachments, embed=embed, allowed_mentions=discord.AllowedMentions.none()
+                content,
+                message.channel,
+                files=attachments,
+                embed=embed,
+                allowed_mentions=discord.AllowedMentions.none(),
             )
     except discord.Forbidden as e:
         await sendWrappedMessage(
