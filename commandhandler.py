@@ -1678,8 +1678,12 @@ async def help_function(message, client, args):
             await messagefuncs.sendWrappedMessage(helpMessageBody, target)
         except discord.Forbidden:
             if type(target) is discord.Member:
+                await messagefuncs.sendWrappedMessage(
+                    "Unable to DM you a list of commands - please allow DMs from me to use this command.",
+                    message.channel,
+                    delete_after=60,
+                )
                 await message.add_reaction("🚫")
-                await messagefuncs.sendWrappedMessage("Unable to DM you a list of commands - please allow DMs from me to use this command.", message.channel, delete_after=60)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"HF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1962,16 +1966,7 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
-    return (
-        "```"
-        + ch.user_config(
-            message.author.id,
-            message.guild.id if message.guild else None,
-            args[0],
-            value,
-        )
-        + "```"
-    )
+    return f"```{ch.user_config(message.author.id, message.guild.id if message.guild else None, args[0], value,)}```"
 
 
 async def dumptasks_function(message, client, args):
