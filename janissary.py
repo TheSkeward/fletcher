@@ -346,7 +346,7 @@ async def modreport_function(message, client, args):
         plaintext = None
         automod = None
         scoped_config = ch.scope_config(guild=message.guild)
-        if not scoped_config.get("moderation"):
+        if not scoped_config.get("moderation") or type(message.channel) is discord.DMChannel:
             logger.info(f"Moderation disabled on guild {message.guild}")
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
