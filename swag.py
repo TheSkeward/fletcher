@@ -1498,7 +1498,7 @@ def memo_function(message, client, args):
     value = message.clean_content.split(args[0] + " ", 1)[1] if len(args) > 1 else None
     return ch.user_config(
         message.author.id,
-        message.guild,
+        message.guild.id if message.guild else None,
         "memo-" + args[0],
         value=value,
         allow_global_substitute=True,
