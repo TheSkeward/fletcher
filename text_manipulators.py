@@ -2994,7 +2994,9 @@ async def rot13_function(message, client, args):
                     return await messagefuncs.sendWrappedMessage(
                         "Spoiler from conversation in <#{}>{} <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                             message.channel.id,
-                            f" ({message.channel.guild.name})" if type(message.channel) is not discord.DMChannel else "",
+                            f" ({message.channel.guild.name})"
+                            if type(message.channel) is not discord.DMChannel
+                            else "",
                             message.channel.guild.id,
                             message.channel.id,
                             message.id,
@@ -3007,7 +3009,9 @@ async def rot13_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     "Spoiler from conversation in <#{}>{} <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                         message.channel.id,
-                        f" ({message.channel.guild.name})" if type(message.channel) is not discord.DMChannel else "",
+                        f" ({message.channel.guild.name})"
+                        if type(message.channel) is not discord.DMChannel
+                        else "",
                         message.channel.guild.id,
                         message.channel.id,
                         message.id,
