@@ -285,6 +285,8 @@ async def roll_function(message, client, args):
     def drop_lowest(arr):
         return sorted(arr)[1:]
 
+    offset = 0
+
     try:
         if ("+" in message.content) and (" + " not in message.content):
             args = message.content.replace("+", " + ").split(" ")[1:]
@@ -895,7 +897,9 @@ async def qdb_add_function(message, client, args):
                     args[1],
                 )
         elif len(args) == 1:
-            urlParts = messagefuncs.extract_identifiers_messagelink.search(in_content).groups()
+            urlParts = messagefuncs.extract_identifiers_messagelink.search(
+                in_content
+            ).groups()
             if len(urlParts) == 3:
                 guild_id = int(urlParts[0])
                 channel_id = int(urlParts[1])
