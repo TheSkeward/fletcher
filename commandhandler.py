@@ -1220,8 +1220,8 @@ class CommandHandler:
             for command in self.get_command(searchString, message, mode="keyword_trie"):
                 await messagefuncs.sendWrappedMessage(
                     "Wrong number of arguments for function",
-                    message.author,
-                    delete_after=10,
+                    message.channel,
+                    delete_after=60,
                 )
         if guild_config.get("hotwords_loaded"):
             for hotword in filter(
