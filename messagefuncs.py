@@ -98,11 +98,9 @@ async def sendWrappedMessage(
     files=[],
     embed=None,
     delete_after=None,
-    allowed_mentions=-1,
+    allowed_mentions=discord.AllowedMentions(everyone=False),
     **kwargs,
 ):
-    if allowed_mentions == -1:
-        allowed_mentions = discord.AllowedMentions(everyone=False)
     with configure_scope() as scope:
         current_user_id = scope._user["id"]
         # current_message_id = scope._tags.get('message_id')
@@ -115,7 +113,7 @@ async def sendWrappedMessage(
                 sent_message = await target.send(
                     chunk,
                     delete_after=delete_after,
-                    allowed_mentions=allowed_mentions ** kwargs,
+                    allowed_mentions=allowed_mentions, ** kwargs,
                 )
                 cur = conn.cursor()
                 cur.execute(
