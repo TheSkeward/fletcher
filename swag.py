@@ -895,7 +895,7 @@ async def qdb_add_function(message, client, args):
                     args[1],
                 )
         elif len(args) == 1:
-            urlParts = extract_identifiers_messagelink.search(in_content).groups()
+            urlParts = messagefuncs.extract_identifiers_messagelink.search(in_content).groups()
             if len(urlParts) == 3:
                 guild_id = int(urlParts[0])
                 channel_id = int(urlParts[1])
@@ -1655,6 +1655,7 @@ def autoload(ch):
             "trigger": ["!quoteadd", "🗨"],
             "function": qdb_add_function,
             "async": True,
+            "hidden": True,
             "args_num": 0,
             "args_name": ["quote link"],
             "description": "Add to quote database",
@@ -1788,7 +1789,9 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!color"],
-            "function": lambda message, client, args: "Current color is #{message.mentions[0].colour.value:06x}" if len(message.mentions) else "No user @mention found.",
+            "function": lambda message, client, args: "Current color is #{message.mentions[0].colour.value:06x}"
+            if len(message.mentions)
+            else "No user @mention found.",
             "async": False,
             "args_num": 1,
             "args_name": ["User mention"],
