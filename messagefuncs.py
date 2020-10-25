@@ -99,7 +99,7 @@ async def sendWrappedMessage(
     embed=None,
     delete_after=None,
     allowed_mentions=discord.AllowedMentions(everyone=False),
-    wrap_as_embed = False
+    wrap_as_embed=False,
     **kwargs,
 ):
     with configure_scope() as scope:
