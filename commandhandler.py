@@ -1668,6 +1668,7 @@ async def help_function(message, client, args):
                 )
             except IndexError:
                 accessible_commands = []
+        delete_after = None
         if target == message.author and len(accessible_commands):
             await message.add_reaction("✅")
         if len(args) > 0 and len(accessible_commands) and verbose:
@@ -1679,6 +1680,7 @@ async def help_function(message, client, args):
             )
         elif len(accessible_commands) == 0:
             helpMessageBody = "No commands accessible, check your input"
+            delete_after = 30
         else:
             helpMessageBody = "\n".join(
                 [
@@ -1687,7 +1689,9 @@ async def help_function(message, client, args):
                 ]
             )
         try:
-            await messagefuncs.sendWrappedMessage(helpMessageBody, target, wrap_as_embed=True)
+            await messagefuncs.sendWrappedMessage(
+                helpMessageBody, target, wrap_as_embed=True, delete_after=delete_after
+            )
         except discord.Forbidden:
             if type(target) is discord.Member:
                 await messagefuncs.sendWrappedMessage(

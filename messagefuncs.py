@@ -141,7 +141,7 @@ async def sendWrappedMessage(
             )
             msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
             for hunk in msg_chunks:
-                embed.add_field(name="\u1160", value=hunk, inline=True)
+                embed.add_field(name="\u1160", value=hunk, inline=False)
         sent_message = await target.send(
             last_chunk,
             files=files,
