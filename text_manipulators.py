@@ -2691,7 +2691,7 @@ async def ocr_function(message, client, args):
         except Exception as e:
             await message.add_reaction("🚫")
             await messagefuncs.sendWrappedMessage(
-                "Could not retrieve image with url {url} ({e})",
+                f"Could not retrieve image with url {url} ({e})",
                 message.channel,
                 delete_after=60,
             )
@@ -3104,7 +3104,9 @@ async def spoiler_function(message, client, args):
         else:
             content_parts = message.clean_content.split(" ", 1)
             if not len(content_parts) == 2:
-                return await messagefuncs.sendWrappedMessage("No spoilertext provided", message.channel, delete_after=60)
+                return await messagefuncs.sendWrappedMessage(
+                    "No spoilertext provided", message.channel, delete_after=60
+                )
             messageContent = (
                 "**"
                 + message.author.display_name
