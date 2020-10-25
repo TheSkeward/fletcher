@@ -436,7 +436,10 @@ class CommandHandler:
                         if metuple is not None:
                             toGuild = self.client.get_guild(metuple[0])
                             toChannel = toGuild.get_channel(metuple[1])
-                            toMessage = await toChannel.fetch_message(metuple[2])
+                            try:
+                                toMessage = await toChannel.fetch_message(metuple[2])
+                            except discord.NotFound:
+                                return
                             if not toMessage:
                                 return
                             if toMessage.author.id in config.get(
