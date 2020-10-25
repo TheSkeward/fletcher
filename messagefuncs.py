@@ -98,9 +98,11 @@ async def sendWrappedMessage(
     files=[],
     embed=None,
     delete_after=None,
-    allowed_mentions=discord.AllowedMentions(everyone=False),
+    allowed_mentions=-1,
     **kwargs,
 ):
+    if allowed_mentions == -1:
+        allowed_mentions = discord.AllowedMentions(everyone=False)
     with configure_scope() as scope:
         current_user_id = scope._user["id"]
         # current_message_id = scope._tags.get('message_id')
