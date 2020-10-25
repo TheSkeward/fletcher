@@ -2783,6 +2783,11 @@ async def mobilespoil_function(message, client, args):
 async def scramble_function(message, client, args):
     try:
         if len(message.attachments) == 0:
+            if (
+                len(args) != 3
+                or type(args[1]) is not discord.Member
+                ):
+                await messagefuncs.sendWrappedMessage("No image attached to scramble.", message.channel, delete_after=60)
             return
         input_image_blob = io.BytesIO()
         await message.attachments[0].save(input_image_blob)
