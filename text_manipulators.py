@@ -2783,11 +2783,10 @@ async def mobilespoil_function(message, client, args):
 async def scramble_function(message, client, args):
     try:
         if len(message.attachments) == 0:
-            if (
-                len(args) != 3
-                or type(args[1]) is not discord.Member
-                ):
-                await messagefuncs.sendWrappedMessage("No image attached to scramble.", message.channel, delete_after=60)
+            if len(args) != 3 or type(args[1]) is not discord.Member:
+                await messagefuncs.sendWrappedMessage(
+                    "No image attached to scramble.", message.channel, delete_after=60
+                )
             return
         input_image_blob = io.BytesIO()
         await message.attachments[0].save(input_image_blob)
@@ -3105,7 +3104,7 @@ async def spoiler_function(message, client, args):
         else:
             content_parts = message.clean_content.split(" ", 1)
             if not len(content_parts) == 2:
-                return
+                return await messagefuncs.sendWrappedMessage("No spoilertext provided", message.channel, delete_after=60)
             messageContent = (
                 "**"
                 + message.author.display_name
