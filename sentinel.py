@@ -191,7 +191,7 @@ async def pledge_function(message, client, args):
                     "Critical mass was reached for banner {} at {}! You are the {} supporter.".format(
                         bannerInfo[2],
                         bannerInfo[4].strftime("%Y-%m-%d %H:%M:%S"),
-                        ordinal(bannerInfo[0]),
+                        text_manipulators.ordinal(bannerInfo[0]),
                     ),
                     message.channel,
                 )

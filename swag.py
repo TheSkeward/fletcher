@@ -9,6 +9,7 @@ import ephem
 import io
 import logging
 import messagefuncs
+import text_manipulators
 import netcode
 import random
 import re
@@ -1019,12 +1020,6 @@ def join_rank_function(message, client, args):
                 return f"Predicted elemental member {element.name} would have an atomic mass of {element.mass} daltons if they existed!"
         else:
             member_rank = sorted_member_list.index(member) + 1
-        # Thanks to Celer for this~!
-        ordinal = lambda n: str(n) + (
-            "th"
-            if (n % 10 > 3 or 10 < n % 100 < 20)
-            else {0: "th", 1: "st", 2: "nd", 3: "rd"}[n % 10]
-        )
         if member_rank < 118:  # len(periodictable.elements):
             member_element = (
                 f"Your element is {periodictable.elements[member_rank].name.title()}."
@@ -1036,7 +1031,7 @@ def join_rank_function(message, client, args):
             member_display = member.mention
         else:
             member_display = member.display_name
-        return f"{member_display} is the {ordinal(member_rank)} member to join this server.\n{member_element}"
+        return f"{member_display} is the {text_manipulators.ordinal(member_rank)} member to join this server.\n{member_element}"
         guild_config = ch.scope_config(guild=message.guild)
     except ValueError as e:
         return "This command must be run on a server (you're always #1 to me <3)"

@@ -3384,6 +3384,12 @@ async def zalgo_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("ZF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+# Thanks to Celer for this~!
+ordinal = lambda n: str(n) + (
+    "th"
+    if (n % 10 > 3 or 10 < n % 100 < 20)
+    else {0: "th", 1: "st", 2: "nd", 3: "rd"}[n % 10]
+)
 
 def fiche_function(content, message_id):
     try:
