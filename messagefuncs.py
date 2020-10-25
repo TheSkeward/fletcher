@@ -99,6 +99,7 @@ async def sendWrappedMessage(
     embed=None,
     delete_after=None,
     allowed_mentions=discord.AllowedMentions(everyone=False),
+    wrap_as_embed = False
     **kwargs,
 ):
     with configure_scope() as scope:
@@ -106,14 +107,15 @@ async def sendWrappedMessage(
         # current_message_id = scope._tags.get('message_id')
         # current_channel_id = scope._tags.get('channel_id')
         # current_guild_id = scope._tags.get('guild_id')
-        if msg:
+        if msg and not wrap_as_embed:
             msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
             for chunk in msg_chunks:
                 sent_message = await target.send(
                     chunk,
                     delete_after=delete_after,
-                    allowed_mentions=allowed_mentions, ** kwargs,
+                    allowed_mentions=allowed_mentions,
+                    **kwargs,
                 )
                 cur = conn.cursor()
                 cur.execute(
@@ -133,6 +135,13 @@ async def sendWrappedMessage(
                 conn.commit()
         else:
             last_chunk = None
+        if wrap_as_embed:
+            embed = discord.Embed().set_footer(
+                icon_url=client.user.avatar_url, text=client.user.name
+            )
+            msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
+            for hunk in msg_chunks:
+                embed.add_field(name="\u1160", value=hunk, inline=True)
         sent_message = await target.send(
             last_chunk,
             files=files,

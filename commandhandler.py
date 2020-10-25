@@ -1687,7 +1687,7 @@ async def help_function(message, client, args):
                 ]
             )
         try:
-            await messagefuncs.sendWrappedMessage(helpMessageBody, target)
+            await messagefuncs.sendWrappedMessage(helpMessageBody, target, wrap_as_embed=True)
         except discord.Forbidden:
             if type(target) is discord.Member:
                 await messagefuncs.sendWrappedMessage(
