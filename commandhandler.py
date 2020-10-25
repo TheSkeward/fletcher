@@ -1167,7 +1167,7 @@ class CommandHandler:
                 await messagefuncs.preview_messagelink_function(
                     message, self.client, None
                 )
-        if "rot13" in message.content:
+        if "rot13" in message.content and guild_config.get("active-rot13", False):
             if user.id not in config.get(
                 section="moderation", key="blacklist-user-usage"
             ):
@@ -1674,7 +1674,12 @@ async def help_function(message, client, args):
                     for command in accessible_commands
                 ]
             )
-        await messagefuncs.sendWrappedMessage(helpMessageBody, target)
+        try:
+            await messagefuncs.sendWrappedMessage(helpMessageBody, target)
+        except discord.Forbidden:
+            if type(target) is discord.Member:
+                await message.add_reaction("🚫")
+                await messagefuncs.sendWrappedMessage("Unable to DM you a list of commands - please allow DMs from me to use this command.", message.channel, delete_after=60)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"HF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
