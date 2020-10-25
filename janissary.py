@@ -685,7 +685,7 @@ async def part_channel_function(message, client, args):
         await messagefuncs.sendWrappedMessage(
             f"Parted from {channel_names[0:-2]}", message.author
         )
-    except discord.NotFound as e:
+    except (discord.NotFound, discord.Forbidden) as e:
         await messagefuncs.sendWrappedMessage(e, message.author)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
