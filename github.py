@@ -15,6 +15,10 @@ async def github_search_function(message, client, args):
         if "Guild " + str(message.guild.id) in config:
             scoped_config = config["Guild " + str(message.guild.id)]
         else:
+            await messagefuncs.sendWrappedMessage(
+                "You can't search issues on GitHub until the server admin sets the associated `github-repo` key in the server configuration at https://fletcher.fun",
+                message.author,
+            )
             raise Exception(
                 "No guild-specific configuration for source code management on guild "
                 + str(message.guild)
@@ -61,6 +65,10 @@ async def github_report_function(message, client, args):
         if "Guild " + str(message.guild.id) in config:
             scoped_config = config["Guild " + str(message.guild.id)]
         else:
+            await messagefuncs.sendWrappedMessage(
+                "You can't report issues to GitHub until the server admin sets the `github-repo` key in the server configuration at https://fletcher.fun",
+                message.author,
+            )
             raise Exception(
                 "No guild-specific configuration for source code management on guild "
                 + str(message.guild)
