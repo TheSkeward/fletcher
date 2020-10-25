@@ -704,6 +704,7 @@ async def optin_channel_function(message, client, args):
 async def snooze_channel_function(message, client, args):
     try:
         global conn
+        channels = None
         if len(message.channel_mentions) > 0:
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
@@ -743,6 +744,7 @@ async def snooze_channel_function(message, client, args):
                 )
             if channel is None:
                 channel = message.channel
+        if channels is None:
             channels = [channel]
         if len(channels) > 0:
             channel = channels[0]
