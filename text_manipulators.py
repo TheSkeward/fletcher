@@ -2734,6 +2734,8 @@ async def mobilespoil_function(message, client, args):
             lessage = (
                 await message.channel.history(limit=1, before=message).flatten()
             )[0]
+            if not len(lessage.attachments):
+                return await messagefuncs.sendWrappedMessage("Could not find image to spoil for mobilespoilfunction in your last or current message.", message.author)
             await lessage.attachments[0].save(input_image_blob)
         if (
             len(args) != 3
