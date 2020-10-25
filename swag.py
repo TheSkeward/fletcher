@@ -287,6 +287,7 @@ async def roll_function(message, client, args):
         return sorted(arr)[1:]
 
     offset = 0
+    comment = None
 
     try:
         if ("+" in message.content) and (" + " not in message.content):
