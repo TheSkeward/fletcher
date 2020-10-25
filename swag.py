@@ -1049,12 +1049,12 @@ async def ttl(url, message, client, args):
         async with session.get(url, timeout=60) as response:
             result = await response.text()
             end = time.time()
-            await messagefuncs.sendMessageWrapped(
+            await messagefuncs.sendWrappedMessage(
                 f"{response.method} {response.url}: {response.status} {response.reason} in {(end - start):0.3g} seconds",
                 message.channel,
             )
     except asyncio.TimeoutError:
-        await messagefuncs.sendMessageWrapped(f"{url}: TimeoutEror", message.channel)
+        await messagefuncs.sendWrappedMessage(f"{url}: TimeoutEror", message.channel)
 
 
 class sliding_puzzle:
@@ -1503,6 +1503,22 @@ def memo_function(message, client, args):
         value=value,
         allow_global_substitute=True,
     )
+
+
+async def ssc_function(message, client, args):
+    try:
+        url = None
+        if len(args) == 0:
+            async with session.get(
+                "https://novalinium.com/sscd.archive.search.pl"
+            ) as resp:
+                return await messagefuncs.sendWrappedMessage(
+                    resp.headers["Location"], target=message.channel
+                )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("SSC[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
 
 
 async def autounload(ch):
