@@ -1208,12 +1208,21 @@ class CommandHandler:
         args = list(filter("".__ne__, searchString.split(" ")))
         if len(args):
             args.pop(0)
+        command_ran = False
         for command in self.get_command(
             searchString, message, mode="keyword_trie", max_args=len(args)
         ):
             await self.run_command(command, message, args, user)
+            command_ran = True
             # Run at most one command
             break
+        if not command_ran:
+            for command in self.get_command(searchString, message, mode="keyword_trie"):
+                await messagefuncs.sendWrappedMessage(
+                    "Wrong number of arguments for function",
+                    message.author,
+                    delete_after=10,
+                )
         if guild_config.get("hotwords_loaded"):
             for hotword in filter(
                 lambda hw: (type(hw) is Hotword)
