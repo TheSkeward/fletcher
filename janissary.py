@@ -1292,6 +1292,8 @@ async def voice_opt_out(message, client, args):
                 )
                 logger.debug(f"Removed {message.author} from {voice_channel}")
         await message.add_reaction("✅")
+    except discord.Forbidden as e:
+        await messagefuncs.sendWrappedMessage(e, message.author)
     except Exception as e:
         exc_type, exc_bj, exc_tb = exc_info()
         logger.error(f"VOO[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
