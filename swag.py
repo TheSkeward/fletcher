@@ -1788,8 +1788,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!color"],
-            "function": lambda message, client, args: "Current color is #%06x"
-            % message.mentions[0].colour.value,
+            "function": lambda message, client, args: "Current color is #{message.mentions[0].colour.value:06x}" if len(message.mentions) else "No user @mention found.",
             "async": False,
             "args_num": 1,
             "args_name": ["User mention"],

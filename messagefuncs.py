@@ -93,7 +93,13 @@ def xchannel(targetChannel, currentGuild):
 
 
 async def sendWrappedMessage(
-    msg=None, target=None, files=[], embed=None, delete_after=None, allowed_mentions=discord.AllowedMentions(everyone=False), **kwargs
+    msg=None,
+    target=None,
+    files=[],
+    embed=None,
+    delete_after=None,
+    allowed_mentions=discord.AllowedMentions(everyone=False),
+    **kwargs,
 ):
     with configure_scope() as scope:
         current_user_id = scope._user["id"]
@@ -105,7 +111,9 @@ async def sendWrappedMessage(
             last_chunk = msg_chunks.pop()
             for chunk in msg_chunks:
                 sent_message = await target.send(
-                    chunk, delete_after=delete_after, allowed_mentions=allowed_mentions **kwargs
+                    chunk,
+                    delete_after=delete_after,
+                    allowed_mentions=allowed_mentions ** kwargs,
                 )
                 cur = conn.cursor()
                 cur.execute(
@@ -126,7 +134,12 @@ async def sendWrappedMessage(
         else:
             last_chunk = None
         sent_message = await target.send(
-            last_chunk, files=files, embed=embed, delete_after=delete_after, allowed_mentions=allowed_mentions, **kwargs
+            last_chunk,
+            files=files,
+            embed=embed,
+            delete_after=delete_after,
+            allowed_mentions=allowed_mentions,
+            **kwargs,
         )
         cur = conn.cursor()
         cur.execute(
