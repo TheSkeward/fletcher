@@ -2735,7 +2735,10 @@ async def mobilespoil_function(message, client, args):
                 await message.channel.history(limit=1, before=message).flatten()
             )[0]
             if not len(lessage.attachments):
-                return await messagefuncs.sendWrappedMessage("Could not find image to spoil for mobilespoilfunction in your last or current message.", message.author)
+                return await messagefuncs.sendWrappedMessage(
+                    "Could not find image to spoil for mobilespoilfunction in your last or current message.",
+                    message.author,
+                )
             await lessage.attachments[0].save(input_image_blob)
         if (
             len(args) != 3
@@ -2989,9 +2992,9 @@ async def rot13_function(message, client, args):
                     )
                 else:
                     return await messagefuncs.sendWrappedMessage(
-                        "Spoiler from conversation in <#{}> ({}) <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
+                        "Spoiler from conversation in <#{}>{} <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                             message.channel.id,
-                            message.channel.guild.name,
+                            f" ({message.channel.guild.name})" if type(message.channel) is not discord.DMChannel else "",
                             message.channel.guild.id,
                             message.channel.id,
                             message.id,
@@ -3002,9 +3005,9 @@ async def rot13_function(message, client, args):
                     )
             elif not args[1].bot:
                 return await messagefuncs.sendWrappedMessage(
-                    "Spoiler from conversation in <#{}> ({}) <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
+                    "Spoiler from conversation in <#{}>{} <https://discordapp.com/channels/{}/{}/{}>\n{}: {}".format(
                         message.channel.id,
-                        message.channel.guild.name,
+                        f" ({message.channel.guild.name})" if type(message.channel) is not discord.DMChannel else "",
                         message.channel.guild.id,
                         message.channel.id,
                         message.id,
