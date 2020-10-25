@@ -346,8 +346,12 @@ async def modreport_function(message, client, args):
         plaintext = None
         automod = None
         scoped_config = ch.scope_config(guild=message.guild)
-        if not scoped_config.get("moderation") or type(message.channel) is discord.DMChannel:
+        if (
+            not scoped_config.get("moderation")
+            or type(message.channel) is discord.DMChannel
+        ):
             logger.info(f"Moderation disabled on guild {message.guild}")
+            await messagefuncs.sendWrappedMessage(f"Fletcher-assisted moderation disabled on guild {message.guild}. Check with your local mods directly, or ask them to enable anonymous mod reports by setting `moderation` to on at https://fletcher.fun", message.author, delete_after=60)
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
             try:
