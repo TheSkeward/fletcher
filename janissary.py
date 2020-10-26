@@ -1378,11 +1378,16 @@ async def unpin_message_function(message, client, args):
             )
             or ch.is_admin(message, user=args[1])["channel"]
         ):
+            if not ch.permission_for(ch.guild.get_member(client.user.id)).manage_messages:
+                return await messagefuncs.sendWrappedMessage(
+                    "I don't have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
+                    args[1],
+                )
             try:
                 await message.unpin()
             except discord.HTTPException as e:
                 await messagefuncs.sendWrappedMessage(
-                        "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again. Technical error: ||`{e}`||",
+                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
                     args[1],
                 )
             except discord.Forbidden:
@@ -1412,6 +1417,11 @@ async def pin_message_function(message, client, args):
             )
             or ch.is_admin(message, user=args[1])["channel"]
         ):
+            if not ch.permission_for(ch.guild.get_member(client.user.id)).manage_messages:
+                return await messagefuncs.sendWrappedMessage(
+                    "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
+                    args[1],
+                )
             try:
                 await message.pin()
             except discord.HTTPException:
