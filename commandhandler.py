@@ -985,7 +985,7 @@ class CommandHandler:
                 content=content,
                 username=fromMessageName,
                 avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
-                embeds=fromMessage.embeds if user.bot else None,
+                embeds=fromMessage.embeds if fromMessage.author.bot else None,
                 tts=fromMessage.tts,
                 files=attachments,
                 wait=True,
