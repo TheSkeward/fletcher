@@ -6,6 +6,7 @@ import io
 import logging
 import re
 import textwrap
+import traceback
 from sentry_sdk import configure_scope
 import pytz
 
@@ -359,10 +360,16 @@ async def preview_messagelink_function(message, client, args):
                 return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
-            if ch.user_config(message.author.id, message.guild.id if message.guild else None, "tz"):
+            if ch.user_config(
+                message.author.id, message.guild.id if message.guild else None, "tz"
+            ):
                 tz = (
                     pytz.timezone(
-                        ch.user_config(message.author.id, message.guild.id if message.guild else None, "tz")
+                        ch.user_config(
+                            message.author.id,
+                            message.guild.id if message.guild else None,
+                            "tz",
+                        )
                     )
                     or pytz.utc
                 )
@@ -372,7 +379,9 @@ async def preview_messagelink_function(message, client, args):
                     .strftime("%B %d, %Y %I:%M%p %z")
                 )
             elif message.guild and config.get(guild=message.guild.id, key="tz"):
-                tz = pytz.timezone(config.get(guild=message.guild, key="tz")) or pytz.utc
+                tz = (
+                    pytz.timezone(config.get(guild=message.guild, key="tz")) or pytz.utc
+                )
                 sent_at = (
                     target_message.created_at.replace(tzinfo=pytz.UTC)
                     .astimezone(tz)
@@ -497,6 +506,7 @@ async def preview_messagelink_function(message, client, args):
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error("PMF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         # better for there to be no response in that case
 
