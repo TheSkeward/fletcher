@@ -7,6 +7,7 @@ import logging
 import re
 import textwrap
 from sentry_sdk import configure_scope
+import pytz
 
 logger = logging.getLogger("fletcher")
 
@@ -358,7 +359,20 @@ async def preview_messagelink_function(message, client, args):
                 return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
-            sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
+            if ch.user_config(message.author.id, message.guild.id, "tz"):
+                tz = (
+                    pytz.timezone(
+                        ch.user_config(message.author.id, message.guild.id, "tz")
+                    )
+                    or pytz.utc
+                )
+                sent_at = (
+                    target_message.created_at.replace(tzinfo=pytz.UTC)
+                    .astimezone(tz)
+                    .strftime("%B %d, %Y %I:%M%p %z")
+                )
+            else:
+                sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
             if content == "":
                 content = "*No Text*"
