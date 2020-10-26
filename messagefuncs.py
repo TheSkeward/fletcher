@@ -359,10 +359,10 @@ async def preview_messagelink_function(message, client, args):
                 return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
-            if ch.user_config(message.author.id, message.guild.id, "tz"):
+            if ch.user_config(message.author.id, message.guild.id if message.guild else None, "tz"):
                 tz = (
                     pytz.timezone(
-                        ch.user_config(message.author.id, message.guild.id, "tz")
+                        ch.user_config(message.author.id, message.guild.id if message.guild else None, "tz")
                     )
                     or pytz.utc
                 )
@@ -371,13 +371,8 @@ async def preview_messagelink_function(message, client, args):
                     .astimezone(tz)
                     .strftime("%B %d, %Y %I:%M%p %z")
                 )
-            elif config.get(guild="teleport", key="tz"):
-                tz = (
-                    pytz.timezone(
-                        config.get(guild="teleport", key="tz")
-                    )
-                    or pytz.utc
-                )
+            elif message.guild and config.get(guild=message.guild.id, key="tz"):
+                tz = pytz.timezone(config.get(guild=message.guild, key="tz")) or pytz.utc
                 sent_at = (
                     target_message.created_at.replace(tzinfo=pytz.UTC)
                     .astimezone(tz)
