@@ -371,6 +371,18 @@ async def preview_messagelink_function(message, client, args):
                     .astimezone(tz)
                     .strftime("%B %d, %Y %I:%M%p %z")
                 )
+            elif config.get(guild="teleport", key="tz"):
+                tz = (
+                    pytz.timezone(
+                        config.get(guild="teleport", key="tz")
+                    )
+                    or pytz.utc
+                )
+                sent_at = (
+                    target_message.created_at.replace(tzinfo=pytz.UTC)
+                    .astimezone(tz)
+                    .strftime("%B %d, %Y %I:%M%p %z")
+                )
             else:
                 sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
