@@ -353,10 +353,10 @@ async def modreport_function(message, client, args):
             logger.info(f"Moderation disabled on guild {message.guild}")
             if not (len(args) == 3 and type(args[1]) is discord.Member):
                 await messagefuncs.sendWrappedMessage(
-                        f"Fletcher-assisted moderation disabled on guild {message.guild}. Check with your local mods directly, or ask them to enable anonymous mod reports by setting `moderation` to on at https://fletcher.fun",
-                        message.author,
-                        delete_after=60,
-                        )
+                    f"Fletcher-assisted moderation disabled on guild {message.guild}. Check with your local mods directly, or ask them to enable anonymous mod reports by setting `moderation` to on at https://fletcher.fun",
+                    message.author,
+                    delete_after=60,
+                )
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
             try:
@@ -1380,9 +1380,9 @@ async def unpin_message_function(message, client, args):
         ):
             try:
                 await message.unpin()
-            except discord.HTTPException:
+            except discord.HTTPException as e:
                 await messagefuncs.sendWrappedMessage(
-                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
+                        "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again. Technical error: ||`{e}`||",
                     args[1],
                 )
             except discord.Forbidden:
