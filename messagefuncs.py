@@ -267,8 +267,7 @@ async def teleport_function(message, client, args):
             inPortalColor = ["blue", discord.Colour.from_rgb(62, 189, 236)]
         behest = localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
-            title=embedTitle,
-            description=f"https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id} {' '.join(args[1:])}",
+            description=f"[embedTitle](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[1:])}",
             color=inPortalColor[1],
         ).set_footer(
             icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
@@ -278,15 +277,14 @@ async def teleport_function(message, client, args):
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await fromMessage.edit(
-                content=f"[**{embedTitle}** for {behest} {' '.join(args[1:])}](<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id})"
+                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
             )
         embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
         if toGuild != fromGuild:
             embedTitle = f"{embedTitle} ({fromGuild.name})"
         embedPortal = discord.Embed(
-            title=embedTitle,
-            description=f"https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id} {' '.join(args[1:])}",
+            description=f"[embedTitle](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}) {' '.join(args[1:])}",
             color=discord.Colour.from_rgb(194, 64, 11),
         ).set_footer(
             icon_url="https://dorito.space/fletcher/orange-portal.png",
@@ -296,7 +294,7 @@ async def teleport_function(message, client, args):
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await toMessage.edit(
-                content=f"[**{embedTitle}** for {behest} {' '.join(args[1:])}](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id})"
+                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
             )
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
