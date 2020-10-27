@@ -1378,7 +1378,7 @@ async def unpin_message_function(message, client, args):
             )
             or ch.is_admin(message, user=args[1])["channel"]
         ):
-            if not message.channel.permission_for(
+            if not message.channel.permissions_for(
                 ch.guild.get_member(client.user.id)
             ).manage_messages:
                 return await messagefuncs.sendWrappedMessage(
@@ -1419,7 +1419,7 @@ async def pin_message_function(message, client, args):
             )
             or ch.is_admin(message, user=args[1])["channel"]
         ):
-            if not message.channel.permission_for(
+            if not message.channel.permissions_for(
                 ch.guild.get_member(client.user.id)
             ).manage_messages:
                 return await messagefuncs.sendWrappedMessage(
