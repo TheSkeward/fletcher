@@ -274,7 +274,7 @@ async def teleport_function(message, client, args):
             text=f"On behalf of {behest}",
         )
         if ch.config.get(section="teleport", key="embeds"):
-            tmp = await fromMessage.edit(content=None, embed=embedPortal)
+            tmp = await fromMessage.edit(content=f"https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}", embed=embedPortal)
         else:
             tmp = await fromMessage.edit(
                 content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
@@ -291,7 +291,7 @@ async def teleport_function(message, client, args):
             text=f"On behalf of {behest}",
         )
         if ch.config.get(section="teleport", key="embeds"):
-            tmp = await toMessage.edit(content=None, embed=embedPortal)
+            tmp = await toMessage.edit(content="https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}", embed=embedPortal)
         else:
             tmp = await toMessage.edit(
                 content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
