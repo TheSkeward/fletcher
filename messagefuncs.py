@@ -267,7 +267,7 @@ async def teleport_function(message, client, args):
             inPortalColor = ["blue", discord.Colour.from_rgb(62, 189, 236)]
         behest = localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
-            description=f"[embedTitle](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[1:])}",
+            description=f"[{embedTitle}](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[1:])}",
             color=inPortalColor[1],
         ).set_footer(
             icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
@@ -284,7 +284,7 @@ async def teleport_function(message, client, args):
         if toGuild != fromGuild:
             embedTitle = f"{embedTitle} ({fromGuild.name})"
         embedPortal = discord.Embed(
-            description=f"[embedTitle](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}) {' '.join(args[1:])}",
+            description=f"[{embedTitle}](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}) {' '.join(args[1:])}",
             color=discord.Colour.from_rgb(194, 64, 11),
         ).set_footer(
             icon_url="https://dorito.space/fletcher/orange-portal.png",
