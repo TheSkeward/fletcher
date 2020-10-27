@@ -274,7 +274,7 @@ async def teleport_function(message, client, args):
             icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
             text=f"On behalf of {behest}",
         )
-        if config["teleport"]["embeds"] == "on":
+        if ch.config.get(section="teleport", key="embeds"):
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await fromMessage.edit(
@@ -292,7 +292,7 @@ async def teleport_function(message, client, args):
             icon_url="https://dorito.space/fletcher/orange-portal.png",
             text=f"On behalf of {behest}",
         )
-        if config["teleport"]["embeds"] == "on":
+        if ch.config.get(section="teleport", key="embeds"):
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await toMessage.edit(
