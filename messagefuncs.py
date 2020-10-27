@@ -278,7 +278,7 @@ async def teleport_function(message, client, args):
             tmp = await fromMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await fromMessage.edit(
-                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
+                content=f"[**{embedTitle}** for {behest} {' '.join(args[1:])}](<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id})"
             )
         embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
@@ -296,7 +296,7 @@ async def teleport_function(message, client, args):
             tmp = await toMessage.edit(content=None, embed=embedPortal)
         else:
             tmp = await toMessage.edit(
-                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
+                content=f"[**{embedTitle}** for {behest} {' '.join(args[1:])}](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id})"
             )
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
