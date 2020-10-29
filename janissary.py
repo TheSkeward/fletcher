@@ -1379,7 +1379,7 @@ async def unpin_message_function(message, client, args):
             or ch.is_admin(message, user=args[1])["channel"]
         ):
             if not message.channel.permissions_for(
-                ch.guild.get_member(client.user.id)
+                message.guild.get_member(client.user.id)
             ).manage_messages:
                 return await messagefuncs.sendWrappedMessage(
                     "I don't have permission to unpin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
@@ -1420,7 +1420,7 @@ async def pin_message_function(message, client, args):
             or ch.is_admin(message, user=args[1])["channel"]
         ):
             if not message.channel.permissions_for(
-                ch.guild.get_member(client.user.id)
+                message.guild.get_member(client.user.id)
             ).manage_messages:
                 return await messagefuncs.sendWrappedMessage(
                     "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
