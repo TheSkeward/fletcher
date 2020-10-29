@@ -1160,15 +1160,26 @@ class CommandHandler:
                 pass
             pass
         await self.tupper_proc(message)
-        if (messagefuncs.extract_identifiers_messagelink.search(message.content) or messagefuncs.extract_previewable_link.search(message.content)
+        if (
+            messagefuncs.extract_identifiers_messagelink.search(message.content)
+            or messagefuncs.extract_previewable_link.search(message.content)
             and not (
-                message.content.startswith(("!preview", "!blockquote", "!xreact")) or user.id in config.get(section="moderation", key="blacklist-user-usage") or (type(message.channel) is not discord.DMChannel and config.get(guild=message.guild.id, key="preview", default=False)))):
-            await messagefuncs.preview_messagelink_function(
-                message, self.client, None
+                message.content.startswith(("!preview", "!blockquote", "!xreact"))
+                or (
+                    type(message.channel) is not discord.DMChannel
+                    and not config.get(guild=message.guild.id, key="preview", default=False)
+                )
+                or (user.id
+                in config.get(section="moderation", key="blacklist-user-usage"))
             )
-        if "rot13" in message.content and guild_config.get("active-rot13", False) and user.id not in config.get(
-                section="moderation", key="blacklist-user-usage"
-            ):
+        ):
+            await messagefuncs.preview_messagelink_function(message, self.client, None)
+        if (
+            "rot13" in message.content
+            and guild_config.get("active-rot13", False)
+            and user.id
+            not in config.get(section="moderation", key="blacklist-user-usage")
+        ):
             await message.add_reaction(
                 self.client.get_emoji(
                     int(config.get("discord", {}).get("rot13", "clock1130"))
