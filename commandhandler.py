@@ -493,7 +493,7 @@ class CommandHandler:
                 else:
                     user = channel.guild.get_member(reaction.user_id)
                     scope.set_tag("guild", channel.guild.name)
-                scope.user = {"id": user.id, "username": str(user)}
+                scope.user = {"id": user.id if user else 0, "username": str(user)}
                 message = await channel.fetch_message(reaction.message_id)
                 if type(channel) is discord.TextChannel:
                     logger.info(
@@ -1160,11 +1160,23 @@ class CommandHandler:
                 pass
             pass
         await self.tupper_proc(message)
-        preview_link_found = messagefuncs.extract_identifiers_messagelink.search(message.content) or messagefuncs.extract_previewable_link.search(message.content)
-        blacklisted_preview_command = message.content.startswith(("!preview", "!blockquote", "!xreact"))
-        should_preview_guild = type(message.channel) == discord.DMChannel or config.get(guild=message.guild.id, key="preview", default=False)
-        user_blacklisted = user.id in config.get(section="moderation", key="blacklist-user-usage")
-        if (preview_link_found and should_preview_guild and not (blacklisted_preview_command or user_blacklisted)):
+        preview_link_found = messagefuncs.extract_identifiers_messagelink.search(
+            message.content
+        ) or messagefuncs.extract_previewable_link.search(message.content)
+        blacklisted_preview_command = message.content.startswith(
+            ("!preview", "!blockquote", "!xreact")
+        )
+        should_preview_guild = type(message.channel) == discord.DMChannel or config.get(
+            guild=message.guild.id, key="preview", default=False
+        )
+        user_blacklisted = user.id in config.get(
+            section="moderation", key="blacklist-user-usage"
+        )
+        if (
+            preview_link_found
+            and should_preview_guild
+            and not (blacklisted_preview_command or user_blacklisted)
+        ):
             await messagefuncs.preview_messagelink_function(message, self.client, None)
         if (
             "rot13" in message.content
