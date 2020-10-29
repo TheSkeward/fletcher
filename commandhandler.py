@@ -1160,25 +1160,16 @@ class CommandHandler:
                 pass
             pass
         await self.tupper_proc(message)
-        if (
-            messagefuncs.extract_identifiers_messagelink.search(message.content)
-            or messagefuncs.extract_previewable_link.search(message.content)
-            and not (
-                message.content.startswith(("!preview", "!blockquote", "!xreact"))
-                or (
-                    type(message.channel) is not discord.DMChannel
-                    and not config.get(guild=message.guild.id, key="preview", default=False)
-                )
-                or (user.id
-                in config.get(section="moderation", key="blacklist-user-usage"))
-            )
-        ):
+        preview_link_found = messagefuncs.extract_identifiers_messagelink.search(message.content) or messagefuncs.extract_previewable_link.search(message.content)
+        blacklisted_preview_command = message.content.startswith(("!preview", "!blockquote", "!xreact"))
+        should_preview_guild = type(message.channel) == discord.DMChannel or config.get(guild=message.guild.id, key="preview", default=False)
+        user_blacklisted = user.id in config.get(section="moderation", key="blacklist-user-usage")
+        if (preview_link_found and should_preview_guild and not (blacklisted_preview_command or user_blacklisted)):
             await messagefuncs.preview_messagelink_function(message, self.client, None)
         if (
             "rot13" in message.content
             and guild_config.get("active-rot13", False)
-            and user.id
-            not in config.get(section="moderation", key="blacklist-user-usage")
+            and not user_blacklisted
         ):
             await message.add_reaction(
                 self.client.get_emoji(
