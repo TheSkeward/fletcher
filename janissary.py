@@ -1762,7 +1762,7 @@ async def toggle_mute_channel_function(message, client, args):
         for member in discord.utils.get(
             message.guild.voice_channels, name=" ".join(args)
         ).members:
-            await member.edit(mute=not member.mute)
+            await member.edit(mute=not message.guild.voice_state_for(member).mute)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")

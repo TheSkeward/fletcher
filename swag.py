@@ -1831,7 +1831,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!dog"],
+            "trigger": ["!dog", "!pupper"],
             "function": dog_function,
             "async": True,
             "args_num": 0,
