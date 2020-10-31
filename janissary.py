@@ -1768,6 +1768,15 @@ async def toggle_mute_channel_function(message, client, args):
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def toggle_mute_role_function(message, client, args):
+    try:
+        role = discord.utils.get(message.guild.roles, name=" ".join(args))
+        await role.edit(permissions=role.permissions.update(speak=not role.permissions.speak))
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 def autoload(ch):
     ch.add_command(
         {
@@ -2138,7 +2147,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["!togglemute"],
+            "trigger": ["!togglemutechannel"],
             "function": toggle_mute_channel_function,
             "async": True,
             "hidden": False,
@@ -2146,6 +2155,19 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["#channel"],
             "description": "Toggle server mute on all voice chat members",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!togglemuterole"],
+            "function": toggle_mute_role_function,
+            "async": True,
+            "hidden": False,
+            "admin": "server",
+            "args_num": 1,
+            "args_name": ["rolename"],
+            "description": "Toggle speak on role",
         }
     )
 
