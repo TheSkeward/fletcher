@@ -1771,7 +1771,9 @@ async def toggle_mute_channel_function(message, client, args):
 async def toggle_mute_role_function(message, client, args):
     try:
         role = discord.utils.get(message.guild.roles, name=" ".join(args))
-        await role.edit(permissions=role.permissions.update(speak=not role.permissions.speak))
+        new_permissions = role.permissions
+        new_permissions.update(speak=not role.permissions.speak)
+        await role.edit(permissions=new_permissions)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
