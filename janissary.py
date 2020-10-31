@@ -1757,6 +1757,15 @@ async def login_function(message, client, args):
         )
 
 
+async def toggle_mute_channel_function(message, client, args):
+    try:
+        for member in discord.utils.get(message.guild.voice_channels, name=args[0]).members:
+            await member.edit(mute=not member.mute)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 def autoload(ch):
     ch.add_command(
         {
@@ -2122,6 +2131,19 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["#channel"],
             "description": "Create message that will automatically add and remove users from a channel",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!togglemute"],
+            "function": toggle_mute_channel_function,
+            "async": True,
+            "hidden": False,
+            "admin": "server",
+            "args_num": 1,
+            "args_name": ["#channel"],
+            "description": "Toggle server mute on all voice chat members",
         }
     )
 
