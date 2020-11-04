@@ -406,10 +406,16 @@ def expand_target_list(targets, guild):
     for target in inputs:
         if type(target) == str:
             if target.startswith("r:"):
-                members = guild.get_role(int(target[2:])).members
+                try:
+                    members = guild.get_role(int(target[2:])).members
+                except ValueError:
+                    members = discord.utils.get(guild.roles, name=target[2:]).members
                 targets.update(set(members))
             elif target.startswith("c:"):
-                channel = guild.get_channel(int(target[2:]))
+                try:
+                    channel = guild.get_channel(int(target[2:]))
+                except ValueError:
+                    channel = discord.utils.get(guild.text_channels, name=target[2:])
                 targets.add(channel)
             else:
                 try:
