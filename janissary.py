@@ -390,6 +390,8 @@ async def modreport_function(message, client, args):
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
             if message.channel.is_nsfw():
                 await modmail.add_reaction("🕜")
+    except discord.Forbidden:
+        await messagefuncs.sendWrappedMessage(f"Unable to send modreport: {e}", message.guild.owner)
     except KeyError as e:
         await error_report_function(f"{e} config key missing", message.guild, client)
     except Exception as e:
