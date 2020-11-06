@@ -66,10 +66,12 @@ def autoload(ch):
     global config
     global geolocator
     global tzwheremst
-    geolocator = Nominatim(
-        user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
-    )
-    tzwheremst = tzwhere.tzwhere()
+    if not geolocator:
+        geolocator = Nominatim(
+                user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
+                )
+    if not tzwheremst:
+        tzwheremst = tzwhere.tzwhere()
     ch.add_command(
         {
             "trigger": ["!now", "!time"],
