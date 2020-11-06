@@ -28,7 +28,7 @@ def time_at_place(message, client, args):
         else:
             tz = pytz.utc
         now = datetime.now(tz)
-        return f'The time is {now.strftime("%Y-%m-%d %H:%M")}.'
+        return f'The time is {now.strftime("%Y-%m-%d %H:%M")} ({tz} time zone).'
     except pytz.UnknownTimeZoneError as e:
         return f"Error: {type(e).__name__} for {e}"
     except Exception as e:
@@ -72,7 +72,7 @@ def autoload(ch):
     tzwheremst = tzwhere.tzwhere()
     ch.add_command(
         {
-            "trigger": ["!now"],
+            "trigger": ["!now", "!time"],
             "function": time_at_place,
             "async": False,
             "args_num": 0,
