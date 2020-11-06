@@ -16,11 +16,14 @@ def time_at_place(message, client, args):
     global geolocator
     global tzwheremst
     try:
+        q = " ".join(args)
         if len(args) > 0:
-            location = geolocator.geocode(" ".join(args))
-            tz = pytz.timezone(
-                tzwheremst.tzNameAt(location.latitude, location.longitude)
-            )
+            tz = pytz.timezone(q)
+            if not tz:
+                location = geolocator.geocode(q)
+                tz = pytz.timezone(
+                    tzwheremst.tzNameAt(location.latitude, location.longitude)
+                )
         elif ch.user_config(message.author.id, message.guild.id, "tz"):
             tz = pytz.timezone(
                 ch.user_config(message.author.id, message.guild.id, "tz")
@@ -30,7 +33,9 @@ def time_at_place(message, client, args):
         now = datetime.now(tz)
         return f'The time is {now.strftime("%Y-%m-%d %H:%M")} ({tz} time zone).'
     except pytz.UnknownTimeZoneError as e:
-        return f"Error: {type(e).__name__} for {e}"
+        return f"Error: {type(e).__name__} for ({location})"
+    except AttributeError as e:
+        return "Could not find matching place or time"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TAP[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -68,8 +73,8 @@ def autoload(ch):
     global tzwheremst
     if not geolocator:
         geolocator = Nominatim(
-                user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
-                )
+            user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
+        )
     if not tzwheremst:
         tzwheremst = tzwhere.tzwhere()
     ch.add_command(
