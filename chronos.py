@@ -18,8 +18,9 @@ def time_at_place(message, client, args):
     try:
         q = " ".join(args)
         if len(args) > 0:
-            tz = pytz.timezone(q)
-            if not tz:
+            try:
+                tz = pytz.timezone(q)
+            except pytz.UnknownTimeZoneError as e:
                 location = geolocator.geocode(q)
                 tz = pytz.timezone(
                     tzwheremst.tzNameAt(location.latitude, location.longitude)
