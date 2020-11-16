@@ -71,6 +71,7 @@ class FletcherConfig:
             "sync-deletions": True,
             "sync-edits": True,
             "blacklist-commands": [],
+            "color-role-autocreate": True
         }
         self.channel_defaults = {"synchronize": False}
 

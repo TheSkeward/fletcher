@@ -261,7 +261,7 @@ async def regex_filter(message, client, config):
         else:
             subject = str(message.content)
         re_flags = 0
-        if config.get("regex-ignorecase") == "On":
+        if config.get("regex-ignorecase"):
             re_flags = re_flags | re.IGNORECASE
         matching = re.search(config["regex-pattern"], subject, re_flags)
         if matching and whitelist_mode:
@@ -303,7 +303,7 @@ async def regex_filter(message, client, config):
                     delete_after=timeout,
                 )
 
-            if config.get("regex-kill") == "On":
+            if config.get("regex-kill"):
                 if message.channel.permissions_for(message.author).manage_messages:
                     emoji = "\U0001F5D9"
                     await message.add_reaction(emoji)
