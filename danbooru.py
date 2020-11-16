@@ -34,8 +34,16 @@ async def posts_search_function(message, client, args):
             "danbooru_default_filter"
         ):
             tags += " " + channel_config.get("danbooru_default_filter")
-        if ch.user_config(message.author.id, message.guild.id if message.guild else None, "danbooru_default_filter"):
-            tags += " " + ch.user_config(message.author.id, message.guild.id if message.guild else None, "danbooru_default_filter")
+        if ch.user_config(
+            message.author.id,
+            message.guild.id if message.guild else None,
+            "danbooru_default_filter",
+        ):
+            tags += " " + ch.user_config(
+                message.author.id,
+                message.guild.id if message.guild else None,
+                "danbooru_default_filter",
+            )
         if type(message.channel) is not discord.DMChannel and message.channel.is_nsfw():
             tags += " -loli -shota -toddlercon"
         else:

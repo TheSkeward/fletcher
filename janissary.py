@@ -19,6 +19,19 @@ import exceptions
 logger = logging.getLogger("fletcher")
 
 
+def consume_channel_token(args):
+    channel_name = ""
+    args_consumed = 0
+    for arg in args:
+        args_consumed += 1
+        channel_name += " " + arg
+        if (":" in channel_name) or "#" in channel_name:
+            break
+    args = args[:args_consumed]
+    channel_name = channel_name.lstrip()
+    return channel_name, args
+
+
 async def set_role_color_function(message, client, args):
     global config
     global ch
@@ -391,7 +404,9 @@ async def modreport_function(message, client, args):
             if message.channel.is_nsfw():
                 await modmail.add_reaction("🕜")
     except discord.Forbidden:
-        await messagefuncs.sendWrappedMessage(f"Unable to send modreport: {e}", message.guild.owner)
+        await messagefuncs.sendWrappedMessage(
+            f"Unable to send modreport: {e}", message.guild.owner
+        )
     except KeyError as e:
         await error_report_function(f"{e} config key missing", message.guild, client)
     except Exception as e:
@@ -732,12 +747,7 @@ async def snooze_channel_function(message, client, args):
         elif len(args) == 0:
             channel = message.channel
         elif ":*" in message.content:
-            guild_name = ""
-            for arg in args:
-                guild_name += " " + arg
-                if ":" in arg:
-                    break
-            guild_name = guild_name.lstrip()
+            guild_name, args = consume_channel_token(args)
             guild = discord.utils.get(
                 client.guilds,
                 name=messagefuncs.expand_guild_name(guild_name)
@@ -747,12 +757,7 @@ async def snooze_channel_function(message, client, args):
             channels = guild.text_channels
         else:
             try:
-                channel_name = ""
-                for arg in args:
-                    channel_name += " " + arg
-                    if ":" in arg:
-                        break
-                channel_name = channel_name.lstrip()
+                channel_name, args = consume_channel_token(args)
                 channel = messagefuncs.xchannel(channel_name, message.guild)
             except exceptions.DirectMessageException:
                 return await messagefuncs.sendWrappedMessage(
@@ -1379,9 +1384,9 @@ async def unpin_message_function(message, client, args):
     try:
         scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
         if (
-            scoped_config.get("allow_unprivileged_unpins", False) == "On"
+            scoped_config.get("allow_unprivileged_unpins", False)
             or (
-                scoped_config.get("allow_unprivileged_selfunpins", False) == "On"
+                scoped_config.get("allow_unprivileged_selfunpins", False)
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
@@ -1420,9 +1425,9 @@ async def pin_message_function(message, client, args):
     try:
         scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
         if (
-            scoped_config.get("allow_unprivileged_pins", False) == "On"
+            scoped_config.get("allow_unprivileged_pins", False)
             or (
-                scoped_config.get("allow_unprivileged_selfpins", False) == "On"
+                scoped_config.get("allow_unprivileged_selfpins", False)
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
@@ -1459,20 +1464,55 @@ async def pin_message_function(message, client, args):
 async def invite_function(message, client, args):
     global ch
     try:
-        channel = message.channel
-        name = " ".join(args)
-        member = ch.get_member_named(message.guild, name)
-        soon = client.get_emoji(664472443053932604) or "🔜"
+        if len(message.channel_mentions) > 0:
+            channel = message.channel_mentions[0]
+        elif len(args) == 0 and message.guild is None:
+            raise exceptions.DirectMessageException()
+        elif len(args) == 0:
+            channel = message.channel
+        else:
+            args, channel_name = consume_channel_token(args)
+            channel = (
+                messagefuncs.xchannel(channel_name, message.guild) or message.channel
+            )
+        if type(channel) == message.DMChannel:
+            raise discord.errors.InvalidArgument(
+                "Channel appears to not exist or is DM"
+            )
+        if not ch.is_admin(channel, message.author)["channel"]:
+            return await messagefuncs.sendWrappedMessage(
+                f"You do not have permission to invite users to {channel}.",
+                message.author,
+            )
+        members = (
+            message.mentions
+            if len(message.mentions)
+            else [
+                ch.get_member_named(channel.guild, name)
+                for name in map(str.strip, " ".join(args).split(","))
+            ]
+        )
         # if not member:
         #     member = discord.utils.find(lambda member: member.name == name or member.display_name == name, await client.get_all_members())
-        if not member:
-            await messagefuncs.sendWrappedMessage(
-                f"Could not find user matching {name}", message.author
+
+        soon = client.get_emoji(664472443053932604) or "🔜"
+        await message.add_reaction(soon)
+        for member in filter(lambda member: member and member.bot, members):
+            await channel.set_permissions(
+                member,
+                read_messages=True,
+                read_message_history=True,
+                send_messages=True,
+                reason="Invited by channel admin",
             )
-            return
-        else:
-            await message.add_reaction(soon)
-        if not member.bot:
+        await asyncio.gather(
+            *[
+                invite_member(client, member, message)
+                for member in filter(lambda member: member and not member.bot, members)
+            ]
+        )
+
+        async def invite_member(client, member, message):
             try:
                 target = await messagefuncs.sendWrappedMessage(
                     f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅",
@@ -1488,33 +1528,52 @@ async def invite_function(message, client, args):
                 reaction, user = await client.wait_for(
                     "reaction_add",
                     timeout=60000.0 * 24,
-                    check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
+                    check=lambda reaction, user: reaction.message.id == target.id
+                    and (str(reaction.emoji) == "✅")
                     and (user == member),
                 )
             except asyncio.TimeoutError:
                 await target.edit(
-                    message=f"{target.content}\nInvite expired due to timeout."
+                    message=f"{target.content}\nInvite expired due to timeout. You'll need to ask them for another invitation to join."
                 )
                 await message.remove_reaction("✅", client.user)
                 return
-        try:
-            await channel.set_permissions(
-                member,
-                read_messages=True,
-                read_message_history=True,
-                send_messages=True,
-                reason="Invited by channel admin",
-            )
-            await messagefuncs.sendWrappedMessage(
-                f"{member} accepted your invite to {channel.mention}", message.author
-            )
-            await message.remove_reaction(soon, client.user)
-            await message.add_reaction("✅")
-        except discord.Forbidden:
-            return await messagefuncs.sendWrappedMessage(
-                f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden",
-                message.author,
-            )
+            try:
+                await channel.set_permissions(
+                    member,
+                    read_messages=True,
+                    read_message_history=True,
+                    send_messages=True,
+                    reason="Invited by channel admin",
+                )
+                await messagefuncs.sendWrappedMessage(
+                    f"{member} accepted your invite to {channel.mention}",
+                    message.author,
+                )
+            except discord.Forbidden:
+                await target.edit(
+                    message=f"{target.content}\nFailed to add you to channel due to a permissions error. Your inviter has been notified."
+                )
+                return await messagefuncs.sendWrappedMessage(
+                    f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden",
+                    message.author,
+                )
+
+        await message.remove_reaction(soon, client.user)
+        await message.add_reaction("✅")
+    except discord.Forbidden as e:
+        return await messagefuncs.sendWrappedMessage(
+            f"Permissions error while inviting: {e}.", message.author
+        )
+    except discord.errors.InvalidArgument:
+        return await messagefuncs.sendWrappedMessage(
+            f"Invalid arguments, could not infer channel or user: {e}", message.author
+        )
+    except exceptions.DirectMessageException:
+        return await messagefuncs.sendWrappedMessage(
+            "Inviting to a channel from a DM requires server and channel to be specified (e.g. `!invite server:channel username`)",
+            message.author,
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -2123,10 +2182,9 @@ def autoload(ch):
             "function": invite_function,
             "async": True,
             "hidden": False,
-            "admin": "channel",
             "args_num": 1,
             "args_name": ["Username (optional discriminator)"],
-            "description": "Invite user to the current channel",
+            "description": "Invite user to a channel (requires channel admin permissions)",
         }
     )
 
