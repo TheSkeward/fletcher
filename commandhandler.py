@@ -81,7 +81,9 @@ class CommandHandler:
             re.IGNORECASE,
         )
         self.bang_remover = re.compile("^!+")
-        self.global_admin = client.get_user(config["discord"].get("globalAdmin", 0))
+        self.global_admin = client.get_user(
+            config.get(section="discord", key="globalAdmin", default=0)
+        )
 
     def add_command(self, command):
         command["module"] = inspect.stack()[1][1].split("/")[-1][:-3]
@@ -1505,7 +1507,9 @@ class CommandHandler:
 
     def accessible_commands(self, message, user=None):
         global config
-        if message.author.id in config["moderation"].get("blacklist-user-usage"):
+        if message.author.id in config.get(
+            section="moderation", key="blacklist-user-usage"
+        ):
             return []
         admin = self.is_admin(message, user=user)
         if message.guild:
@@ -1523,7 +1527,11 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
-                        or config["discord"].get("globalAdminIgnoresBlacklists", True)
+                        or config.get(
+                            section="discord",
+                            key="globalAdminIgnoresBlacklists",
+                            default=False,
+                        )
                     )
                 )
 
@@ -1535,7 +1543,11 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
-                        or config["discord"].get("serverAdminIgnoresBlacklists", False)
+                        or config.get(
+                            section="discord",
+                            key="serverlAdminIgnoresBlacklists",
+                            default=False,
+                        )
                     )
                 )
 
@@ -1547,7 +1559,11 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
-                        or config["discord"].get("channelAdminIgnoresBlacklists", False)
+                        or config.get(
+                            section="discord",
+                            key="channelAdminIgnoresBlacklists",
+                            default=False,
+                        )
                     )
                 )
 

@@ -410,7 +410,7 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(chronos, ch)
         await animate_startup("🕰️", message)
         # Play it again, Sam
-        await doissetep_omega_autoconnect()
+        asyncio.create_task(doissetep_omega_autoconnect())
         # Trigger reload handlers
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
