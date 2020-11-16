@@ -1382,11 +1382,10 @@ async def set_slowmode_function(message, client, args):
 async def unpin_message_function(message, client, args):
     global ch
     try:
-        scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
         if (
-            scoped_config.get("allow_unprivileged_unpins", False)
+            ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_unpins", default=False)
             or (
-                scoped_config.get("allow_unprivileged_selfunpins", False)
+                ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_selfunpins", default=False)
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
@@ -1423,11 +1422,10 @@ async def unpin_message_function(message, client, args):
 async def pin_message_function(message, client, args):
     global ch
     try:
-        scoped_config = ch.scope_config(guild=message.guild, channel=message.channel)
         if (
-            scoped_config.get("allow_unprivileged_pins", False)
+            ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_pins", default=False)
             or (
-                scoped_config.get("allow_unprivileged_selfpins", False)
+                ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_selfpins", default=False)
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
