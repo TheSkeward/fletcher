@@ -39,12 +39,7 @@ async def set_role_color_function(message, client, args):
     try:
         role_list = message.channel.guild.roles
         role = discord.utils.get(role_list, name=args[0].replace("_", " "))
-        if role is None and (
-            guild_config.get(
-                "color-role-autocreate", config.get("color-role-autocreate", "On")
-            )
-            == "On"
-        ):
+        if role is None and ch.config.get("color-role-autocreate"):
             role = await message.guild.create_role(
                 name=args[0], reason="Auto-created color role"
             )
@@ -1383,9 +1378,19 @@ async def unpin_message_function(message, client, args):
     global ch
     try:
         if (
-            ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_unpins", default=False)
+            ch.config.get(
+                guild=message.guild,
+                channel=message.channel,
+                key="allow_unprivileged_unpins",
+                default=False,
+            )
             or (
-                ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_selfunpins", default=False)
+                ch.config.get(
+                    guild=message.guild,
+                    channel=message.channel,
+                    key="allow_unprivileged_selfunpins",
+                    default=False,
+                )
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
@@ -1423,9 +1428,19 @@ async def pin_message_function(message, client, args):
     global ch
     try:
         if (
-            ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_pins", default=False)
+            ch.config.get(
+                guild=message.guild,
+                channel=message.channel,
+                key="allow_unprivileged_pins",
+                default=False,
+            )
             or (
-                ch.config.get(guild=message.guild, channel=message.channel, key="allow_unprivileged_selfpins", default=False)
+                ch.config.get(
+                    guild=message.guild,
+                    channel=message.channel,
+                    key="allow_unprivileged_selfpins",
+                    default=False,
+                )
                 and message.author == args[1]
             )
             or ch.is_admin(message, user=args[1])["channel"]
