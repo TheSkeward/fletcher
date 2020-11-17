@@ -556,13 +556,14 @@ url_search = re.compile(
 async def markdown_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
-            if str(args[0].emoji) == "#":
-                await sendWrappedMessage(f"```md{message.content[:1993]}```", args[1])
-                if len(message.content) > 1993:
-                    await sendWrappedMessage(f"```md{message.content[1993:]}```", args[1])
+            await sendWrappedMessage(f"```md{message.content[:1993]}```", args[1])
+            if len(message.content) > 1993:
+                await sendWrappedMessage(
+                        f"```md{message.content[1993:]}```", args[1]
+                        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("BMF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error("MDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
 async def bookmark_function(message, client, args):
@@ -784,7 +785,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["#"],
+            "trigger": ["#️⃣ "],
             "function": markdown_function,
             "async": True,
             "args_num": 0,
