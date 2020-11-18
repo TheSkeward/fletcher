@@ -3216,7 +3216,7 @@ async def reaction_request_function(message, client, args):
                 )
                 image_blob.seek(0)
                 image = Image.open(image_blob)
-                flip_image = ImageOps.flip(image)
+                flip_image = ImageOps.mirror(ImageOps.flip(image))
                 output_image_blob = io.BytesIO()
                 flip_image.save(output_image_blob, format="PNG", optimize=True)
                 output_image_blob.seek(0)
