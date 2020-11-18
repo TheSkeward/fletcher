@@ -717,7 +717,7 @@ class CommandHandler:
 
         def list_append(lst, item):
             lst.append(item)
-            return lst
+            return item 
 
         user_mentions = []
         content = re.sub(
