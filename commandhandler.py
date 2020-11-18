@@ -724,8 +724,9 @@ class CommandHandler:
             r"@.*?#0000",
             lambda member: list_append(
                 user_mentions,
-                bridge["toChannelObject"].guild.get_member_named(member[1:-5]),
-            ).mention, content
+                bridge["toChannelObject"].guild.get_member_named(member[0][1:-5]),
+            ).mention,
+            content,
         )
         toMember = bridge["toChannelObject"].guild.get_member(user.id)
         fromMessageName = toMember.display_name if toMember else user.display_name
