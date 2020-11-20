@@ -226,3 +226,7 @@ Report an issue to the repository associated with this server.
 ## GitHub Search (`!ghsearch`):
 #### 1-args (query)
  search associated chat repository for issues with specified query.
+
+## Kick (`!kick`):
+#### 1-args (reason for kick)
+ Kicks user from server, and DMs them a reason. Does not delete any of the user's messages.
