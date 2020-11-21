@@ -62,6 +62,7 @@ def xchannel(targetChannel, currentGuild):
     channelLookupBy = "Name"
     toChannel = None
     toGuild = None
+    targetChannel = targetChannel.str.replace(":#", ":")
     if targetChannel.startswith("<#"):
         channelLookupBy = "ID"
     elif targetChannel.startswith("#"):
