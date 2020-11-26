@@ -907,7 +907,7 @@ async def sudo_function(message, client, args):
             except discord.NoMoreItems:
                 entry = None
                 pass
-            if entry.created_at > now:
+            if entry and entry.created_at > now:
                 logger.info("SUDOF: " + str(entry))
                 await message.author.remove_roles(
                     role, reason="Sudo deescalation (commanded)", atomic=False
@@ -1833,9 +1833,9 @@ async def login_function(message, client, args):
                 )
     elif args[0] == "complice":
         return await messagefuncs.sendWrappedMessage(
-                    f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret=ch.config.get(section='complice', key='client_secret=')redirect_uri={ch.config.get(section='complice', key='redirect_uri')}%3Fstate%3D{message.author.id}",
-                    message.channel,
-                )
+            f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret=ch.config.get(section='complice', key='client_secret=')redirect_uri={ch.config.get(section='complice', key='redirect_uri')}%3Fstate%3D{message.author.id}",
+            message.channel,
+        )
     else:
         return await messagefuncs.sendWrappedMessage(
             f"Could not find matching service login flow for {args[0]}", message.channel
