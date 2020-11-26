@@ -1739,7 +1739,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                         )
                 except discord.Forbidden as e:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members (Manage Permissions) on __#{message.channel_mentions[0].name}__, and {args[1]} requested an add {e}.",
+                        f"I don't have permission to manage members (Manage Permissions) on __#{message.channel_mentions[0].name}__, and {args[1]} requested an add\n{e}.",
                         message.author,
                     )
             else:
@@ -1829,6 +1829,11 @@ async def login_function(message, client, args):
                 request_token = request_body.split("=")[1]
                 return await messagefuncs.sendWrappedMessage(
                     f"https://getpocket.com/auth/authorize?request_token={request_token}&redirect_uri={ch.config.get(section='pocket', key='redirect_uri')}%3Frequest_token%3D{request_token}",
+                    message.channel,
+                )
+    elif args[0] == "complice":
+        return await messagefuncs.sendWrappedMessage(
+                    f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret=ch.config.get(section='complice', key='client_secret=')redirect_uri={ch.config.get(section='complice', key='redirect_uri')}%3Fstate%3D{message.author.id}",
                     message.channel,
                 )
     else:
