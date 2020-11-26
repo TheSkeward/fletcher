@@ -62,7 +62,7 @@ def xchannel(targetChannel, currentGuild):
     channelLookupBy = "Name"
     toChannel = None
     toGuild = None
-    targetChannel = targetChannel.str.replace(":#", ":")
+    targetChannel = targetChannel.replace(":#", ":")
     if targetChannel.startswith("<#"):
         channelLookupBy = "ID"
     elif targetChannel.startswith("#"):
@@ -201,7 +201,7 @@ async def teleport_function(message, client, args):
         toChannel = None
         try:
             toChannel = xchannel(toChannelName, fromGuild)
-        except AttributeError:
+        except AttributeError as e:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
                 "Cannot teleport out of a DMChannel.", fromChannel, delete_after=60
