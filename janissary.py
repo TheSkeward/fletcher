@@ -1737,9 +1737,9 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                             f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__",
                             args[1],
                         )
-                except discord.Forbidden:
+                except discord.Forbidden as e:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members of __#{message.channel_mentions[0].name}__, and {args[1]} requested an add.",
+                        f"I don't have permission to manage members (Manage Permissions) on __#{message.channel_mentions[0].name}__, and {args[1]} requested an add {e}.",
                         message.author,
                     )
             else:
