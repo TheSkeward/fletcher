@@ -1833,7 +1833,7 @@ async def login_function(message, client, args):
                 )
     elif args[0] == "complice":
         return await messagefuncs.sendWrappedMessage(
-            f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret=ch.config.get(section='complice', key='client_secret=')redirect_uri={ch.config.get(section='complice', key='redirect_uri')}%3Fstate%3D{message.author.id}",
+            f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret={ch.config.get(section='complice', key='client_secret')}redirect_uri={ch.config.get(section='complice', key='redirect_uri')}%3Fstate%3D{message.author.id}",
             message.channel,
         )
     else:
