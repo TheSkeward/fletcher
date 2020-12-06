@@ -767,10 +767,10 @@ async def snooze_channel_function(message, client, args):
             channel = channels[0]
         else:
             channel = None
-        if message.guild is not None:
-            guild = message.guild
-        elif hasattr(channel, "guild"):
+        if hasattr(channel, "guild"):
             guild = channel.guild
+        elif message.guild is not None:
+            guild = message.guild
         else:
             await message.add_reaction("🚫")
             return await messagefuncs.sendWrapppedMessage(
@@ -778,16 +778,14 @@ async def snooze_channel_function(message, client, args):
             )
         if (
             channel
-            and not guild.get_member(client.user.id)
-            .permissions_in(channel)
-            .manage_roles
+            and not guild.get_member(client.user.id).permissions_in(channel).manage_roles
         ) or (
             not channel
             and not guild.get_member(client.user.id).guild_permissions.manage_roles
         ):
             await message.add_reaction("🚫")
             return await messagefuncs.sendWrappedMessage(
-                f"Unable to snooze the requested channel(s) ({channel}) - owner has not granted Fletcher Manage Permissions.",
+                f"Unable to snooze the requested channel(s) ({channel} in {guild}) - owner has not granted Fletcher Manage Permissions.",
                 message.author,
             )
         cur = conn.cursor()
@@ -814,7 +812,7 @@ async def snooze_channel_function(message, client, args):
                 interval = float(24)
         overwrites = "overwrite " + ujson.dumps(
             {
-                f"{guild.name}:{channel.name}": channel.overwrites_for(message.author)
+                f"{guild.name}:{channel.name}": dict(channel.overwrites_for(message.author))
                 for channel in channels
             }
         )
