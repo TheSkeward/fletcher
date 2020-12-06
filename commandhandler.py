@@ -1245,7 +1245,7 @@ class CommandHandler:
             refGuild = self.client.get_guild(message.reference.guild_id)
             refChannel = refGuild.get_channel(message.reference.channel_id)
             try:
-                refMessage = await toChannel.fetch_message(message.reference.message_id)
+                refMessage = await refChannel.fetch_message(message.reference.message_id)
                 if scoped_command:
                     logger.debug(scoped_command)
                     if (
