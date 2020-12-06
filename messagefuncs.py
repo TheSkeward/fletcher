@@ -700,21 +700,25 @@ async def subscribe_send_function(message, client, args):
     try:
         guild_config = ch.scope_config(guild=message.guild)
         if len(args) == 3 and type(args[1]) is discord.Member and args[2] == "add":
+            user = args[1]
             content = f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {args[0].emoji} to {message.jump_url}"
         elif len(args) == 3 and type(args[1]) is discord.Member and args[2] == "remove":
+            user = args[1]
             content = f"{user.display_name} ({user.name}#{user.discriminator}) unreacting with {args[0].emoji} on {message.jump_url}"
         elif len(args) == 3 and type(args[1]) is discord.Member and args[2] == "reply":
+            user = args[1]
             content = f"{user.display_name} ({user.name}#{user.discriminator}) replying to {args[0].jump_url} with\n> {message.content}\n({message.jump_url})"
         for user_id in guild_config.get("subscribe", {}).get(message.id):
-            preview_message = await messagefuncs.sendWrappedMessage(content,
-                    message.guild.get_member(message.id),
-                    )
+            preview_message = await messagefuncs.sendWrappedMessage(
+                content, message.guild.get_member(message.id),
+            )
             await messagefuncs.preview_messagelink_function(
-                    preview_message, self.client, None
-                    )
+                preview_message, self.client, None
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 
 def localizeName(user, guild):
     localized = guild.get_member(user.id)
@@ -812,6 +816,7 @@ def autoload(ch):
             "description": "DM user the markdown of a message",
         }
     )
+
     def load_react_notifications(ch):
         cur = conn.cursor()
         cur.execute(
@@ -838,7 +843,7 @@ def autoload(ch):
                 )
                 ch.add_message_reaction_handler(
                     [int(subtuple[3])],
-                        {
+                    {
                         "trigger": [""],  # empty string: a special catch-all trigger
                         "function": subscribe_send_function,
                         "exclusive": False,
@@ -846,11 +851,11 @@ def autoload(ch):
                         "args_num": 0,
                         "args_name": [],
                         "description": "assign roles based on emoji for a given message",
-                        },
-                        )
+                    },
+                )
                 ch.add_message_reply_handler(
                     [int(subtuple[3])],
-                        {
+                    {
                         "trigger": [""],  # empty string: a special catch-all trigger
                         "function": subscribe_send_function,
                         "exclusive": False,
@@ -858,14 +863,14 @@ def autoload(ch):
                         "args_num": 0,
                         "args_name": [],
                         "description": "assign roles based on emoji for a given message",
-                        },
-                        )
+                    },
+                )
             guild_config["subscribe"][int(subtuple[3])].append(int(subtuple[0]))
             subtuple = cur.fetchone()
         conn.commit()
+
     logger.debug("LRN")
     load_react_notifications(ch)
-
 
 
 async def autounload(ch):
