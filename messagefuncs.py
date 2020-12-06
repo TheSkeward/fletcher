@@ -709,11 +709,11 @@ async def subscribe_send_function(message, client, args):
             user = args[1]
             content = f"{user.display_name} ({user.name}#{user.discriminator}) replying to {args[0].jump_url} with\n> {message.content}\n({message.jump_url})"
         for user_id in guild_config.get("subscribe", {}).get(message.id):
-            preview_message = await messagefuncs.sendWrappedMessage(
+            preview_message = await sendWrappedMessage(
                 content, message.guild.get_member(message.id),
             )
-            await messagefuncs.preview_messagelink_function(
-                preview_message, self.client, None
+            await preview_messagelink_function(
+                preview_message, client, None
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
