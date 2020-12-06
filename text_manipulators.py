@@ -2657,15 +2657,19 @@ async def ocr_function(message, client, args):
     try:
         url = None
         if len(message.attachments):
+            lessage = message
             url = message.attachments[0].url
         elif len(message.embeds) and message.embeds[0].image.url != discord.Embed.Empty:
+            lessage = message
             url = message.embeds[0].image.url
         elif (
             len(message.embeds)
             and message.embeds[0].thumbnail.url != discord.Embed.Empty
         ):
+            lessage = message
             url = message.embeds[0].thumbnail.url
         elif len(args) and args[0]:
+            lessage = message
             url = args[0]
         else:
             lessage = (
@@ -2708,7 +2712,7 @@ async def ocr_function(message, client, args):
                 Image.MIME[input_image.format],
             )
         )["result"]
-        output_message = f">>> {image_to_text}"
+        output_message = f"{lessage.jump_url}\n>>> {image_to_text}"
         if (
             len(args) == 3
             and type(args[1]) is discord.Member
