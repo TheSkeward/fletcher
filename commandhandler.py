@@ -1225,19 +1225,23 @@ class CommandHandler:
             args = [message, user, "reply"]
             scoped_command = None
             if (
-                self.message_reply_handlers.get(message.reference.id)
-                and self.message_reply_handlers.get(message.reference.id).get(
+                self.message_reply_handlers.get(message.reference.message_id)
+                and self.message_reply_handlers.get(message.reference.message_id).get(
                     "scope", "message"
                 )
                 != "channel"
             ):
-                scoped_command = self.message_reply_handlers[message.id]
+                scoped_command = self.message_reply_handlers[
+                    message.reference.message_id
+                ]
             elif (
                 self.message_reply_handlers.get(channel.id)
                 and self.message_reply_handlers.get(channel.id).get("scope", "message")
                 == "channel"
             ):
-                scoped_command = self.message_reply_handlers[channel.id]
+                scoped_command = self.message_reply_handlers[
+                    message.reference.channel_id
+                ]
             refGuild = self.client.get_guild(message.reference.guild_id)
             refChannel = toGuild.get_channel(message.reference.channel_id)
             try:
