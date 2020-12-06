@@ -712,6 +712,7 @@ async def subscribe_send_function(message, client, args):
             preview_message = await sendWrappedMessage(
                 content, message.guild.get_member(user.id),
             )
+            await preview_message.edit(suppress=True)
             await preview_messagelink_function(preview_message, client, None)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()

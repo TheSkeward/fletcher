@@ -787,7 +787,7 @@ async def snooze_channel_function(message, client, args):
         ):
             await message.add_reaction("🚫")
             return await messagefuncs.sendWrappedMessage(
-                "Unable to snooze the requested channel(s) - owner has not granted Fletcher Manage Permissions.",
+                f"Unable to snooze the requested channel(s) ({channel}) - owner has not granted Fletcher Manage Permissions.",
                 message.author,
             )
         cur = conn.cursor()

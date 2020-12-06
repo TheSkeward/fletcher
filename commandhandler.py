@@ -1236,7 +1236,9 @@ class CommandHandler:
                 ]
             elif (
                 self.message_reply_handlers.get(message.channel.id)
-                and self.message_reply_handlers.get(message.channel.id).get("scope", "message")
+                and self.message_reply_handlers.get(message.channel.id).get(
+                    "scope", "message"
+                )
                 == "channel"
             ):
                 scoped_command = self.message_reply_handlers[message.channel.id]
