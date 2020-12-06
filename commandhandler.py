@@ -70,6 +70,7 @@ class CommandHandler:
         self.join_handlers = {}
         self.remove_handlers = {}
         self.reload_handlers = {}
+        self.message_reply_handlers = {}
         self.message_reaction_handlers = {}
         self.message_reaction_remove_handlers = {}
         self.tag_id_as_command = re.compile(
@@ -104,6 +105,10 @@ class CommandHandler:
     def add_message_reaction_remove_handler(self, message_ids, func):
         for message_id in message_ids:
             self.message_reaction_remove_handlers[message_id] = func
+
+    def add_message_reply_handler(self, message_ids, func):
+        for message_id in message_ids:
+            self.message_reply_handlers[message_id] = func
 
     def add_message_reaction_handler(self, message_ids, func):
         for message_id in message_ids:
@@ -313,15 +318,6 @@ class CommandHandler:
                 ):
                     logger.info("Emoji removed by blacklist")
                     return await message.remove_reaction(messageContent, user)
-                if guild_config.get("subscribe", {}).get(message.id):
-                    for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        preview_message = await messagefuncs.sendWrappedMessage(
-                            f"{user.display_name} ({user.name}#{user.discriminator}) reacting with {messageContent} to https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
-                            message.guild.get_member(user_id),
-                        )
-                        await messagefuncs.preview_messagelink_function(
-                            preview_message, self.client, None
-                        )
                 args = [reaction, user, "add"]
                 scoped_command = None
                 if (
@@ -340,21 +336,6 @@ class CommandHandler:
                     == "channel"
                 ):
                     scoped_command = self.message_reaction_handlers[channel.id]
-                if scoped_command:
-                    logger.debug(scoped_command)
-                    if (
-                        messageContent.startswith(tuple(scoped_command["trigger"]))
-                        and self.allowCommand(scoped_command, message, user=user)
-                        and not scoped_command.get("remove", False)
-                        and scoped_command["args_num"] == 0
-                    ):
-                        await self.run_command(scoped_command, message, args, user)
-                else:
-                    for command in self.get_command(
-                        messageContent, message, max_args=0
-                    ):
-                        if not command.get("remove", False):
-                            await self.run_command(command, message, args, user)
                 try:
                     if type(
                         channel
@@ -470,6 +451,23 @@ class CommandHandler:
                     if "cur" in locals() and "conn" in locals():
                         conn.rollback()
                         pass
+                if scoped_command:
+                    logger.debug(scoped_command)
+                    if (
+                        messageContent.startswith(tuple(scoped_command["trigger"]))
+                        and self.allowCommand(scoped_command, message, user=user)
+                        and not scoped_command.get("remove", False)
+                        and scoped_command["args_num"] == 0
+                    ):
+                        await self.run_command(scoped_command, message, args, user)
+                        if scoped_command.get("exclusive", False):
+                            return
+                else:
+                    for command in self.get_command(
+                        messageContent, message, max_args=0
+                    ):
+                        if not command.get("remove", False):
+                            await self.run_command(command, message, args, user)
             except Exception as e:
                 if "cur" in locals() and "conn" in locals():
                     conn.rollback()
@@ -535,18 +533,11 @@ class CommandHandler:
                         # DM configuration, default to none
                         guild_config = {}
                         channel_config = {}
-                if guild_config.get("subscribe", {}).get(message.id):
-                    for user_id in guild_config.get("subscribe", {}).get(message.id):
-                        preview_message = await messagefuncs.sendWrappedMessage(
-                            f"{user.display_name} ({user.name}#{user.discriminator}) removed reaction of {messageContent} from https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
-                            message.guild.get_member(user_id),
-                        )
-                        await messagefuncs.preview_messagelink_function(
-                            preview_message, self.client, None
-                        )
                 command = self.message_reaction_remove_handlers.get(message.id)
                 if command and self.allowCommand(command, message, user=user):
                     await self.run_command(command, message, args, user)
+                    if command.get("exclusive", False):
+                        return
                 for command in self.get_command(messageContent, message, max_args=0):
                     if self.allowCommand(command, message, user=user) and command.get(
                         "remove"
@@ -717,7 +708,7 @@ class CommandHandler:
 
         def list_append(lst, item):
             lst.append(item)
-            return item 
+            return item
 
         user_mentions = []
         content = re.sub(
@@ -1230,6 +1221,48 @@ class CommandHandler:
             )
             if not continue_flag:
                 return
+        if message.reference and message.type is not discord.MessageType.pins_add:
+            args = [message, user, "reply"]
+            scoped_command = None
+            if (
+                self.message_reply_handlers.get(message.reference.id)
+                and self.message_reply_handlers.get(message.reference.id).get(
+                    "scope", "message"
+                )
+                != "channel"
+            ):
+                scoped_command = self.message_reply_handlers[message.id]
+            elif (
+                self.message_reply_handlers.get(channel.id)
+                and self.message_reply_handlers.get(channel.id).get("scope", "message")
+                == "channel"
+            ):
+                scoped_command = self.message_reply_handlers[channel.id]
+            refGuild = self.client.get_guild(message.reference.guild_id)
+            refChannel = toGuild.get_channel(message.reference.channel_id)
+            try:
+                refMessage = await toChannel.fetch_message(message.reference.message_id)
+                if scoped_command:
+                    logger.debug(scoped_command)
+                    if (
+                        messageContent.startswith(tuple(scoped_command["trigger"]))
+                        and self.allowCommand(scoped_command, message, user=user)
+                        and not scoped_command.get("remove", False)
+                        and scoped_command["args_num"] == 0
+                    ):
+                        await self.run_command(scoped_command, refMessage, args, user)
+                else:
+                    for command in self.get_command(
+                        messageContent, message, max_args=0
+                    ):
+                        if not command.get("remove", False):
+                            await self.run_command(command, refMessage, args, user)
+            except Exception as e:
+                logger.warning(e)
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.warning(
+                    f"Dereference[{exc_tb.tb_lineno}]: {type(e).__name__} {e}"
+                )
         args = list(filter("".__ne__, searchString.split(" ")))
         if len(args):
             args.pop(0)
@@ -1991,24 +2024,6 @@ WHERE p.key = 'tupper';
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
-    def load_react_notifications(ch):
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'subscribe';"
-        )
-        subtuple = cur.fetchone()
-        while subtuple:
-            guild_config = ch.scope_config(guild=int(subtuple[1]), mutable=True)
-            if not guild_config.get("subscribe"):
-                guild_config["subscribe"] = {}
-            if not guild_config["subscribe"].get(int(subtuple[3])):
-                guild_config["subscribe"][int(subtuple[3])] = []
-            guild_config["subscribe"][int(subtuple[3])].append(int(subtuple[0]))
-            subtuple = cur.fetchone()
-        conn.commit()
-
-    logger.debug("LRN")
-    load_react_notifications(ch)
     logger.debug("LT")
     load_tuppers(ch)
     logger.debug("LUHW")
