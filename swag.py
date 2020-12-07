@@ -1521,6 +1521,31 @@ async def ssc_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def complice_function(message, client, args):
+    try:
+        if args[0] not in ("info", "goals", "intention"):
+            raise discord.errors.InvalidArgument("Unknown subcommand")
+        base_url = "https://complice.co/api/v0/u/me/"
+        endpoint = {
+                "info": "userinfo.json",
+                "goals": "goals/active.json",
+                "intention": "intentions"
+                }[args[0]]
+        if len(args) == 0:
+            async with session.get(
+                base_url+endpoint, headers={
+                    "Authorization": f"Bearer {ch.user_config(message.author.id, message.guild.id if message.guild else None, 'complice_access_token', allow_global_substitute=True)}"
+                    }
+            ) as resp:
+                return await messagefuncs.sendWrappedMessage(
+                    await resp.text(), target=message.channel
+                )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("SSC[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def autounload(ch):
     global session
     if session:
@@ -1882,6 +1907,17 @@ def autoload(ch):
             "description": "Card choice game",
         }
     )
+    ch.add_command(
+            {
+                "trigger": ["!complice"],
+                "function": complice_function,
+                "async": True,
+                "hidden": True,
+                "args_num": 1,
+                "args_name": ["info|goals|intention"],
+                "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
+                }
+            )
     session = aiohttp.ClientSession(
         headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
     )
