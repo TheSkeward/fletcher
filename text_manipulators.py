@@ -2712,7 +2712,7 @@ async def ocr_function(message, client, args):
                 Image.MIME[input_image.format],
             )
         )["result"]
-        output_message = f"{lessage.jump_url}\n>>> {image_to_text}"
+        output_message = f"OCR of {lessage.jump_url}\n>>> {image_to_text}"
         if (
             len(args) == 3
             and type(args[1]) is discord.Member

@@ -778,7 +778,9 @@ async def snooze_channel_function(message, client, args):
             )
         if (
             channel
-            and not guild.get_member(client.user.id).permissions_in(channel).manage_roles
+            and not guild.get_member(client.user.id)
+            .permissions_in(channel)
+            .manage_roles
         ) or (
             not channel
             and not guild.get_member(client.user.id).guild_permissions.manage_roles
@@ -812,7 +814,9 @@ async def snooze_channel_function(message, client, args):
                 interval = float(24)
         overwrites = "overwrite " + ujson.dumps(
             {
-                f"{guild.name}:{channel.name}": dict(channel.overwrites_for(message.author))
+                f"{guild.name}:{channel.name}": dict(
+                    channel.overwrites_for(message.author)
+                )
                 for channel in channels
             }
         )
