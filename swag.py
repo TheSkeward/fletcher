@@ -1836,6 +1836,16 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!xkcd"],
+            "function": lambda message, client, args: f"https://xkcd.com/{'_'.join(args)}",
+            "async": False,
+            "args_num": 0,
+            "args_name": ["Comic #"],
+            "description": "Show today's XKCD (or number)",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!wiki"],
             "function": lambda message, client, args: f"https://en.wikipedia.org/wiki/{'_'.join(args)}",
             "async": False,
