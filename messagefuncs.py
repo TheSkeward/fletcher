@@ -648,7 +648,8 @@ async def paste_function(message, client, args):
                 paste_message = await sendWrappedMessage(
                     paste_content, message.channel, files=attachments
                 )
-                await preview_messagelink_function(paste_message, client, args)
+                if not paste_content.startswith("OCR of "):
+                    await preview_messagelink_function(paste_message, client, args)
                 return
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
