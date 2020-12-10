@@ -104,7 +104,7 @@ async def sendWrappedMessage(
     allowed_mentions=discord.AllowedMentions(everyone=False),
     wrap_as_embed=False,
     current_user_id=None,
-    ** kwargs,
+    **kwargs,
 ):
     with configure_scope() as scope:
         current_user_id = current_user_id or scope._user["id"]
