@@ -103,10 +103,11 @@ async def sendWrappedMessage(
     delete_after=None,
     allowed_mentions=discord.AllowedMentions(everyone=False),
     wrap_as_embed=False,
+    current_user_id=None
     **kwargs,
 ):
     with configure_scope() as scope:
-        current_user_id = scope._user["id"]
+        current_user_id = current_user_id or scope._user["id"]
         # current_message_id = scope._tags.get('message_id')
         # current_channel_id = scope._tags.get('channel_id')
         # current_guild_id = scope._tags.get('guild_id')
@@ -350,10 +351,11 @@ async def preview_messagelink_function(message, client, args):
             guild = client.get_guild(guild_id)
             if guild is None:
                 logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
-                await sendWrappedMessage(
-                    f"Tried unrolling message link in your message <https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)",
-                    message.author,
-                )
+                if not ch.user_config(message.author.id, message.guild.id if message.guild else None, "no_unroll_notify", False):
+                    await sendWrappedMessage(
+                        f"Tried unrolling message link in your message <https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}>, but I do not have permissions for targetted server. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the server owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details). To supress this message in future, use the command `!preference no_unroll_notify True`.",
+                        message.author,
+                    )
                 return
             channel = guild.get_channel(channel_id)
             if not (
@@ -497,18 +499,25 @@ async def preview_messagelink_function(message, client, args):
                 content = "SCP Preview"
         # TODO 🔭 to preview?
         if content:
-            return await sendWrappedMessage(
+            outMessage = await sendWrappedMessage(
                 content,
                 message.channel,
                 files=attachments,
                 embed=embed,
+                current_user_id=message.author.id,
                 allowed_mentions=discord.AllowedMentions.none(),
             )
+            try:
+                await outMessage.add_reaction("❌")
+            except:
+                pass
+            return outMessage
     except discord.Forbidden as e:
-        await sendWrappedMessage(
-            f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details)",
-            message.author,
-        )
+        if not ch.user_config(message.author.id, message.guild.id if message.guild else None, "no_unroll_notify", False):
+            await sendWrappedMessage(
+                    f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details). To supress this message in future, use the command `!preference no_unroll_notify True`.",
+                    message.author,
+                    )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug(traceback.format_exc())
