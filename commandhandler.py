@@ -1294,7 +1294,7 @@ class CommandHandler:
         if guild_config.get("hotwords_loaded"):
             for hotword in filter(
                 lambda hw: (type(hw) is Hotword)
-                and message.channel.permissions_for(hw.owner).read_messages
+                and ((type(hw.owner) is discord.Member and message.channel.permissions_for(hw.owner).read_messages) or (type(hw.owner) is str and hw.owner == 'guild'))
                 and (len(hw.user_restriction) == 0)
                 or (user.id in hw.user_restriction),
                 regex_cache.get(message.guild.id, []),
