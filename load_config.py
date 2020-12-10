@@ -137,6 +137,10 @@ class FletcherConfig:
     def __getitem__(self, key):
         return self.get(key=key)
 
+    def __setitem__(self, key, item):
+        self.config_dict[key] = item
+        return self.config_dict[key]
+
     def get(
         self,
         key=None,
