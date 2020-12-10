@@ -265,7 +265,10 @@ class CommandHandler:
                     "channel",
                     channel.name if type(channel) is not discord.DMChannel else "DM",
                 )
-                message = await channel.fetch_message(reaction.message_id)
+                try:
+                    message = await channel.fetch_message(reaction.message_id)
+                except discord.errors.NotFound:
+                    return
                 if message.guild:
                     user = message.guild.get_member(reaction.user_id)
                     scope.set_tag("guild", message.guild.name)
