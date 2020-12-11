@@ -424,6 +424,8 @@ class CommandHandler:
                             toChannel = toGuild.get_channel(metuple[1])
                             try:
                                 toMessage = await toChannel.fetch_message(metuple[2])
+                            except discord.Forbidden:
+                                return
                             except discord.NotFound:
                                 return
                             if not toMessage:
@@ -1294,7 +1296,13 @@ class CommandHandler:
         if guild_config.get("hotwords_loaded"):
             for hotword in filter(
                 lambda hw: (type(hw) is Hotword)
-                and ((type(hw.owner) is discord.Member and message.channel.permissions_for(hw.owner).read_messages) or (type(hw.owner) is str and hw.owner == 'guild'))
+                and (
+                    (
+                        type(hw.owner) is discord.Member
+                        and message.channel.permissions_for(hw.owner).read_messages
+                    )
+                    or (type(hw.owner) is str and hw.owner == "guild")
+                )
                 and (len(hw.user_restriction) == 0)
                 or (user.id in hw.user_restriction),
                 regex_cache.get(message.guild.id, []),
