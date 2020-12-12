@@ -402,6 +402,8 @@ async def preview_messagelink_function(message, client, args):
             else:
                 sent_at = target_message.created_at.strftime("%B %d, %Y %I:%M%p UTC")
             content = target_message.content
+            if target_message.author.bot and len(target_message.embeds):
+                embed = target_message.embeds[0]
             if content == "":
                 content = "*No Text*"
             if (
@@ -461,8 +463,6 @@ async def preview_messagelink_function(message, client, args):
                         content
                         + f"\nSource: https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
                     )
-                if target_message.author.bot and len(target_message.embeds):
-                    embed = target_message.embeds[0]
         elif len(previewable_parts):
             if "flightrising" in previewable_parts[0]:
                 import swag
