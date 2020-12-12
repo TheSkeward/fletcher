@@ -405,21 +405,24 @@ async def preview_messagelink_function(message, client, args):
             if target_message.author.bot and len(target_message.embeds):
                 embed = target_message.embeds[0]
             if content == "":
-                content = "*No Text*"
+                # content = "*No Text*"
+                pass
+            else:
+                content = ">>> "+content
             if (
                 message.guild
                 and message.guild.id == guild_id
                 and message.channel.id == channel_id
             ):
-                content = "Message from __{}__ sent at {}:\n>>> {}".format(
+                content = "Message from __{}__ sent at {}:\n{}".format(
                     target_message.author.name, sent_at, content
                 )
             elif message.guild and message.guild.id == guild_id:
-                content = "Message from __{}__ sent in <#{}> at {}:\n>>> {}".format(
+                content = "Message from __{}__ sent in <#{}> at {}:\n{}".format(
                     target_message.author.name, channel_id, sent_at, content
                 )
             else:
-                content = "Message from __{}__ sent in **#{}** ({}) at {}:\n>>> {}".format(
+                content = "Message from __{}__ sent in **#{}** ({}) at {}:\n{}".format(
                     target_message.author.name,
                     channel.name,
                     guild.name,
