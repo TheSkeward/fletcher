@@ -343,6 +343,7 @@ async def preview_messagelink_function(message, client, args):
             previewable_parts = []
         attachments = []
         embed = None
+        embeds = []
         content = None
         if len(urlParts) == 3:
             guild_id = int(urlParts[0])
@@ -461,6 +462,8 @@ async def preview_messagelink_function(message, client, args):
                         content
                         + f"\nSource: https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
                     )
+                if target_message.author.bot and target_message.embeds:
+                    embeds = target_message.embeds
         elif len(previewable_parts):
             if "flightrising" in previewable_parts[0]:
                 import swag
@@ -504,11 +507,13 @@ async def preview_messagelink_function(message, client, args):
                 content = "SCP Preview"
         # TODO 🔭 to preview?
         if content:
+            if not len(embeds) and embed:
+                embeds = [embed]
             outMessage = await sendWrappedMessage(
                 content,
                 message.channel,
                 files=attachments,
-                embed=embed,
+                embeds=embeds,
                 current_user_id=message.author.id,
                 allowed_mentions=discord.AllowedMentions.none(),
             )
