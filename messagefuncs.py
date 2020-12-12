@@ -408,7 +408,7 @@ async def preview_messagelink_function(message, client, args):
                 # content = "*No Text*"
                 pass
             else:
-                content = ">>> "+content
+                content = ">>> " + content
             if (
                 message.guild
                 and message.guild.id == guild_id
@@ -518,9 +518,12 @@ async def preview_messagelink_function(message, client, args):
                 allowed_mentions=discord.AllowedMentions.none(),
             )
             try:
-                await outMessage.add_reaction("❌")
+                await outMessage.add_reaction(client.get_emoji(787460478527078450))
             except:
-                pass
+                try:
+                    await outMessage.add_reaction("❌")
+                except:
+                    pass
             return outMessage
     except discord.Forbidden as e:
         if not ch.user_config(
