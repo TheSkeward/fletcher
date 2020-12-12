@@ -2125,7 +2125,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["❌"],
+            "trigger": ["❌", "<:deletethispost:787460478527078450>"],
             "function": delete_my_message_function,
             "async": True,
             "hidden": False,
