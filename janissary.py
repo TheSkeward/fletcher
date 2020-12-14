@@ -1689,7 +1689,7 @@ async def self_service_role_function(message, client, args):
         logger.error("SSRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
-async def self_service_channel_function(message, client, args, autoclose=False):
+async def self_service_channel_function(message, client, args, autoclose=False, confirm=False):
     global ch
     try:
         if not len(message.channel_mentions):
@@ -1709,6 +1709,26 @@ async def self_service_channel_function(message, client, args, autoclose=False):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add":
                 try:
+                    if confim:
+                        confirmMessage = await messagefuncs.sendWrappedMessage(
+                                f"{args[1]} requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required.",
+                                message.author,
+                                )
+                        await confirmMessage.add_reaction("✅")
+                        try:
+                            reaction, user = await client.wait_for(
+                                "reaction_add",
+                                timeout=60000.0 * 24,
+                                check=lambda reaction, user: reaction.message.id == confirmMessage.id
+                                and (str(reaction.emoji) == "✅")
+                                and (user == message.author),
+                            )
+                        except asyncio.TimeoutError:
+                            await confirmMessage.edit(
+                                message=f"~~{target.content}~~Request expired due to timeout."
+                            )
+                            await confirmMessage.remove_reaction("✅", client.user)
+                            return
                     await message.channel_mentions[0].set_permissions(
                         args[1],
                         read_messages=True,
@@ -1768,7 +1788,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
         else:
             cur = conn.cursor()
             cur.execute(
-                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'chanselfmanage{'autoclose' if autoclose else ''}', %s) ON CONFLICT DO NOTHING;",
+                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'chanselfmanage{'autoclose' if autoclose else 'confirm' if confirm else ''}', %s) ON CONFLICT DO NOTHING;",
                 [message.author.id, message.guild.id, str(message.id)],
             )
             conn.commit()
@@ -1777,7 +1797,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
-                        self_service_channel_function, autoclose=autoclose,
+                        self_service_channel_function, autoclose=autoclose, confirm=confirm,
                     ),
                     "exclusive": True,
                     "async": True,
@@ -1791,7 +1811,7 @@ async def self_service_channel_function(message, client, args, autoclose=False):
                 {
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
-                        self_service_channel_function, autoclose=autoclose,
+                        self_service_channel_function, autoclose=autoclose, confirm=confirm,
                     ),
                     "exclusive": True,
                     "async": True,
@@ -2191,7 +2211,7 @@ def autoload(ch):
             "async": True,
             "hidden": False,
             "args_num": 1,
-            "args_name": ["[pocket]"],
+            "args_name": ["[pocket|complice]"],
             "description": "Authenticate with an external service",
         }
     )
@@ -2205,6 +2225,19 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Username (optional discriminator)"],
             "description": "Invite user to a channel (requires channel admin permissions)",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!requestinvitechannel"],
+            "function": partial(self_service_channel_function, confirm=True),
+            "admin": "channel",
+            "async": True,
+            "hidden": False,
+            "args_num": 1,
+            "args_name": ["#channel"],
+            "description": "Create message that will automatically add and remove users from a channel with a filter for confirmation.",
         }
     )
 
@@ -2275,6 +2308,7 @@ def autoload(ch):
                     "function": partial(
                         self_service_channel_function,
                         autoclose=subtuple[3].endswith("autoclose"),
+                        confirm=subtuple[3].endswith("confirm"),
                     ),
                     "exclusive": True,
                     "async": True,
@@ -2290,6 +2324,7 @@ def autoload(ch):
                     "function": partial(
                         self_service_channel_function,
                         autoclose=subtuple[3].endswith("autoclose"),
+                        confirm=subtuple[3].endswith("confirm"),
                     ),
                     "exclusive": True,
                     "async": True,
