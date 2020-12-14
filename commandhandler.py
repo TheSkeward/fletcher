@@ -1416,7 +1416,7 @@ class CommandHandler:
             if guild:
                 if allow_global_substitute:
                     cur.execute(
-                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s OR guild_id IS NULL AND key = %s ORDER BY guild_id LIMIT 1;",
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND (guild_id = %s OR guild_id IS NULL) AND key = %s ORDER BY guild_id LIMIT 1;",
                         [user, guild, key],
                     )
                 else:
