@@ -2314,8 +2314,8 @@ def autoload(ch):
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
                         self_service_channel_function,
-                        autoclose=subtuple[3].endswith("autoclose"),
-                        confirm=subtuple[3].endswith("confirm"),
+                        autoclose=subtuple[2].endswith("autoclose"),
+                        confirm=subtuple[2].endswith("confirm"),
                     ),
                     "exclusive": True,
                     "async": True,
@@ -2330,8 +2330,8 @@ def autoload(ch):
                     "trigger": [""],  # empty string: a special catch-all trigger
                     "function": partial(
                         self_service_channel_function,
-                        autoclose=subtuple[3].endswith("autoclose"),
-                        confirm=subtuple[3].endswith("confirm"),
+                        autoclose=subtuple[2].endswith("autoclose"),
+                        confirm=subtuple[2].endswith("confirm"),
                     ),
                     "exclusive": True,
                     "async": True,
