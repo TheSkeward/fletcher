@@ -1486,7 +1486,7 @@ async def invite_function(message, client, args):
         elif len(args) == 0:
             channel = message.channel
         else:
-            args, channel_name = consume_channel_token(args)
+            channel_name, args = consume_channel_token(args)
             channel = (
                 messagefuncs.xchannel(channel_name, message.guild) or message.channel
             )
