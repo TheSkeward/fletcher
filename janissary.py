@@ -1490,7 +1490,7 @@ async def invite_function(message, client, args):
             channel = (
                 messagefuncs.xchannel(channel_name, message.guild) or message.channel
             )
-        if type(channel) == message.DMChannel:
+        if type(channel) == discord.DMChannel:
             raise discord.errors.InvalidArgument(
                 "Channel appears to not exist or is DM"
             )
