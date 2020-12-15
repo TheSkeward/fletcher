@@ -1505,7 +1505,7 @@ async def invite_function(message, client, args):
             if len(message.mentions)
             else [
                 ch.get_member_named(channel.guild, name)
-                for name in map(str.strip, " ".join(args).split(","))
+                for name in map(str.strip, " ".join(args).split(",") if "," in " ".join(args) else args)
             ]
         )
         # if not member:
@@ -1525,7 +1525,7 @@ async def invite_function(message, client, args):
         async def invite_member(client, member, message):
             try:
                 target = await messagefuncs.sendWrappedMessage(
-                    f"{message.author.display_name} cordially invites you to {channel.mention}: to accept this invitation, react with a ✅",
+                    f"{message.author.display_name} cordially invites you to {channel.mention} - to accept this invitation, react with a ✅",
                     member,
                 )
                 await target.add_reaction("✅")
