@@ -1494,7 +1494,8 @@ async def invite_function(message, client, args):
             raise discord.errors.InvalidArgument(
                 "Channel appears to not exist or is DM"
             )
-        if not ch.is_admin(channel, message.author)["channel"]:
+        localizedUser = channel.guild.get_user(message.author.id)
+        if not (localizedUser and ch.is_admin(channel, localizedUser))["channel"]:
             return await messagefuncs.sendWrappedMessage(
                 f"You do not have permission to invite users to {channel}.",
                 message.author,
@@ -1520,6 +1521,7 @@ async def invite_function(message, client, args):
                 send_messages=True,
                 reason="Invited by channel admin",
             )
+
         async def invite_member(client, member, message):
             try:
                 target = await messagefuncs.sendWrappedMessage(
