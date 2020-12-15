@@ -1520,13 +1520,6 @@ async def invite_function(message, client, args):
                 send_messages=True,
                 reason="Invited by channel admin",
             )
-        await asyncio.gather(
-            *[
-                invite_member(client, member, message)
-                for member in filter(lambda member: member and not member.bot, members)
-            ]
-        )
-
         async def invite_member(client, member, message):
             try:
                 target = await messagefuncs.sendWrappedMessage(
@@ -1573,6 +1566,13 @@ async def invite_function(message, client, args):
                     f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden",
                     message.author,
                 )
+
+        await asyncio.gather(
+            *[
+                invite_member(client, member, message)
+                for member in filter(lambda member: member and not member.bot, members)
+            ]
+        )
 
         await message.remove_reaction(soon, client.user)
         await message.add_reaction("✅")
