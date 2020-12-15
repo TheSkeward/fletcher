@@ -27,7 +27,7 @@ def consume_channel_token(args):
         channel_name += " " + arg
         if (":" in channel_name) or "#" in channel_name:
             break
-    args = args[:args_consumed]
+    args = args[args_consumed:]
     channel_name = channel_name.lstrip()
     return channel_name, args
 
