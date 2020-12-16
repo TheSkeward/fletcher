@@ -773,7 +773,7 @@ async def snooze_channel_function(message, client, args):
             guild = message.guild
         else:
             await message.add_reaction("🚫")
-            return await messagefuncs.sendWrapppedMessage(
+            return await messagefuncs.sendWrappedMessage(
                 "Failed to locate channel, please check spelling.", message.author
             )
         if (
