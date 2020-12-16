@@ -517,13 +517,20 @@ async def preview_messagelink_function(message, client, args):
                 current_user_id=message.author.id,
                 allowed_mentions=discord.AllowedMentions.none(),
             )
+            reaction = client.get_emoji(787460478527078450)
             try:
-                await outMessage.add_reaction(client.get_emoji(787460478527078450))
+                await outMessage.add_reaction(reaction)
             except:
                 try:
-                    await outMessage.add_reaction("❌")
+                    reaction = "❌"
+                    await outMessage.add_reaction(reaction)
                 except:
                     pass
+            await asyncio.sleep(60*60)
+            try:
+                outMessage.remove_reaction(reaction, client.user)
+            except:
+                pass
             return outMessage
     except discord.Forbidden as e:
         if not ch.user_config(
@@ -736,10 +743,14 @@ async def subscribe_send_function(message, client, args):
         elif len(args) == 3 and type(args[1]) is discord.Member and args[2] == "reply":
             user = args[1]
             content = f"{user.display_name} ({user.name}#{user.discriminator}) replying to {args[0].jump_url} with\n> {message.content}\n({message.jump_url})"
-        for user in filter(None, [message.guild.get_member(user_id) for user_id in guild_config.get("subscribe", {}).get(message.id)]):
-            preview_message = await sendWrappedMessage(
-                content, user,
-            )
+        for user in filter(
+            None,
+            [
+                message.guild.get_member(user_id)
+                for user_id in guild_config.get("subscribe", {}).get(message.id)
+            ],
+        ):
+            preview_message = await sendWrappedMessage(content, user,)
             await preview_message.edit(suppress=True)
             await preview_messagelink_function(preview_message, client, None)
     except Exception as e:
