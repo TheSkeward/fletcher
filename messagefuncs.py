@@ -1,4 +1,5 @@
 from sys import exc_info
+import asyncio
 import aiohttp
 import discord
 import exceptions
@@ -526,7 +527,7 @@ async def preview_messagelink_function(message, client, args):
                     await outMessage.add_reaction(reaction)
                 except:
                     pass
-            await asyncio.sleep(60*60)
+            await asyncio.sleep(60 * 60)
             try:
                 outMessage.remove_reaction(reaction, client.user)
             except:
