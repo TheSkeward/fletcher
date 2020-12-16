@@ -577,7 +577,7 @@ class CommandHandler:
             member_join_actions = config.get(
                 guild=user.guild, key="on_member_join_list", default=[]
             )
-            for member_join_action in member_join_actions:
+            for member_join_action in filter(None, member_join_actions):
                 if member_join_action in self.join_handlers.keys():
                     await self.join_handlers[member_join_action](
                         user, self.client, self.scope_config(guild=user.guild)
