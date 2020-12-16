@@ -1483,14 +1483,14 @@ async def invite_function(message, client, args):
             channel = message.channel_mentions[0]
         elif len(args) == 0 and message.guild is None:
             raise exceptions.DirectMessageException()
-        elif len(args) == 0:
+        elif type(message.channel) != discord.DMChannel:
             channel = message.channel
         else:
             channel_name, args = consume_channel_token(args)
             channel = (
                 messagefuncs.xchannel(channel_name, message.guild) or message.channel
             )
-        if type(channel) == discord.DMChannel:
+        if type(channel) == discord.DMChannel or not channel:
             raise discord.errors.InvalidArgument(
                 "Channel appears to not exist or is DM"
             )
@@ -1505,7 +1505,10 @@ async def invite_function(message, client, args):
             if len(message.mentions)
             else [
                 ch.get_member_named(channel.guild, name)
-                for name in map(str.strip, " ".join(args).split(",") if "," in " ".join(args) else args)
+                for name in map(
+                    str.strip,
+                    " ".join(args).split(",") if "," in " ".join(args) else args,
+                )
             ]
         )
         # if not member:
