@@ -99,6 +99,7 @@ async def uwu_function(message, client, args, responses=uwu_responses):
 async def retrowave_function(message, client, args):
     global session
     try:
+        return await messagefuncs.sendWrappedMessage("This command is currently disabled due to a DMCA takedown request. Please check back later.", message.channel, delete_after=60)
         params = aiohttp.FormData()
         params.add_field("bcg", random.randint(1, 5))
         params.add_field("txt", random.randint(1, 4))
@@ -1538,7 +1539,15 @@ async def complice_function(message, client, args):
             },
         ) as resp:
             return await messagefuncs.sendWrappedMessage(
-                await resp.text(), target=message.channel
+                (await resp.text())
+                + " using "
+                + ch.user_config(
+                    message.author.id,
+                    message.guild.id if message.guild else None,
+                    "complice_access_token",
+                    allow_global_substitute=True,
+                ),
+                target=message.channel,
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
