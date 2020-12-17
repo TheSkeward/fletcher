@@ -1774,6 +1774,9 @@ async def self_service_channel_function(
                     )
             else:
                 try:
+                    currentPermissions = message.channel_mentions[0].permissions_for(args[1])
+                    if not (currentPermissions.read_messages or currentPermissions.send_messages or currentPermissions.read_message_history):
+                        return
                     await message.channel_mentions[0].set_permissions(
                         args[1],
                         read_messages=False,
@@ -1834,7 +1837,7 @@ async def self_service_channel_function(
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history on #{message.channel_mentions[0].name}",
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation' if confirm else ''}on #{message.channel_mentions[0].name}",
                 message.author,
             )
     except Exception as e:
