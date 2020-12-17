@@ -415,15 +415,15 @@ async def preview_messagelink_function(message, client, args):
                 and message.guild.id == guild_id
                 and message.channel.id == channel_id
             ):
-                content = "Message from __{}__ sent at {}:\n{}".format(
+                content = "@__{}__ at {}:\n{}".format(
                     target_message.author.name, sent_at, content
                 )
             elif message.guild and message.guild.id == guild_id:
-                content = "Message from __{}__ sent in <#{}> at {}:\n{}".format(
+                content = "@__{}__ in <#{}> at {}:\n{}".format(
                     target_message.author.name, channel_id, sent_at, content
                 )
             else:
-                content = "Message from __{}__ sent in **#{}** ({}) at {}:\n{}".format(
+                content = "@__{}__ in **#{}** ({}) at {}:\n{}".format(
                     target_message.author.name,
                     channel.name,
                     guild.name,
@@ -438,18 +438,18 @@ async def preview_messagelink_function(message, client, args):
                 plural = ""
                 if len(target_message.attachments) > 1:
                     plural = "s"
-                content = (
-                    content
-                    + "\n "
-                    + str(len(target_message.attachments))
-                    + " file"
-                    + plural
-                    + " attached"
-                )
                 if target_message.channel.is_nsfw() and (
                     type(message.channel) is discord.DMChannel
                     or not message.channel.is_nsfw()
                 ):
+                    content = (
+                        content
+                        + "\n "
+                        + str(len(target_message.attachments))
+                        + " file"
+                        + plural
+                        + " attached"
+                    )
                     content = content + " from an R18 channel."
                     for attachment in target_message.attachments:
                         content = content + "\n• <" + attachment.url + ">"
