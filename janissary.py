@@ -1843,7 +1843,7 @@ async def self_service_channel_function(
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation' if confirm else ''}on #{message.channel_mentions[0].name}",
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}",
                 message.author,
             )
     except Exception as e:
