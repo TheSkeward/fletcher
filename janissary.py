@@ -1774,8 +1774,14 @@ async def self_service_channel_function(
                     )
             else:
                 try:
-                    currentPermissions = message.channel_mentions[0].permissions_for(args[1])
-                    if not (currentPermissions.read_messages or currentPermissions.send_messages or currentPermissions.read_message_history):
+                    currentPermissions = message.channel_mentions[0].permissions_for(
+                        args[1]
+                    )
+                    if not (
+                        currentPermissions.read_messages
+                        or currentPermissions.send_messages
+                        or currentPermissions.read_message_history
+                    ):
                         return
                     await message.channel_mentions[0].set_permissions(
                         args[1],
@@ -2247,7 +2253,6 @@ def autoload(ch):
         {
             "trigger": ["!requestinvitechannel"],
             "function": partial(self_service_channel_function, confirm=True),
-            "admin": "channel",
             "async": True,
             "hidden": False,
             "args_num": 1,
