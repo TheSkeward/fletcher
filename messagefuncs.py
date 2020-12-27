@@ -778,7 +778,7 @@ async def archive_function(message, client, args):
             for url in urls:
                 logger.debug(f"Archiving {url}")
                 async with session.get(f"https://web.archive.org/save/{url}") as resp:
-                    await sendWrappedMessage(f"Archived URL <{url}> at <{resp.links['memento']}>", args[1])
+                    await sendWrappedMessage(f"Archived URL <{url}> at <{resp.links['memento']['url']}>", args[1])
             return await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
