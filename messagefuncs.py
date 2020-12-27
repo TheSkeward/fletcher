@@ -627,18 +627,17 @@ async def bookmark_function(message, client, args):
                 )
                 if not pocket_access_token:
                     return
-                for url in url_search.findall(message.content):
+                for url in urls:
                     logger.debug(f"Pocketing {url}")
-                    async with aiohttp.ClientSession() as session:
-                        params = aiohttp.FormData()
-                        params.add_field("title", message.content)
-                        params.add_field("url", url)
-                        params.add_field("consumer_key", pocket_consumer_key)
-                        params.add_field("access_token", pocket_access_token)
-                        async with session.post(
-                            "https://getpocket.com/v3/add", data=params
-                        ):
-                            return
+                    params = aiohttp.FormData()
+                    params.add_field("title", message.content)
+                    params.add_field("url", url)
+                    params.add_field("consumer_key", pocket_consumer_key)
+                    params.add_field("access_token", pocket_access_token)
+                    async with session.post(
+                        "https://getpocket.com/v3/add", data=params
+                    ):
+                        return
             elif str(args[0].emoji) == "🔗":
                 return await sendWrappedMessage(
                     f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
@@ -770,6 +769,23 @@ def localizeName(user, guild):
 
 sanitize_font = re.compile(r"[^❤A-Za-z0-9 /]")
 
+async def archive_function(message, client, args):
+    try:
+        if len(args) == 3 and type(args[1]) is discord.Member:
+            urls = url_search.findall(message.content)
+            if not len(urls):
+                return
+            for url in urls:
+                logger.debug(f"Archiving {url}")
+                async with session.get(f"https://web.archive.org/save/{url}") as resp:
+                    await sendWrappedMessage(f"Archived URL <{url}> at <{resp.links['memento']}>", args[1])
+            return await message.add_reaction("✅")
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("ARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
+
 # Register this module's commands
 def autoload(ch):
     ch.add_command(
@@ -856,6 +872,17 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["📁"],
+            "function": archive_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Archive links in a message",
+        }
+    )
+
     def load_react_notifications(ch):
         cur = conn.cursor()
         cur.execute(
@@ -908,6 +935,10 @@ def autoload(ch):
             subtuple = cur.fetchone()
         conn.commit()
 
+    global session
+    session = aiohttp.ClientSession(
+        headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
+    )
     logger.debug("LRN")
     load_react_notifications(ch)
 
