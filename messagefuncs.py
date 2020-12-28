@@ -936,9 +936,10 @@ def autoload(ch):
         conn.commit()
 
     global session
-    session = aiohttp.ClientSession(
-        headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
-    )
+    if not session:
+        session = aiohttp.ClientSession(
+                headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
+                )
     logger.debug("LRN")
     load_react_notifications(ch)
 
