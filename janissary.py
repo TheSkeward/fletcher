@@ -1065,7 +1065,7 @@ async def copy_permissions_function(message, client, args):
             sourceChannel = message.guild.get_channel(int(sourceChannel[2:-1]))
         else:
             sourceChannel = discord.utils.get(
-                message.guild.text_channels, name=sourceChannel
+                message.guild.channels, name=sourceChannel
             )
 
         if len(args) > 1:
@@ -1074,8 +1074,10 @@ async def copy_permissions_function(message, client, args):
                 targetChannel = message.guild.get_channel(int(targetChannel[2:-1]))
             else:
                 targetChannel = discord.utils.get(
-                    message.guild.text_channels, name=targetChannel
+                    message.guild.channels, name=targetChannel
                 )
+        if not ch.is_admin(targetChannel, message.author)['channel'] or not ch.is_admin(sourceChannel, message.author):
+            return await messagefuncs.sendWrappedMessage(f"You do not have permission to perform this operation on either {sourceChannel} or {targetChannel}.", message.author)
 
         await message.add_reaction("🔜")
         set_permissions_tasks = []
@@ -2122,7 +2124,6 @@ def autoload(ch):
             "trigger": ["!copy_permissions_from"],
             "function": copy_permissions_function,
             "async": True,
-            "admin": "server",
             "long_run": "channel",
             "args_num": 1,
             "args_name": ["#source-channel", "#target-channel (optional)"],
