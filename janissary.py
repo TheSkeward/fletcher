@@ -1881,6 +1881,11 @@ async def login_function(message, client, args):
             f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret={ch.config.get(section='complice', key='client_secret')}&redirect_uri={ch.config.get(section='complice', key='redirect_uri')}&state={message.author.id}",
             message.channel,
         )
+    elif args[0] == "thingiverse":
+        return await messagefuncs.sendWrappedMessage(
+                f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={ch.config.get(section='thingiverse', key='redirect_uri')}&state={message.author.id}",
+            message.channel,
+        )
     else:
         return await messagefuncs.sendWrappedMessage(
             f"Could not find matching service login flow for {args[0]}", message.channel
