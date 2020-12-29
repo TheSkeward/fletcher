@@ -99,7 +99,11 @@ async def uwu_function(message, client, args, responses=uwu_responses):
 async def retrowave_function(message, client, args):
     global session
     try:
-        return await messagefuncs.sendWrappedMessage("This command is currently disabled due to a DMCA takedown request. Please check back later.", message.channel, delete_after=60)
+        return await messagefuncs.sendWrappedMessage(
+            "This command is currently disabled due to a DMCA takedown request. Please check back later.",
+            message.channel,
+            delete_after=60,
+        )
         params = aiohttp.FormData()
         params.add_field("bcg", random.randint(1, 5))
         params.add_field("txt", random.randint(1, 4))
@@ -1555,6 +1559,29 @@ async def complice_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def style_transfer_function(message, client, args):
+    try:
+        if not len(message.attachments):
+            return
+        base_url = ch.config.get(section="models", key="server_url")
+        endpoint = ch.config.get(section="models", key="endpoint")
+        params = aiohttp.FormData()
+        params.add_field("style", args[0])
+        params.add_field("file", message.attachments[0])
+        async with session.post(
+            base_url + endpoint,
+            params
+        ) as resp:
+            return await messagefuncs.sendWrappedMessage(
+                    attachments=[discord.File(await resp.read(), "stylish.jpg")],
+                    target=message.channel,
+                    )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("STF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def autounload(ch):
     global session
     if session:
@@ -1581,6 +1608,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "uwu",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!stylish"],
+            "function": style_transfer_function,
+            "hidden": True,
+            "async": True,
+            "args_num": 1,
+            "args_name": ['[wave|mosaic|candy|pencil]'],
+            "description": "Transfers style to image attachment, current styles available listed above",
         }
     )
     ch.add_command(
