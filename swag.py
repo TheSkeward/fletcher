@@ -182,7 +182,10 @@ async def wiki_otd_function(message, client, args):
                 .getparent()
             )
             embedPreview = (
-                discord.Embed(title=titlebar.text_content().strip(), url=url,)
+                discord.Embed(
+                    title=titlebar.text_content().strip(),
+                    url=url,
+                )
                 .set_thumbnail(
                     url=f'https:{titlebar.getnext().xpath("//img")[0].attrib["src"]}'
                 )
@@ -671,7 +674,9 @@ async def vine_function(message, client, args):
         url = args[0]
         input_image_blob = None
         file_name = None
-        async with session.get(f"https://archive.vine.co/posts/{url}.json",) as resp:
+        async with session.get(
+            f"https://archive.vine.co/posts/{url}.json",
+        ) as resp:
             if resp.status != 200:
                 if not (len(args) == 2 and args[1] == "INTPROC"):
                     await messagefuncs.sendWrappedMessage(
@@ -871,7 +876,9 @@ async def lifx_function(message, client, args):
             )
             for light in request_body["results"]:
                 embedPreview.add_field(
-                    name=light["label"], value=light["status"], inline=True,
+                    name=light["label"],
+                    value=light["status"],
+                    inline=True,
                 )
             resp = await messagefuncs.sendWrappedMessage(
                 target=message.channel, embed=embedPreview
@@ -1526,6 +1533,30 @@ async def ssc_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def thingiverse_function(message, client, args):
+    try:
+        if args[0] not in ("search"):
+            raise discord.errors.InvalidArgument("Unknown subcommand")
+        base_url = "https://api.thingiverse.com"
+        endpoint = {
+                "search": "/search/{' '.join(args[1:])}",
+        }[args[0]]
+        async with session.get(
+            base_url + endpoint,
+            headers={
+                "Authorization": f"Bearer {ch.user_config(message.author.id, message.guild.id if message.guild else None, 'thingiverse_access_token', allow_global_substitute=True) or ch.config.get(section='thingiverse', key='access_token')}"
+            },
+        ) as resp:
+            return await messagefuncs.sendWrappedMessage(
+                await resp.text(),
+                target=message.channel,
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("THV[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def complice_function(message, client, args):
     try:
         if args[0] not in ("info", "goals", "intention"):
@@ -1543,14 +1574,7 @@ async def complice_function(message, client, args):
             },
         ) as resp:
             return await messagefuncs.sendWrappedMessage(
-                (await resp.text())
-                + " using "
-                + ch.user_config(
-                    message.author.id,
-                    message.guild.id if message.guild else None,
-                    "complice_access_token",
-                    allow_global_substitute=True,
-                ),
+                await resp.text(),
                 target=message.channel,
             )
     except Exception as e:
@@ -1610,15 +1634,12 @@ async def style_transfer_function(message, client, args):
         params = aiohttp.FormData()
         params.add_field("style", args[0])
         params.add_field("file", input_image_blob)
-        async with session.post(
-            f"{base_url}{endpoint}",
-            data=params
-        ) as resp:
+        async with session.post(f"{base_url}{endpoint}", data=params) as resp:
             buffer = io.BytesIO(await resp.read())
             return await messagefuncs.sendWrappedMessage(
-                    files=[discord.File(buffer, "stylish.jpg")],
-                    target=message.channel,
-                    )
+                files=[discord.File(buffer, "stylish.jpg")],
+                target=message.channel,
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("STF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -1655,12 +1676,23 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!thing"],
+            "function": thingiverse_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 2,
+            "args_name": ["[search]", "query"],
+            "description": "Searches thingiverse for a thing",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!stylish"],
             "function": style_transfer_function,
             "long_run": "channel",
             "async": True,
             "args_num": 1,
-            "args_name": ['[wave|mosaic|candy|pencil]', '[url to image] (optional)'],
+            "args_name": ["[wave|mosaic|candy|pencil]", "[url to image] (optional)"],
             "description": "Transfers style to image attachment, current styles available listed above",
         }
     )
@@ -2019,5 +2051,7 @@ def autoload(ch):
         }
     )
     session = aiohttp.ClientSession(
-        headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
+        headers={
+            "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+        }
     )
