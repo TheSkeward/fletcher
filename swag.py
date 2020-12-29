@@ -1535,13 +1535,13 @@ async def ssc_function(message, client, args):
 
 async def thingiverse_function(message, client, args):
     try:
+        if args[0] not in ("search", "me"):
+            raise discord.errors.InvalidArgument("Unknown subcommand")
+        base_url = "https://api.thingiverse.com"
         endpoint = {
             "search": "/search/{'%20'.join(args[1:])}/",
             "me": "/users/me",
         }[args[0]]
-        if args[0] not in set(endpoint.keys()):
-            raise discord.errors.InvalidArgument("Unknown subcommand")
-        base_url = "https://api.thingiverse.com"
         async with session.get(
             base_url + endpoint,
             headers={
