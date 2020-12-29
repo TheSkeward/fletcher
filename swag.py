@@ -1550,9 +1550,9 @@ async def thingiverse_function(message, client, args):
         ) as resp:
             resp_obj = await resp.json()
             response = {
-                "me": f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
-                "search": f"Top hit: {resp_obj['hits'][0]['public_url'] if resp_obj['total'] else 'No hits found.'}\n{resp_obj['total']} total result{'s' if resp_obj['total'] > 1 else ''}"
-            }[args[0]]
+                    "me": lambda resp_obj: f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
+                    "search": lambda resp_obj: f"Top hit: {resp_obj['hits'][0]['public_url'] if resp_obj['total'] else 'No hits found.'}\n{resp_obj['total']} total result{'s' if resp_obj['total'] > 1 else ''}",
+            }[args[0]](resp_obj)
             return await messagefuncs.sendWrappedMessage(
                 response,
                 target=message.channel,
