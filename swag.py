@@ -1539,7 +1539,7 @@ async def thingiverse_function(message, client, args):
             raise discord.errors.InvalidArgument("Unknown subcommand")
         base_url = "https://api.thingiverse.com"
         endpoint = {
-            "search": "/search/{'%20'.join(args[1:])}/",
+            "search": f"/search/{' '.join(args[1:])}/",
             "me": "/users/me",
         }[args[0]]
         async with session.get(
@@ -1548,11 +1548,11 @@ async def thingiverse_function(message, client, args):
                 "Authorization": f"Bearer {ch.user_config(message.author.id, message.guild.id if message.guild else None, 'thingiverse_access_token', allow_global_substitute=True) or ch.config.get(section='thingiverse', key='access_token')}"
             },
         ) as resp:
-            resp_obj = (await resp.json())
+            resp_obj = await resp.json()
             response = {
-                    "me": f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
-                    "search": str(resp_obj)
-                    }[args[0]]
+                "me": f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
+                "search": f"Top hit: {resp_obj['hits'][0]['public_url'] if resp_obj['total'] else 'No hits found.'}\n{resp_obj['total']} total result{'s' if resp_obj['total'] > 1 else ''}"
+            }[args[0]]
             return await messagefuncs.sendWrappedMessage(
                 response,
                 target=message.channel,
