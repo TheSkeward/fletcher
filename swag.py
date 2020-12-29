@@ -1539,7 +1539,8 @@ async def thingiverse_function(message, client, args):
             raise discord.errors.InvalidArgument("Unknown subcommand")
         base_url = "https://api.thingiverse.com"
         endpoint = {
-                "search": "/search/{' '.join(args[1:])}",
+            "search": "/search/{'%20'.join(args[1:])}/",
+            "me": "/users/me",
         }[args[0]]
         async with session.get(
             base_url + endpoint,
