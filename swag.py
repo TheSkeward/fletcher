@@ -1548,8 +1548,13 @@ async def thingiverse_function(message, client, args):
                 "Authorization": f"Bearer {ch.user_config(message.author.id, message.guild.id if message.guild else None, 'thingiverse_access_token', allow_global_substitute=True) or ch.config.get(section='thingiverse', key='access_token')}"
             },
         ) as resp:
+            resp_obj = (await resp.json())
+            response = {
+                    "me": f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
+                    "search": str(resp_obj)
+                    }[args[0]]
             return await messagefuncs.sendWrappedMessage(
-                await resp.text(),
+                response,
                 target=message.channel,
             )
     except Exception as e:
