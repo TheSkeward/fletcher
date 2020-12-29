@@ -1561,19 +1561,62 @@ async def complice_function(message, client, args):
 
 async def style_transfer_function(message, client, args):
     try:
-        if not len(message.attachments):
+        url = None
+        if len(message.attachments):
+            lessage = message
+            url = message.attachments[0].url
+        elif len(message.embeds) and message.embeds[0].image.url != discord.Embed.Empty:
+            lessage = message
+            url = message.embeds[0].image.url
+        elif (
+            len(message.embeds)
+            and message.embeds[0].thumbnail.url != discord.Embed.Empty
+        ):
+            lessage = message
+            url = message.embeds[0].thumbnail.url
+        elif len(args) > 1 and args[1]:
+            lessage = message
+            url = args[1]
+        else:
+            lessage = (
+                await message.channel.history(limit=1, before=message).flatten()
+            )[0]
+            if len(lessage.attachments):
+                url = lessage.attachments[0].url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].image.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].image.url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].thumbnail.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].thumbnail.url
+        logger.debug(url)
+        try:
+            input_image_blob = await netcode.simple_get_image(url)
+        except Exception as e:
+            await message.add_reaction("🚫")
+            await messagefuncs.sendWrappedMessage(
+                f"Could not retrieve image with url {url} ({e})",
+                message.channel,
+                delete_after=60,
+            )
             return
+        input_image_blob.seek(0)
         base_url = ch.config.get(section="models", key="server_url")
         endpoint = ch.config.get(section="models", key="endpoint")
         params = aiohttp.FormData()
         params.add_field("style", args[0])
-        params.add_field("file", message.attachments[0])
+        params.add_field("file", input_image_blob)
         async with session.post(
-            base_url + endpoint,
-            params
+            f"{base_url}{endpoint}",
+            data=params
         ) as resp:
+            buffer = io.BytesIO(await resp.read())
             return await messagefuncs.sendWrappedMessage(
-                    attachments=[discord.File(await resp.read(), "stylish.jpg")],
+                    files=[discord.File(buffer, "stylish.jpg")],
                     target=message.channel,
                     )
     except Exception as e:
@@ -1614,10 +1657,10 @@ def autoload(ch):
         {
             "trigger": ["!stylish"],
             "function": style_transfer_function,
-            "hidden": True,
+            "long_run": "channel",
             "async": True,
             "args_num": 1,
-            "args_name": ['[wave|mosaic|candy|pencil]'],
+            "args_name": ['[wave|mosaic|candy|pencil]', '[url to image] (optional)'],
             "description": "Transfers style to image attachment, current styles available listed above",
         }
     )
