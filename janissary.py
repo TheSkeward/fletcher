@@ -1076,8 +1076,13 @@ async def copy_permissions_function(message, client, args):
                 targetChannel = discord.utils.get(
                     message.guild.channels, name=targetChannel
                 )
-        if not ch.is_admin(targetChannel, message.author)['channel'] or not ch.is_admin(sourceChannel, message.author):
-            return await messagefuncs.sendWrappedMessage(f"You do not have permission to perform this operation on either {sourceChannel} or {targetChannel}.", message.author)
+        if not ch.is_admin(targetChannel, message.author)["channel"] or not ch.is_admin(
+            sourceChannel, message.author
+        ):
+            return await messagefuncs.sendWrappedMessage(
+                f"You do not have permission to perform this operation on either {sourceChannel} or {targetChannel}.",
+                message.author,
+            )
 
         await message.add_reaction("🔜")
         set_permissions_tasks = []
@@ -1716,7 +1721,7 @@ async def self_service_channel_function(
             )
             return
         if len(args) == 3 and type(args[1]) is discord.Member:
-            if args[2] == "add":
+            if args[2] == "add" and args[1].id != message.author.id:
                 try:
                     if confirm:
                         confirmMessage = await messagefuncs.sendWrappedMessage(
@@ -1774,7 +1779,7 @@ async def self_service_channel_function(
                         f"I don't have permission to manage members (Manage Permissions) on __#{message.channel_mentions[0].name}__, and {args[1]} requested an add\n{e}.",
                         message.author,
                     )
-            else:
+            elif args[2] != "add" and args[1].id != message.author.id:
                 try:
                     currentPermissions = message.channel_mentions[0].permissions_for(
                         args[1]
@@ -1883,7 +1888,7 @@ async def login_function(message, client, args):
         )
     elif args[0] == "thingiverse":
         return await messagefuncs.sendWrappedMessage(
-                f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={ch.config.get(section='thingiverse', key='redirect_uri')}&state={message.author.id}",
+            f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={ch.config.get(section='thingiverse', key='redirect_uri')}&state={message.author.id}",
             message.channel,
         )
     else:
