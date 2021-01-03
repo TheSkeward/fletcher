@@ -1550,8 +1550,8 @@ async def thingiverse_function(message, client, args):
         ) as resp:
             resp_obj = await resp.json()
             response = {
-                    "me": lambda resp_obj: f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
-                    "search": lambda resp_obj: f"Top hit: {resp_obj['hits'][0]['public_url'] if resp_obj['total'] else 'No hits found.'}\n{resp_obj['total']} total result{'s' if resp_obj['total'] > 1 else ''}",
+                "me": lambda resp_obj: f"Authenticated as {resp_obj['full_name']} (@{resp_obj['name']})",
+                "search": lambda resp_obj: f"Top hit: {resp_obj['hits'][0]['public_url'] if resp_obj['total'] else 'No hits found.'}\n{resp_obj['total']} total result{'s' if resp_obj['total'] > 1 else ''}",
             }[args[0]](resp_obj)
             return await messagefuncs.sendWrappedMessage(
                 response,
@@ -1560,6 +1560,23 @@ async def thingiverse_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("THV[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
+async def inspirobot_function(message, client, args):
+    try:
+        base_url = "https://inspirobot.me/"
+        endpoint = "api?generate=true"
+        async with session.get(
+            base_url + endpoint,
+        ) as resp:
+            return await messagefuncs.sendWrappedMessage(
+                await resp.text(),
+                target=message.channel,
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("IB[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
 
@@ -2047,6 +2064,16 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!inspire"],
+            "function": inspirobot_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Generates an inspiring message.",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!complice"],
             "function": complice_function,
             "async": True,
@@ -2056,8 +2083,10 @@ def autoload(ch):
             "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
         }
     )
-    session = aiohttp.ClientSession(
-        headers={
-            "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
-        }
-    )
+    if not session:
+        session = aiohttp.ClientSession(
+                headers={
+                    "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+                    }
+                )
+    
