@@ -1850,7 +1850,7 @@ async def self_service_channel_function(
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if message.channel_mentions[0].get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
                 message.author,
             )
     except Exception as e:
