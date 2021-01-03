@@ -1657,8 +1657,10 @@ async def style_transfer_function(message, client, args):
         params = aiohttp.FormData()
         params.add_field("style", args[0])
         params.add_field("file", input_image_blob)
+        placeholder = await messagefuncs.sendWrappedMessage("Queued image for style transfer...", target=message.channel)
         async with session.post(f"{base_url}{endpoint}", data=params) as resp:
             buffer = io.BytesIO(await resp.read())
+            await placeholder.delete()
             return await messagefuncs.sendWrappedMessage(
                 files=[discord.File(buffer, "stylish.jpg")],
                 target=message.channel,
@@ -2085,8 +2087,7 @@ def autoload(ch):
     )
     if not session:
         session = aiohttp.ClientSession(
-                headers={
-                    "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
-                    }
-                )
-    
+            headers={
+                "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+            }
+        )
