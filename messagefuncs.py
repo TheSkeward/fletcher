@@ -471,11 +471,11 @@ async def preview_messagelink_function(message, client, args):
             if "flightrising" in previewable_parts[0]:
                 import swag
 
-                preview = await swag.flightrising_function(
-                        message, client, [previewable_parts[0], "INTPROC"]
-                    )
-                attachments = [preview[0]]
-                content = preview[1]
+                preview_tup = await swag.flightrising_function(
+                    message, client, [previewable_parts[0], "INTPROC"]
+                )
+                attachments = [preview_tup[0]]
+                content = preview_tup[1]
             elif "todo.sr.ht" in previewable_parts[0]:
                 import versionutils
 

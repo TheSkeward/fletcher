@@ -6,7 +6,6 @@ import chronos
 import time
 import discord
 import ephem
-import html
 import io
 import logging
 import messagefuncs
@@ -566,7 +565,7 @@ async def flightrising_function(message, client, args):
                 input_image_blob = await netcode.simple_get_image(
                     response_text.split('og:image" content="')[1].split('"')[0]
                 )
-                text = html.unescape(response_text.split('og:title" content="')[1].split('"')[0])
+                text = response_text.split('og:title" content="')[1].split('"')[0].replace('&#039;', '\'')
         else:
             data = url.split("?")[1]
             async with session.post(
