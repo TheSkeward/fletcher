@@ -499,13 +499,17 @@ async def preview_messagelink_function(message, client, args):
                 import swag
 
                 content = await swag.azlyrics_function(
-                    message, client, [previewable_parts[0], "INTPROC"],
+                    message,
+                    client,
+                    [previewable_parts[0], "INTPROC"],
                 )
             elif "scpwiki.com" in previewable_parts[0]:
                 import swag
 
                 embed = await swag.scp_function(
-                    message, client, [previewable_parts[0], "INTPROC"],
+                    message,
+                    client,
+                    [previewable_parts[0], "INTPROC"],
                 )
                 content = "SCP Preview"
         # TODO 🔭 to preview?
@@ -750,7 +754,10 @@ async def subscribe_send_function(message, client, args):
                 for user_id in guild_config.get("subscribe", {}).get(message.id)
             ],
         ):
-            preview_message = await sendWrappedMessage(content, user,)
+            preview_message = await sendWrappedMessage(
+                content,
+                user,
+            )
             await preview_message.edit(suppress=True)
             await preview_messagelink_function(preview_message, client, None)
     except Exception as e:
@@ -769,6 +776,7 @@ def localizeName(user, guild):
 
 sanitize_font = re.compile(r"[^❤A-Za-z0-9 /]")
 
+
 async def archive_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
@@ -778,12 +786,14 @@ async def archive_function(message, client, args):
             for url in urls:
                 logger.debug(f"Archiving {url}")
                 async with session.get(f"https://web.archive.org/save/{url}") as resp:
-                    await sendWrappedMessage(f"Archived URL <{url}> at <{resp.links['memento']['url']}>", args[1])
+                    await sendWrappedMessage(
+                        f"Archived URL <{url}> at <{resp.links['memento']['url']}>",
+                        args[1],
+                    )
             return await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("ARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
-
 
 
 # Register this module's commands
@@ -938,8 +948,10 @@ def autoload(ch):
     global session
     if not session:
         session = aiohttp.ClientSession(
-                headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
-                )
+            headers={
+                "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+            }
+        )
     logger.debug("LRN")
     load_react_notifications(ch)
 
