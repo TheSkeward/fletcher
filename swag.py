@@ -559,7 +559,7 @@ async def flightrising_function(message, client, args):
         if url.endswith(".png"):
             input_image_blob = await netcode.simple_get_image(url)
         elif url.startswith("https://www1.flightrising.com/dragon/"):
-            async with session.get(url):
+            async with session.get(url) as resp:
                 input_image_blob = await netcode.simple_get_image(
                     (await resp.text()).split('og:image" content="')[1].split('"')[0]
                 )
