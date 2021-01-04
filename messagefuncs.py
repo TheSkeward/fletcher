@@ -319,7 +319,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*)",
     re.IGNORECASE,
 )
 
@@ -471,12 +471,11 @@ async def preview_messagelink_function(message, client, args):
             if "flightrising" in previewable_parts[0]:
                 import swag
 
-                attachments = [
-                    await swag.flightrising_function(
+                preview = await swag.flightrising_function(
                         message, client, [previewable_parts[0], "INTPROC"]
                     )
-                ]
-                content = "FlightRising Preview"
+                attachments = [preview[0]]
+                content = preview[1]
             elif "todo.sr.ht" in previewable_parts[0]:
                 import versionutils
 
