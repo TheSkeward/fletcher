@@ -6,6 +6,7 @@ import chronos
 import time
 import discord
 import ephem
+import html
 import io
 import logging
 import messagefuncs
@@ -556,13 +557,16 @@ async def flightrising_function(message, client, args):
         guild_config = ch.scope_config(guild=message.guild)
         url = args[0]
         input_image_blob = None
+        text = "FlightRising Preview"
         if url.endswith(".png"):
             input_image_blob = await netcode.simple_get_image(url)
         elif url.startswith("https://www1.flightrising.com/dragon/"):
             async with session.get(url) as resp:
+                response_text = (await resp.text())
                 input_image_blob = await netcode.simple_get_image(
-                    (await resp.text()).split('og:image" content="')[1].split('"')[0]
+                    response_text.split('og:image" content="')[1].split('"')[0]
                 )
+                text = html.unescape(response_text.split('og:title" content="')[1].split('"')[0])
         else:
             data = url.split("?")[1]
             async with session.post(
@@ -587,7 +591,7 @@ async def flightrising_function(message, client, args):
         spoiler_regex = guild_config.get("fr-spoiler-regex")
         if spoiler_regex and re.search(spoiler_regex, url):
             file_name = "SPOILER_flightrising.png"
-        return discord.File(input_image_blob, file_name)
+        return (discord.File(input_image_blob, file_name), text)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
