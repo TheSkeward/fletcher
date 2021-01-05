@@ -661,7 +661,7 @@ async def part_channel_function(message, client, args):
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
             return await messagefuncs.sendWrappedMessage(
-                "Parting a channel requires server and channel to be specified (e.g. `!part server:channel [hours]`)",
+                "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)",
                 message.author,
             )
         elif len(args) == 0:
@@ -679,7 +679,7 @@ async def part_channel_function(message, client, args):
                 channel = messagefuncs.xchannel(args[0].strip(), message.guild)
             except (exceptions.DirectMessageException, AttributeError):
                 return await messagefuncs.sendWrappedMessage(
-                    "Parting a channel via DM requires server to be specified (e.g. `!part server:channel [hours]`)",
+                    "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
                     message.author,
                 )
             if channel is None:

@@ -1,7 +1,9 @@
 import asyncio
 import traceback
 import aiohttp
+from asyncache import cached
 from collections import Counter, defaultdict, deque
+from cachetools import TTLCache
 import chronos
 import time
 import discord
@@ -924,7 +926,7 @@ async def qdb_add_function(message, client, args):
                 )
         elif len(args) == 1:
             urlParts = messagefuncs.extract_identifiers_messagelink.search(
-                in_content
+                message.content
             ).groups()
             if len(urlParts) == 3:
                 guild_id = int(urlParts[0])
@@ -989,7 +991,8 @@ async def qdb_search_function(message, client, args):
         quote = cur.fetchone()
         conn.commit()
         await messagefuncs.sendWrappedMessage(
-            f"{quote[1]}\n*Quoted by <@!{quote[0]}>*" if quote else "No quote found", message.channel
+            f"{quote[1]}\n*Quoted by <@!{quote[0]}>*" if quote else "No quote found",
+            message.channel,
         )
         return await message.add_reaction("✅")
     except Exception as e:
@@ -1685,16 +1688,13 @@ async def style_transfer_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-async def glowfic_search_function(message, client, args):
-    try:
+@cached(TTLCache(1024, 600))
+async def glowfic_search_call(subj_content):
         params = aiohttp.FormData()
         params.add_field("commit", "Search")
-        q = filter(
-            lambda line: line.startswith(">"), message.content.split("\n")
-        ).__next__()
         params.add_field(
             "subj_content",
-            q.lstrip(">"),
+            subj_content,
         )
         async with session.get(
             f"https://glowfic.com/replies/search",
@@ -1702,12 +1702,21 @@ async def glowfic_search_function(message, client, args):
         ) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
+            links = root.xpath('//div[@class="post-edit-box"]/a')
+            return f"https://glowfic.com{links[0].attrib['href']}" if len(links) else None
+
+async def glowfic_search_function(message, client, args):
+    try:
+        q = filter(
+            lambda line: line.startswith(">"), message.content.split("\n")
+        ).__next__()
+        link = await glowfic_search_call(q.lstrip(">"))
+        if link:
             await messagefuncs.sendWrappedMessage(
-                f"{q}\nis from https://glowfic.com"
-                + root.xpath('//div[@class="post-edit-box"]/a')[0].attrib["href"],
-                args[1],
-            )
-    except (StopIteration, IndexError) as e:
+                    f"{q}\nis from {link}",
+                    args[1],
+                    )
+    except (StopIteration) as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         return
