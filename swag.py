@@ -561,11 +561,15 @@ async def flightrising_function(message, client, args):
             input_image_blob = await netcode.simple_get_image(url)
         elif url.startswith("https://www1.flightrising.com/dragon/"):
             async with session.get(url) as resp:
-                response_text = (await resp.text())
+                response_text = await resp.text()
                 input_image_blob = await netcode.simple_get_image(
                     response_text.split('og:image" content="')[1].split('"')[0]
                 )
-                text = response_text.split('og:title" content="')[1].split('"')[0].replace('&#039;', '\'')
+                text = (
+                    response_text.split('og:title" content="')[1]
+                    .split('"')[0]
+                    .replace("&#039;", "'")
+                )
         else:
             data = url.split("?")[1]
             async with session.post(
@@ -1680,6 +1684,24 @@ async def style_transfer_function(message, client, args):
         logger.error("STF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+async def glowfic_search_function(message, client, args):
+    try:
+        params = aiohttp.FormData()
+        params.add_field("subj_content", filter(lambda line: line.startswith(">"), message.content.split("\n")).__next__().lstrip(">"))
+        async with session.get(
+                f"https://glowfic.com/replies/search",
+            data=params,
+        ) as resp:
+            request_body = (await resp.read()).decode("UTF-8")
+            root = html.document_fromstring(request_body)
+            await messagefuncs.sendWrappedMessage("https://glowfic.com"+root.xpath('//div[@class="post-edit-box"]/a')[0].attrib["href"], args[1])
+    except (StopIteration, IndexError):
+        return
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
 
 async def autounload(ch):
     global session
@@ -2093,6 +2115,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["info|goals|intention"],
             "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["<:clippy:718538817866432575>"],
+            "function": glowfic_search_function,
+            "async": True,
+            "hidden": True,
+            # "whitelist_guild": [294167563447828481],
+            "args_num": 0,
+            "args_name": [],
+            "description": "Search for quotes in this message to return the relevant Glowfic site reply",
         }
     )
     if not session:
