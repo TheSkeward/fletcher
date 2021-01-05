@@ -1689,7 +1689,9 @@ async def glowfic_search_function(message, client, args):
     try:
         params = aiohttp.FormData()
         params.add_field("commit", "Search")
-        q = filter(lambda line: line.startswith(">"), message.content.split("\n")).__next__()
+        q = filter(
+            lambda line: line.startswith(">"), message.content.split("\n")
+        ).__next__()
         params.add_field(
             "subj_content",
             q.lstrip(">"),
@@ -2131,11 +2133,11 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["<:clippy:718538817866432575>"],
+            "trigger": ["🕸️"],
             "function": glowfic_search_function,
             "async": True,
             "hidden": True,
-            # "whitelist_guild": [294167563447828481],
+            "whitelist_guild": [294167563447828481],
             "args_num": 0,
             "args_name": [],
             "description": "Search for quotes in this message to return the relevant Glowfic site reply",
