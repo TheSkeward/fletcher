@@ -983,13 +983,13 @@ async def qdb_search_function(message, client, args):
         global conn
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, content FROM qdb WHERE guild_id = %s AND key LIKE '%%s%');",
+            "SELECT user_id, content FROM qdb WHERE guild_id = %s AND key LIKE '%%s%';",
             [message.guild.id, args[1]],
         )
         quote = cur.fetchone()
         conn.commit()
         await messagefuncs.sendWrappedMessage(
-            f"{quote[1]}\n*Quoted by <@!{quote[0]}>*", message.channel
+            f"{quote[1]}\n*Quoted by <@!{quote[0]}>*" if quote else "No quote found", message.channel
         )
         return await message.add_reaction("✅")
     except Exception as e:
