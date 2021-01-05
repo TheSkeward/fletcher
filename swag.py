@@ -1684,18 +1684,30 @@ async def style_transfer_function(message, client, args):
         logger.error("STF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
 async def glowfic_search_function(message, client, args):
     try:
         params = aiohttp.FormData()
-        params.add_field("subj_content", filter(lambda line: line.startswith(">"), message.content.split("\n")).__next__().lstrip(">"))
+        params.add_field("commit", "Search")
+        q = filter(lambda line: line.startswith(">"), message.content.split("\n")).__next__()
+        params.add_field(
+            "subj_content",
+            q.lstrip(">"),
+        )
         async with session.get(
-                f"https://glowfic.com/replies/search",
+            f"https://glowfic.com/replies/search",
             data=params,
         ) as resp:
             request_body = (await resp.read()).decode("UTF-8")
             root = html.document_fromstring(request_body)
-            await messagefuncs.sendWrappedMessage("https://glowfic.com"+root.xpath('//div[@class="post-edit-box"]/a')[0].attrib["href"], args[1])
-    except (StopIteration, IndexError):
+            await messagefuncs.sendWrappedMessage(
+                f"{q}\nis from https://glowfic.com"
+                + root.xpath('//div[@class="post-edit-box"]/a')[0].attrib["href"],
+                args[1],
+            )
+    except (StopIteration, IndexError) as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         return
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
