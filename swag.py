@@ -2143,7 +2143,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["<:glowic_const_search_quote:796416363312185384>"],
+            "trigger": ["<:glowfic_const_search_quote:796416363312185384>"],
             "function": glowfic_search_function,
             "async": True,
             "hidden": True,
