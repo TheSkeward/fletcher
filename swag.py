@@ -1690,20 +1690,21 @@ async def style_transfer_function(message, client, args):
 
 @cached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content):
-        params = aiohttp.FormData()
-        params.add_field("commit", "Search")
-        params.add_field(
-            "subj_content",
-            subj_content,
-        )
-        async with session.get(
-            f"https://glowfic.com/replies/search",
-            data=params,
-        ) as resp:
-            request_body = (await resp.read()).decode("UTF-8")
-            root = html.document_fromstring(request_body)
-            links = root.xpath('//div[@class="post-edit-box"]/a')
-            return f"https://glowfic.com{links[0].attrib['href']}" if len(links) else None
+    params = aiohttp.FormData()
+    params.add_field("commit", "Search")
+    params.add_field(
+        "subj_content",
+        subj_content,
+    )
+    async with session.get(
+        f"https://glowfic.com/replies/search",
+        data=params,
+    ) as resp:
+        request_body = (await resp.read()).decode("UTF-8")
+        root = html.document_fromstring(request_body)
+        links = root.xpath('//div[@class="post-edit-box"]/a')
+        return f"https://glowfic.com{links[0].attrib['href']}" if len(links) else None
+
 
 async def glowfic_search_function(message, client, args):
     try:
@@ -1713,9 +1714,9 @@ async def glowfic_search_function(message, client, args):
         link = await glowfic_search_call(q.lstrip(">"))
         if link:
             await messagefuncs.sendWrappedMessage(
-                    f"{q}\nis from {link}",
-                    args[1],
-                    )
+                f"{q}\nis from {link}",
+                args[1],
+            )
     except (StopIteration) as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -2142,7 +2143,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["🕸️"],
+            "trigger": ["<:glowic_const_search_quote:796416363312185384>"],
             "function": glowfic_search_function,
             "async": True,
             "hidden": True,
