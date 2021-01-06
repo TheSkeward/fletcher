@@ -1330,10 +1330,10 @@ async def error_report_function(error_str, guild, client):
     global ch
     automod = None
     scoped_config = ch.scope_config(guild=message.guild)
-    users = scoped_config.get("mod-userslist") or guild.owner.id
+    users = scoped_config.get(scoped_config.get("errorCC", "mod-userslist")) or guild.owner.id
     users = list(expand_target_list(users, guild))
     for target in users:
-        modmail = await messagefuncs.sendWrappedMessage(report_content, target)
+        modmail = await messagefuncs.sendWrappedMessage(report_content, target, current_user_id=target.id)
 
 
 async def delete_my_message_function(message, client, args):
@@ -1853,6 +1853,8 @@ async def self_service_channel_function(
                 f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
                 message.author,
             )
+            if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions:
+                await error_report_function(f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.", message.guild, client)
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
