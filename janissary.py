@@ -1212,7 +1212,7 @@ async def add_inbound_sync_function(message, client, args):
         toChannel = messagefuncs.xchannel(toChannelName, message.guild)
 
         logger.debug(f"Checking permissions for {message.author} on {toChannel}")
-        toAdmin = ch.is_admin(toChannel, message.author)
+        toAdmin = ch.is_admin(toChannel, toChannel.guild.get_member(message.author.id))
         logger.debug(toAdmin)
         if not toAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
@@ -1242,13 +1242,13 @@ async def add_inbound_sync_function(message, client, args):
             )
         else:
             ch.webhook_sync_registry[
-                message.guild.name + ":" + message.channel.name
+                toChannel.guild.name + ":" + toChannel.name
             ] = {
-                "toChannelObject": message.channel,
-                "toWebhook": webhook,
-                "toChannelName": message.channel.name,
-                "fromChannelObject": toChannel,
-                "fromWebhook": None,
+                "toChannelObject": toChannel,
+                "toWebhook": None,
+                "toChannelName": toChannel.name,
+                "fromChannelObject": message.channel,
+                "fromWebhook": webhook,
             }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -1330,10 +1330,15 @@ async def error_report_function(error_str, guild, client):
     global ch
     automod = None
     scoped_config = ch.scope_config(guild=message.guild)
-    users = scoped_config.get(scoped_config.get("errorCC", "mod-userslist")) or guild.owner.id
+    users = (
+        scoped_config.get(scoped_config.get("errorCC", "mod-userslist"))
+        or guild.owner.id
+    )
     users = list(expand_target_list(users, guild))
     for target in users:
-        modmail = await messagefuncs.sendWrappedMessage(report_content, target, current_user_id=target.id)
+        modmail = await messagefuncs.sendWrappedMessage(
+            report_content, target, current_user_id=target.id
+        )
 
 
 async def delete_my_message_function(message, client, args):
@@ -1853,8 +1858,16 @@ async def self_service_channel_function(
                 f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
                 message.author,
             )
-            if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions:
-                await error_report_function(f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.", message.guild, client)
+            if (
+                not message.guild.get_member(client.user.id)
+                .permissions_in(message.channel_mentions[0])
+                .manage_permissions
+            ):
+                await error_report_function(
+                    f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
+                    message.guild,
+                    client,
+                )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
