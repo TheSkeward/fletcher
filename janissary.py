@@ -1242,7 +1242,7 @@ async def add_inbound_sync_function(message, client, args):
             )
         else:
             ch.webhook_sync_registry[
-                message.channel.guild.name + ":" + message.channel.name
+                toChannel.guild.name + ":" + toChannel.name
             ] = {
                 "toChannelObject": toChannel,
                 "toWebhook": webhook,
