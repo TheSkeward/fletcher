@@ -1242,13 +1242,13 @@ async def add_inbound_sync_function(message, client, args):
             )
         else:
             ch.webhook_sync_registry[
-                toChannel.guild.name + ":" + toChannel.name
+                message.channel.guild.name + ":" + message.channel.name
             ] = {
                 "toChannelObject": toChannel,
-                "toWebhook": None,
-                "toChannelName": toChannel.name,
-                "fromChannelObject": message.channel,
-                "fromWebhook": webhook,
+                "toWebhook": webhook,
+                "toChannelName": message.channel.name,
+                "fromChannelObject": toChannel,
+                "fromWebhook": None,
             }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
