@@ -1753,14 +1753,16 @@ async def self_service_channel_function(
                         send_messages=True,
                         read_message_history=True,
                     )
-                    voice_channel = discord.utils.get(message.guild.voice_channels, name=message.channel_mentions[0].name)
+                    voice_channel = discord.utils.get(
+                        message.guild.voice_channels,
+                        name=message.channel_mentions[0].name,
+                    )
                     if voice_channel and "+voice" in message.content:
                         await voice_channel.set_permissions(
-                                args[1],
-                                connect=True,
-                                speak=True,
-                                view_channel=True,
-                                )
+                            args[1],
+                            connect=True,
+                            speak=True,
+                        )
                     if not autoclose:
                         await messagefuncs.sendWrappedMessage(
                             f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__",
@@ -1807,14 +1809,16 @@ async def self_service_channel_function(
                         send_messages=False,
                         read_message_history=False,
                     )
-                    voice_channel = discord.utils.get(message.guild.voice_channels, name=message.channel_mentions[0].name)
+                    voice_channel = discord.utils.get(
+                        message.guild.voice_channels,
+                        name=message.channel_mentions[0].name,
+                    )
                     if voice_channel and "+voice" in message.content:
                         await voice_channel.set_permissions(
-                                args[1],
-                                connect=False,
-                                speak=False,
-                                view_channel=False,
-                                )
+                            args[1],
+                            connect=False,
+                            speak=False,
+                        )
                     await messagefuncs.sendWrappedMessage(
                         f"Removed {args[1]} from channel __#{message.channel_mentions[0].name}__",
                         message.author,
