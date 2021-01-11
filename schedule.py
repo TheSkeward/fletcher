@@ -89,7 +89,10 @@ class ScheduleFunctions:
             content = cached_content
             channels = None
         args = content.split()[1:]
-        is_glob = args[0].strip()[-2:] == ":*"
+        try:
+            is_glob = args[0].strip()[-2:] == ":*"
+        except IndexError:
+            is_glob = False
         if channels:
             pass
         elif is_glob:
@@ -257,7 +260,13 @@ async def table_exec_function():
 async def table_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
-            if str(args[0].emoji) == "🏓" and not args[1].bot and ch.config.get(guild=message.guild, key="active-emoji", default=False):
+            if (
+                str(args[0].emoji) == "🏓"
+                and not args[1].bot
+                and ch.config.get(
+                    guild=message.guild, key="active-emoji", default=False
+                )
+            ):
                 global conn
                 cur = conn.cursor()
                 interval = "1 day"
