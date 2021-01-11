@@ -89,9 +89,9 @@ class ScheduleFunctions:
             content = cached_content
             channels = None
         args = content.split()[1:]
-        try:
+        if len(args) > 2:
             is_glob = args[0].strip()[-2:] == ":*"
-        except IndexError:
+        else:
             is_glob = False
         if channels:
             pass
