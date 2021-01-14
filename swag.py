@@ -2143,11 +2143,11 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["<:glowfic_const_search_quote:796416363312185384>"],
+            "trigger": ["<:glowfic_const_search_quote:796416363312185384>", "<:glowsearch:799184607555747870>"],
             "function": glowfic_search_function,
             "async": True,
             "hidden": True,
-            "whitelist_guild": [294167563447828481],
+            "whitelist_guild": [294167563447828481, 401181628015050773],
             "args_num": 0,
             "args_name": [],
             "description": "Search for quotes in this message to return the relevant Glowfic site reply",
