@@ -1711,12 +1711,30 @@ async def glowfic_search_function(message, client, args):
         q = filter(
             lambda line: line.startswith(">"), message.content.split("\n")
         ).__next__()
-        link = await glowfic_search_call(q.lstrip(">"))
+        databases = [
+                {
+                    function: glowfic_search_call,
+                    name: "Constellation"
+                    }
+                ]
+        start = datetime.now()
+        search_q = q.lstrip(">")
+        link = None
+        searched = ""
+        for database in databases:
+            link = await database['function'](search_q)
+            searched += database['name'] + ", "
+            if link:
+                break
+        query_time = (datetime.now() - start).total_seconds()
         if link:
-            await messagefuncs.sendWrappedMessage(
-                f"{q}\nis from {link}",
+                content = f"{q}\nis from {link}"
+        else:
+            content = f"{q}\nattribution was not found, searched {len(databases)} databases ({searched[:-2]}) in {query_time} seconds."
+        await messagefuncs.sendWrappedMessage(
+                content,
                 args[1],
-            )
+                )
     except (StopIteration) as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -2150,7 +2168,11 @@ def autoload(ch):
             "function": glowfic_search_function,
             "async": True,
             "hidden": True,
-            "whitelist_guild": [294167563447828481, 401181628015050773, 617953490383405056],
+            "whitelist_guild": [
+                294167563447828481,
+                401181628015050773,
+                617953490383405056,
+            ],
             "args_num": 0,
             "args_name": [],
             "description": "Search for quotes in this message to return the relevant Glowfic site reply",
