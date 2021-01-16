@@ -1711,7 +1711,7 @@ async def glowfic_search_function(message, client, args):
         q = filter(
             lambda line: line.startswith(">"), message.content.split("\n")
         ).__next__()
-        databases = [{'function': glowfic_search_call, 'name': "Constellation"}]
+        databases = [{"function": glowfic_search_call, "name": "Constellation"}]
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
@@ -2159,6 +2159,7 @@ def autoload(ch):
             "trigger": [
                 "<:glowfic_const_search_quote:796416363312185384>",
                 "<:glowsearch:799184607555747870>",
+                "<:glowsearch:799817787593457744>",
             ],
             "function": glowfic_search_function,
             "async": True,
