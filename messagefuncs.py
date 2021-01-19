@@ -146,7 +146,7 @@ async def sendWrappedMessage(
             for msg in embed_chunks:
                 embed = discord.Embed().set_footer(
                     icon_url=client.user.avatar_url, text=client.user.name
-                    )
+                )
                 msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
                 for hunk in msg_chunks:
                     embed.add_field(name="\u1160", value=hunk, inline=False)
@@ -977,7 +977,9 @@ def autoload(ch):
         conn.commit()
 
     global session
-    if not session:
+    try:
+        session
+    except NameError:
         session = aiohttp.ClientSession(
             headers={
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
