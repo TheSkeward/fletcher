@@ -141,6 +141,38 @@ async def sendWrappedMessage(
         else:
             last_chunk = None
         if wrap_as_embed:
+            embed_chunks = textwrap.wrap(str(msg), 6000, replace_whitespace=False)
+            last_chunk = embed_chunks.pop()
+            for msg in embed_chunks:
+                embed = discord.Embed().set_footer(
+                    icon_url=client.user.avatar_url, text=client.user.name
+                    )
+                msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
+                for hunk in msg_chunks:
+                    embed.add_field(name="\u1160", value=hunk, inline=False)
+                sent_message = await target.send(
+                    chunk,
+                    embed=embed,
+                    delete_after=delete_after,
+                    allowed_mentions=allowed_mentions,
+                    **kwargs,
+                )
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                    [
+                        current_user_id,
+                        None,
+                        None,
+                        None,
+                        sent_message.id,
+                        sent_message.channel.id,
+                        sent_message.guild.id
+                        if type(sent_message.channel) is not discord.DMChannel
+                        else None,
+                    ],
+                )
+                conn.commit()
             embed = discord.Embed().set_footer(
                 icon_url=client.user.avatar_url, text=client.user.name
             )
