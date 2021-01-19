@@ -841,7 +841,7 @@ class CommandHandler:
         for i in range(len(bridge["toWebhook"])):
             content = message.content or " "
             if len(message.attachments) > 0 and (
-                message.channel.is_nsfw() and not bridge["toChannelObject"].is_nsfw()
+                message.channel.is_nsfw() and not bridge["toChannelObject"][i].is_nsfw()
             ):
                 content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
                 for attachment in message.attachments:
@@ -888,9 +888,11 @@ class CommandHandler:
                     toGuild = self.client.get_guild(metuple[0])
                     toChannel = toGuild.get_channel(metuple[1])
                     reference_message = await toChannel.fetch_message(metuple[2])
-                    reply_embed = [discord.Embed(
-                        title="In reference to", url=reference_message.jump_url
-                    )]
+                    reply_embed = [
+                        discord.Embed(
+                            title="In reference to", url=reference_message.jump_url
+                        )
+                    ]
             try:
                 syncMessage = await bridge["toWebhook"][i].send(
                     content=content,
