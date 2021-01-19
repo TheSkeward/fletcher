@@ -852,7 +852,9 @@ class CommandHandler:
                 r"@.*?#0000",
                 lambda member: list_append(
                     user_mentions,
-                    bridge["toChannelObject"][i].guild.get_member_named(member[0][1:-5]),
+                    bridge["toChannelObject"][i].guild.get_member_named(
+                        member[0][1:-5]
+                    ),
                 ).mention,
                 content,
             )
@@ -867,6 +869,7 @@ class CommandHandler:
                     message.reference.channel_id,
                     message.reference.message_id,
                 ]
+                cur = conn.cursor()
                 cur.execute(
                     "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
                     query_params,
@@ -874,6 +877,7 @@ class CommandHandler:
                 metuple = cur.fetchone()
                 conn.commit()
                 if metuple is None:
+                    cur = conn.cursor()
                     cur.execute(
                         "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
                         query_params,
