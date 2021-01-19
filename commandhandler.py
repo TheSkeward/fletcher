@@ -127,10 +127,10 @@ class CommandHandler:
                                 logger.debug(f"LWH: fromGuild.id not defined")
                                 continue
                             webhook_sync_registry[fromChannelName] = {
-                                "toChannelObject": guild.get_channel(
+                                "toChannelObject": [guild.get_channel(
                                     webhook.channel_id
-                                ),
-                                "toWebhook": webhook,
+                                )],
+                                "toWebhook": [webhook],
                                 "toChannelName": toChannelName,
                                 "fromChannelObject": None,
                                 "fromWebhook": None,
@@ -193,7 +193,7 @@ class CommandHandler:
         logger.debug(
             "\n".join(
                 [
-                    f'{key} to {webhook_sync_registry[key]["toChannelName"]} (Guild {webhook_sync_registry[key]["toChannelObject"].guild.id})'
+                    f'{key} to {webhook_sync_registry[key]["toChannelName"]} (Guild {", ".join([str(channel.guild.id) for channel in webhook_sync_registry[key]["toChannelObject"]])})'
                     for key in list(self.webhook_sync_registry)
                     if type(self.webhook_sync_registry[key]) is not str
                 ]
@@ -904,7 +904,7 @@ class CommandHandler:
                     if len(message.attachments) > 0
                     and (
                         message.channel.is_nsfw()
-                        and not bridge["toChannelObject"].is_nsfw()
+                        and not bridge["toChannelObject"][i].is_nsfw()
                     )
                     else attachments,
                     wait=True,
@@ -950,12 +950,12 @@ class CommandHandler:
                     logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def typing_handler(self, channel, user):
-        if channel.guild and self.webhook_sync_registry.get(
+        if user != self.client.user and channel.guild and self.webhook_sync_registry.get(
             f"{channel.guild.name}:{channel.name}"
         ):
             await self.webhook_sync_registry[
-                f"{fromMessage.guild.name}:{fromMessage.channel.name}"
-            ]["toChannelObject"].trigger_typing()
+                f"{channel.guild.name}:{channel.name}"
+            ]["toChannelObject"][0].trigger_typing()
 
     async def edit_handler(self, message):
         fromMessage = message
@@ -1048,7 +1048,7 @@ class CommandHandler:
                     fromMessage.channel.is_nsfw()
                     and not self.webhook_sync_registry[
                         f"{fromMessage.guild.name}:{fromMessage.channel.name}"
-                    ]["toChannelObject"].is_nsfw()
+                    ]["toChannelObject"][0].is_nsfw()
                 ):
                     content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
                     for attachment in fromMessage.attachments:
@@ -1171,7 +1171,7 @@ class CommandHandler:
             syncMessage = await webhook_edit(
                 self.webhook_sync_registry[
                     f"{fromMessage.guild.name}:{fromMessage.channel.name}"
-                ]["toWebhook"],
+                ]["toWebhook"][0],
                 content=content,
                 username=fromMessageName,
                 avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
