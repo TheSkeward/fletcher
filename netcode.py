@@ -33,7 +33,9 @@ async def simple_get_image(url):
 async def simple_post_image(post_url, image, filename, image_format, field_name="file"):
     try:
         async with aiohttp.ClientSession(
-            headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)",}
+            headers={
+                "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+            }
         ) as session:
             logger.debug(f"SPI: {post_url}")
             fd = aiohttp.FormData()

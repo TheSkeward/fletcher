@@ -1779,11 +1779,17 @@ async def self_service_channel_function(
                             send_messages=False,
                             read_message_history=False,
                         )
-                        if self.user_config(message.author, message.guild, "notifications-openchannel", default=False, allow_global_substitute=True):
+                        if self.user_config(
+                            message.author,
+                            message.guild,
+                            "notifications-openchannel",
+                            default=False,
+                            allow_global_substitute=True,
+                        ):
                             await messagefuncs.sendWrappedMessage(
-                                    f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
-                                    message.author,
-                                    )
+                                f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
+                                message.author,
+                            )
                         await messagefuncs.sendWrappedMessage(
                             f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__",
                             args[1],

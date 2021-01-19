@@ -137,7 +137,7 @@ logger.addHandler(
 )
 logger.setLevel(logging.DEBUG)
 
-intents=discord.Intents.all()
+intents = discord.Intents.all()
 intents.presence = False
 client = discord.Client(intents=intents)
 

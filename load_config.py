@@ -64,7 +64,9 @@ class FletcherConfig:
                 "globalAdminIsServerAdmin": True,
                 "profile": False,
             },
-            "nickmask": {"conflictbots": [431544605209788416],},
+            "nickmask": {
+                "conflictbots": [431544605209788416],
+            },
         }
         self.guild_defaults = {
             "synchronize": False,

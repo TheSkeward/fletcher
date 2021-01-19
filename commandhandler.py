@@ -860,12 +860,26 @@ class CommandHandler:
             fromMessageName = toMember.display_name if toMember else user.display_name
             # wait=True: blocking call for messagemap insertions to work
             syncMessage = None
+            reply_embed = None
+            if message.reference and message.type is not discord.MessageType.pins_add:
+                query_params = [message.reference.guild_id, message.reference.channel_id, message.reference.message_id]
+                cur.execute(
+                    "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                    query_params,
+                )
+                metuple = cur.fetchone()
+                conn.commit()
+                if metuple is not None:
+                    toGuild = self.client.get_guild(metuple[0])
+                    toChannel = toGuild.get_channel(metuple[1])
+                    toMessage = await toChannel.fetch_message(metuple[2])
+                    reply_embed = discord.Embed().set_footer(title="In reference to", url=reference_message.jump_url)
             try:
                 syncMessage = await bridge["toWebhook"][i].send(
                     content=content,
                     username=fromMessageName,
                     avatar_url=user.avatar_url_as(format="png", size=128),
-                    embeds=message.embeds if user.bot else None,
+                    embeds=message.embeds if user.bot else reply_embed,
                     tts=message.tts,
                     files=[]
                     if len(message.attachments) > 0
@@ -1555,7 +1569,9 @@ class CommandHandler:
             return {}
 
     @lru_cache(maxsize=256)
-    def user_config(self, user, guild, key, value=None, default=None, allow_global_substitute=False):
+    def user_config(
+        self, user, guild, key, value=None, default=None, allow_global_substitute=False
+    ):
         cur = conn.cursor()
         if not value:
             if guild:
