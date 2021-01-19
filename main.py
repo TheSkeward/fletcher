@@ -138,7 +138,7 @@ logger.addHandler(
 logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.all()
-# intents.presence = False
+intents.presences = False
 client = discord.Client(intents=intents)
 
 # token from https://discordapp.com/developers
@@ -451,7 +451,7 @@ async def on_raw_message_edit(payload):
         )
 
 
-@client.listen
+@client.event
 async def on_typing(channel, user, when):
     while ch is None:
         await asyncio.sleep(1)
@@ -461,8 +461,7 @@ async def on_typing(channel, user, when):
         except AttributeError:
             await asyncio.sleep(1)
         break
-    if type(channel) is discord.TextChannel:
-        await ch.typing_handler(channel, user)
+    await ch.typing_handler(channel, user)
 
 
 # on message deletion (for webhooks only for now)
