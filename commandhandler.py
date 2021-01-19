@@ -838,7 +838,7 @@ class CommandHandler:
             lst.append(item)
             return item
 
-        for o in range(len(bridge["toWebhook"])):
+        for i in range(len(bridge["toWebhook"])):
             content = message.content or " "
             if len(message.attachments) > 0 and (
                 message.channel.is_nsfw() and not bridge["toChannelObject"].is_nsfw()
@@ -852,11 +852,11 @@ class CommandHandler:
                 r"@.*?#0000",
                 lambda member: list_append(
                     user_mentions,
-                    bridge["toChannelObject"].guild.get_member_named(member[0][1:-5]),
+                    bridge["toChannelObject"][i].guild.get_member_named(member[0][1:-5]),
                 ).mention,
                 content,
             )
-            toMember = bridge["toChannelObject"].guild.get_member(user.id)
+            toMember = bridge["toChannelObject"][i].guild.get_member(user.id)
             fromMessageName = toMember.display_name if toMember else user.display_name
             # wait=True: blocking call for messagemap insertions to work
             syncMessage = None
