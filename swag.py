@@ -1694,7 +1694,7 @@ async def glowfic_search_call(subj_content):
     params.add_field("commit", "Search")
     params.add_field(
         "subj_content",
-        subj_content,
+        f'"{subj_content}"',
     )
     async with session.get(
         f"https://glowfic.com/replies/search",
