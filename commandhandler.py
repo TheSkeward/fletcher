@@ -888,9 +888,9 @@ class CommandHandler:
                     toGuild = self.client.get_guild(metuple[0])
                     toChannel = toGuild.get_channel(metuple[1])
                     reference_message = await toChannel.fetch_message(metuple[2])
-                    reply_embed = discord.Embed(
+                    reply_embed = [discord.Embed(
                         title="In reference to", url=reference_message.jump_url
-                    )
+                    )]
             try:
                 syncMessage = await bridge["toWebhook"][i].send(
                     content=content,
