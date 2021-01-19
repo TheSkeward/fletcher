@@ -138,7 +138,7 @@ logger.addHandler(
 logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.all()
-intents.presence = False
+# intents.presence = False
 client = discord.Client(intents=intents)
 
 # token from https://discordapp.com/developers
@@ -451,7 +451,7 @@ async def on_raw_message_edit(payload):
         )
 
 
-@client.event
+@client.listen
 async def on_typing(channel, user, when):
     while ch is None:
         await asyncio.sleep(1)
