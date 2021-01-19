@@ -2322,7 +2322,7 @@ def autoload(ch):
     ch.user_config.cache_clear()
     if config and ch.client:
         load_user_config(ch)
-        ch.client.loop.create_task(ch.load_webhooks)
+        ch.client.loop.create_task(ch.load_webhooks())
         if len(ch.commands) > 5:
             load_guild_config(ch)
             ch.client.loop.create_task(run_web_api(config, ch))
