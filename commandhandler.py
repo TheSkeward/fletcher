@@ -849,7 +849,7 @@ class CommandHandler:
 
             user_mentions = []
             content = re.sub(
-                    r"@.*?#0000",
+                r"@.*?#0000",
                 lambda member: list_append(
                     user_mentions,
                     bridge["toChannelObject"][i].guild.get_member_named(
@@ -888,7 +888,7 @@ class CommandHandler:
                     toGuild = self.client.get_guild(metuple[0])
                     toChannel = toGuild.get_channel(metuple[1])
                     reference_message = await toChannel.fetch_message(metuple[2])
-                    reply_embed = discord.Embed().set_footer(
+                    reply_embed = discord.Embed(
                         title="In reference to", url=reference_message.jump_url
                     )
             try:
