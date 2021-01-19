@@ -137,7 +137,9 @@ logger.addHandler(
 )
 logger.setLevel(logging.DEBUG)
 
-client = discord.Client(intents=discord.Intents.all())
+intents=discord.Intents.all()
+intents.presence = False
+client = discord.Client(intents=intents)
 
 # token from https://discordapp.com/developers
 token = config.get(section="discord", key="botToken")
@@ -167,123 +169,6 @@ import chronos
 versioninfo = versionutils.VersionInfo()
 sid = SentimentIntensityAnalyzer()
 
-webhook_sync_registry = {
-    "FromGuild:FromChannelName": {
-        "fromChannelObject": None,
-        "fromWebhook": None,
-        "toChannelObject": None,
-        "toWebhook": None,
-    }
-}
-
-
-async def load_webhooks(ch=None):
-    global config
-    webhook_sync_registry = {}
-    for guild in client.guilds:
-        try:
-            if config.get(guild=guild, key="synchronize"):
-                logger.debug(f"LWH: Querying {guild.name}")
-                for webhook in await guild.webhooks():
-                    if webhook.name.startswith(
-                        config.get(section="discord", key="botNavel") + " ("
-                    ):
-                        logger.debug(f"LWH: * {webhook.name}")
-                        toChannelName = (
-                            f"{guild.name}:{guild.get_channel(webhook.channel_id).name}"
-                        )
-                        fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
-                        fromTuple[0] = messagefuncs.expand_guild_name(
-                            fromTuple[0]
-                        ).replace(":", "")
-                        fromGuild = discord.utils.get(
-                            client.guilds, name=fromTuple[0].replace("_", " ")
-                        )
-                        fromChannelName = (
-                            fromTuple[0].replace("_", " ") + ":" + fromTuple[1]
-                        )
-                        try:
-                            webhook_sync_registry[
-                                f"{fromGuild.id}:{webhook.id}"
-                            ] = fromChannelName
-                        except AttributeError:
-                            logger.debug(f"LWH: fromGuild.id not defined")
-                            continue
-                        webhook_sync_registry[fromChannelName] = {
-                            "toChannelObject": guild.get_channel(webhook.channel_id),
-                            "toWebhook": webhook,
-                            "toChannelName": toChannelName,
-                            "fromChannelObject": None,
-                            "fromWebhook": None,
-                        }
-                        webhook_sync_registry[fromChannelName][
-                            "fromChannelObject"
-                        ] = discord.utils.get(
-                            fromGuild.text_channels, name=fromTuple[1]
-                        )
-                        try:
-                            # webhook_sync_registry[fromChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
-                            if webhook_sync_registry[fromChannelName][
-                                "fromChannelObject"
-                            ]:
-                                webhook_sync_registry[fromChannelName][
-                                    "fromWebhook"
-                                ] = await webhook_sync_registry[fromChannelName][
-                                    "fromChannelObject"
-                                ].webhooks()
-                                webhook_sync_registry[fromChannelName][
-                                    "fromWebhook"
-                                ] = (
-                                    webhook_sync_registry[fromChannelName][
-                                        "fromWebhook"
-                                    ][0]
-                                    if len(
-                                        webhook_sync_registry[fromChannelName][
-                                            "fromWebhook"
-                                        ]
-                                    )
-                                    else None
-                                )
-                            else:
-                                logger.warning(
-                                    f"LWH: Could not find fromChannel {fromTuple[1]} in {fromGuild}"
-                                )
-                        except discord.Forbidden as e:
-                            logger.warning(
-                                f'LWH: Error getting fromWebhook for {webhook_sync_registry[fromChannelName]["fromChannelObject"]}'
-                            )
-                            pass
-            elif "Guild " + str(guild.id) not in config:
-                logger.warning(
-                    f"LWH: Failed to find config for {guild.name} ({guild.id})"
-                )
-        except discord.Forbidden as e:
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.debug(f"LWH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-            logger.debug(traceback.format_exc())
-            logger.warning(
-                f"Couldn't load webhooks for {guild.name} ({guild.id}), ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)"
-            )
-            pass
-        except AttributeError as e:
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.debug(f"LWH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-            pass
-    globals()["webhook_sync_registry"] = webhook_sync_registry
-    if ch:
-        ch.webhook_sync_registry = webhook_sync_registry
-    logger.debug("Webhooks loaded:")
-    logger.debug(
-        "\n".join(
-            [
-                f'{key} to {webhook_sync_registry[key]["toChannelName"]} (Guild {webhook_sync_registry[key]["toChannelObject"].guild.id})'
-                for key in list(webhook_sync_registry)
-                if type(webhook_sync_registry[key]) is not str
-            ]
-        )
-    )
-
-
 canticum_message = None
 doissetep_omega = None
 
@@ -297,6 +182,9 @@ async def autoload(module, choverride, config=None):
     global conn
     global sid
     global versioninfo
+    await client.change_presence(
+        activity=discord.Game(name=f"Reloading: [{module.__name__}]")
+    )
     try:
         await module.autounload(ch)
     except AttributeError as e:
@@ -375,7 +263,6 @@ async def reload_function(message=None, client=client, args=[]):
                 "description": "Reload config (admin only)",
             }
         )
-        ch.webhook_sync_registry = webhook_sync_registry
         # Utility text manipulators Module
         await autoload(text_manipulators, ch)
         await animate_startup("🔧", message)
@@ -417,7 +304,6 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(commandhandler, ch)
         await animate_startup("🔁", message)
         globals()["ch"] = ch
-        await load_webhooks(ch)
         if message:
             await message.add_reaction("↔")
         await animate_startup("✅", message)
@@ -502,7 +388,6 @@ async def on_message(message):
 # on message update (for webhooks only for now)
 @client.event
 async def on_raw_message_edit(payload):
-    global webhook_sync_registry
     try:
         # This is tricky with self-modifying bot message synchronization, TODO
         message_id = payload.message_id
@@ -566,10 +451,23 @@ async def on_raw_message_edit(payload):
         )
 
 
+@client.event
+async def on_typing(channel, user, when):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
+    if type(channel) is discord.TextChannel:
+        await ch.typing_handler(channel, user)
+
+
 # on message deletion (for webhooks only for now)
 @client.event
 async def on_raw_message_delete(message):
-    global webhook_sync_registry
     try:
         while ch is None:
             await asyncio.sleep(1)
@@ -612,7 +510,7 @@ async def on_raw_message_delete(message):
             pass
         guild_config = ch.scope_config(guild=message.guild)
         if type(fromChannel) is discord.TextChannel and (
-            fromGuild.name + ":" + fromChannel.name in webhook_sync_registry.keys()
+            fromGuild.name + ":" + fromChannel.name in ch.webhook_sync_registry.keys()
         ):
             # Give messages time to be added to the database
             await asyncio.sleep(1)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from emoji import UNICODE_EMOJI
 import asyncio
-import io
+from io import BytesIO
 from aiohttp import web
 from aiohttp.web import AppRunner, Application, TCPSite
 
@@ -86,6 +86,120 @@ class CommandHandler:
             config.get(section="discord", key="globalAdmin", default=0)
         )
 
+        self.webhook_sync_registry = {
+            "FromGuild:FromChannelName": {
+                "fromChannelObject": None,
+                "fromWebhook": None,
+                "toChannelObject": None,
+                "toWebhook": None,
+            }
+        }
+
+    async def load_webhooks(self, ch=None):
+        webhook_sync_registry = {}
+        for guild in self.client.guilds:
+            try:
+                if self.config.get(guild=guild, key="synchronize"):
+                    logger.debug(f"LWH: Querying {guild.name}")
+                    for webhook in await guild.webhooks():
+                        if webhook.name.startswith(
+                            self.config.get(section="discord", key="botNavel") + " ("
+                        ):
+                            logger.debug(f"LWH: * {webhook.name}")
+                            toChannelName = f"{guild.name}:{guild.get_channel(webhook.channel_id).name}"
+                            fromTuple = (
+                                webhook.name.split("(")[1].split(")")[0].split(":")
+                            )
+                            fromTuple[0] = messagefuncs.expand_guild_name(
+                                fromTuple[0]
+                            ).replace(":", "")
+                            fromGuild = discord.utils.get(
+                                client.guilds, name=fromTuple[0].replace("_", " ")
+                            )
+                            fromChannelName = (
+                                fromTuple[0].replace("_", " ") + ":" + fromTuple[1]
+                            )
+                            try:
+                                webhook_sync_registry[
+                                    f"{fromGuild.id}:{webhook.id}"
+                                ] = fromChannelName
+                            except AttributeError:
+                                logger.debug(f"LWH: fromGuild.id not defined")
+                                continue
+                            webhook_sync_registry[fromChannelName] = {
+                                "toChannelObject": guild.get_channel(
+                                    webhook.channel_id
+                                ),
+                                "toWebhook": webhook,
+                                "toChannelName": toChannelName,
+                                "fromChannelObject": None,
+                                "fromWebhook": None,
+                            }
+                            webhook_sync_registry[fromChannelName][
+                                "fromChannelObject"
+                            ] = discord.utils.get(
+                                fromGuild.text_channels, name=fromTuple[1]
+                            )
+                            try:
+                                # webhook_sync_registry[fromChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
+                                if webhook_sync_registry[fromChannelName][
+                                    "fromChannelObject"
+                                ]:
+                                    webhook_sync_registry[fromChannelName][
+                                        "fromWebhook"
+                                    ] = await webhook_sync_registry[fromChannelName][
+                                        "fromChannelObject"
+                                    ].webhooks()
+                                    webhook_sync_registry[fromChannelName][
+                                        "fromWebhook"
+                                    ] = (
+                                        webhook_sync_registry[fromChannelName][
+                                            "fromWebhook"
+                                        ][0]
+                                        if len(
+                                            webhook_sync_registry[fromChannelName][
+                                                "fromWebhook"
+                                            ]
+                                        )
+                                        else None
+                                    )
+                                else:
+                                    logger.warning(
+                                        f"LWH: Could not find fromChannel {fromTuple[1]} in {fromGuild}"
+                                    )
+                            except discord.Forbidden as e:
+                                logger.warning(
+                                    f'LWH: Error getting fromWebhook for {webhook_sync_registry[fromChannelName]["fromChannelObject"]}'
+                                )
+                                pass
+                elif "Guild " + str(guild.id) not in self.config:
+                    logger.warning(
+                        f"LWH: Failed to find guild config for {guild.name} ({guild.id})"
+                    )
+            except discord.Forbidden as e:
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.debug(f"LWH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                logger.debug(traceback.format_exc())
+                logger.warning(
+                    f"Couldn't load webhooks for {guild.name} ({guild.id}), ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)"
+                )
+                pass
+            except AttributeError as e:
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.debug(f"LWH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                pass
+        self.webhook_sync_registry = webhook_sync_registry
+        logger.debug("Webhooks loaded:")
+        logger.debug(
+            "\n".join(
+                [
+                    f'{key} to {webhook_sync_registry[key]["toChannelName"]} (Guild {webhook_sync_registry[key]["toChannelObject"].guild.id})'
+                    for key in list(self.webhook_sync_registry)
+                    if type(self.webhook_sync_registry[key]) is not str
+                ]
+            )
+        )
+
     def add_command(self, command):
         command["module"] = inspect.stack()[1][1].split("/")[-1][:-3]
         if type(command["trigger"]) != tuple:
@@ -135,7 +249,12 @@ class CommandHandler:
             tupper_status = None
         if (
             (tupper is not None)
-            and (self.user_config(user.id, None, "prefer-tupper") == "1")
+            and (
+                self.user_config(
+                    user.id, None, "prefer-tupper", allow_global_substitute=True
+                )
+                == "1"
+            )
             or (
                 self.user_config(
                     user.id,
@@ -171,7 +290,7 @@ class CommandHandler:
                     plural = "s"
                 for attachment in message.attachments:
                     logger.debug("Syncing " + attachment.filename)
-                    attachment_blob = io.BytesIO()
+                    attachment_blob = BytesIO()
                     await attachment.save(attachment_blob)
                     attachments.append(
                         discord.File(attachment_blob, attachment.filename)
@@ -681,6 +800,15 @@ class CommandHandler:
                 ):
                     logger.debug("Webhook isn't whitelisted for bridging")
                 return
+        spoilers = list(
+            map(
+                int,
+                filter(
+                    None,
+                    sync.get(f"spoilers-{message.guild.id}", []),
+                ),
+            )
+        )
         ignores = list(
             filter(
                 "".__ne__,
@@ -695,89 +823,106 @@ class CommandHandler:
         ):
             logger.debug(f"Prefix in {tuple(ignores)}, not bridging")
             return
-        content = message.content or " "
         attachments = []
-        if len(message.attachments) > 0:
-            if message.channel.is_nsfw() and not bridge["toChannelObject"].is_nsfw():
-                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
-                for attachment in message.attachments:
-                    content += f"\n• <{attachment.url}>"
-            else:
-                for attachment in message.attachments:
-                    logger.debug(f"Syncing {attachment.filename}")
-                    attachment_blob = io.BytesIO()
-                    await attachment.save(attachment_blob)
-                    attachments.append(
-                        discord.File(attachment_blob, attachment.filename)
-                    )
+        for attachment in message.attachments:
+            logger.debug(f"Syncing {attachment.filename}")
+            attachment_blob = BytesIO()
+            await attachment.save(attachment_blob)
+            attachments.append(discord.File(attachment_blob, attachment.filename))
+        if type(bridge["toChannelObject"]) is not list:
+            bridge["toChannelObject"] = [bridge["toChannelObject"]]
+        if type(bridge["toWebhook"]) is not list:
+            bridge["toWebhook"] = [bridge["toWebhook"]]
 
         def list_append(lst, item):
             lst.append(item)
             return item
 
-        user_mentions = []
-        content = re.sub(
-            r"@.*?#0000",
-            lambda member: list_append(
-                user_mentions,
-                bridge["toChannelObject"].guild.get_member_named(member[0][1:-5]),
-            ).mention,
-            content,
-        )
-        toMember = bridge["toChannelObject"].guild.get_member(user.id)
-        fromMessageName = toMember.display_name if toMember else user.display_name
-        # wait=True: blocking call for messagemap insertions to work
-        syncMessage = None
-        try:
-            syncMessage = await bridge["toWebhook"].send(
-                content=content,
-                username=fromMessageName,
-                avatar_url=user.avatar_url_as(format="png", size=128),
-                embeds=message.embeds if user.bot else None,
-                tts=message.tts,
-                files=attachments,
-                wait=True,
-                allowed_mentions=discord.AllowedMentions(
-                    users=user_mentions, roles=False, everyone=False
-                ),
-            )
-        except discord.HTTPException as e:
-            if attachments:
-                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
+        for o in range(len(bridge["toWebhook"])):
+            content = message.content or " "
+            if len(message.attachments) > 0 and (
+                message.channel.is_nsfw() and not bridge["toChannelObject"].is_nsfw()
+            ):
+                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
                 for attachment in message.attachments:
                     content += f"\n• <{attachment.url}>"
-                syncMessage = await bridge["toWebhook"].send(
+
+            user_mentions = []
+            content = re.sub(
+                r"@.*?#0000",
+                lambda member: list_append(
+                    user_mentions,
+                    bridge["toChannelObject"].guild.get_member_named(member[0][1:-5]),
+                ).mention,
+                content,
+            )
+            toMember = bridge["toChannelObject"].guild.get_member(user.id)
+            fromMessageName = toMember.display_name if toMember else user.display_name
+            # wait=True: blocking call for messagemap insertions to work
+            syncMessage = None
+            try:
+                syncMessage = await bridge["toWebhook"][i].send(
                     content=content,
                     username=fromMessageName,
                     avatar_url=user.avatar_url_as(format="png", size=128),
                     embeds=message.embeds if user.bot else None,
                     tts=message.tts,
+                    files=[]
+                    if len(message.attachments) > 0
+                    and (
+                        message.channel.is_nsfw()
+                        and not bridge["toChannelObject"].is_nsfw()
+                    )
+                    else attachments,
                     wait=True,
                     allowed_mentions=discord.AllowedMentions(
-                        users=False, roles=False, everyone=False
+                        users=user_mentions, roles=False, everyone=False
                     ),
                 )
-        if not syncMessage:
-            return
-        try:
-            cur = conn.cursor()
-            cur.execute(
-                "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
-                [
-                    message.guild.id,
-                    message.channel.id,
-                    message.id,
-                    syncMessage.guild.id,
-                    syncMessage.channel.id,
-                    syncMessage.id,
-                ],
-            )
-            conn.commit()
-        except Exception as e:
-            if "cur" in locals() and "conn" in locals():
-                conn.rollback()
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+            except discord.HTTPException as e:
+                if attachments:
+                    content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
+                    for attachment in message.attachments:
+                        content += f"\n• <{attachment.url}>"
+                    syncMessage = await bridge["toWebhook"][i].send(
+                        content=content,
+                        username=fromMessageName,
+                        avatar_url=user.avatar_url_as(format="png", size=128),
+                        embeds=message.embeds if user.bot else None,
+                        tts=message.tts,
+                        wait=True,
+                        allowed_mentions=discord.AllowedMentions(
+                            users=user_mentions, roles=False, everyone=False
+                        ),
+                    )
+            if syncMessage:
+                try:
+                    cur = conn.cursor()
+                    cur.execute(
+                        "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
+                        [
+                            message.guild.id,
+                            message.channel.id,
+                            message.id,
+                            syncMessage.guild.id,
+                            syncMessage.channel.id,
+                            syncMessage.id,
+                        ],
+                    )
+                    conn.commit()
+                except Exception as e:
+                    if "cur" in locals() and "conn" in locals():
+                        conn.rollback()
+                    exc_type, exc_obj, exc_tb = exc_info()
+                    logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+    async def typing_handler(self, channel, user):
+        if channel.guild and self.webhook_sync_registry.get(
+            f"{channel.guild.name}:{channel.name}"
+        ):
+            await self.webhook_sync_registry[
+                f"{fromMessage.guild.name}:{fromMessage.channel.name}"
+            ]["toChannelObject"].trigger_typing()
 
     async def edit_handler(self, message):
         fromMessage = message
@@ -1410,7 +1555,7 @@ class CommandHandler:
             return {}
 
     @lru_cache(maxsize=256)
-    def user_config(self, user, guild, key, value=None, allow_global_substitute=False):
+    def user_config(self, user, guild, key, value=None, default=None, allow_global_substitute=False):
         cur = conn.cursor()
         if not value:
             if guild:
@@ -1461,6 +1606,8 @@ class CommandHandler:
                     [user, guild, key, value],
                 )
         conn.commit()
+        if value is None:
+            value = default
         return value
 
     def is_admin(self, message, user=None):
@@ -2059,7 +2206,7 @@ def preference_function(message, client, args):
 
 
 async def dumptasks_function(message, client, args):
-    tasks = await client.loop.all_tasks()
+    tasks = asyncio.Task.all_tasks(client.loop)
     await messagefuncs.sendWrappedMessage(tasks, message.author)
 
 
@@ -2146,6 +2293,7 @@ def autoload(ch):
     ch.user_config.cache_clear()
     if config and ch.client:
         load_user_config(ch)
+        ch.client.loop.create_task(ch.load_webhooks)
         if len(ch.commands) > 5:
             load_guild_config(ch)
             ch.client.loop.create_task(run_web_api(config, ch))

@@ -1002,7 +1002,7 @@ async def chanlog_function(message, client, args):
                         content += f"Reaction to {message.id}: {reaction.emoji} from {user.display_name} ({user.id})\n"
                 return content
 
-        if len(args) > 0:
+        if len(args) > 0 and args[0].isnumeric():
             content += f" before {args[0]}"
             before = await message.channel.fetch_message(id=args[0])
         else:
@@ -1779,10 +1779,11 @@ async def self_service_channel_function(
                             send_messages=False,
                             read_message_history=False,
                         )
-                        await messagefuncs.sendWrappedMessage(
-                            f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
-                            message.author,
-                        )
+                        if self.user_config(message.author, message.guild, "notifications-openchannel", default=False, allow_global_substitute=True):
+                            await messagefuncs.sendWrappedMessage(
+                                    f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
+                                    message.author,
+                                    )
                         await messagefuncs.sendWrappedMessage(
                             f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__",
                             args[1],
@@ -2133,7 +2134,7 @@ def autoload(ch):
             "trigger": ["!chanlog"],
             "function": chanlog_function,
             "async": True,
-            "admin": "server",
+            "admin": "channel",
             "long_run": "author",
             "args_num": 0,
             "args_name": [],
