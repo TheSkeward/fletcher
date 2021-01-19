@@ -113,7 +113,9 @@ class ScheduleFunctions:
                     .strip()[:-2]
                     .replace("_", " "),
                 )
-            channel = messagefuncs.xchannel(args[0].strip(), guild) if len(args) else None
+            channel = (
+                messagefuncs.xchannel(args[0].strip(), guild) if len(args) else None
+            )
             if channel is None and target_message:
                 channel = target_message.channel
             elif channel is None:

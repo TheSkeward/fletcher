@@ -36,7 +36,11 @@ async def pinterest_randomize_function(message, client, args):
     images = board_entry.get("images", {}) or {}
     orig = images.get("orig", {}) or {}
     orig_url = orig.get("url", "")
-    embedPreview = discord.Embed(title=title, description=author, url=url,)
+    embedPreview = discord.Embed(
+        title=title,
+        description=author,
+        url=url,
+    )
     embedPreview.set_footer(
         icon_url="http://download.nova.anticlack.com/fletcher/pinterest.png",
         text=f"On behalf of {message.author.display_name}",
