@@ -862,18 +862,31 @@ class CommandHandler:
             syncMessage = None
             reply_embed = None
             if message.reference and message.type is not discord.MessageType.pins_add:
-                query_params = [message.reference.guild_id, message.reference.channel_id, message.reference.message_id]
+                query_params = [
+                    message.reference.guild_id,
+                    message.reference.channel_id,
+                    message.reference.message_id,
+                ]
                 cur.execute(
                     "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
                     query_params,
                 )
                 metuple = cur.fetchone()
                 conn.commit()
+                if metuple is None:
+                    cur.execute(
+                        "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                        query_params,
+                    )
+                    metuple = cur.fetchone()
+                    conn.commit()
                 if metuple is not None:
                     toGuild = self.client.get_guild(metuple[0])
                     toChannel = toGuild.get_channel(metuple[1])
                     toMessage = await toChannel.fetch_message(metuple[2])
-                    reply_embed = discord.Embed().set_footer(title="In reference to", url=reference_message.jump_url)
+                    reply_embed = discord.Embed().set_footer(
+                        title="In reference to", url=reference_message.jump_url
+                    )
             try:
                 syncMessage = await bridge["toWebhook"][i].send(
                     content=content,
