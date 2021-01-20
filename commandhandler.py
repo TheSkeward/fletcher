@@ -127,9 +127,9 @@ class CommandHandler:
                                 logger.debug(f"LWH: fromGuild.id not defined")
                                 continue
                             webhook_sync_registry[fromChannelName] = {
-                                "toChannelObject": [guild.get_channel(
-                                    webhook.channel_id
-                                )],
+                                "toChannelObject": [
+                                    guild.get_channel(webhook.channel_id)
+                                ],
                                 "toWebhook": [webhook],
                                 "toChannelName": toChannelName,
                                 "fromChannelObject": None,
@@ -950,12 +950,14 @@ class CommandHandler:
                     logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def typing_handler(self, channel, user):
-        if user != self.client.user and channel.guild and self.webhook_sync_registry.get(
-            f"{channel.guild.name}:{channel.name}"
+        if (
+            user != self.client.user
+            and channel.guild
+            and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.name}")
         ):
-            await self.webhook_sync_registry[
-                f"{channel.guild.name}:{channel.name}"
-            ]["toChannelObject"][0].trigger_typing()
+            await self.webhook_sync_registry[f"{channel.guild.name}:{channel.name}"][
+                "toChannelObject"
+            ][0].trigger_typing()
 
     async def edit_handler(self, message):
         fromMessage = message
@@ -1056,7 +1058,7 @@ class CommandHandler:
                 else:
                     for attachment in fromMessage.attachments:
                         logger.debug(f"Syncing {attachment.filename}")
-                        attachment_blob = io.BytesIO()
+                        attachment_blob = BytesIO()
                         await attachment.save(attachment_blob)
                         attachments.append(
                             discord.File(attachment_blob, attachment.filename)
