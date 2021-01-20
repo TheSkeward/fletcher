@@ -952,6 +952,7 @@ class CommandHandler:
     async def typing_handler(self, channel, user):
         if (
             user != self.client.user
+            and type(channel) is discord.TextChannel
             and channel.guild
             and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.name}")
         ):
