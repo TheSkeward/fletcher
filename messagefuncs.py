@@ -112,6 +112,7 @@ async def sendWrappedMessage(
         # current_message_id = scope._tags.get('message_id')
         # current_channel_id = scope._tags.get('channel_id')
         # current_guild_id = scope._tags.get('guild_id')
+        chunk = None
         if msg and not wrap_as_embed:
             msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
