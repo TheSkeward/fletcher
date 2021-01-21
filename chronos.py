@@ -7,7 +7,7 @@ from tzwhere import tzwhere
 from datetime import datetime
 
 geolocator = None
-tzwheremst = None
+tzwheremst_cache = None
 logger = logging.getLogger("fletcher")
 
 
@@ -66,11 +66,13 @@ def get_tz(message=None, user=None, guild=None):
 def get_now(message=None, user=None, guild=None):
     return datetime.now(get_tz(message=message, user=user, guild=guild))
 
+
 def tzwheremst():
-    global tzwheremst
-    if not tzwheremst:
-        tzwheremst = tzwhere.tzwhere()
-    return tzwheremst
+    global tzwheremst_cache
+    if not tzwheremst_cache:
+        tzwheremst_cache = tzwhere.tzwhere()
+    return tzwheremst_cache
+
 
 def autoload(ch):
     global config
