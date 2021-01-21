@@ -139,7 +139,7 @@ logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.all()
 intents.presences = False
-client = discord.Client(intents=intents)
+client = discord.Client(intents=intents, chunk_guilds_at_startup=False)
 
 # token from https://discordapp.com/developers
 token = config.get(section="discord", key="botToken")
@@ -346,6 +346,9 @@ async def on_ready():
         loop.add_signal_handler(
             signal.SIGINT, lambda: asyncio.ensure_future(shutdown_function())
         )
+        for guild in client.guilds:
+            await guild.chunk()
+        await reload_function()
     except Exception as e:
         logger.exception(e)
 
