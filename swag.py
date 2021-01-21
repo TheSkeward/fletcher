@@ -1689,12 +1689,12 @@ async def style_transfer_function(message, client, args):
 
 
 @cached(TTLCache(1024, 600))
-async def glowfic_search_call(subj_content):
+async def glowfic_search_call(subj_content, exact=False):
     params = aiohttp.FormData()
     params.add_field("commit", "Search")
     params.add_field(
         "subj_content",
-        f'"{subj_content}"',
+        f'"{subj_content}"' if exact else subj_content,
     )
     async with session.get(
         f"https://glowfic.com/replies/search",
@@ -1711,7 +1711,7 @@ async def glowfic_search_function(message, client, args):
         q = filter(
             lambda line: line.startswith(">"), message.content.split("\n")
         ).__next__()
-        databases = [{"function": glowfic_search_call, "name": "Constellation"}]
+        databases = [{"function": partial(glowfic_search_call, exact=True), "name": "Constellation"}, {"function": glowfic_search_call, "name": "Constellation Fuzzy Search"}]
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
