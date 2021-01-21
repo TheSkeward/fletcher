@@ -14,7 +14,6 @@ logger = logging.getLogger("fletcher")
 def time_at_place(message, client, args):
     global ch
     global geolocator
-    global tzwheremst
     try:
         q = " ".join(args)
         if len(args) > 0:
@@ -23,7 +22,7 @@ def time_at_place(message, client, args):
             except pytz.UnknownTimeZoneError as e:
                 location = geolocator.geocode(q)
                 tz = pytz.timezone(
-                    tzwheremst.tzNameAt(location.latitude, location.longitude)
+                    tzwheremst().tzNameAt(location.latitude, location.longitude)
                 )
         elif ch.user_config(message.author.id, message.guild.id, "tz"):
             tz = pytz.timezone(
@@ -67,17 +66,19 @@ def get_tz(message=None, user=None, guild=None):
 def get_now(message=None, user=None, guild=None):
     return datetime.now(get_tz(message=message, user=user, guild=guild))
 
+def tzwheremst():
+    global tzwheremst
+    if not tzwheremst:
+        tzwheremst = tzwhere.tzwhere()
+    return tzwheremst
 
 def autoload(ch):
     global config
     global geolocator
-    global tzwheremst
     if not geolocator:
         geolocator = Nominatim(
             user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
         )
-    if not tzwheremst:
-        tzwheremst = tzwhere.tzwhere()
     ch.add_command(
         {
             "trigger": ["!now", "!time"],
