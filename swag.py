@@ -1711,7 +1711,13 @@ async def glowfic_search_function(message, client, args):
         q = filter(
             lambda line: line.startswith(">"), message.content.split("\n")
         ).__next__()
-        databases = [{"function": partial(glowfic_search_call, exact=True), "name": "Constellation"}, {"function": glowfic_search_call, "name": "Constellation Fuzzy Search"}]
+        databases = [
+            {
+                "function": partial(glowfic_search_call, exact=True),
+                "name": "Constellation",
+            },
+            {"function": glowfic_search_call, "name": "Constellation Fuzzy Search"},
+        ]
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
