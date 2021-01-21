@@ -174,6 +174,7 @@ doissetep_omega = None
 
 
 async def autoload(module, choverride, config=None):
+    now = datetime.utcnow()
     if choverride:
         ch = choverride
     else:
@@ -210,6 +211,7 @@ async def autoload(module, choverride, config=None):
         logger.debug(f"al[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         logger.debug(traceback.format_exc())
         pass
+    logger.info(f"{module.__name__} autoloaded in {datetime.utcnow() - now}")
 
 
 async def animate_startup(emote, message=None):
@@ -297,11 +299,12 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(chronos, ch)
         await animate_startup("🕰️", message)
         # Play it again, Sam
-        asyncio.create_task(doissetep_omega_autoconnect())
+        # asyncio.create_task(doissetep_omega_autoconnect())
         # Trigger reload handlers
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
         await autoload(commandhandler, ch)
+        await ch.load_webhooks()
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         if message:
