@@ -1719,6 +1719,9 @@ class CommandHandler:
             # No admin set == Unprivileged
             return True
 
+    async def guild_add(self, guild):
+        await guild.chunk()
+
     def get_member_named(self, guild, name, allow_insensitive=True):
         result = None
         members = guild.members
