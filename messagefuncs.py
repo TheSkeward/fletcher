@@ -348,6 +348,7 @@ async def teleport_function(message, client, args):
         return f"Portal opened for {message.author} to {args[0]}"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error(f"TPF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
