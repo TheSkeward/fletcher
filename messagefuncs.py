@@ -262,8 +262,10 @@ async def teleport_function(message, client, args):
                 delete_after=60,
             )
             return
+        if len(toGuild.members) == 1:
+            await toGuild.chunk()
         if not toChannel.permissions_for(
-            toGuild.get_member(message.author)
+            toGuild.get_member(message.author.id)
         ).send_messages:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
