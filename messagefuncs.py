@@ -263,7 +263,7 @@ async def teleport_function(message, client, args):
             )
             return
         if not toChannel.permissions_for(
-            toGuild.get_member(message.author.id)
+            toGuild.get_member(message.author)
         ).send_messages:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
