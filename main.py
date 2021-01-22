@@ -735,6 +735,19 @@ async def doissetep_omega_autoconnect():
             logger.exception(e)
 
 
+@client.event
+async def on_guild_join(guild):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
+    await ch.guild_add(guild)
+
+
 loop = asyncio.get_event_loop()
 
 # start bot
