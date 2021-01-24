@@ -587,6 +587,10 @@ class CommandHandler:
                         if scoped_command.get("exclusive", False):
                             return
                 else:
+                    if not ch.config.get(
+                            guild=message.guild, key="active-emoji", default=False
+                            ):
+                        return
                     for command in self.get_command(
                         messageContent, message, max_args=0
                     ):
