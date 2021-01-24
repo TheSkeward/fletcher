@@ -1679,7 +1679,9 @@ async def style_transfer_function(message, client, args):
             buffer = io.BytesIO(await resp.read())
             await placeholder.delete()
             if resp.status != 200:
-                return await mesagefuncs.sendWrappedMessage("File too big", target=message.channel)
+                return await messagefuncs.sendWrappedMessage(
+                    "File too big", target=message.channel
+                )
             return await messagefuncs.sendWrappedMessage(
                 files=[discord.File(buffer, "stylish.jpg")],
                 target=message.channel,
