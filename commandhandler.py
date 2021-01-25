@@ -893,8 +893,7 @@ class CommandHandler:
                     toChannel = toGuild.get_channel(metuple[1])
                     reference_message = await toChannel.fetch_message(metuple[2])
                     reply_embed = [
-                        discord.Embed(
-                            title="In reference to", url=reference_message.jump_url
+                        discord.Embed().add_field(name="In reference to", value=f"[Message by {reference_message.author}]({reference_message.jump_url})", inline=True
                         )
                     ]
             try:
