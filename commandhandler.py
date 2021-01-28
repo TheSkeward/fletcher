@@ -893,7 +893,10 @@ class CommandHandler:
                     toChannel = toGuild.get_channel(metuple[1])
                     reference_message = await toChannel.fetch_message(metuple[2])
                     reply_embed = [
-                        discord.Embed().add_field(name="In reference to", value=f"[Message by {reference_message.author}]({reference_message.jump_url})", inline=True
+                        discord.Embed().add_field(
+                            name="In reference to",
+                            value=f"[Message by {reference_message.author}]({reference_message.jump_url})",
+                            inline=True,
                         )
                     ]
             try:
@@ -1249,12 +1252,6 @@ class CommandHandler:
             )
             return
 
-        if message.webhook_id:
-            webhook = await self.fetch_webhook_cached(message.webhook_id)
-            if webhook.name not in self.config.get(
-                key="whitelist-webhooks", section="sync", default=[]
-            ):
-                return
         guild_config = self.config.get(guild=message.guild, default={})
         channel_config = self.config.get(channel=message.channel, default={})
 
@@ -1355,6 +1352,19 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
+        if not message.webhook_id and message.author.bot:
+            if message.author.bot.id not in self.config.get(
+                key="whitelist-bots", section="sync", default=[]
+            ) and (message.guild and (message.author.bot.id not in self.config.get(
+                key="whitelist-bots", guild=message.guild.id, default=[]
+            ))):
+                return
+        if message.webhook_id:
+            webhook = await self.fetch_webhook_cached(message.webhook_id)
+            if webhook.name not in self.config.get(
+                key="whitelist-webhooks", section="sync", default=[]
+            ):
+                return
         await self.tupper_proc(message)
         preview_link_found = messagefuncs.extract_identifiers_messagelink.search(
             message.content
