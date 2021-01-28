@@ -1353,11 +1353,17 @@ class CommandHandler:
                 pass
             pass
         if not message.webhook_id and message.author.bot:
-            if message.author.bot.id not in self.config.get(
+            if message.author.id not in self.config.get(
                 key="whitelist-bots", section="sync", default=[]
-            ) and (message.guild and (message.author.bot.id not in self.config.get(
-                key="whitelist-bots", guild=message.guild.id, default=[]
-            ))):
+            ) and (
+                message.guild
+                and (
+                    message.author.id
+                    not in self.config.get(
+                        key="whitelist-bots", guild=message.guild.id, default=[]
+                    )
+                )
+            ):
                 return
         if message.webhook_id:
             webhook = await self.fetch_webhook_cached(message.webhook_id)
