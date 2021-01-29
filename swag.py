@@ -30,7 +30,7 @@ logger = logging.getLogger("fletcher")
 
 session = None
 cseClient = None
-wikidataClient = None
+wikiClient = None
 
 uwu_responses = {
     "public": [
@@ -1006,9 +1006,11 @@ async def qdb_search_function(message, client, args):
         logger.error("QSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
 @cached(TTLCache(1024, 6000))
 def wikidata_get(name):
-    return wikidataClient.get(name, load=True)
+    return wikiClient.get(name, load=True)
+
 
 def join_rank_function(message, client, args):
     global ch
@@ -1726,23 +1728,39 @@ async def glowfic_search_function(message, client, args):
             {
                 "function": partial(glowfic_search_call, exact=True),
                 "name": "Constellation",
-                "type": "native"
+                "type": "native",
             },
-            {"function": glowfic_search_call, "name": "Constellation Fuzzy Search", "type": "native"},
+            {
+                "function": glowfic_search_call,
+                "name": "Constellation Fuzzy Search",
+                "type": "native",
+            },
         ]
         start = datetime.now()
         search_q = q.lstrip(">")
-        databases.extend([lambda engine: {
-            "function": lambda q: cseClient(exactTerms=q, cx=engine[1]).execute(),
-            "name": engine[0],
-            "type": "cse"
-            } for engine in [lambda engine: engine.split(':', 1) for engine in config.get(section='quotesearch', key='extra-cse-list', default=[])]])
+        databases.extend(
+            [
+                lambda engine: {
+                    "function": lambda q: cseClient(
+                        exactTerms=q, cx=engine[1]
+                    ).execute(),
+                    "name": engine[0],
+                    "type": "cse",
+                }
+                for engine in [
+                    lambda engine: engine.split("=", 1)
+                    for engine in config.get(
+                        section="quotesearch", key="extra-cse-list", default=[]
+                    )
+                ]
+            ]
+        )
         link = None
         searched = ""
         for database in databases:
             link = await database["function"](search_q)
             if database["type"] == "cse":
-                link = link['items'] [0] if len(link.get('items', [])) else None
+                link = link["items"][0] if len(link.get("items", [])) else None
             searched += database["name"] + ", "
             if link:
                 break
@@ -2204,8 +2222,16 @@ def autoload(ch):
     )
     if not wikiClient:
         wikiClient = wikidata.Client()
-    if not cseClient and config.get(section='google', key='cse_key'):
-        cseClient = build("customsearch", "v1", developerKey=config.get(section='google', key='cse_key')).cse().list
+    if not cseClient and config.get(section="google", key="cse_key"):
+        cseClient = (
+            build(
+                "customsearch",
+                "v1",
+                developerKey=config.get(section="google", key="cse_key"),
+            )
+            .cse()
+            .list
+        )
     if not session:
         session = aiohttp.ClientSession(
             headers={
