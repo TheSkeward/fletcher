@@ -87,7 +87,9 @@ def xchannel(targetChannel, currentGuild):
                 return None
             toGuild = discord.utils.get(ch.client.guilds, name=toTuple[0])
             if toGuild is None:
-                toGuild = discord.utils.find(lambda m: m.name.lower() == toTuple[0].lower(), ch.client.guilds)
+                toGuild = discord.utils.find(
+                    lambda m: m.name.lower() == toTuple[0].lower(), ch.client.guilds
+                )
             if toGuild is None:
                 raise exceptions.DirectMessageException(
                     "Can't disambiguate channel name if in DM"

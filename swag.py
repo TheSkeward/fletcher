@@ -5,6 +5,7 @@ from asyncache import cached
 from collections import Counter, defaultdict, deque
 from cachetools import TTLCache
 import chronos
+from googleapiclient.discovery import build
 import time
 import discord
 import ephem
@@ -15,6 +16,7 @@ import text_manipulators
 import netcode
 import random
 import re
+import wikidata.client as wikidata
 from lxml import html, etree
 from sys import exc_info
 from datetime import datetime, timedelta
@@ -27,6 +29,8 @@ import periodictable
 logger = logging.getLogger("fletcher")
 
 session = None
+cseClient = None
+wikidataClient = None
 
 uwu_responses = {
     "public": [
@@ -1002,6 +1006,9 @@ async def qdb_search_function(message, client, args):
         logger.error("QSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+@cached(TTLCache(1024, 6000))
+def wikidata_get(name):
+    return wikidataClient.get(name, load=True)
 
 def join_rank_function(message, client, args):
     global ch
@@ -1053,7 +1060,7 @@ def join_rank_function(message, client, args):
                 f"Your element is {periodictable.elements[member_rank].name.title()}."
             )
         else:
-            member_element = "Your element has yet to be discovered!"
+            member_element = "Your wikidata object is {wikidata_get('Q'+member_rank)} ({'Q'+member_rank})."
 
         if guild_config.get("rank-loudness", "quiet") == "loud":
             member_display = member.mention
@@ -1719,15 +1726,23 @@ async def glowfic_search_function(message, client, args):
             {
                 "function": partial(glowfic_search_call, exact=True),
                 "name": "Constellation",
+                "type": "native"
             },
-            {"function": glowfic_search_call, "name": "Constellation Fuzzy Search"},
+            {"function": glowfic_search_call, "name": "Constellation Fuzzy Search", "type": "native"},
         ]
         start = datetime.now()
         search_q = q.lstrip(">")
+        databases.extend([lambda engine: {
+            "function": lambda q: cseClient(exactTerms=q, cx=engine[1]).execute(),
+            "name": engine[0],
+            "type": "cse"
+            } for engine in [lambda engine: engine.split(':', 1) for engine in config.get(section='quotesearch', key='extra-cse-list', default=[])]])
         link = None
         searched = ""
         for database in databases:
             link = await database["function"](search_q)
+            if database["type"] == "cse":
+                link = link['items'] [0] if len(link.get('items', [])) else None
             searched += database["name"] + ", "
             if link:
                 break
@@ -1758,6 +1773,8 @@ async def autounload(ch):
 
 def autoload(ch):
     global session
+    global wikiClient
+    global cseClient
     ch.add_command(
         {
             "trigger": [
@@ -2185,6 +2202,10 @@ def autoload(ch):
             "description": "Search for quotes in this message to return the relevant Glowfic site reply",
         }
     )
+    if not wikiClient:
+        wikiClient = wikidata.Client()
+    if not cseClient and config.get(section='google', key='cse_key'):
+        cseClient = build("customsearch", "v1", developerKey=config.get(section='google', key='cse_key')).cse().list
     if not session:
         session = aiohttp.ClientSession(
             headers={
