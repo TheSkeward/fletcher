@@ -21,7 +21,7 @@ from lxml import html, etree
 from sys import exc_info
 from datetime import datetime, timedelta
 from markdownify import markdownify
-from functools import partial
+from functools import partial, lru_cache
 import periodictable
 
 # Super Waifu Animated Girlfriend
@@ -31,6 +31,7 @@ logger = logging.getLogger("fletcher")
 session = None
 cseClient = None
 wikiClient = None
+glowfic_search_databases = []
 
 uwu_responses = {
     "public": [
@@ -1724,43 +1725,14 @@ async def glowfic_search_function(message, client, args):
         q = filter(
             lambda line: line.startswith(">"), message.content.split("\n")
         ).__next__()
-        databases = [
-            {
-                "function": partial(glowfic_search_call, exact=True),
-                "name": "Constellation",
-                "type": "native",
-            },
-            {
-                "function": glowfic_search_call,
-                "name": "Constellation Fuzzy Search",
-                "type": "native",
-            },
-        ]
-        databases.extend(
-            [
-                {
-                    "function": lambda q: cseClient(
-                        exactTerms=q, cx=engine[1]
-                    ).execute(),
-                    "name": engine[0],
-                    "type": "cse",
-                }
-                for engine in [
-                    engine.split("=", 1)
-                    for engine in config.get(
-                        section="quotesearch", key="extra-cse-list", default=[]
-                    )
-                ]
-            ]
-        )
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
         searched = ""
-        for database in databases:
+        for database in glowfic_search_databases:
             if database["type"] == "cse":
                 link = database["function"](search_q)
-                link = link["items"][0]['link'] if len(link.get("items", [])) else None
+                link = link["items"][0]["link"] if len(link.get("items", [])) else None
             else:
                 link = await database["function"](search_q)
             searched += database["name"] + ", "
@@ -1795,6 +1767,7 @@ def autoload(ch):
     global session
     global wikiClient
     global cseClient
+    global glowfic_search_databases
     ch.add_command(
         {
             "trigger": [
@@ -2234,6 +2207,33 @@ def autoload(ch):
             .cse()
             .list
         )
+    glowfic_search_databases = [
+            {
+                "function": partial(glowfic_search_call, exact=True),
+                "name": "Constellation",
+                "type": "native",
+                },
+            {
+                "function": glowfic_search_call,
+                "name": "Constellation Fuzzy Search",
+                "type": "native",
+                },
+            *[
+                {
+                    "function": lru_cache()(lambda q: cseClient(
+                        exactTerms=q, cx=engine[1]
+                        ).execute()),
+                    "name": engine[0],
+                    "type": "cse",
+                    }
+                for engine in [
+                    engine.split("=", 1)
+                    for engine in config.get(
+                        section="quotesearch", key="extra-cse-list", default=[]
+                        )
+                    ]
+                ]
+            ]
     if not session:
         session = aiohttp.ClientSession(
             headers={
