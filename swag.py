@@ -1736,8 +1736,6 @@ async def glowfic_search_function(message, client, args):
                 "type": "native",
             },
         ]
-        start = datetime.now()
-        search_q = q.lstrip(">")
         databases.extend(
             [
                 {
@@ -1755,12 +1753,16 @@ async def glowfic_search_function(message, client, args):
                 ]
             ]
         )
+        start = datetime.now()
+        search_q = q.lstrip(">")
         link = None
         searched = ""
         for database in databases:
-            link = await database["function"](search_q)
             if database["type"] == "cse":
+                link = database["function"](search_q)
                 link = link["items"][0] if len(link.get("items", [])) else None
+            else:
+                link = await database["function"](search_q)
             searched += database["name"] + ", "
             if link:
                 break
