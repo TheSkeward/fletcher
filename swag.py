@@ -1760,7 +1760,7 @@ async def glowfic_search_function(message, client, args):
         for database in databases:
             if database["type"] == "cse":
                 link = database["function"](search_q)
-                link = link["items"][0] if len(link.get("items", [])) else None
+                link = link["items"][0]['link'] if len(link.get("items", [])) else None
             else:
                 link = await database["function"](search_q)
             searched += database["name"] + ", "
