@@ -1740,7 +1740,7 @@ async def glowfic_search_function(message, client, args):
         search_q = q.lstrip(">")
         databases.extend(
             [
-                lambda engine: {
+                {
                     "function": lambda q: cseClient(
                         exactTerms=q, cx=engine[1]
                     ).execute(),
@@ -1748,7 +1748,7 @@ async def glowfic_search_function(message, client, args):
                     "type": "cse",
                 }
                 for engine in [
-                    lambda engine: engine.split("=", 1)
+                    engine.split("=", 1)
                     for engine in config.get(
                         section="quotesearch", key="extra-cse-list", default=[]
                     )
