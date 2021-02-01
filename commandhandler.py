@@ -1980,16 +1980,21 @@ async def help_function(message, client, args):
             helpMessageBody = "No commands accessible, check your input"
             delete_after = 30
         else:
-            helpMessageBody = "\n".join(
+            helpMessageBody = ("\n" if len(accessible_commands) < 50 else "; ").join(
                 [
-                    f'__{command["module"]}__ `{"` or `".join(command["trigger"][:2])}`: {command["description"]}'
+                    f'__{command["module"]}__ `{"` or `".join(command["trigger"][:2])}`: {command["description"]}' if len(accessible_commands) < 50 else f'`{"` or `".join(command["trigger"][:2])}`'
                     for command in accessible_commands
                 ]
             )
         try:
-            await messagefuncs.sendWrappedMessage(
-                helpMessageBody, target, wrap_as_embed=False, delete_after=delete_after
-            )
+            if len(helpMessageBody) > 6000:
+                await messagefuncs.sendWrappedMessage(
+                        "Response to that help query was too long, please try a more specific query or https://fletcher.fun/man", target, wrap_as_embed=True, delete_after=delete_after
+                )
+            else:
+                await messagefuncs.sendWrappedMessage(
+                        helpMessageBody, target, wrap_as_embed=True, delete_after=delete_after
+                        )
         except discord.Forbidden:
             if type(target) is discord.Member:
                 await messagefuncs.sendWrappedMessage(
