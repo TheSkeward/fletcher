@@ -1984,7 +1984,7 @@ async def help_function(message, client, args):
                 [
                     f'__{command["module"]}__ `{" or ".join(command["trigger"][:2])}`: {command["description"]}'
                     if len(accessible_commands) < 20
-                    else f'`{"` or `".join(command["trigger"][:2])}`'
+                    else f'`{" or ".join(command["trigger"][:2])}`'
                     for command in accessible_commands
                 ]
             )
