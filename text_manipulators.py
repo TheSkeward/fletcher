@@ -3139,6 +3139,7 @@ async def reaction_request_function(message, client, args):
             return False
         flip = message.content.startswith("!tcaerx")
         emoji_query = args[0].strip(":")
+        emoji = None
         target = None
         try:
             urlParts = messagefuncs.extract_identifiers_messagelink.search(
