@@ -3245,8 +3245,15 @@ async def reaction_request_function(message, client, args):
                         reason="xreact flip-o-matic",
                     )
                 emoji = processed_emoji
-            await target.add_reaction(emoji)
-            await asyncio.sleep(1)
+            try:
+                await target.add_reaction(emoji)
+            except AttributeError:
+                await message.add_reaction("🚫")
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Couldn't find message target, did you specify one?",
+                    message.author,
+                )
+            await asyncio.sleep(0.1)
             try:
                 await client.wait_for(
                     "raw_reaction_add",
