@@ -1888,11 +1888,8 @@ async def self_service_channel_function(
                 .permissions_in(message.channel_mentions[0])
                 .manage_permissions
             ):
-                await error_report_function(
-                    f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
-                    message.guild,
-                    client,
-                )
+                err = f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
+                await error_report_function(err, message.guild, client)
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
