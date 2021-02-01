@@ -1728,21 +1728,21 @@ async def glowfic_search_function(message, client, args):
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
-        searched = ""
+        searched = []
         for database in glowfic_search_databases:
             if database["type"] == "cse":
                 link = database["function"](search_q)
                 link = link["items"][0]["link"] if len(link.get("items", [])) else None
             else:
                 link = await database["function"](search_q)
-            searched += database["name"] + ", "
+            searched.append(database["name"])
             if link:
                 break
         query_time = (datetime.now() - start).total_seconds()
         if link:
             content = f"{q}\nis from {link}"
         else:
-            content = f"{q}\nattribution was not found, searched {len(databases)} databases ({searched[:-2]}) in {query_time} seconds."
+            content = f"{q}\nattribution was not found, searched {len(glowfic_search_databases)} databases ({', '.join(searched)}) in {query_time} seconds."
         await messagefuncs.sendWrappedMessage(
             content,
             args[1],
@@ -2208,32 +2208,32 @@ def autoload(ch):
             .list
         )
     glowfic_search_databases = [
+        {
+            "function": partial(glowfic_search_call, exact=True),
+            "name": "Constellation",
+            "type": "native",
+        },
+        {
+            "function": glowfic_search_call,
+            "name": "Constellation Fuzzy Search",
+            "type": "native",
+        },
+        *[
             {
-                "function": partial(glowfic_search_call, exact=True),
-                "name": "Constellation",
-                "type": "native",
-                },
-            {
-                "function": glowfic_search_call,
-                "name": "Constellation Fuzzy Search",
-                "type": "native",
-                },
-            *[
-                {
-                    "function": lru_cache()(lambda q: cseClient(
-                        exactTerms=q, cx=engine[1]
-                        ).execute()),
-                    "name": engine[0],
-                    "type": "cse",
-                    }
-                for engine in [
-                    engine.split("=", 1)
-                    for engine in config.get(
-                        section="quotesearch", key="extra-cse-list", default=[]
-                        )
-                    ]
-                ]
+                "function": lru_cache()(
+                    lambda q: cseClient(exactTerms=q, cx=engine[1]).execute()
+                ),
+                "name": engine[0],
+                "type": "cse",
+            }
+            for engine in [
+                engine.split("=", 1)
+                for engine in config.get(
+                    section="quotesearch", key="extra-cse-list", default=[]
+                )
             ]
+        ],
+    ]
     if not session:
         session = aiohttp.ClientSession(
             headers={
