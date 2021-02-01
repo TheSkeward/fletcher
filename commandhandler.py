@@ -1980,10 +1980,10 @@ async def help_function(message, client, args):
             helpMessageBody = "No commands accessible, check your input"
             delete_after = 30
         else:
-            helpMessageBody = ("\n" if len(accessible_commands) < 50 else "; ").join(
+            helpMessageBody = ("\n" if len(accessible_commands) < 20 else "; ").join(
                 [
                     f'__{command["module"]}__ `{" or ".join(command["trigger"][:2])}`: {command["description"]}'
-                    if len(accessible_commands) < 50
+                    if len(accessible_commands) < 20
                     else f'`{"` or `".join(command["trigger"][:2])}`'
                     for command in accessible_commands
                 ]
