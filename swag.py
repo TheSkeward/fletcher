@@ -1666,7 +1666,7 @@ async def ace_attorney_function(message, client, args):
                         }
                     )
                 elif len(logs):
-                    logs[-1]["content"] += f"\n{historical_message.clean_content}"
+                    logs[-1]["content"] = f"{historical_message.clean_content}\n{logs[-1]['content']}"
         logs.reverse()
         if before != message:
             if unique_users is None:
@@ -1695,6 +1695,7 @@ async def ace_attorney_function(message, client, args):
             buffer = io.BytesIO(await resp.read())
             await placeholder.delete()
             if resp.status != 200:
+                logger.debug(logs)
                 return await messagefuncs.sendWrappedMessage(
                     "File too big", target=message.channel, delete_after=30
                 )
