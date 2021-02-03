@@ -1722,9 +1722,12 @@ async def glowfic_search_call(subj_content, exact=False):
 
 async def glowfic_search_function(message, client, args):
     try:
-        q = filter(
-            lambda line: line.startswith(">"), message.content.split("\n")
-        ).__next__()
+        try:
+            q = filter(
+                    lambda line: line.startswith(">"), message.content.split("\n")
+                    ).__next__()
+        except StopIteration:
+            q = message.content.split("\n")[0]
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
