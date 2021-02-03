@@ -1634,10 +1634,14 @@ async def complice_function(message, client, args):
 async def ace_attorney_function(message, client, args):
     try:
         logs = []
+        if len(args) >= 2:
+            before = args[1]
+        else:
+            before = message.id
         async for historical_message in message.channel.history(
             oldest_first=True,
             limit=args[0],
-            before=args[1] if (len(args) >= 2) else message.id,
+            before=before
         ):
             logs.append(
                 {
