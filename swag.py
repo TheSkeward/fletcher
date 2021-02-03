@@ -1635,12 +1635,16 @@ async def ace_attorney_function(message, client, args):
     try:
         logs = []
         async for historical_message in message.channel.history(
-                oldest_first=True, limit=args[0], before=args[1] if len(args) >= 2 else message.id
+            oldest_first=True,
+            limit=args[0],
+            before=args[1] if (len(args) >= 2) else message.id,
         ):
-            logs.append({
-                user: historical_message.author.display_name,
-                content: historical_message.clean_content
-                })
+            logs.append(
+                {
+                    user: historical_message.author.display_name,
+                    content: historical_message.clean_content,
+                }
+            )
         base_url = ch.config.get(section="ace", key="server_url")
         endpoint = ch.config.get(section="ace", key="endpoint")
         placeholder = await messagefuncs.sendWrappedMessage(
@@ -2205,7 +2209,10 @@ def autoload(ch):
             "async": True,
             "hidden": True,
             "args_num": 1,
-            "args_name": ["number of messages to include", "[optional message id of starting message]"],
+            "args_name": [
+                "number of messages to include",
+                "[optional message id of starting message]",
+            ],
             "description": "Turn logs into Ace Attorney court scene.",
         }
     )
