@@ -1654,12 +1654,16 @@ async def ace_attorney_function(message, client, args):
                 unique_users = historical_message.author.display_name
             elif unique_users != historical_message.author.display_name:
                 valid_unique_users = True
-            logs.append(
-                {
-                    "user": historical_message.author.display_name,
-                    "content": historical_message.clean_content,
-                }
-            )
+            if historical_message.clean_content:
+                if len(logs) and logs[-1]['user'] != historical_message.author.display_name:
+                    logs.append(
+                        {
+                            "user": historical_message.author.display_name,
+                            "content": historical_message.clean_content,
+                        }
+                    )
+                else:
+                    logs[-1]['content'] += f"\n{historical_message.clean_content}"
         logs.reverse()
         if before != message:
             if unique_users is None:
