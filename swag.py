@@ -1641,7 +1641,7 @@ async def ace_attorney_function(message, client, args):
             else message.channel
         )
         logs = []
-        if len(args) >= 2:
+        if len(args) >= 2 and args[1].isnumeric():
             before = await channel.fetch_message(int(args[1]))
         else:
             before = message
@@ -1674,7 +1674,9 @@ async def ace_attorney_function(message, client, args):
             )
         if not valid_unique_users:
             return await messagefuncs.sendWrappedMessage(
-                    "Cannot aceattorneyfy a monologue, check your start message.", target=message.channel, delete_after=30
+                "Cannot aceattorneyfy a monologue, check your start message.",
+                target=message.channel,
+                delete_after=30,
             )
         base_url = ch.config.get(section="ace", key="server_url")
         endpoint = ch.config.get(section="ace", key="endpoint")
