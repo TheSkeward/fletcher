@@ -1683,7 +1683,7 @@ async def ace_attorney_function(message, client, args):
                     "content": before.clean_content,
                 }
             )
-        if not valid_unique_users:
+        if False and not valid_unique_users:
             return await messagefuncs.sendWrappedMessage(
                 "Cannot aceattorneyfy a monologue, check your start message.",
                 target=message.channel,
