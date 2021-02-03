@@ -1633,15 +1633,27 @@ async def complice_function(message, client, args):
 
 async def ace_attorney_function(message, client, args):
     try:
-        channel = message.channel_mentions[0] if len(message.channel_mentions) else message.channel
+        if args[0] < 0 or args[0] > 100:
+            args[0] = 10
+        channel = (
+            message.channel_mentions[0]
+            if len(message.channel_mentions)
+            else message.channel
+        )
         logs = []
         if len(args) >= 2:
             before = await channel.fetch_message(int(args[1]))
         else:
             before = message
+        unique_users = None
+        valid_unique_users = False
         async for historical_message in channel.history(
             oldest_first=False, limit=int(args[0]), before=before
         ):
+            if unique_users is None:
+                unique_users = historical_message.author.display_name
+            elif unique_users != historical_message.author.display_name:
+                valid_unique_users = True
             logs.append(
                 {
                     "user": historical_message.author.display_name,
@@ -1649,6 +1661,21 @@ async def ace_attorney_function(message, client, args):
                 }
             )
         logs.reverse()
+        if before != message:
+            if unique_users is None:
+                unique_users = historical_message.author.display_name
+            elif unique_users != historical_message.author.display_name:
+                valid_unique_users = True
+            logs.append(
+                {
+                    "user": before.author.display_name,
+                    "content": before.clean_content,
+                }
+            )
+        if not valid_unique_users:
+            return await messagefuncs.sendWrappedMessage(
+                    "Cannot aceattorneyfy a monologue, check your start message.", target=message.channel, delete_after=30
+            )
         base_url = ch.config.get(section="ace", key="server_url")
         endpoint = ch.config.get(section="ace", key="endpoint")
         placeholder = await messagefuncs.sendWrappedMessage(
@@ -2216,6 +2243,7 @@ def autoload(ch):
             "args_name": [
                 "number of messages to include",
                 "[optional message id of ending message]",
+                "[optional channel tag to retrieve messages from]",
             ],
             "description": "Turn logs into Ace Attorney court scene.",
         }
