@@ -1635,12 +1635,12 @@ async def ace_attorney_function(message, client, args):
     try:
         logs = []
         if len(args) >= 2:
-            before = args[1]
+            before = int(args[1])
         else:
             before = message.id
         async for historical_message in message.channel.history(
             oldest_first=True,
-            limit=args[0],
+            limit=int(args[0]),
             before=before
         ):
             logs.append(
