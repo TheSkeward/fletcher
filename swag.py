@@ -1633,13 +1633,14 @@ async def complice_function(message, client, args):
 
 async def ace_attorney_function(message, client, args):
     try:
+        channel = message.channel_mentions[0] if len(message.channel_mentions) else message.channel
         logs = []
         if len(args) >= 2:
-            before = await message.channel.fetch_message(int(args[1]))
+            before = await channel.fetch_message(int(args[1]))
         else:
             before = message
-        async for historical_message in message.channel.history(
-            oldest_first=True, limit=int(args[0]), before=before
+        async for historical_message in channel.history(
+            oldest_first=False, limit=int(args[0]), before=before
         ):
             logs.append(
                 {
@@ -1647,10 +1648,11 @@ async def ace_attorney_function(message, client, args):
                     "content": historical_message.clean_content,
                 }
             )
+        logs.reverse()
         base_url = ch.config.get(section="ace", key="server_url")
         endpoint = ch.config.get(section="ace", key="endpoint")
         placeholder = await messagefuncs.sendWrappedMessage(
-            "Queued logs for aceattorneyfication...", target=message.channel
+            f"Queued logs for aceattorneyfication...", target=message.channel
         )
         async with session.post(f"{base_url}{endpoint}", json=logs) as resp:
             buffer = io.BytesIO(await resp.read())
@@ -2213,7 +2215,7 @@ def autoload(ch):
             "args_num": 1,
             "args_name": [
                 "number of messages to include",
-                "[optional message id of starting message]",
+                "[optional message id of ending message]",
             ],
             "description": "Turn logs into Ace Attorney court scene.",
         }
