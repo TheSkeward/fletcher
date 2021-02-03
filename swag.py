@@ -1631,6 +1631,38 @@ async def complice_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def ace_attorney_function(message, client, args):
+    try:
+        logs = []
+        async for historical_message in message.channel.history(
+                oldest_first=True, limit=args[0], before=args[1] if len(args) >= 2 else message.id
+        ):
+            logs.append({
+                user: historical_message.author.display_name,
+                content: historical_message.clean_content
+                })
+        base_url = ch.config.get(section="ace", key="server_url")
+        endpoint = ch.config.get(section="ace", key="endpoint")
+        placeholder = await messagefuncs.sendWrappedMessage(
+            "Queued logs for aceattorneyfication...", target=message.channel
+        )
+        async with session.post(f"{base_url}{endpoint}", json=logs) as resp:
+            buffer = io.BytesIO(await resp.read())
+            await placeholder.delete()
+            if resp.status != 200:
+                return await messagefuncs.sendWrappedMessage(
+                    "File too big", target=message.channel
+                )
+            return await messagefuncs.sendWrappedMessage(
+                files=[discord.File(buffer, "ace.mp4")],
+                target=message.channel,
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("AAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def style_transfer_function(message, client, args):
     try:
         url = None
@@ -1724,8 +1756,8 @@ async def glowfic_search_function(message, client, args):
     try:
         try:
             q = filter(
-                    lambda line: line.startswith(">"), message.content.split("\n")
-                    ).__next__()
+                lambda line: line.startswith(">"), message.content.split("\n")
+            ).__next__()
         except StopIteration:
             q = message.content.split("\n")[0]
         start = datetime.now()
@@ -2164,6 +2196,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Generates an inspiring message.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!ace"],
+            "function": ace_attorney_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["number of messages to include", "[optional message id of starting message]"],
+            "description": "Turn logs into Ace Attorney court scene.",
         }
     )
     ch.add_command(
