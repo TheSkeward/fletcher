@@ -1656,10 +1656,9 @@ async def ace_attorney_function(message, client, args):
                 valid_unique_users = True
             if historical_message.clean_content:
                 if (
-                    (len(logs)
-                    and logs[-1]["user"] != historical_message.author.display_name)
-                    or not len(logs)
-                ):
+                    len(logs)
+                    and logs[-1]["user"] != historical_message.author.display_name
+                ) or not len(logs):
                     logs.append(
                         {
                             "user": historical_message.author.display_name,
@@ -1697,7 +1696,7 @@ async def ace_attorney_function(message, client, args):
             await placeholder.delete()
             if resp.status != 200:
                 return await messagefuncs.sendWrappedMessage(
-                    "File too big", target=message.channel
+                    "File too big", target=message.channel, delete_after=30
                 )
             return await messagefuncs.sendWrappedMessage(
                 files=[discord.File(buffer, "ace.mp4")],
