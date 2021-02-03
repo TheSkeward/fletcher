@@ -1643,12 +1643,14 @@ async def ace_attorney_function(message, client, args):
         logs = []
         if len(args) >= 2 and args[1].isnumeric():
             before = await channel.fetch_message(int(args[1]))
+            limit = int(args[0]) - 1
         else:
             before = message
+            limit = int(args[0])
         unique_users = None
         valid_unique_users = False
         async for historical_message in channel.history(
-            oldest_first=False, limit=int(args[0]), before=before
+            oldest_first=False, limit=limit, before=before
         ):
             if unique_users is None:
                 unique_users = historical_message.author.display_name
@@ -1666,7 +1668,9 @@ async def ace_attorney_function(message, client, args):
                         }
                     )
                 elif len(logs):
-                    logs[-1]["content"] = f"{historical_message.clean_content}\n{logs[-1]['content']}"
+                    logs[-1][
+                        "content"
+                    ] = f"{historical_message.clean_content}\n{logs[-1]['content']}"
         logs.reverse()
         if before != message:
             if unique_users is None:
@@ -1679,7 +1683,6 @@ async def ace_attorney_function(message, client, args):
                     "content": before.clean_content,
                 }
             )
-            logs.pop(0)
         if not valid_unique_users:
             return await messagefuncs.sendWrappedMessage(
                 "Cannot aceattorneyfy a monologue, check your start message.",
