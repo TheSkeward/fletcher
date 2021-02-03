@@ -1643,8 +1643,8 @@ async def ace_attorney_function(message, client, args):
         ):
             logs.append(
                 {
-                    user: historical_message.author.display_name,
-                    content: historical_message.clean_content,
+                    "user": historical_message.author.display_name,
+                    "content": historical_message.clean_content,
                 }
             )
         base_url = ch.config.get(section="ace", key="server_url")
