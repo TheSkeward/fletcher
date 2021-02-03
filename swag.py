@@ -1633,7 +1633,7 @@ async def complice_function(message, client, args):
 
 async def ace_attorney_function(message, client, args):
     try:
-        if args[0] < 0 or args[0] > 100:
+        if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 100):
             args[0] = 10
         channel = (
             message.channel_mentions[0]
