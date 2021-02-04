@@ -56,31 +56,35 @@ async def latex_render_function(message, client, args):
                 + r"}"
             )
         else:
-            preamble = ""
+            preamble = "\\usepackage[utf8]{inputenc}"
         try:
             await messagefuncs.sendWrappedMessage(
-                    "||```tex\n" + renderstring + "```||",
-                    message.channel,
-                    files=[
-                        discord.File(
-                            renderLatex(renderstring, format="png", preamble=preamble),
-                            filename="fletcher-render.png",
-                            )
-                        ],
+                "||```tex\n" + renderstring + "```||",
+                message.channel,
+                files=[
+                    discord.File(
+                        renderLatex(renderstring, format="png", preamble=preamble),
+                        filename="fletcher-render.png",
                     )
+                ],
+            )
         except RuntimeError as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.debug("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
             await messagefuncs.sendWrappedMessage(
-                    "||```tex\n" + renderstring.replace('\\\\', '\\') + "```||",
-                    message.channel,
-                    files=[
-                        discord.File(
-                            renderLatex(renderstring.replace('\\\\', '\\'), format="png", preamble=preamble),
-                            filename="fletcher-render.png",
-                            )
-                        ],
+                "||```tex\n" + renderstring.replace("\\", "\\\\") + "```||",
+                message.channel,
+                files=[
+                    discord.File(
+                        renderLatex(
+                            renderstring.replace("\\"", \\\\"),
+                            format="png",
+                            preamble=preamble,
+                        ),
+                        filename="fletcher-render.png",
                     )
+                ],
+            )
     except RuntimeError as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
