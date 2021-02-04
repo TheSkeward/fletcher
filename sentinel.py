@@ -1,4 +1,5 @@
 from sys import exc_info
+import psycopg2
 import text_manipulators
 import logging
 import messagefuncs
@@ -60,8 +61,12 @@ def listbanners_function(message, client, args):
             return bannerMessage
         else:
             return "No banners modified within the last 30 days. Raise a sentinel with `!assemble`"
+    except psycopg2.DatabaseException as e:
+        conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
     except Exception as e:
-        if "cur" in locals() and "conn" in locals():
+        if "cur" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -106,8 +111,12 @@ async def assemble_function(message, client, args):
                 f"Banner created! `!pledge {bannerName}` to commit to this pledge.",
                 message.channel,
             )
+    except psycopg2.DatabaseException as e:
+        conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
     except Exception as e:
-        if "cur" in locals() and "conn" in locals():
+        if "cur" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("ABF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -203,8 +212,12 @@ async def pledge_function(message, client, args):
                     ),
                     message.channel,
                 )
+    except psycopg2.DatabaseException as e:
+        conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
     except Exception as e:
-        if "cur" in locals() and "conn" in locals():
+        if "cur" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("PBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -289,8 +302,12 @@ async def defect_function(message, client, args):
                 ),
                 message.channel,
             )
+    except psycopg2.DatabaseException as e:
+        conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
     except Exception as e:
-        if "cur" in locals() and "conn" in locals():
+        if "cur" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
