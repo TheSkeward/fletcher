@@ -1633,29 +1633,37 @@ async def complice_function(message, client, args):
 
 async def ace_attorney_function(message, client, args):
     try:
-        if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 100):
-            args[0] = 10
         channel = (
             message.channel_mentions[0]
             if len(message.channel_mentions)
             else message.channel
         )
         logs = []
-        if len(args) >= 2 and args[1].isnumeric():
-            before = await channel.fetch_message(int(args[1]))
-            limit = int(args[0]) - 1
+        if args[0].isnumeric() and int(args[0]) > 10000 and len(args) > 1:
+            after = await channel.fetch_message(int(args[0]) if int(args[0]) < int(args[1]) else int(args[1]))
+            before = await channel.fetch_message(int(args[0]) if int(args[0]) > int(args[1]) else int(args[1]))
+            history = channel.history(
+                    oldest_first=False, after=after, before=before
+                    )
+            logs.append(
+                    {
+                        "user": after.author.display_name,
+                        "content": after.clean_content,
+                        }
+                    )
         else:
-            before = message
-            limit = int(args[0])
-        unique_users = None
-        valid_unique_users = False
-        async for historical_message in channel.history(
-            oldest_first=False, limit=limit, before=before
-        ):
-            if unique_users is None:
-                unique_users = historical_message.author.display_name
-            elif unique_users != historical_message.author.display_name:
-                valid_unique_users = True
+            if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 100):
+                args[0] = 10
+            if len(args) >= 2 and args[1].isnumeric():
+                before = await channel.fetch_message(int(args[1]))
+                limit = int(args[0]) - 1
+            else:
+                before = message
+                limit = int(args[0])
+            history = channel.history(
+                    oldest_first=False, limit=limit, before=before
+                    )
+        async for historical_message in history:
             if historical_message.clean_content:
                 if (
                     len(logs)
@@ -1673,21 +1681,11 @@ async def ace_attorney_function(message, client, args):
                     ] = f"{historical_message.clean_content}\n{logs[-1]['content']}"
         logs.reverse()
         if before != message:
-            if unique_users is None:
-                unique_users = historical_message.author.display_name
-            elif unique_users != historical_message.author.display_name:
-                valid_unique_users = True
             logs.append(
                 {
                     "user": before.author.display_name,
                     "content": before.clean_content,
                 }
-            )
-        if False and not valid_unique_users:
-            return await messagefuncs.sendWrappedMessage(
-                "Cannot aceattorneyfy a monologue, check your start message.",
-                target=message.channel,
-                delete_after=30,
             )
         base_url = ch.config.get(section="ace", key="server_url")
         endpoint = ch.config.get(section="ace", key="endpoint")
@@ -1703,6 +1701,7 @@ async def ace_attorney_function(message, client, args):
                     "File too big", target=message.channel, delete_after=30
                 )
             return await messagefuncs.sendWrappedMessage(
+                    f"Courtroom scene for {message.author.mention}",
                 files=[discord.File(buffer, "ace.mp4")],
                 target=message.channel,
             )
@@ -2252,7 +2251,7 @@ def autoload(ch):
             "trigger": ["!ace"],
             "function": ace_attorney_function,
             "async": True,
-            "hidden": True,
+            "hidden": False,
             "args_num": 1,
             "args_name": [
                 "number of messages to include",

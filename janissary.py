@@ -1883,12 +1883,14 @@ async def self_service_channel_function(
                 f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
                 message.author,
             )
+            err = (
+                f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
+            )
             if (
                 not message.guild.get_member(client.user.id)
                 .permissions_in(message.channel_mentions[0])
                 .manage_permissions
             ):
-                err = f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
                 await error_report_function(err, message.guild, client)
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
