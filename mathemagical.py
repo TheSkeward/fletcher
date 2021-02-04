@@ -77,7 +77,7 @@ async def latex_render_function(message, client, args):
                 files=[
                     discord.File(
                         renderLatex(
-                            renderstring.replace("\\"", \\\\"),
+                            renderstring.replace("\\", "\\\\"),
                             format="png",
                             preamble=preamble,
                         ),
