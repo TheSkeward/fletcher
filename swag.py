@@ -1704,7 +1704,7 @@ async def ace_attorney_function(message, client, args):
                 )
             return await messagefuncs.sendWrappedMessage(
                 f"Courtroom scene for {message.author.mention}",
-                files=[discord.File(buffer, "ace.mp4")],
+                files=[discord.File(buffer, "objection.webm")],
                 target=message.channel,
             )
     except Exception as e:
