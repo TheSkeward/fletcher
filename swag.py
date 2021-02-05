@@ -1633,6 +1633,7 @@ async def complice_function(message, client, args):
 
 async def ace_attorney_function(message, client, args):
     try:
+        start = datetime.now()
         channel = (
             message.channel_mentions[0]
             if len(message.channel_mentions)
@@ -1658,7 +1659,7 @@ async def ace_attorney_function(message, client, args):
                 }
             )
         else:
-            if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 100):
+            if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 200):
                 args[0] = 10
             if len(args) >= 2 and args[1].isnumeric():
                 before = await channel.fetch_message(int(args[1]))
@@ -1696,6 +1697,7 @@ async def ace_attorney_function(message, client, args):
         placeholder = await messagefuncs.sendWrappedMessage(
             f"Queued logs for aceattorneyfication...", target=message.channel
         )
+        sent = datetime.now()
         with message.channel.typing():
             async with session.post(f"{base_url}{endpoint}", json=logs) as resp:
                 buffer = io.BytesIO(await resp.read())
@@ -1706,8 +1708,10 @@ async def ace_attorney_function(message, client, args):
                         "File too big", target=message.channel, delete_after=30
                     )
                 try:
+                    total_time = (datetime.now() - start).total_seconds()
+                    encoding_time = (datetime.now() - sent).total_seconds()
                     return await messagefuncs.sendWrappedMessage(
-                        f"Courtroom scene for {message.author.mention}",
+                        f"Courtroom scene for {message.author.mention} (rendered in {encoding_time} seconds)",
                         files=[discord.File(buffer, "objection.mp4")],
                         target=message.channel,
                     )
