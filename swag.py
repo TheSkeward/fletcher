@@ -1641,6 +1641,8 @@ async def ace_attorney_function(message, client, args):
         logs = []
         if message.reference and message.type is not discord.MessageType.pins_add:
             args.insert(1, str(message.reference.message_id))
+            if args[0] == "down":
+                args[0] = str(message.id)
         if args[0].isnumeric() and int(args[0]) > 10000 and len(args) > 1:
             after = await channel.fetch_message(
                 int(args[0]) if int(args[0]) < int(args[1]) else int(args[1])
@@ -1694,24 +1696,25 @@ async def ace_attorney_function(message, client, args):
         placeholder = await messagefuncs.sendWrappedMessage(
             f"Queued logs for aceattorneyfication...", target=message.channel
         )
-        async with session.post(f"{base_url}{endpoint}", json=logs) as resp:
-            buffer = io.BytesIO(await resp.read())
-            await placeholder.delete()
-            if resp.status != 200:
-                logger.debug(logs)
-                return await messagefuncs.sendWrappedMessage(
-                    "File too big", target=message.channel, delete_after=30
-                )
-            try:
-                return await messagefuncs.sendWrappedMessage(
+        with message.channel.typing():
+            async with session.post(f"{base_url}{endpoint}", json=logs) as resp:
+                buffer = io.BytesIO(await resp.read())
+                await placeholder.delete()
+                if resp.status != 200:
+                    logger.debug(logs)
+                    return await messagefuncs.sendWrappedMessage(
+                        "File too big", target=message.channel, delete_after=30
+                    )
+                try:
+                    return await messagefuncs.sendWrappedMessage(
                         f"Courtroom scene for {message.author.mention}",
                         files=[discord.File(buffer, "objection.webm")],
                         target=message.channel,
-                        )
-            except discord.HTTPException:
-                return await messagefuncs.sendWrappedMessage(
+                    )
+                except discord.HTTPException:
+                    return await messagefuncs.sendWrappedMessage(
                     "File too big", target=message.channel, delete_after=30
-                )
+                    )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
