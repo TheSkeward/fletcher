@@ -1702,11 +1702,16 @@ async def ace_attorney_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     "File too big", target=message.channel, delete_after=30
                 )
-            return await messagefuncs.sendWrappedMessage(
-                f"Courtroom scene for {message.author.mention}",
-                files=[discord.File(buffer, "objection.webm")],
-                target=message.channel,
-            )
+            try:
+                return await messagefuncs.sendWrappedMessage(
+                        f"Courtroom scene for {message.author.mention}",
+                        files=[discord.File(buffer, "objection.webm")],
+                        target=message.channel,
+                        )
+            except discord.HTTPException:
+                return await messagefuncs.sendWrappedMessage(
+                    "File too big", target=message.channel, delete_after=30
+                )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
