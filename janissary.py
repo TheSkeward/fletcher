@@ -793,7 +793,7 @@ async def snooze_channel_function(message, client, args):
         cur = conn.cursor()
         if len(args) == 2:
             try:
-                interval = float(args[1])
+                interval = float(args[1].rstrip("h"))
             except ValueError:
                 interval = float(24)
         elif len(args) > 1:
@@ -809,7 +809,7 @@ async def snooze_channel_function(message, client, args):
                 interval = float(24)
         else:
             try:
-                interval = float(args[0])
+                interval = float(args[0].rstrip("h"))
             except (ValueError, IndexError):
                 interval = float(24)
         overwrites = "overwrite " + ujson.dumps(
