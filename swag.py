@@ -1639,18 +1639,22 @@ async def ace_attorney_function(message, client, args):
             else message.channel
         )
         logs = []
+        if message.reference and message.type is not discord.MessageType.pins_add:
+            args[1] = message.reference.message_id
         if args[0].isnumeric() and int(args[0]) > 10000 and len(args) > 1:
-            after = await channel.fetch_message(int(args[0]) if int(args[0]) < int(args[1]) else int(args[1]))
-            before = await channel.fetch_message(int(args[0]) if int(args[0]) > int(args[1]) else int(args[1]))
-            history = channel.history(
-                    oldest_first=False, after=after, before=before
-                    )
+            after = await channel.fetch_message(
+                int(args[0]) if int(args[0]) < int(args[1]) else int(args[1])
+            )
+            before = await channel.fetch_message(
+                int(args[0]) if int(args[0]) > int(args[1]) else int(args[1])
+            )
+            history = channel.history(oldest_first=False, after=after, before=before)
             logs.append(
-                    {
-                        "user": after.author.display_name,
-                        "content": after.clean_content,
-                        }
-                    )
+                {
+                    "user": after.author.display_name,
+                    "content": after.clean_content,
+                }
+            )
         else:
             if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 100):
                 args[0] = 10
@@ -1660,9 +1664,7 @@ async def ace_attorney_function(message, client, args):
             else:
                 before = message
                 limit = int(args[0])
-            history = channel.history(
-                    oldest_first=False, limit=limit, before=before
-                    )
+            history = channel.history(oldest_first=False, limit=limit, before=before)
         async for historical_message in history:
             if historical_message.clean_content:
                 if (
@@ -1701,7 +1703,7 @@ async def ace_attorney_function(message, client, args):
                     "File too big", target=message.channel, delete_after=30
                 )
             return await messagefuncs.sendWrappedMessage(
-                    f"Courtroom scene for {message.author.mention}",
+                f"Courtroom scene for {message.author.mention}",
                 files=[discord.File(buffer, "ace.mp4")],
                 target=message.channel,
             )
