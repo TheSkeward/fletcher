@@ -69,7 +69,11 @@ async def latex_render_function(message, client, args):
                 ],
             )
         except RuntimeError as e:
-            renderstringSlashed = renderstring.replace("\\\\\\\\", "quadslash").replace("\\", "\\\\").replace("quadslash", "\\\\\\\\")
+            renderstringSlashed = (
+                renderstring.replace("\\\\\\\\", "quadslash")
+                .replace("\\", "\\\\")
+                .replace("quadslash", "\\\\\\\\")
+            )
             exc_type, exc_obj, exc_tb = exc_info()
             logger.debug("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
             await messagefuncs.sendWrappedMessage(
