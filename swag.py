@@ -1640,7 +1640,7 @@ async def ace_attorney_function(message, client, args):
         )
         logs = []
         if message.reference and message.type is not discord.MessageType.pins_add:
-            args[1] = message.reference.message_id
+            args.insert(1, message.reference.message_id)
         if args[0].isnumeric() and int(args[0]) > 10000 and len(args) > 1:
             after = await channel.fetch_message(
                 int(args[0]) if int(args[0]) < int(args[1]) else int(args[1])
