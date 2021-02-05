@@ -855,8 +855,11 @@ async def snooze_channel_function(message, client, args):
             )
             channel_names += f"{channel.guild.name}:{channel.name}, "
         channel_names = channel_names[:-2]
-        if args[0].strip()[-2:] == ":*":
-            channel_names = channels[0].guild.name
+        try:
+            if args[0].strip()[-2:] == ":*":
+                channel_names = channels[0].guild.name
+        except IndexError:
+            pass
         conn.commit()
         await message.add_reaction("✅")
         if type(interval) == float:
