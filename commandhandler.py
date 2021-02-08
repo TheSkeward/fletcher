@@ -109,7 +109,8 @@ class CommandHandler:
                 continue
             logger.debug(f"LWH: Querying {guild.name}")
             for webhook in filter(
-                webhook.name.startswith(navel_filter), await guild.webhooks()
+                lambda webhook: webhook.name.startswith(navel_filter),
+                await guild.webhooks(),
             ):
                 toChannelName = (
                     f"{guild.name}:{guild.get_channel(webhook.channel_id).name}"
