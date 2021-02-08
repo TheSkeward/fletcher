@@ -334,10 +334,9 @@ class CommandHandler:
 
     async def web_handler(self, request):
         json = await request.json()
-        channel_config = ch.scope_config(
-            guild=json["guild_id"], channel=json["channel_id"]
-        )
-        if request.remote == channel_config.get("remote_ip", None):
+        if request.remote == ch.config.get(
+                guild=json["guild_id"], channel=json["channel_id"], key="remote_ip", default=None
+                ):
             channel = self.client.get_guild(json["guild_id"]).get_channel(
                 json["channel_id"]
             )
