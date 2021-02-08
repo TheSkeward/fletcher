@@ -346,7 +346,7 @@ class CommandHandler:
         return web.Response(status=400)
 
     async def reaction_handler(self, reaction):
-        with sentry_sdk.Hub(sentry_sdk.hub.current) as hub:
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 try:
                     global config
@@ -597,7 +597,7 @@ class CommandHandler:
                     logger.error(f"RXH[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def reaction_remove_handler(self, reaction):
-        with sentry_sdk.Hub(sentry_sdk.hub.current) as hub:
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 try:
                     global config
@@ -675,7 +675,7 @@ class CommandHandler:
 
     async def remove_handler(self, user):
         global config
-        with sentry_sdk.Hub(sentry_sdk.hub.current) as hub:
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 scope.user = {"id": user.id, "username": str(user)}
                 scope.set_tag("guild", user.guild.name)
@@ -693,7 +693,7 @@ class CommandHandler:
                         )
 
     async def join_handler(self, user):
-        with sentry_sdk.Hub(sentry_sdk.hub.current) as hub:
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 scope.user = {"id": user.id, "username": str(user)}
                 scope.set_tag("guild", user.guild.name)
@@ -1523,7 +1523,7 @@ class CommandHandler:
                 return
 
     async def run_command(self, command, message, args, user):
-        with sentry_sdk.Hub(sentry_sdk.hub.current) as hub:
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 scope.user = {"id": user.id, "username": str(user)}
                 if user.guild:
