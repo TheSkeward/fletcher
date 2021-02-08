@@ -851,9 +851,9 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!pfp", "!avatar"],
-            "function": lambda message, client, args: (
+            "function": lambda message, client, args: str((
                 message.mentions[0] if len(message.mentions) else message.author
-            ).avatar_url.replace('.webp?', '.png?'),
+            ).avatar_url).replace(".webp?", ".png?"),
             "async": False,
             "args_num": 0,
             "args_name": [],
