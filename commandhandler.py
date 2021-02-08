@@ -102,7 +102,7 @@ class CommandHandler:
             lambda guild: self.config.get(guild=guild, key="synchronize"),
             self.client.guilds,
         ):
-            if not guild.get_member(client.user.id).manage_webhooks:
+            if not guild.get_member(client.user.id).guild_permissions.manage_webhooks:
                 logger.warning(
                     f"LWH: Couldn't load webhooks for {guild.name} ({guild.id}), ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)"
                 )
