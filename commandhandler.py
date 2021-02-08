@@ -19,7 +19,7 @@ import textwrap
 import traceback
 import ujson
 from functools import lru_cache, partial
-from sentry_sdk import configure_scope
+import sentry_sdk
 from asyncache import cached
 from cachetools import TTLCache
 
