@@ -57,7 +57,7 @@ def get_tz(message=None, user=None, guild=None):
             ch.scope_config(guild=guild, channel=message.channel).get("tz")
         )
     elif ch.scope_config(guild=guild).get("tz"):
-        tz = pytz.timezone(ch.scopedconfig(guild=guild).get("tz"))
+        tz = pytz.timezone(ch.config.get(guild=guild, key="tz"))
     else:
         tz = pytz.utc
     return tz
