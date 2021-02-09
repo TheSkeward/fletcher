@@ -8,6 +8,7 @@ logger = logging.getLogger("fletcher")
 
 sessions = {}
 
+
 async def minecraft_send_say_function(message, client, args):
     try:
         message_text = " ".join(args)
@@ -26,7 +27,7 @@ async def minecraft_send_say_function(message, client, args):
                     default=25575,
                 )
             ),
-            config.get(
+            passwd=config.get(
                 guild=message.guild.id,
                 channel=message.channel.id,
                 key="minecraft_rcon-password",
