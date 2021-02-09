@@ -1,4 +1,4 @@
-from mcipc.rcon import Client
+from mcipc.rcon.je import Client
 import socket
 from sys import exc_info
 
@@ -10,9 +10,9 @@ logger = logging.getLogger("fletcher")
 sessions = {}
 
 
-async def get_session(guild_id, channel_id):
+def get_session(guild_id, channel_id):
     if not sessions.get(channel_id):
-        session[channel_id] = await Client(
+        session[channel_id] = Client(
             config.get(
                 guild=guild_id,
                 channel=channel_id,
@@ -27,9 +27,6 @@ async def get_session(guild_id, channel_id):
                     default=25575,
                 )
             ),
-            timeout=1.5,
-        )
-        session[channel_id].login(
             config.get(
                 guild=guild_id,
                 channel=channel_id,
@@ -43,7 +40,8 @@ async def get_session(guild_id, channel_id):
 async def minecraft_send_say_function(message, client, args):
     try:
         message_text = " ".join(args)
-        (await get_session(message.guild.id, message.channel.id)).say(message_text)
+        with get_session(message.guild.id, message.channel.id) as session:
+            session.say(message_text)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"MCSSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
