@@ -1652,12 +1652,6 @@ async def ace_attorney_function(message, client, args):
                 int(args[0]) if int(args[0]) > int(args[1]) else int(args[1])
             )
             history = channel.history(oldest_first=False, after=after, before=before)
-            logs.append(
-                {
-                    "user": after.author.display_name,
-                    "content": after.clean_content,
-                }
-            )
         else:
             if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 200):
                 args[0] = 10
@@ -1684,6 +1678,18 @@ async def ace_attorney_function(message, client, args):
                     logs[-1][
                         "content"
                     ] = f"{historical_message.clean_content}\n{logs[-1]['content']}"
+        if after and after.clean_content:
+            if (len(logs) and logs[-1]["user"] != after.author.display_name) or not len(
+                logs
+            ):
+                logs.append(
+                    {
+                        "user": after.author.display_name,
+                        "content": after.clean_content,
+                    }
+                )
+            elif len(logs):
+                logs[-1]["content"] = f"{after.clean_content}\n{logs[-1]['content']}"
         logs.reverse()
         if before != message:
             logs.append(
