@@ -334,9 +334,13 @@ class CommandHandler:
 
     async def web_handler(self, request):
         json = await request.json()
-        if request.remote == ch.config.get(
-                guild=json["guild_id"], channel=json["channel_id"], key="remote_ip", default=None
-                ):
+        remote_ip = self.config.get(
+            guild=json["guild_id"],
+            channel=json["channel_id"],
+            key="remote_ip",
+            default=None,
+        )
+        if request.remote == remote_ip or json.get("rcon-password", "") == self.config.get(guild=json["guild_id"], channel=json["channel_id"], key="minecraft_rcon-password", default=None):
             channel = self.client.get_guild(json["guild_id"]).get_channel(
                 json["channel_id"]
             )
@@ -792,11 +796,9 @@ class CommandHandler:
             return
         bridge_key = f"{message.guild.name}:{message.channel.name}"
         bridge = self.webhook_sync_registry.get(bridge_key)
-        if not bridge:
-            return
         sync = self.config.get(section="sync")
         user = message.author
-        # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it other than sync processing
+        # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
             webhook = await self.fetch_webhook_cached(message.webhook_id)
             if webhook.name not in sync.get("whitelist-webhooks", []):
@@ -826,7 +828,10 @@ class CommandHandler:
             and len(ignores)
             and message.content.startswith(tuple(ignores))
         ):
-            logger.debug(f"Prefix in {tuple(ignores)}, not bridging")
+            return
+        if not bridge:
+            if self.config.get(guild=guild_id, channel=channel_id, key="bridge_function") and len(message.content) and len(self.get_command(self.config.get(guild=guild_id, channel=channel_id, key="bridge_function"), message, min_args=1)):
+                await self.run_command(self.get_command(self.config.get(guild=guild_id, channel=channel_id, key="bridge_function"), message, min_args=1)[0], message, message.content.split(" "), user)
             return
         attachments = []
         for attachment in message.attachments:
@@ -1752,7 +1757,7 @@ class CommandHandler:
         await (
             guild.public_updates_channel or guild.system_channel or guild.owner
         ).send(
-            f"Thank you for adding me to {guild.name}! If you added me for bridges, please note that you must set the `synchronize` option to `On` at https://fletcher.fun to use this feature. Also, if you added me for reaction-triggered commands, you must set the `active-emoji` option to `On`. If you have issues, please join the support server at {config.get(section='discord', key='support-invite')} for help."
+            f"Thank you for adding me to {guild.name}! If you added me for bridges, please note that you must set the `synchronize` option to `On` at https://fletcher.fun to use this feature. Also, if you added me for reaction-triggered commands, you must set the `active-emoji` option to `On`. If you have issues, please join the support server at {self.config.get(section='discord', key='support_invite')} for help."
         )
 
     def get_member_named(self, guild, name, allow_insensitive=True):
@@ -2299,6 +2304,13 @@ async def dumptasks_function(message, client, args):
 
 async def autounload(ch):
     try:
+        logger.debug("Shutting down site")
+        await ch.site.stop()
+        logger.debug("Shutting down app")
+        await ch.app.shutdown()
+        logger.debug("Shutting down runner")
+        await ch.runner.shutdown()
+        logger.debug("Cleaning up runner")
         await ch.runner.cleanup()
     except Exception as e:
         logger.debug(e)
@@ -2388,6 +2400,7 @@ def autoload(ch):
 
 async def run_web_api(config, ch):
     app = Application()
+    ch.app = app
     app.router.add_post("/", ch.web_handler)
 
     runner = AppRunner(app)
@@ -2397,9 +2410,12 @@ async def run_web_api(config, ch):
         runner,
         config.get("webconsole", {}).get("hostname", "::"),
         config.get("webconsole", {}).get("port", 25585),
+        reuse_port=True,
+        shutdown_timeout=1,
     )
     try:
         await site.start()
-    except OSError:
+    except OSError as e:
+        logger.debug(e)
         pass
     ch.site = site

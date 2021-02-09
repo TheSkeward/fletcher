@@ -1719,6 +1719,10 @@ async def ace_attorney_function(message, client, args):
                     return await messagefuncs.sendWrappedMessage(
                         "File too big", target=message.channel, delete_after=30
                     )
+    except discord.NotFound as e:
+        await messagefuncs.sendWrappedMessage(
+            "Could not find one of the messages used as arguments", target=message.channel, delete_after=30
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
