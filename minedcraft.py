@@ -34,7 +34,7 @@ async def minecraft_send_say_function(message, client, args):
                 default="",
             ),
         ) as session:
-            session.say(message_text)
+            session.say(f"<{message.author.display_name}> {message_text}")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"MCSSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
