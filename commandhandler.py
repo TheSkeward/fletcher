@@ -1570,7 +1570,7 @@ class CommandHandler:
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:
                 scope.user = {"id": user.id, "username": str(user)}
-                if user.guild:
+                if hasattr(user, 'guild'):
                     scope.set_tag("guild", user.guild.name)
                 if command.get("long_run") == "author":
                     await user.trigger_typing()
