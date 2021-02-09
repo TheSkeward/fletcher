@@ -842,6 +842,7 @@ class CommandHandler:
                     guild=message.guild.id,
                     channel=message.channel.id,
                     key="bridge_function",
+                    use_category_as_channel_fallback=False,
                 )
                 and message.author.id != self.client.user.id
                 and len(message.content)
