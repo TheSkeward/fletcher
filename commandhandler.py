@@ -340,7 +340,14 @@ class CommandHandler:
             key="remote_ip",
             default=None,
         )
-        if request.remote == remote_ip or json.get("rcon-password", "") == self.config.get(guild=json["guild_id"], channel=json["channel_id"], key="minecraft_rcon-password", default=None):
+        if request.remote == remote_ip or json.get(
+            "rcon-password", ""
+        ) == self.config.get(
+            guild=json["guild_id"],
+            channel=json["channel_id"],
+            key="minecraft_rcon-password",
+            default=None,
+        ):
             channel = self.client.get_guild(json["guild_id"]).get_channel(
                 json["channel_id"]
             )
@@ -830,8 +837,33 @@ class CommandHandler:
         ):
             return
         if not bridge:
-            if self.config.get(guild=guild_id, channel=channel_id, key="bridge_function") and len(message.content) and len(self.get_command(self.config.get(guild=guild_id, channel=channel_id, key="bridge_function"), message, min_args=1)):
-                await self.run_command(self.get_command(self.config.get(guild=guild_id, channel=channel_id, key="bridge_function"), message, min_args=1)[0], message, message.content.split(" "), user)
+            if (
+                self.config.get(
+                    guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                )
+                and len(message.content)
+                and len(
+                    self.get_command(
+                        self.config.get(
+                            guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                        ),
+                        message,
+                        min_args=1,
+                    )
+                )
+            ):
+                await self.run_command(
+                    self.get_command(
+                        self.config.get(
+                            guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                        ),
+                        message,
+                        min_args=1,
+                    )[0],
+                    message,
+                    message.content.split(" "),
+                    user,
+                )
             return
         attachments = []
         for attachment in message.attachments:
