@@ -157,6 +157,7 @@ import sentinel
 import janissary
 import mathemagical
 import messagefuncs
+import minedcraft
 import text_manipulators
 import schedule
 import swag
@@ -285,6 +286,7 @@ async def reload_function(message=None, client=client, args=[]):
         await animate_startup("➕", message)
         await autoload(janissary, ch)
         # Super Waifu Animated Girlfriend (SWAG)
+        await autoload(minedcraft, ch)
         await autoload(swag, ch)
         await animate_startup("🙉", message)
         # Photos Connectors (for !twilestia et al)
