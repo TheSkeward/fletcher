@@ -13,13 +13,13 @@ async def minecraft_send_say_function(message, client, args):
     try:
         message_text = " ".join(args)
         with Client(
-            config.get(
+            host=config.get(
                 guild=message.guild.id,
                 channel=message.channel.id,
                 key="minecraft_host",
                 default="34.224.93.95",
             ),
-            int(
+            port=int(
                 config.get(
                     guild=message.guild.id,
                     channel=message.channel.id,
