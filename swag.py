@@ -1653,6 +1653,7 @@ async def ace_attorney_function(message, client, args):
             )
             history = channel.history(oldest_first=False, after=after, before=before)
         else:
+            after = None
             if not args[0].isnumeric() or (int(args[0]) < 0) or (int(args[0]) > 200):
                 args[0] = 10
             if len(args) >= 2 and args[1].isnumeric():
