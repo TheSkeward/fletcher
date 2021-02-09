@@ -839,13 +839,17 @@ class CommandHandler:
         if not bridge:
             if (
                 self.config.get(
-                    guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                    guild=message.guild.id,
+                    channel=message.channel.id,
+                    key="bridge_function",
                 )
                 and len(message.content)
                 and len(
                     self.get_command(
                         self.config.get(
-                            guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                            guild=message.guild.id,
+                            channel=message.channel.id,
+                            key="bridge_function",
                         ),
                         message,
                         min_args=1,
@@ -855,7 +859,9 @@ class CommandHandler:
                 await self.run_command(
                     self.get_command(
                         self.config.get(
-                            guild=message.guild.id, channel=message.channel.id, key="bridge_function"
+                            guild=message.guild.id,
+                            channel=message.channel.id,
+                            key="bridge_function",
                         ),
                         message,
                         min_args=1,
