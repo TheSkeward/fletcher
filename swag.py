@@ -1060,7 +1060,7 @@ def join_rank_function(message, client, args):
             member_rank = sorted_member_list.index(member) + 1
         if member_rank < 118:  # len(periodictable.elements):
             member_element = (
-                f"Your element is {periodictable.elements[member_rank].name.title()}."
+                f"Your element is {periodictable.elements[member_rank].name.title()}.\nYour wikidata object is {wikidata_get('Q'+str(member_rank)).label} (<https://www.wikidata.org/wiki/{'Q'+str(member_rank)}>)."
             )
         else:
             member_element = f"Your wikidata object is {wikidata_get('Q'+str(member_rank)).label} (<https://www.wikidata.org/wiki/{'Q'+str(member_rank)}>)."
