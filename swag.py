@@ -1063,7 +1063,7 @@ def join_rank_function(message, client, args):
                 f"Your element is {periodictable.elements[member_rank].name.title()}."
             )
         else:
-            member_element = "Your wikidata object is {wikidata_get('Q'+member_rank)} ({'Q'+member_rank})."
+            member_element = f"Your wikidata object is {wikidata_get('Q'+member_rank)} ({'Q'+member_rank})."
 
         if guild_config.get("rank-loudness", "quiet") == "loud":
             member_display = member.mention
