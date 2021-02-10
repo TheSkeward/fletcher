@@ -1067,7 +1067,11 @@ def join_rank_function(message, client, args):
             except Exception:
                 pass
         else:
-            member_element = f"Your element is {periodictable.elements[member_rank].name.title()}."
+            try:
+                member_element = f"Your wikidata object is {wikidata_get('Q'+str(member_rank)).label} (<https://www.wikidata.org/wiki/{'Q'+str(member_rank)}>)."
+            except Exception:
+                member_element = ""
+                pass
 
         if guild_config.get("rank-loudness", "quiet") == "loud":
             member_display = member.mention
