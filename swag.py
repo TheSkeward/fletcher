@@ -1059,15 +1059,15 @@ def join_rank_function(message, client, args):
         else:
             member_rank = sorted_member_list.index(member) + 1
         if member_rank < 118:  # len(periodictable.elements):
-            member_element = f"Your element is {periodictable.elements[member_rank].name.title()}.\nYour wikidata object is {wikidata_get('Q'+str(member_rank)).label} (<https://www.wikidata.org/wiki/{'Q'+str(member_rank)}>)."
-        else:
             member_element = (
                 f"Your element is {periodictable.elements[member_rank].name.title()}."
             )
             try:
                 member_element += f"\nYour wikidata object is {wikidata_get('Q'+str(member_rank)).label} (<https://www.wikidata.org/wiki/{'Q'+str(member_rank)}>)."
-            except HTTPError:
+            except Exception:
                 pass
+        else:
+            member_element = f"Your element is {periodictable.elements[member_rank].name.title()}."
 
         if guild_config.get("rank-loudness", "quiet") == "loud":
             member_display = member.mention
