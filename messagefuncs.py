@@ -835,6 +835,19 @@ async def archive_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("ARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+async def translate_function(message, client, args):
+    try:
+        base_url = ch.config.get(section="translate", key="server_url")
+        endpoint = ch.config.get(section="translate", key="endpoint")
+        placeholder = await messagefuncs.sendWrappedMessage(
+            f"Translating...", target=message.channel
+        )
+        with message.channel.typing():
+            async with session.post(f"{base_url}{endpoint}", json={"q": " ".join(args[2:]), "source": args[0], "target": args[1]}) as resp:
+                await placeholder.edit(f"Translation for {message.author.mention}\n{(await resp.json())['translatedText']}")
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 # Register this module's commands
 def autoload(ch):
@@ -944,6 +957,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Archive links in a message",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!translate"],
+            "function": translate_function,
+            "async": True,
+            "args_num": 3,
+            "args_name": ["Source Language [ar|de|es|fr|it|pt|ru|zh]", "Target Language [ar|de|es|fr|it|pt|ru|zh]", "Query"],
+            "description": "Translate text from language to language",
         }
     )
 
