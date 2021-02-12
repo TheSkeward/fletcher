@@ -843,14 +843,15 @@ async def translate_function(message, client, args):
         placeholder = await sendWrappedMessage(
             f"Translating...", target=message.channel
         )
-        with message.channel.typing():
-            async with session.post(
-                f"{base_url}{endpoint}",
-                json={"q": " ".join(args[2:]), "source": args[0], "target": args[1]},
-            ) as resp:
-                await placeholder.edit(
-                    content=f"Translation for {message.author.mention}\n{(await resp.json())['translatedText']}"
-                )
+        async with session.post(
+            f"{base_url}{endpoint}",
+            json={"q": " ".join(args[2:]), "source": args[0], "target": args[1]},
+        ) as resp:
+            await placeholder.delete()
+            await sendWrappedMessage(
+                f"Translation for {message.author.mention}\n> {(await resp.json())['translatedText']}",
+                target=message.channel
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
