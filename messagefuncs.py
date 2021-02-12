@@ -849,7 +849,7 @@ async def translate_function(message, client, args):
                 json={"q": " ".join(args[2:]), "source": args[0], "target": args[1]},
             ) as resp:
                 await placeholder.edit(
-                    f"Translation for {message.author.mention}\n{(await resp.json())['translatedText']}"
+                    content=f"Translation for {message.author.mention}\n{(await resp.json())['translatedText']}"
                 )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
