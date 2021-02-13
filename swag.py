@@ -517,14 +517,6 @@ async def roll_function(message, client, args):
 async def pick_function(message, client, args):
     global ch
     try:
-        if args[0].startswith("list="):
-            if ch.scope_config(guild=guild).get(f"pick-list-{args[0][5:]}"):
-                args = (
-                    ch.scope_config(guild=guild)
-                    .get(f"pick-list-{args[0][5:]}", "")
-                    .split(" ")
-                )
-            args = pick_lists.get(args[0][5:]).split(" ")
         if args[0] in ["between", "among", "in", "of"]:
             args = args[1:]
         many = 1
@@ -534,6 +526,15 @@ async def pick_function(message, client, args):
                 args = args[2:]
         except ValueError:
             pass
+        if args[0].startswith("list="):
+            if guild and ch.scope_config(guild=guild).get(f"pick-list-{args[0][5:]}"):
+                args = (
+                    ch.scope_config(guild=guild)
+                    .get(f"pick-list-{args[0][5:]}", "")
+                    .split(" ")
+                )
+            else:
+                args = pick_lists.get(args[0][5:], "No such list").split(" ")
         argstr = " ".join(args).rstrip(" ?.!")
         if "," in argstr:
             pick_regex = pick_regexes["has_commas"]
