@@ -538,7 +538,7 @@ async def pick_function(message, client, args):
                     .split(" ")
                 )
             else:
-                args = pick_lists.get(args[0][5:], "No such list").split(" ")
+                args = pick_lists.get(args[0][5:], "No such list,").split(" ")
         argstr = " ".join(args).rstrip(" ?.!")
         if "," in argstr:
             pick_regex = pick_regexes["has_commas"]
