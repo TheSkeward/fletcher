@@ -521,11 +521,13 @@ async def pick_function(message, client, args):
             args = args[1:]
         many = 1
         try:
-            if len(args) > 2:
+            if len(args) > 1:
                 many = int(args[0])
                 args = args[1:]
         except ValueError:
             pass
+        if args[0] in ["between", "among", "in", "of"]:
+            args = args[1:]
         if args[0].startswith("list="):
             if message.guild and ch.scope_config(guild=message.guild).get(
                 f"pick-list-{args[0][5:]}"
