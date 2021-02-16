@@ -1832,7 +1832,7 @@ async def arxiv_search_call(subj_content, exact=False):
         f'"{subj_content}"' if exact else subj_content,
     )
     async with session.get(
-            "http://search.arxiv.org:8081/",
+        "http://search.arxiv.org:8081/",
         data=params,
     ) as resp:
         request_body = (await resp.read()).decode("UTF-8")
@@ -2347,6 +2347,7 @@ def autoload(ch):
                 401181628015050773,
                 617953490383405056,
                 606896038183436318,
+                542027203383394304,
             ],
             "args_num": 0,
             "args_name": [],
