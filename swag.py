@@ -1825,20 +1825,19 @@ async def style_transfer_function(message, client, args):
 
 @cached(TTLCache(1024, 600))
 async def arxiv_search_call(subj_content, exact=False):
-    params = aiohttp.FormData()
-    params.add_field("in", "")
-    params.add_field(
-        "query",
+    params = {
+            "in": "",
+            "query":
         f'"{subj_content}"' if exact else subj_content,
-    )
+    }
     async with session.get(
         "http://search.arxiv.org:8081/",
-        data=params,
+        params=params,
     ) as resp:
         request_body = await resp.read()
         root = html.document_fromstring(request_body)
         links = root.xpath('//td[@class="snipp"]/a[@class="url"]')
-        return f"{links[0].attrib['href']}" if len(links) else None
+        return f"{links[0].text_content().strip()}" if len(links) else None
 
 
 @cached(TTLCache(1024, 600))
