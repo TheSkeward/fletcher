@@ -1828,7 +1828,7 @@ async def arxiv_search_call(subj_content, exact=False):
     params = aiohttp.FormData()
     params.add_field("in", "")
     params.add_field(
-        "q",
+        "query",
         f'"{subj_content}"' if exact else subj_content,
     )
     async with session.get(
