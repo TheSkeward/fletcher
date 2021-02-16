@@ -1835,7 +1835,7 @@ async def arxiv_search_call(subj_content, exact=False):
         "http://search.arxiv.org:8081/",
         data=params,
     ) as resp:
-        request_body = (await resp.read()).decode("UTF-8")
+        request_body = await resp.read()
         root = html.document_fromstring(request_body)
         links = root.xpath('//td[@class="snipp"]/a[@class="url"]')
         return f"{links[0].attrib['href']}" if len(links) else None
