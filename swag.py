@@ -1824,6 +1824,24 @@ async def style_transfer_function(message, client, args):
 
 
 @cached(TTLCache(1024, 600))
+async def arxiv_search_call(subj_content, exact=False):
+    params = aiohttp.FormData()
+    params.add_field("in", "")
+    params.add_field(
+        "q",
+        f'"{subj_content}"' if exact else subj_content,
+    )
+    async with session.get(
+            "http://search.arxiv.org:8081/",
+        data=params,
+    ) as resp:
+        request_body = (await resp.read()).decode("UTF-8")
+        root = html.document_fromstring(request_body)
+        links = root.xpath('//td[@class="snipp"]/a[@class="url"]')
+        return f"{links[0].attrib['href']}" if len(links) else None
+
+
+@cached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False):
     params = aiohttp.FormData()
     params.add_field("commit", "Search")
@@ -2319,6 +2337,7 @@ def autoload(ch):
                 "<:glowfic_const_search_quote:796416363312185384>",
                 "<:glowsearch:799184607555747870>",
                 "<:glowsearch:799817787593457744>",
+                "<:glowsearch:811320496883892279>",
             ],
             "function": glowfic_search_function,
             "async": True,
@@ -2372,6 +2391,11 @@ def autoload(ch):
                 )
             ]
         ],
+        {
+            "function": partial(arxiv_search_call, exact=True),
+            "name": "arXiv Full Text Search",
+            "type": "native",
+        },
     ]
     if not session:
         session = aiohttp.ClientSession(
