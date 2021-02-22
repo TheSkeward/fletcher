@@ -308,9 +308,9 @@ async def modping_function(message, client, args):
         else:
             if not message.channel.permissions_for(message.author).manage_messages:
 
-                def gaveled_by_admin_check(reaction, user):
+                def gaveled_by_admin_check(reaction):
                     return (
-                        user.guild_permissions.manage_webhooks
+                        reaction.member.guild_permissions.manage_webhooks
                         and str(reaction.emoji) == "<:gavel:430638348189827072>"
                     )
 
@@ -322,8 +322,10 @@ async def modping_function(message, client, args):
                             "\nRole ping requested for " + " ".join(args).lstrip("@")
                         ).split(" "),
                     )
-                    reaction, user = await client.wait_for(
-                        "reaction_add", timeout=6000.0, check=gaveled_by_admin_check
+                    reaction = await client.wait_for(
+                        "raw_reaction_add",
+                        timeout=6000.0,
+                        check=gaveled_by_admin_check
                     )
                 except asyncio.TimeoutError:
                     raise Exception("Timed out waiting for approval")
@@ -1161,13 +1163,13 @@ async def copy_emoji_function(message, client, args):
             )
             await target.add_reaction("✅")
             try:
-                reaction, user = await client.wait_for(
-                    "reaction_add",
+                reaction = await client.wait_for(
+                    "raw_reaction_add",
                     timeout=6000.0,
-                    check=lambda reaction, user: (str(reaction.emoji) == str("✅"))
-                    and user.permissions_in(message.channel).manage_emojis
-                    and user.id != client.user.id
-                    and reaction.message.id == target.id,
+                    check=lambda reaction: (str(reaction.emoji) == str("✅"))
+                    and reaction.member.permissions_in(message.channel).manage_emojis
+                    and reaction.member.id != client.user.id
+                    and reaction.message_id == target.id,
                 )
             except asyncio.TimeoutError:
                 await target.edit(message="Cancelled, timeout.")
@@ -1551,12 +1553,12 @@ async def invite_function(message, client, args):
                     message.author,
                 )
             try:
-                reaction, user = await client.wait_for(
-                    "reaction_add",
+                reaction = await client.wait_for(
+                    "raw_reaction_add",
                     timeout=60000.0 * 24,
-                    check=lambda reaction, user: reaction.message.id == target.id
+                    check=lambda reaction: reaction.message_id == target.id
                     and (str(reaction.emoji) == "✅")
-                    and (user == member),
+                    and (reaction.user_id == member.id),
                 )
             except asyncio.TimeoutError:
                 await target.edit(
