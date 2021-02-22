@@ -1737,12 +1737,12 @@ async def self_service_channel_function(
                         await confirmMessage.add_reaction("✅")
                         try:
                             reaction, user = await client.wait_for(
-                                "reaction_add",
+                                    "raw_reaction_add",
                                 timeout=60000.0 * 24,
-                                check=lambda reaction, user: reaction.message.id
+                                check=lambda reaction: reaction.message_id
                                 == confirmMessage.id
                                 and (str(reaction.emoji) == "✅")
-                                and (user == message.author),
+                                and (reaction.user_id == message.author.id),
                             )
                         except asyncio.TimeoutError:
                             await confirmMessage.edit(
