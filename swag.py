@@ -8,6 +8,7 @@ import chronos
 from googleapiclient.discovery import build
 import time
 import discord
+import hashlib
 import ephem
 import io
 import logging
@@ -1826,9 +1827,8 @@ async def style_transfer_function(message, client, args):
 @cached(TTLCache(1024, 600))
 async def arxiv_search_call(subj_content, exact=False):
     params = {
-            "in": "",
-            "query":
-        f'"{subj_content}"' if exact else subj_content,
+        "in": "",
+        "query": f'"{subj_content}"' if exact else subj_content,
     }
     async with session.get(
         "http://search.arxiv.org:8081/",
@@ -1897,6 +1897,11 @@ async def glowfic_search_function(message, client, args):
         logger.error("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+def amulet_function(message, client, args):
+    c = message.content[8:].encode('utf-8')
+    h = hashlib.sha256()
+    h.update(c)
+    return dict(enumerate(["Not an amulet", "Not an amulet", "Not an amulet", "Common amulet", "Uncommon amulet", "Rare amulet", "Epic amulet", "Legendary amulet", "Mythic amulet"])).get(len(max(re.findall(r'8+', h.digest()))), "???????? amulet") if len(c) <= 64 else "Too long, not poetic"
 
 async def autounload(ch):
     global session
@@ -2328,6 +2333,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["info|goals|intention"],
             "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!amulet"],
+            "function": amulet_function,
+            "async": False,
+            "hidden": False,
+            "args_num": 1,
+            "args_name": ["Poem"],
+            "description": "Check amulet status",
         }
     )
     ch.add_command(
