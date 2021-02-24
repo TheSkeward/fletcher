@@ -1909,6 +1909,7 @@ def amulet_function(message, client, args):
                     "Not an amulet",
                     "Not an amulet",
                     "Not an amulet",
+                    "Not an amulet",
                     "Common amulet",
                     "Uncommon amulet",
                     "Rare amulet",
@@ -1917,9 +1918,7 @@ def amulet_function(message, client, args):
                     "Mythic amulet",
                 ]
             )
-        ).get(
-            len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet"
-        )
+        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet")
         if len(c) <= 64
         else "Too long, not poetic"
     )
