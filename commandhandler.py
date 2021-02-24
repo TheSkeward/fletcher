@@ -836,12 +836,7 @@ class CommandHandler:
             and message.content.startswith(tuple(ignores))
         ):
             return
-        if self.config.get(
-                    guild=message.guild.id,
-                    channel=message.channel.id,
-                    key="bridge_function",
-                    use_category_as_channel_fallback=False,
-                    ):
+        if not bridge:
             if (
                 self.config.get(
                     guild=message.guild.id,
