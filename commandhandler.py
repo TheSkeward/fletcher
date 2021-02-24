@@ -836,6 +836,134 @@ class CommandHandler:
             and message.content.startswith(tuple(ignores))
         ):
             return
+        if bridge:
+            attachments = []
+            for attachment in message.attachments:
+                logger.debug(f"Syncing {attachment.filename}")
+                attachment_blob = BytesIO()
+                await attachment.save(attachment_blob)
+                attachments.append(discord.File(attachment_blob, attachment.filename))
+            if type(bridge["toChannelObject"]) is not list:
+                bridge["toChannelObject"] = [bridge["toChannelObject"]]
+            if type(bridge["toWebhook"]) is not list:
+                bridge["toWebhook"] = [bridge["toWebhook"]]
+         
+            def list_append(lst, item):
+                lst.append(item)
+                return item
+         
+            for i in range(len(bridge["toWebhook"])):
+                content = message.content or " "
+                if len(message.attachments) > 0 and (
+                    message.channel.is_nsfw() and not bridge["toChannelObject"][i].is_nsfw()
+                ):
+                    content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
+                    for attachment in message.attachments:
+                        content += f"\n• <{attachment.url}>"
+         
+                user_mentions = []
+                content = re.sub(
+                    r"@.*?#0000",
+                    lambda member: list_append(
+                        user_mentions,
+                        bridge["toChannelObject"][i].guild.get_member_named(
+                            member[0][1:-5]
+                        ),
+                    ).mention,
+                    content,
+                )
+                toMember = bridge["toChannelObject"][i].guild.get_member(user.id)
+                fromMessageName = toMember.display_name if toMember else user.display_name
+                # wait=True: blocking call for messagemap insertions to work
+                syncMessage = None
+                reply_embed = None
+                if message.reference and message.type is not discord.MessageType.pins_add:
+                    query_params = [
+                        message.reference.guild_id,
+                        message.reference.channel_id,
+                        message.reference.message_id,
+                    ]
+                    cur = conn.cursor()
+                    cur.execute(
+                        "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                        query_params,
+                    )
+                    metuple = cur.fetchone()
+                    conn.commit()
+                    if metuple is None:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                            query_params,
+                        )
+                        metuple = cur.fetchone()
+                        conn.commit()
+                    if metuple is not None:
+                        toGuild = self.client.get_guild(metuple[0])
+                        toChannel = toGuild.get_channel(metuple[1])
+                        reference_message = await toChannel.fetch_message(metuple[2])
+                        reply_embed = [
+                            discord.Embed().add_field(
+                                name="In reference to",
+                                value=f"[Message by {reference_message.author}]({reference_message.jump_url})",
+                                inline=True,
+                            )
+                        ]
+                try:
+                    syncMessage = await bridge["toWebhook"][i].send(
+                        content=content,
+                        username=fromMessageName,
+                        avatar_url=user.avatar_url_as(format="png", size=128),
+                        embeds=message.embeds if user.bot else reply_embed,
+                        tts=message.tts,
+                        files=[]
+                        if len(message.attachments) > 0
+                        and (
+                            message.channel.is_nsfw()
+                            and not bridge["toChannelObject"][i].is_nsfw()
+                        )
+                        else attachments,
+                        wait=True,
+                        allowed_mentions=discord.AllowedMentions(
+                            users=user_mentions, roles=False, everyone=False
+                        ),
+                    )
+                except discord.HTTPException as e:
+                    if attachments:
+                        content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
+                        for attachment in message.attachments:
+                            content += f"\n• <{attachment.url}>"
+                        syncMessage = await bridge["toWebhook"][i].send(
+                            content=content,
+                            username=fromMessageName,
+                            avatar_url=user.avatar_url_as(format="png", size=128),
+                            embeds=message.embeds if user.bot else None,
+                            tts=message.tts,
+                            wait=True,
+                            allowed_mentions=discord.AllowedMentions(
+                                users=user_mentions, roles=False, everyone=False
+                            ),
+                        )
+                if syncMessage:
+                    try:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
+                            [
+                                message.guild.id,
+                                message.channel.id,
+                                message.id,
+                                syncMessage.guild.id,
+                                syncMessage.channel.id,
+                                syncMessage.id,
+                            ],
+                        )
+                        conn.commit()
+                    except Exception as e:
+                        if "cur" in locals() and "conn" in locals():
+                            conn.rollback()
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         if (
             self.config.get(
                 guild=message.guild.id,
@@ -871,135 +999,6 @@ class CommandHandler:
                 message.content.split(" "),
                 user,
             )
-        if not bridge:
-            return
-        attachments = []
-        for attachment in message.attachments:
-            logger.debug(f"Syncing {attachment.filename}")
-            attachment_blob = BytesIO()
-            await attachment.save(attachment_blob)
-            attachments.append(discord.File(attachment_blob, attachment.filename))
-        if type(bridge["toChannelObject"]) is not list:
-            bridge["toChannelObject"] = [bridge["toChannelObject"]]
-        if type(bridge["toWebhook"]) is not list:
-            bridge["toWebhook"] = [bridge["toWebhook"]]
-
-        def list_append(lst, item):
-            lst.append(item)
-            return item
-
-        for i in range(len(bridge["toWebhook"])):
-            content = message.content or " "
-            if len(message.attachments) > 0 and (
-                message.channel.is_nsfw() and not bridge["toChannelObject"][i].is_nsfw()
-            ):
-                content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
-                for attachment in message.attachments:
-                    content += f"\n• <{attachment.url}>"
-
-            user_mentions = []
-            content = re.sub(
-                r"@.*?#0000",
-                lambda member: list_append(
-                    user_mentions,
-                    bridge["toChannelObject"][i].guild.get_member_named(
-                        member[0][1:-5]
-                    ),
-                ).mention,
-                content,
-            )
-            toMember = bridge["toChannelObject"][i].guild.get_member(user.id)
-            fromMessageName = toMember.display_name if toMember else user.display_name
-            # wait=True: blocking call for messagemap insertions to work
-            syncMessage = None
-            reply_embed = None
-            if message.reference and message.type is not discord.MessageType.pins_add:
-                query_params = [
-                    message.reference.guild_id,
-                    message.reference.channel_id,
-                    message.reference.message_id,
-                ]
-                cur = conn.cursor()
-                cur.execute(
-                    "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
-                    query_params,
-                )
-                metuple = cur.fetchone()
-                conn.commit()
-                if metuple is None:
-                    cur = conn.cursor()
-                    cur.execute(
-                        "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
-                        query_params,
-                    )
-                    metuple = cur.fetchone()
-                    conn.commit()
-                if metuple is not None:
-                    toGuild = self.client.get_guild(metuple[0])
-                    toChannel = toGuild.get_channel(metuple[1])
-                    reference_message = await toChannel.fetch_message(metuple[2])
-                    reply_embed = [
-                        discord.Embed().add_field(
-                            name="In reference to",
-                            value=f"[Message by {reference_message.author}]({reference_message.jump_url})",
-                            inline=True,
-                        )
-                    ]
-            try:
-                syncMessage = await bridge["toWebhook"][i].send(
-                    content=content,
-                    username=fromMessageName,
-                    avatar_url=user.avatar_url_as(format="png", size=128),
-                    embeds=message.embeds if user.bot else reply_embed,
-                    tts=message.tts,
-                    files=[]
-                    if len(message.attachments) > 0
-                    and (
-                        message.channel.is_nsfw()
-                        and not bridge["toChannelObject"][i].is_nsfw()
-                    )
-                    else attachments,
-                    wait=True,
-                    allowed_mentions=discord.AllowedMentions(
-                        users=user_mentions, roles=False, everyone=False
-                    ),
-                )
-            except discord.HTTPException as e:
-                if attachments:
-                    content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
-                    for attachment in message.attachments:
-                        content += f"\n• <{attachment.url}>"
-                    syncMessage = await bridge["toWebhook"][i].send(
-                        content=content,
-                        username=fromMessageName,
-                        avatar_url=user.avatar_url_as(format="png", size=128),
-                        embeds=message.embeds if user.bot else None,
-                        tts=message.tts,
-                        wait=True,
-                        allowed_mentions=discord.AllowedMentions(
-                            users=user_mentions, roles=False, everyone=False
-                        ),
-                    )
-            if syncMessage:
-                try:
-                    cur = conn.cursor()
-                    cur.execute(
-                        "INSERT INTO messagemap (fromguild, fromchannel, frommessage, toguild, tochannel, tomessage) VALUES (%s, %s, %s, %s, %s, %s);",
-                        [
-                            message.guild.id,
-                            message.channel.id,
-                            message.id,
-                            syncMessage.guild.id,
-                            syncMessage.channel.id,
-                            syncMessage.id,
-                        ],
-                    )
-                    conn.commit()
-                except Exception as e:
-                    if "cur" in locals() and "conn" in locals():
-                        conn.rollback()
-                    exc_type, exc_obj, exc_tb = exc_info()
-                    logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
     async def typing_handler(self, channel, user):
         if (
