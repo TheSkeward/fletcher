@@ -1928,10 +1928,10 @@ def amulet_function(message, client, args):
     )
 
 
-def amulet_filter(message, client, args):
+async def amulet_filter(message, client, args):
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
-        return is_am
+        await messagefuncs.sendWrappedMessage(is_am, message.channel)
 
 
 async def autounload(ch):
@@ -2370,7 +2370,7 @@ def autoload(ch):
         {
             "trigger": ["!amulet_filter"],
             "function": amulet_filter,
-            "async": False,
+            "async": True,
             "hidden": True,
             "args_num": 1,
             "args_name": ["Poem"],

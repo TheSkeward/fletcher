@@ -836,42 +836,42 @@ class CommandHandler:
             and message.content.startswith(tuple(ignores))
         ):
             return
-        if not bridge:
-            if (
-                self.config.get(
-                    guild=message.guild.id,
-                    channel=message.channel.id,
-                    key="bridge_function",
-                    use_category_as_channel_fallback=False,
-                )
-                and message.author.id != self.client.user.id
-                and len(message.content)
-                and len(
-                    self.get_command(
-                        self.config.get(
-                            guild=message.guild.id,
-                            channel=message.channel.id,
-                            key="bridge_function",
-                        ),
-                        message,
-                        min_args=1,
-                    )
-                )
-            ):
-                await self.run_command(
-                    self.get_command(
-                        self.config.get(
-                            guild=message.guild.id,
-                            channel=message.channel.id,
-                            key="bridge_function",
-                        ),
-                        message,
-                        min_args=1,
-                    )[0],
+        if (
+            self.config.get(
+                guild=message.guild.id,
+                channel=message.channel.id,
+                key="bridge_function",
+                use_category_as_channel_fallback=False,
+            )
+            and message.author.id != self.client.user.id
+            and len(message.content)
+            and len(
+                self.get_command(
+                    self.config.get(
+                        guild=message.guild.id,
+                        channel=message.channel.id,
+                        key="bridge_function",
+                    ),
                     message,
-                    message.content.split(" "),
-                    user,
+                    min_args=1,
                 )
+            )
+        ):
+            await self.run_command(
+                self.get_command(
+                    self.config.get(
+                        guild=message.guild.id,
+                        channel=message.channel.id,
+                        key="bridge_function",
+                    ),
+                    message,
+                    min_args=1,
+                )[0],
+                message,
+                message.content.split(" "),
+                user,
+            )
+        if not bridge:
             return
         attachments = []
         for attachment in message.attachments:
