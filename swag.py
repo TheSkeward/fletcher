@@ -1923,6 +1923,10 @@ def amulet_function(message, client, args):
         else "Too long, not poetic"
     )
 
+def amulet_filter(message, client, args):
+    is_am = amulet_function(message, client, args)
+    if is_am not in ["Not an amulet", "Too long, not poetic"]:
+        return is_am
 
 async def autounload(ch):
     global session
@@ -2354,6 +2358,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["info|goals|intention"],
             "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!amulet_filter"],
+            "function": amulet_filter,
+            "async": False,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["Poem"],
+            "description": "Check amulet status",
         }
     )
     ch.add_command(
