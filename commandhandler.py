@@ -1281,7 +1281,8 @@ class CommandHandler:
                     f"{traceback.format_exc()}\nEVAL: {type(e).__name__} {e}", user
                 )
 
-        await self.bridge_message(message)
+        if bridge:
+            await self.bridge_message(message)
         if user == client.user:
             logger.info(
                 f"{message.id} #{message.guild.name if message.guild else 'DM'}:{message.channel.name if message.guild else message.channel.recipient.name} <{user.name}:{user.id}> {message.system_content}",
