@@ -1899,7 +1899,7 @@ async def glowfic_search_function(message, client, args):
 
 
 def amulet_function(message, client, args):
-    c = message.content[8:].encode("utf-8")
+    c = (message.content[8:] if message.content.startswith("!amulet") else message.content).encode("utf-8")
     h = hashlib.sha256()
     h.update(c)
     return (
@@ -1923,10 +1923,12 @@ def amulet_function(message, client, args):
         else "Too long, not poetic"
     )
 
+
 def amulet_filter(message, client, args):
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
         return is_am
+
 
 async def autounload(ch):
     global session
