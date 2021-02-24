@@ -50,7 +50,6 @@ def autoload(ch):
             "trigger": ["!minecraftsendsay"],
             "function": minecraft_send_say_function,
             "async": True,
-            "long_run": True,
             "admin": False,
             "hidden": True,
             "args_num": 1,
