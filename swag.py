@@ -1906,34 +1906,31 @@ def amulet_function(message, client, args):
     ).encode("utf-8")
     try:
         h = hashlib.sha256(c)
-        shabold = " (" + h.hexdigest().replace(
-            max(re.findall(r"8+", h.hexdigest())),
-            "**" + max(re.findall(r"8+", h.hexdigest())) + "**",
-            1,
-        )
-        + ")"
+        shabold = f' ({h.hexdigest().replace(max(re.findall(r"8+", h.hexdigest())), "**" + max(re.findall(r"8+", h.hexdigest())) + "**", 1,)})'
         return (
-        dict(
-            enumerate(
-                [
-                    "Not an amulet",
-                    "Not an amulet",
-                    "Not an amulet",
-                    "Not an amulet",
-                    "Common amulet"+shabold,
-                    "Uncommon amulet"+shabold,
-                    "Rare amulet"+shabold,
-                    "Epic amulet"+shabold,
-                    "Legendary amulet"+shabold,
-                    "Mythic amulet"+shabold,
-                ]
+            dict(
+                enumerate(
+                    [
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Common amulet" + shabold,
+                        "Uncommon amulet" + shabold,
+                        "Rare amulet" + shabold,
+                        "Epic amulet" + shabold,
+                        "Legendary amulet" + shabold,
+                        "Mythic amulet" + shabold,
+                    ]
+                )
+            ).get(
+                len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet" + shabold
             )
-        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet"+shabold)
-        if len(c) <= 64
-        else "Too long, not poetic"
+            if len(c) <= 64
+            else "Too long, not poetic"
         )
-    except ValueError:
-        pass
+    except Exception:
+        return "Not an amulet"
 
 
 async def amulet_filter(message, client, args):
