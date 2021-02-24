@@ -1904,8 +1904,15 @@ def amulet_function(message, client, args):
         if message.content.startswith("!amulet")
         else message.content
     ).encode("utf-8")
-    h = hashlib.sha256(c)
-    return (
+    try:
+        h = hashlib.sha256(c)
+        shabold = " (" + h.hexdigest().replace(
+            max(re.findall(r"8+", h.hexdigest())),
+            "**" + max(re.findall(r"8+", h.hexdigest())) + "**",
+            1,
+        )
+        + ")"
+        return (
         dict(
             enumerate(
                 [
@@ -1913,18 +1920,20 @@ def amulet_function(message, client, args):
                     "Not an amulet",
                     "Not an amulet",
                     "Not an amulet",
-                    "Common amulet",
-                    "Uncommon amulet",
-                    "Rare amulet",
-                    "Epic amulet",
-                    "Legendary amulet",
-                    "Mythic amulet",
+                    "Common amulet"+shabold,
+                    "Uncommon amulet"+shabold,
+                    "Rare amulet"+shabold,
+                    "Epic amulet"+shabold,
+                    "Legendary amulet"+shabold,
+                    "Mythic amulet"+shabold,
                 ]
             )
-        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet")+" ("+h.hexdigest().replace(max(re.findall(r"8+", h.hexdigest())), "**"+max(re.findall(r"8+", h.hexdigest()))+"**")+")"
+        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet"+shabold)
         if len(c) <= 64
         else "Too long, not poetic"
-    )
+        )
+    except ValueError:
+        pass
 
 
 async def amulet_filter(message, client, args):
