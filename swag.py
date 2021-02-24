@@ -1904,8 +1904,7 @@ def amulet_function(message, client, args):
         if message.content.startswith("!amulet")
         else message.content
     ).encode("utf-8")
-    h = hashlib.sha256()
-    h.update(c)
+    h = hashlib.sha256(c)
     return (
         dict(
             enumerate(
@@ -1922,7 +1921,7 @@ def amulet_function(message, client, args):
                     "Mythic amulet",
                 ]
             )
-        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet")
+        ).get(len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet")+" ("+h.hexdigest().replace(max(re.findall(r"8+", h.hexdigest())), "**"+max(re.findall(r"8+", h.hexdigest()))+"**")+")"
         if len(c) <= 64
         else "Too long, not poetic"
     )
