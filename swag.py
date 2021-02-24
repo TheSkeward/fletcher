@@ -2368,7 +2368,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!amulet_filter"],
+            "trigger": ["amulet_filter"],
             "function": amulet_filter,
             "async": True,
             "hidden": True,
