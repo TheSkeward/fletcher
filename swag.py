@@ -1897,11 +1897,31 @@ async def glowfic_search_function(message, client, args):
         logger.error("GSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
 def amulet_function(message, client, args):
-    c = message.content[8:].encode('utf-8')
+    c = message.content[8:].encode("utf-8")
     h = hashlib.sha256()
     h.update(c)
-    return dict(enumerate(["Not an amulet", "Not an amulet", "Not an amulet", "Common amulet", "Uncommon amulet", "Rare amulet", "Epic amulet", "Legendary amulet", "Mythic amulet"])).get(len(max(re.findall(r'8+', h.digest()))), "???????? amulet") if len(c) <= 64 else "Too long, not poetic"
+    return (
+        dict(
+            enumerate(
+                [
+                    "Not an amulet",
+                    "Not an amulet",
+                    "Not an amulet",
+                    "Common amulet",
+                    "Uncommon amulet",
+                    "Rare amulet",
+                    "Epic amulet",
+                    "Legendary amulet",
+                    "Mythic amulet",
+                ]
+            )
+        ).get(len(max(re.findall(r"8+", h.digest().decode('ascii')))), "???????? amulet")
+        if len(c) <= 64
+        else "Too long, not poetic"
+    )
+
 
 async def autounload(ch):
     global session
