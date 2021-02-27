@@ -697,7 +697,7 @@ async def bookmark_function(message, client, args):
                                 "urlSource": message.jump_url,
                             },
                             headers={
-                                "Authorization": f'OAuth oauth_consumer_key="{trello_uat}", oauth_token="{trello_key}"'
+                                "Authorization": f'OAuth oauth_consumer_key="{trello_key}", oauth_token="{trello_uat}"'
                             },
                         ) as resp:
                             pass
