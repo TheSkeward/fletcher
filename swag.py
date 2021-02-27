@@ -1603,6 +1603,63 @@ async def thingiverse_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def trello_function(message, client, args):
+    try:
+        if args[0] not in ("boards", "set_bookmark_board"):
+            raise discord.errors.InvalidArgument("Unknown subcommand")
+        base_url = "https://api.trello.com/1/"
+        trello_key = ch.config.get(section='trello', key='client_id')
+        trello_uat = ch.user_config(args[1].id, message.guild.id if message.guild else None, 'trello_access_token', allow_global_substitute=True)
+        if args[0] == "boards":
+            async with session.get(
+                    base_url + "members/me/boards?fields=name",
+                    headers={
+                        "Authorization": f"OAuth oauth_consumer_key=\"{trello_uat}\", oauth_token=\"{trello_key}\""
+                        },
+                    ) as resp:
+                resp_obj = await resp.json()
+                response = "\n".join([board["name"] for board in resp_obj])
+            return await messagefuncs.sendWrappedMessage(
+                response,
+                target=message.channel,
+            )
+        elif args[0] == "set_bookmark_board":
+            if len(args) == 1:
+                list_id = ''
+            else:
+                async with session.get(
+                        base_url + "members/me/boards?fields=name,url,board_lists",
+                        headers={
+                            "Authorization": f"OAuth oauth_consumer_key=\"{trello_uat}\", oauth_token=\"{trello_key}\""
+                            },
+                        ) as resp:
+                    resp_obj = await resp.json()
+                    try:
+                        list_id = discord.utils.get(resp_obj, name=" ".join(args))["lists"][0]["id"]
+                        board_url = discord.utils.get(resp_obj, name=" ".join(args))["url"]
+                    except (AttributeError, KeyError):
+                        return await messagefuncs.sendWrappedMessage(
+                                "Could not find matching board, or board has no lists available for cards. `!trello boards` to list boards",
+                                target=message.channel,
+                                )
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'trello_bookmark_list', %s) ON CONFLICT DO NOTHING;",
+                [message.author.id, message.guild.id, list_id],
+            )
+            conn.commit()
+            return await messagefuncs.sendWrappedMessage(
+                    f"Set your board for bookmarks to {board_url}. Cards will appear in the leftmost list when you use the bookmark function." if list_id else "Turned off bookmark syncing to Trello",
+                    target=message.channel,
+                    )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("TRE[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def inspirobot_function(message, client, args):
     try:
         base_url = "https://inspirobot.me/"
