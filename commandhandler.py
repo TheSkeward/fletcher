@@ -174,7 +174,7 @@ class CommandHandler:
             )
         )
         await client.change_presence(
-            activity=discord.Game(name="fletcher.fun | !help", start=now)
+            activity=discord.Game(name="fletcher.fun | !help", start=datetime.utcnow())
         )
 
     def add_command(self, command):
