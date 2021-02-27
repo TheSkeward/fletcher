@@ -1640,10 +1640,10 @@ async def trello_function(message, client, args):
                 ) as resp:
                     resp_obj = await resp.json()
                     try:
-                        list_id = discord.utils.get(resp_obj, name=" ".join(args))[
+                        list_id = discord.utils.get(resp_obj, name=" ".join(args[1:]))[
                             "lists"
                         ][0]["id"]
-                        board_url = discord.utils.get(resp_obj, name=" ".join(args))[
+                        board_url = discord.utils.get(resp_obj, name=" ".join(args[1:]))[
                             "url"
                         ]
                     except (AttributeError, KeyError):
