@@ -1608,7 +1608,7 @@ async def trello_function(message, client, args):
         if args[0] not in ("boards", "set_bookmark_board"):
             raise discord.errors.InvalidArgument("Unknown subcommand")
         base_url = "https://api.trello.com/1/"
-        trello_key = ch.config.get(section="trello", key="client_id")
+        trello_key = ch.config.get(section="trello", key="client_key")
         trello_uat = ch.user_config(
             message.author.id,
             message.guild.id if message.guild else None,
