@@ -850,12 +850,30 @@ async def translate_function(message, client, args):
             await placeholder.delete()
             await sendWrappedMessage(
                 f"Translation for {message.author.mention}\n> {(await resp.json())['translatedText']}",
-                target=message.channel
+                target=message.channel,
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+async def emoji_image_function(message, client, args):
+    try:
+        emoji = None
+        if message.guild:
+            emoji = discord.util.get(message.guild.emoji, name=args[0])
+        if not emoji:
+            emoji = discord.util.get(client.emoji, name=args[0])
+        if not emoji:
+            return await sendWrappedMessage("No emoji found with the given name", delete_after=60, target=message.channel)
+        image = discord.File((
+            await netcode.simple_get_image(
+                emoji.as_url()
+            )
+        ).read(), "emoji.{'gif' if emoji.animated else 'png'")
+        return await sendWrappedMessage(file=image, target=message.channel)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 # Register this module's commands
 def autoload(ch):
@@ -867,6 +885,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["string"],
             "description": "Create a link bridge to another channel",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!bigemoji"],
+            "function": emoji_image_function,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["emoji name"],
+            "description": "Return larger version of an emoji",
         }
     )
     ch.add_command(
@@ -975,7 +1003,7 @@ def autoload(ch):
             "async": True,
             "args_num": 3,
             "args_name": [
-                "Source Language [ar|de|es|fr|it|pt|ru|zh]",
+                "Source Language [auto|ar|de|es|fr|it|pt|ru|zh]",
                 "Target Language [ar|de|es|fr|it|pt|ru|zh]",
                 "Query",
             ],
