@@ -1610,7 +1610,7 @@ async def trello_function(message, client, args):
         base_url = "https://api.trello.com/1/"
         trello_key = ch.config.get(section="trello", key="client_id")
         trello_uat = ch.user_config(
-            args[1].id,
+            message.author.id,
             message.guild.id if message.guild else None,
             "trello_access_token",
             allow_global_substitute=True,
