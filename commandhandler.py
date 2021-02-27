@@ -173,6 +173,9 @@ class CommandHandler:
                 ]
             )
         )
+        await client.change_presence(
+            activity=discord.Game(name="fletcher.fun | !help", start=now)
+        )
 
     def add_command(self, command):
         command["module"] = inspect.stack()[1][1].split("/")[-1][:-3]
@@ -847,20 +850,21 @@ class CommandHandler:
                 bridge["toChannelObject"] = [bridge["toChannelObject"]]
             if type(bridge["toWebhook"]) is not list:
                 bridge["toWebhook"] = [bridge["toWebhook"]]
-         
+
             def list_append(lst, item):
                 lst.append(item)
                 return item
-         
+
             for i in range(len(bridge["toWebhook"])):
                 content = message.content or " "
                 if len(message.attachments) > 0 and (
-                    message.channel.is_nsfw() and not bridge["toChannelObject"][i].is_nsfw()
+                    message.channel.is_nsfw()
+                    and not bridge["toChannelObject"][i].is_nsfw()
                 ):
                     content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
                     for attachment in message.attachments:
                         content += f"\n• <{attachment.url}>"
-         
+
                 user_mentions = []
                 content = re.sub(
                     r"@.*?#0000",
@@ -873,11 +877,16 @@ class CommandHandler:
                     content,
                 )
                 toMember = bridge["toChannelObject"][i].guild.get_member(user.id)
-                fromMessageName = toMember.display_name if toMember else user.display_name
+                fromMessageName = (
+                    toMember.display_name if toMember else user.display_name
+                )
                 # wait=True: blocking call for messagemap insertions to work
                 syncMessage = None
                 reply_embed = None
-                if message.reference and message.type is not discord.MessageType.pins_add:
+                if (
+                    message.reference
+                    and message.type is not discord.MessageType.pins_add
+                ):
                     query_params = [
                         message.reference.guild_id,
                         message.reference.channel_id,

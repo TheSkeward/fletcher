@@ -323,9 +323,7 @@ async def modping_function(message, client, args):
                         ).split(" "),
                     )
                     reaction = await client.wait_for(
-                        "raw_reaction_add",
-                        timeout=6000.0,
-                        check=gaveled_by_admin_check
+                        "raw_reaction_add", timeout=6000.0, check=gaveled_by_admin_check
                     )
                 except asyncio.TimeoutError:
                     raise Exception("Timed out waiting for approval")
@@ -1935,6 +1933,11 @@ async def login_function(message, client, args):
             f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={ch.config.get(section='thingiverse', key='redirect_uri')}&state={message.author.id}",
             message.channel,
         )
+    elif args[0] == "trello":
+        return await messagefuncs.sendWrappedMessage(
+                f"https://trello.com/1/authorize?return_url={ch.config.get(section='trello', key='redirect_uri')}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='thingiverse', key='client_key')}",
+            message.channel,
+        )
     else:
         return await messagefuncs.sendWrappedMessage(
             f"Could not find matching service login flow for {args[0]}", message.channel
@@ -2287,7 +2290,7 @@ def autoload(ch):
             "async": True,
             "hidden": False,
             "args_num": 1,
-            "args_name": ["[pocket|complice]"],
+            "args_name": ["[pocket|complice|thingiverse|trello]"],
             "description": "Authenticate with an external service",
         }
     )
