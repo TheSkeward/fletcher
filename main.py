@@ -184,9 +184,9 @@ async def autoload(module, choverride, config=None):
     global conn
     global sid
     global versioninfo
-    await client.change_presence(
-        activity=discord.Game(name=f"Reloading: [{module.__name__}]")
-    )
+    # await client.change_presence(
+    #     activity=discord.Game(name=f"Reloading: [{module.__name__}]")
+    # )
     try:
         await module.autounload(ch)
     except AttributeError as e:
