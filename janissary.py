@@ -1935,7 +1935,7 @@ async def login_function(message, client, args):
         )
     elif args[0] == "trello":
         return await messagefuncs.sendWrappedMessage(
-                f"https://trello.com/1/authorize?return_url={ch.config.get(section='trello', key='redirect_uri')}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='thingiverse', key='client_key')}",
+            f"https://trello.com/1/authorize?return_url={ch.config.get(section='trello', key='redirect_uri')}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='thingiverse', key='client_key')}",
             message.channel,
         )
     else:

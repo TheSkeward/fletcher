@@ -856,6 +856,7 @@ async def translate_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+
 async def emoji_image_function(message, client, args):
     try:
         emoji = None
@@ -864,16 +865,20 @@ async def emoji_image_function(message, client, args):
         if not emoji:
             emoji = discord.util.get(client.emoji, name=args[0])
         if not emoji:
-            return await sendWrappedMessage("No emoji found with the given name", delete_after=60, target=message.channel)
-        image = discord.File((
-            await netcode.simple_get_image(
-                emoji.as_url()
+            return await sendWrappedMessage(
+                "No emoji found with the given name",
+                delete_after=60,
+                target=message.channel,
             )
-        ).read(), "emoji.{'gif' if emoji.animated else 'png'")
+        image = discord.File(
+            (await netcode.simple_get_image(emoji.as_url())).read(),
+            "emoji.{'gif' if emoji.animated else 'png'",
+        )
         return await sendWrappedMessage(file=image, target=message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 
 # Register this module's commands
 def autoload(ch):
