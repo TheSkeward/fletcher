@@ -1619,7 +1619,7 @@ async def trello_function(message, client, args):
             async with session.get(
                 base_url + "members/me/boards?fields=name",
                 headers={
-                    "Authorization": f'OAuth oauth_consumer_key="{trello_uat}", oauth_token="{trello_key}"'
+                    "Authorization": f'OAuth oauth_consumer_key="{trello_key}", oauth_token="{trello_uat}"'
                 },
             ) as resp:
                 resp_obj = await resp.json()
@@ -1635,7 +1635,7 @@ async def trello_function(message, client, args):
                 async with session.get(
                     base_url + "members/me/boards?fields=name,url,board_lists",
                     headers={
-                        "Authorization": f'OAuth oauth_consumer_key="{trello_uat}", oauth_token="{trello_key}"'
+                        "Authorization": f'OAuth oauth_consumer_key="{trello_key}", oauth_token="{trello_uat}"'
                     },
                 ) as resp:
                     resp_obj = await resp.json()
