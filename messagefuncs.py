@@ -681,7 +681,7 @@ async def bookmark_function(message, client, args):
                     args[1].id, None, "trello_bookmark_list"
                 )
                 if trello_bookmark_list:
-                    trello_key = ch.config.get(section="trello", key="client_id")
+                    trello_key = ch.config.get(section="trello", key="client_key")
                     trello_uat = ch.user_config(
                         args[1].id,
                         message.guild.id if message.guild else None,
