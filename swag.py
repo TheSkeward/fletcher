@@ -1633,7 +1633,7 @@ async def trello_function(message, client, args):
                 list_id = ""
             else:
                 async with session.get(
-                    base_url + "members/me/boards?fields=name,url,board_lists",
+                    base_url + "members/me/boards?fields=name,url&lists=all",
                     headers={
                         "Authorization": f'OAuth oauth_consumer_key="{trello_key}", oauth_token="{trello_uat}"'
                     },
