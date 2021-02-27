@@ -658,30 +658,49 @@ async def bookmark_function(message, client, args):
                 )
                 await sendWrappedMessage(bookmark_message, args[1])
                 urls = url_search.findall(message.content)
-                if not len(urls):
-                    return
-                pocket_consumer_key = ch.config.get(
-                    section="pocket", key="consumer_key"
-                )
-                if not pocket_consumer_key:
-                    logger.debug("No pocket_consumer_key set")
-                    return
                 pocket_access_token = ch.user_config(
                     args[1].id, None, "pocket_access_token"
                 )
-                if not pocket_access_token:
-                    return
-                for url in urls:
-                    logger.debug(f"Pocketing {url}")
-                    params = aiohttp.FormData()
-                    params.add_field("title", message.content)
-                    params.add_field("url", url)
-                    params.add_field("consumer_key", pocket_consumer_key)
-                    params.add_field("access_token", pocket_access_token)
-                    async with session.post(
-                        "https://getpocket.com/v3/add", data=params
-                    ):
-                        return
+                if pocket_access_token and len(urls):
+                    pocket_consumer_key = ch.config.get(
+                        section="pocket", key="consumer_key"
+                    )
+                    if pocket_consumer_key:
+                        for url in urls:
+                            logger.debug(f"Pocketing {url}")
+                            params = aiohttp.FormData()
+                            params.add_field("title", message.content)
+                            params.add_field("url", url)
+                            params.add_field("consumer_key", pocket_consumer_key)
+                            params.add_field("access_token", pocket_access_token)
+                            async with session.post(
+                                "https://getpocket.com/v3/add", data=params
+                            ):
+                                pass
+                trello_bookmark_list = ch.user_config(
+                    args[1].id, None, "trello_bookmark_list"
+                )
+                if trello_bookmark_list:
+                    trello_key = ch.config.get(section="trello", key="client_id")
+                    trello_uat = ch.user_config(
+                        args[1].id,
+                        message.guild.id if message.guild else None,
+                        "trello_access_token",
+                        allow_global_substitute=True,
+                    )
+                    if trello_key and trello_uat:
+                        async with session.post(
+                            "https://api.trello.com/1/cards",
+                            json={
+                                "idList": trello_bookmark_list,
+                                "desc": message.clean_content,
+                                "urlSource": message.jump_url,
+                            },
+                            headers={
+                                "Authorization": f'OAuth oauth_consumer_key="{trello_uat}", oauth_token="{trello_key}"'
+                            },
+                        ) as resp:
+                            pass
             elif str(args[0].emoji) == "🔗":
                 return await sendWrappedMessage(
                     f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
