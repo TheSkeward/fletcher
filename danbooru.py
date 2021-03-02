@@ -55,7 +55,10 @@ async def posts_search_function(message, client, args):
             return await messagefuncs.sendWrappedMessage(
                 "No images found for query", message.channel
             )
-        search_results = await warm_post_cache(tags)
+        try:
+            search_results = await warm_post_cache(tags)
+        except Exception as e:
+            await messagefuncs.sendWrappedMessage("Error retrieving posts, upstream server had an issue. Please try again later.", message.channel, delete_after=60)
         if len(search_results) == 0:
             return await messagefuncs.sendWrappedMessage(
                 "No images found for query", message.channel
@@ -65,26 +68,38 @@ async def posts_search_function(message, client, args):
             url = search_result["preview_file_url"]
         else:
             url = search_result["file_url"]
-        async with session.get(url) as resp:
-            buffer = io.BytesIO(await resp.read())
-            if resp.status != 200:
-                raise Exception(
-                    "HttpProcessingError: "
+        buffer = None
+        try:
+            async with session.get(url, raise_for_status=True) as resp:
+                buffer = io.BytesIO(await resp.read())
+                if resp.status != 200:
+                    raise Exception(
+                        "HttpProcessingError: "
                     + str(resp.status)
                     + " Retrieving image failed!"
                 )
-            await messagefuncs.sendWrappedMessage(
-                f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
-                message.channel,
-                files=[
-                    discord.File(
-                        buffer, f"{search_result['md5']}.{search_result['file_ext']}"
-                    )
-                ],
-            )
+        except Exception:
+            async with session.get(url, raise_for_status=True) as resp:
+                buffer = io.BytesIO(await resp.read())
+                if resp.status != 200:
+                    raise Exception(
+                        "HttpProcessingError: "
+                    + str(resp.status)
+                    + " Retrieving image failed!"
+                )
+        await messagefuncs.sendWrappedMessage(
+            f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
+            message.channel,
+            files=[
+                discord.File(
+                    buffer, f"{search_result['md5']}.{search_result['file_ext']}"
+                )
+            ],
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"PSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        await message.add_reaction("🚫")
 
 
 @cached(TTLCache(1024, 86400))
