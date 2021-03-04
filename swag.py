@@ -1640,10 +1640,12 @@ async def trello_function(message, client, args):
                 ) as resp:
                     resp_obj = await resp.json()
                     try:
-                        list_id = discord.utils.find(lambda board: board["name"] == " ".join(args[1:]), resp_obj)[
-                            "lists"
-                        ][0]["id"]
-                        board_url = discord.utils.find(lambda board: board["name"] == " ".join(args[1:]), resp_obj)["url"]
+                        list_id = discord.utils.find(
+                            lambda board: board["name"] == " ".join(args[1:]), resp_obj
+                        )["lists"][0]["id"]
+                        board_url = discord.utils.find(
+                            lambda board: board["name"] == " ".join(args[1:]), resp_obj
+                        )["url"]
                     except (AttributeError, KeyError) as e:
                         return await messagefuncs.sendWrappedMessage(
                             f"Could not find matching board, or board has no lists available for cards. `!trello boards` to list boards. {e}",
@@ -1652,7 +1654,11 @@ async def trello_function(message, client, args):
             cur = conn.cursor()
             cur.execute(
                 f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'trello_bookmark_list', %s) ON CONFLICT DO NOTHING;",
-                [message.author.id, message.guild.id if message.guild else None, list_id],
+                [
+                    message.author.id,
+                    message.guild.id if message.guild else None,
+                    list_id,
+                ],
             )
             conn.commit()
             return await messagefuncs.sendWrappedMessage(
@@ -1711,6 +1717,26 @@ async def complice_function(message, client, args):
         logger.error("SSC[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
+async def clickbait_function(message, client, args):
+    try:
+        base_url = ch.config.get(section="clickbait", key="server_url")
+        endpoint = ch.config.get(section="clickbait", key="endpoint")
+        placeholder = await messagefuncs.sendWrappedMessage(
+            f"You Won't Belive What Happens Next!", target=message.channel
+        )
+        with message.channel.typing():
+            async with session.post(f"{base_url}{endpoint}", json={"tags": args}) as resp:
+                buffer = await resp.text()
+                await placeholder.delete()
+                if resp.status != 200:
+                    logger.debug(logs)
+                    return await message.add_reaction("🚫")
+                return placeholder.edit(content=buffer)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("CBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
 
 async def ace_attorney_function(message, client, args):
     try:
@@ -2411,6 +2437,19 @@ def autoload(ch):
             "description": "Generates an inspiring message.",
         }
     )
+    ch.add_command(
+        {
+            "trigger": ["!clickbait"],
+            "function": clickbait_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 0,
+            "args_name": [
+                "tag"
+                ],
+            "description": "Generate some very real headlines (include up to three topics, space seperated)",
+            }
+        )
     ch.add_command(
         {
             "trigger": ["!ace"],
