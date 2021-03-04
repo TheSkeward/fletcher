@@ -1722,9 +1722,6 @@ async def clickbait_function(message, client, args):
     try:
         base_url = ch.config.get(section="clickbait", key="server_url")
         endpoint = ch.config.get(section="clickbait", key="endpoint")
-        placeholder = await messagefuncs.sendWrappedMessage(
-            f"You Won't Belive What Happens Next!", target=message.channel
-        )
         with message.channel.typing():
             async with session.post(
                 f"{base_url}{endpoint}", json={"tags": args}
@@ -1733,7 +1730,9 @@ async def clickbait_function(message, client, args):
                 if resp.status != 200:
                     logger.debug(logs)
                     return await message.add_reaction("🚫")
-                return await placeholder.edit(content=buffer)
+                return await messagefuncs.sendWrappedMessage(
+                        buffer, target=message.channel
+                        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("CBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
