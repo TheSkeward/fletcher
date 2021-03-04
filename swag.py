@@ -1732,12 +1732,14 @@ async def clickbait_function(message, client, args):
                 async with session.post(
                     f"{base_url}{endpoint}", json={"tags": args[:3]}
                 ) as resp:
-                    clickbait_cache[" ".join(args[:3])] = (await resp.text()).split("\n")
                     if resp.status != 200:
                         logger.debug(logs)
                         return await message.add_reaction("🚫")
+                    clickbait_cache[" ".join(args[:3])] = (await resp.text()).split(
+                        "\n"
+                    )
                 buffer = clickbait_cache[" ".join(args[:3])].pop()
-        return await messagefuncs.sendWrappedMessage(buffer, target=message.channel)
+        return await messagefuncs.sendWrappedMessage(buffer, target=message.channel, reference=message.to_reference(), mention_author=False)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("CBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
