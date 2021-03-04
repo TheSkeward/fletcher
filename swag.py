@@ -1726,17 +1726,19 @@ async def clickbait_function(message, client, args):
             f"You Won't Belive What Happens Next!", target=message.channel
         )
         with message.channel.typing():
-            async with session.post(f"{base_url}{endpoint}", json={"tags": args}) as resp:
+            async with session.post(
+                f"{base_url}{endpoint}", json={"tags": args}
+            ) as resp:
                 buffer = await resp.text()
-                await placeholder.delete()
                 if resp.status != 200:
                     logger.debug(logs)
                     return await message.add_reaction("🚫")
-                return placeholder.edit(content=buffer)
+                return await placeholder.edit(content=buffer)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("CBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
+
 
 async def ace_attorney_function(message, client, args):
     try:
@@ -2444,12 +2446,10 @@ def autoload(ch):
             "async": True,
             "hidden": False,
             "args_num": 0,
-            "args_name": [
-                "tag"
-                ],
+            "args_name": ["tag"],
             "description": "Generate some very real headlines (include up to three topics, space seperated)",
-            }
-        )
+        }
+    )
     ch.add_command(
         {
             "trigger": ["!ace"],
