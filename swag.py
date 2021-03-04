@@ -1718,21 +1718,23 @@ async def complice_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+clickbait_cache = {}
 async def clickbait_function(message, client, args):
     try:
         base_url = ch.config.get(section="clickbait", key="server_url")
         endpoint = ch.config.get(section="clickbait", key="endpoint")
+        if len(clickbait_cache.get(" ".join(args[:3]), [])):
+            buffer = clickbait_cache.get(" ".join(args[:3])).pop()
         with message.channel.typing():
             async with session.post(
-                f"{base_url}{endpoint}", json={"tags": args}
+                    f"{base_url}{endpoint}", json={"tags": args[:3]}
             ) as resp:
-                buffer = await resp.text()
+                clickbait_cache[" ".join(args[:3])] = (await resp.text()).split("\n")
                 if resp.status != 200:
                     logger.debug(logs)
                     return await message.add_reaction("🚫")
-                return await messagefuncs.sendWrappedMessage(
-                        buffer, target=message.channel
-                        )
+                buffer = clickbait_cache[" ".join(args[:3])].pop()
+            return await messagefuncs.sendWrappedMessage(buffer, target=message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("CBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
