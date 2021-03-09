@@ -1985,7 +1985,7 @@ async def glowfic_search_function(message, client, args):
         if message.guild:
             search_dbs[2:2] = [
                 {
-                    "function": partial(cse_search_call, q, engine[1]),
+                    "function": partial(cse_search_call, cx=engine[1]),
                     "name": engine[0],
                     "type": "cse",
                 }
@@ -2000,7 +2000,7 @@ async def glowfic_search_function(message, client, args):
             ]
         for database in glowfic_search_databases:
             if database["type"] == "cse":
-                link = database["function"](search_q)
+                link = database["function"](exactTerms=search_q)
                 link = link["items"][0]["link"] if len(link.get("items", [])) else None
             else:
                 link = await database["function"](search_q)
@@ -2593,7 +2593,7 @@ def autoload(ch):
         },
         *[
             {
-                "function": partial(cse_search_call, q, engine[1]),
+                "function": partial(cse_search_call, cx=engine[1]),
                 "name": engine[0],
                 "type": "cse",
             }
