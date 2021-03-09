@@ -1,9 +1,9 @@
 import asyncio
 import traceback
 import aiohttp
-from asyncache import cached
+from asyncache import cached as asynccache
 from collections import Counter, defaultdict, deque
-from cachetools import TTLCache
+from cachetools import TTLCache, cached as synccache
 import chronos
 from googleapiclient.discovery import build
 import time
@@ -1015,7 +1015,7 @@ async def qdb_search_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-@cached(TTLCache(1024, 6000))
+@asynccache(TTLCache(1024, 6000))
 def wikidata_get(name):
     return wikiClient.get(name, load=True)
 
@@ -1929,7 +1929,7 @@ async def style_transfer_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-@cached(TTLCache(1024, 600))
+@asynccached(TTLCache(1024, 600))
 async def arxiv_search_call(subj_content, exact=False):
     params = {
         "in": "",
@@ -1945,7 +1945,7 @@ async def arxiv_search_call(subj_content, exact=False):
         return f"{links[0].text_content().strip()}" if len(links) else None
 
 
-@cached(TTLCache(1024, 600))
+@asynccached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False):
     params = aiohttp.FormData()
     params.add_field("commit", "Search")
@@ -1963,6 +1963,11 @@ async def glowfic_search_call(subj_content, exact=False):
         return f"https://glowfic.com{links[0].attrib['href']}" if len(links) else None
 
 
+@synccached(TTLCache(1024, 600))
+def cse_search_call(exactTerms, cx, phrase=True):
+    global cseClient
+    return cseClient(exactTerms=f'"{q}"' if phrase else q, cx=engine[1]).execute()
+
 async def glowfic_search_function(message, client, args):
     try:
         try:
@@ -1975,6 +1980,21 @@ async def glowfic_search_function(message, client, args):
         search_q = q.lstrip(">")
         link = None
         searched = []
+        search_dbs = glowfic_search_db[:]
+        if message.guild:
+            search_dbs[2:2] = [
+                {
+                    "function": partial(cse_search_call, q, engine[1]),
+                    "name": engine[0],
+                    "type": "cse",
+                    }
+                for engine in [
+                    engine.split("=", 1)
+                    for engine in config.get(
+                        section="quotesearch-extra-cse-list", default=[], guild=message.guild.id
+                        )
+                    ]
+                ]
         for database in glowfic_search_databases:
             if database["type"] == "cse":
                 link = database["function"](search_q)
@@ -2570,9 +2590,7 @@ def autoload(ch):
         },
         *[
             {
-                "function": lru_cache()(
-                    lambda q: cseClient(exactTerms=q, cx=engine[1]).execute()
-                ),
+                "function": partial(cse_search_call, q, engine[1]),
                 "name": engine[0],
                 "type": "cse",
             }
