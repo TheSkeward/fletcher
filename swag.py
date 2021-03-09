@@ -1967,7 +1967,7 @@ async def glowfic_search_call(subj_content, exact=False):
 def cse_search_call(exactTerms, cx, phrase=True):
     global cseClient
     return cseClient(
-        exactTerms=f'"{exactTerms}"' if phrase else exactTerms, cx=cx
+        q=f'"{exactTerms}"' if phrase else exactTerms, cx=cx
     ).execute()
 
 
