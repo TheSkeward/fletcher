@@ -1746,7 +1746,7 @@ async def self_service_channel_function(
                             )
                         except asyncio.TimeoutError:
                             await confirmMessage.edit(
-                                message=f"~~{target.content}~~Request expired due to timeout."
+                                message=f"~~{confirmMessage.content}~~Request expired due to timeout."
                             )
                             await confirmMessage.remove_reaction("✅", client.user)
                             return
