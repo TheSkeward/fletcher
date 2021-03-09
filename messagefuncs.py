@@ -880,9 +880,9 @@ async def emoji_image_function(message, client, args):
     try:
         emoji = None
         if message.guild:
-            emoji = discord.util.get(message.guild.emoji, name=args[0])
+            emoji = discord.utils.get(message.guild.emoji, name=args[0])
         if not emoji:
-            emoji = discord.util.get(client.emoji, name=args[0])
+            emoji = discord.utils.get(client.emoji, name=args[0])
         if not emoji:
             return await sendWrappedMessage(
                 "No emoji found with the given name",
