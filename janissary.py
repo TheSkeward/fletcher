@@ -1330,7 +1330,7 @@ async def voice_opt_out(message, client, args):
 async def error_report_function(error_str, guild, client):
     global ch
     automod = None
-    scoped_config = ch.scope_config(guild=message.guild)
+    scoped_config = ch.scope_config(guild=guild)
     users = (
         scoped_config.get(scoped_config.get("errorCC", "mod-userslist"))
         or guild.owner.id
