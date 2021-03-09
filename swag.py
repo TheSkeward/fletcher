@@ -1966,7 +1966,9 @@ async def glowfic_search_call(subj_content, exact=False):
 @synccached(TTLCache(1024, 600))
 def cse_search_call(exactTerms, cx, phrase=True):
     global cseClient
-    return cseClient(exactTerms=f'"{exactTerms}"' if phrase else exactTerms, cx=engine[1]).execute()
+    return cseClient(
+        exactTerms=f'"{exactTerms}"' if phrase else exactTerms, cx=cx
+    ).execute()
 
 
 async def glowfic_search_function(message, client, args):
