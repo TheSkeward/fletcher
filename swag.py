@@ -1981,7 +1981,7 @@ async def glowfic_search_function(message, client, args):
         search_q = q.lstrip(">")
         link = None
         searched = []
-        search_dbs = glowfic_search_db[:]
+        search_dbs = glowfic_search_databases[:]
         if message.guild:
             search_dbs[2:2] = [
                 {
@@ -1998,7 +1998,7 @@ async def glowfic_search_function(message, client, args):
                     )
                 ]
             ]
-        for database in glowfic_search_databases:
+        for database in search_dbs:
             if database["type"] == "cse":
                 link = database["function"](exactTerms=search_q)
                 link = link["items"][0]["link"] if len(link.get("items", [])) else None
