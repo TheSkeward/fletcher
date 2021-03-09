@@ -58,8 +58,12 @@ async def posts_search_function(message, client, args):
         try:
             search_results = await warm_post_cache(tags)
         except Exception as e:
-            await messagefuncs.sendWrappedMessage("Error retrieving posts, upstream server had an issue. Please try again later.", message.channel, delete_after=60)
-        if len(search_results) == 0:
+            await messagefuncs.sendWrappedMessage(
+                "Error retrieving posts, upstream server had an issue. Please try again later.",
+                message.channel,
+                delete_after=60,
+            )
+        if not search_results or len(search_results) == 0:
             return await messagefuncs.sendWrappedMessage(
                 "No images found for query", message.channel
             )
@@ -75,18 +79,18 @@ async def posts_search_function(message, client, args):
                 if resp.status != 200:
                     raise Exception(
                         "HttpProcessingError: "
-                    + str(resp.status)
-                    + " Retrieving image failed!"
-                )
+                        + str(resp.status)
+                        + " Retrieving image failed!"
+                    )
         except Exception:
             async with session.get(url, raise_for_status=True) as resp:
                 buffer = io.BytesIO(await resp.read())
                 if resp.status != 200:
                     raise Exception(
                         "HttpProcessingError: "
-                    + str(resp.status)
-                    + " Retrieving image failed!"
-                )
+                        + str(resp.status)
+                        + " Retrieving image failed!"
+                    )
         await messagefuncs.sendWrappedMessage(
             f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
             message.channel,
