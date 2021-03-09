@@ -813,7 +813,7 @@ class CommandHandler:
         if message.webhook_id:
             webhook = await self.fetch_webhook_cached(message.webhook_id)
             if webhook.name not in sync.get("whitelist-webhooks", []):
-                if not webhook.name.startswith(
+                if webhook.name and not webhook.name.startswith(
                     self.config.get(section="discord", key="botNavel")
                 ):
                     logger.debug("Webhook isn't whitelisted for bridging")
