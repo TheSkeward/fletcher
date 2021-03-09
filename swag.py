@@ -1,9 +1,9 @@
 import asyncio
 import traceback
 import aiohttp
-from asyncache import cached as asynccache
+from asyncache import cached as asynccached
 from collections import Counter, defaultdict, deque
-from cachetools import TTLCache, cached as synccache
+from cachetools import TTLCache, cached as synccached
 import chronos
 from googleapiclient.discovery import build
 import time
@@ -1968,6 +1968,7 @@ def cse_search_call(exactTerms, cx, phrase=True):
     global cseClient
     return cseClient(exactTerms=f'"{q}"' if phrase else q, cx=engine[1]).execute()
 
+
 async def glowfic_search_function(message, client, args):
     try:
         try:
@@ -1987,14 +1988,16 @@ async def glowfic_search_function(message, client, args):
                     "function": partial(cse_search_call, q, engine[1]),
                     "name": engine[0],
                     "type": "cse",
-                    }
+                }
                 for engine in [
                     engine.split("=", 1)
                     for engine in config.get(
-                        section="quotesearch-extra-cse-list", default=[], guild=message.guild.id
-                        )
-                    ]
+                        section="quotesearch-extra-cse-list",
+                        default=[],
+                        guild=message.guild.id,
+                    )
                 ]
+            ]
         for database in glowfic_search_databases:
             if database["type"] == "cse":
                 link = database["function"](search_q)
