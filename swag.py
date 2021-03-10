@@ -2028,10 +2028,10 @@ async def glowfic_search_function(message, client, args):
                         glowfic_search_call,
                         exact=True,
                         username=ch.user_config(
-                            message.author.id, None, "glowfic-username"
+                            args[1].id, None, "glowfic-username"
                         ),
                         password=ch.user_config(
-                            message.author.id, None, "glowfic-password"
+                            args[1].id, None, "glowfic-password"
                         ),
                     ),
                     "name": "Constellation (searching as user account)",
