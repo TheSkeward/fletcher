@@ -1948,15 +1948,25 @@ async def arxiv_search_call(subj_content, exact=False):
 @asynccached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
     if username and password:
-        await session.post("https://glowfic.com/login", data={"authenticity_token": (await (await session.get("https://glowfic.com")).text()).split("authenticity_token")[1].split('"')[4], "username": username, "password": password})
+        await session.post(
+            "https://glowfic.com/login",
+            data={
+                "authenticity_token": (
+                    await (await session.get("https://glowfic.com")).text()
+                )
+                .split("authenticity_token")[1]
+                .split('"')[4],
+                "username": username,
+                "password": password,
+            },
+        )
     else:
         session.cookie_jar.clear()
     params = {
-            "utf8": "✓",
-            "commit": "Search",
-            "subj_content":
-            f'"{subj_content}"' if exact else subj_content
-            }
+        "utf8": "✓",
+        "commit": "Search",
+        "subj_content": f'"{subj_content}"' if exact else subj_content,
+    }
     async with session.get(
         "https://glowfic.com/replies/search",
         data=params,
@@ -2002,18 +2012,42 @@ async def glowfic_search_function(message, client, args):
                     )
                 ]
             ]
-            if ch.user_config(message.author.id, None, "glowfic-username") and ch.user_config(message.author.id, None, "glowfic-password"):
+            if ch.user_config(
+                message.author.id, None, "glowfic-username"
+            ) and ch.user_config(message.author.id, None, "glowfic-password"):
                 search_dbs[0] = {
-                        "function": partial(glowfic_search_call, exact=True, username=ch.user_config(message.author.id, None, "glowfic-username"), password=ch.user_config(message.author.id, None, "glowfic-password")),
-                        "name": "Constellation (searching as user account)",
-                        "type": "native",
-                        }
-            elif config.get(guild=message.guild.id, key="glowfic-username", default=None) and config.get(guild=message.guild.id, key="glowfic-password", default=None):
+                    "function": partial(
+                        glowfic_search_call,
+                        exact=True,
+                        username=ch.user_config(
+                            message.author.id, None, "glowfic-username"
+                        ),
+                        password=ch.user_config(
+                            message.author.id, None, "glowfic-password"
+                        ),
+                    ),
+                    "name": "Constellation (searching as user account)",
+                    "type": "native",
+                }
+            elif config.get(
+                guild=message.guild.id, key="glowfic-username", default=None
+            ) and config.get(
+                guild=message.guild.id, key="glowfic-password", default=None
+            ):
                 search_dbs[0] = {
-                        "function": partial(glowfic_search_call, exact=True, username=config.get(guild=message.guild.id, key="glowfic-username", default=None), password=config.get(guild=message.guild.id, key="glowfic-password", default=None)),
-                        "name": "Constellation (searching as server account)",
-                        "type": "native",
-                        }
+                    "function": partial(
+                        glowfic_search_call,
+                        exact=True,
+                        username=config.get(
+                            guild=message.guild.id, key="glowfic-username", default=None
+                        ),
+                        password=config.get(
+                            guild=message.guild.id, key="glowfic-password", default=None
+                        ),
+                    ),
+                    "name": "Constellation (searching as server account)",
+                    "type": "native",
+                }
 
         for database in search_dbs:
             if database["type"] == "cse":
@@ -2026,7 +2060,7 @@ async def glowfic_search_function(message, client, args):
                 break
         query_time = (datetime.now() - start).total_seconds()
         if link:
-            content = f"{q}\nis from {link}"
+            content = f"{q}\nis from {link}\nfound via {searched[-1]} in {query_time} seconds."
         else:
             content = f"{q}\nattribution was not found, searched {len(glowfic_search_databases)} databases ({', '.join(searched)}) in {query_time} seconds."
         await messagefuncs.sendWrappedMessage(
