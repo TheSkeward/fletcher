@@ -1946,15 +1946,19 @@ async def arxiv_search_call(subj_content, exact=False):
 
 
 @asynccached(TTLCache(1024, 600))
-async def glowfic_search_call(subj_content, exact=False):
-    params = aiohttp.FormData()
-    params.add_field("commit", "Search")
-    params.add_field(
-        "subj_content",
-        f'"{subj_content}"' if exact else subj_content,
-    )
+async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
+    if username and password:
+        await session.post("https://glowfic.com/login", data={"authenticity_token": (await (await session.get("https://glowfic.com")).text()).split("authenticity_token")[1].split('"')[4], "username": username, "password": password})
+    else:
+        session.cookie_jar.clear()
+    params = {
+            "utf8": "✓",
+            "commit": "Search",
+            "subj_content":
+            f'"{subj_content}"' if exact else subj_content
+            }
     async with session.get(
-        f"https://glowfic.com/replies/search",
+        "https://glowfic.com/replies/search",
         data=params,
     ) as resp:
         request_body = (await resp.read()).decode("UTF-8")
@@ -1966,9 +1970,7 @@ async def glowfic_search_call(subj_content, exact=False):
 @synccached(TTLCache(1024, 600))
 def cse_search_call(exactTerms, cx, phrase=True):
     global cseClient
-    return cseClient(
-        q=f'"{exactTerms}"' if phrase else exactTerms, cx=cx
-    ).execute()
+    return cseClient(q=f'"{exactTerms}"' if phrase else exactTerms, cx=cx).execute()
 
 
 async def glowfic_search_function(message, client, args):
@@ -1994,12 +1996,25 @@ async def glowfic_search_function(message, client, args):
                 for engine in [
                     engine.split("=", 1)
                     for engine in config.get(
-                        section="quotesearch-extra-cse-list",
+                        key="quotesearch-extra-cse-list",
                         default=[],
                         guild=message.guild.id,
                     )
                 ]
             ]
+            if ch.user_config(message.author.id, None, "glowfic-username") and ch.user_config(message.author.id, None, "glowfic-password"):
+                search_dbs[0] = {
+                        "function": partial(glowfic_search_call, exact=True, username=ch.user_config(message.author.id, None, "glowfic-username"), password=ch.user_config(message.author.id, None, "glowfic-password")),
+                        "name": "Constellation (searching as user account)",
+                        "type": "native",
+                        }
+            elif config.get(guild=message.guild.id, key="glowfic-username", default=None) and config.get(guild=message.guild.id, key="glowfic-password", default=None):
+                search_dbs[0] = {
+                        "function": partial(glowfic_search_call, exact=True, username=config.get(guild=message.guild.id, key="glowfic-username", default=None), password=config.get(guild=message.guild.id, key="glowfic-password", default=None)),
+                        "name": "Constellation (searching as server account)",
+                        "type": "native",
+                        }
+
         for database in search_dbs:
             if database["type"] == "cse":
                 link = database["function"](exactTerms=search_q)
