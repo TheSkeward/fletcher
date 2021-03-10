@@ -2013,8 +2013,8 @@ async def glowfic_search_function(message, client, args):
                 ]
             ]
             if ch.user_config(
-                message.author.id, None, "glowfic-username"
-            ) and ch.user_config(message.author.id, None, "glowfic-password"):
+                message.author.id, None, "glowfic-username", allow_global_substitute=True
+            ) and ch.user_config(message.author.id, None, "glowfic-password", allow_global_substitute=True):
                 search_dbs[0] = {
                     "function": partial(
                         glowfic_search_call,
