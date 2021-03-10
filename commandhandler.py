@@ -1677,7 +1677,9 @@ class CommandHandler:
         self, user, guild, key, value=None, default=None, allow_global_substitute=False
     ):
         cur = conn.cursor()
-        if not value:
+        if value == "null":
+            value = ""
+        if value is None:
             if guild:
                 if allow_global_substitute:
                     cur.execute(
