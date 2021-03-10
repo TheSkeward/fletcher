@@ -1730,6 +1730,8 @@ class CommandHandler:
         conn.commit()
         if value is None:
             value = default
+        if value and ("password" in key) or ("token" in key):
+            return "REDACTED"
         return value
 
     def is_admin(self, message, user=None):
