@@ -465,7 +465,7 @@ class CommandHandler:
                         if type(
                             channel
                         ) is discord.TextChannel and self.webhook_sync_registry.get(
-                            channel.guild.name + ":" + channel.id
+                            channel.guild.name + ":" + str(channel.id)
                         ):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
