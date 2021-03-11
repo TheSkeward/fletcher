@@ -131,7 +131,7 @@ class CommandHandler:
                 )
                 if fromChannel:
                     fromChannelName = (
-                        fromTuple[0].replace("_", " ") + ":" + fromChannel.id
+                        fromTuple[0].replace("_", " ") + ":" + str(fromChannel.id)
                     )
                 else:
                     continue
