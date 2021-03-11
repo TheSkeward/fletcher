@@ -517,7 +517,7 @@ async def on_raw_message_delete(message):
             pass
         guild_config = ch.scope_config(guild=message.guild)
         if type(fromChannel) is discord.TextChannel and (
-            fromGuild.name + ":" + fromChannel.name in ch.webhook_sync_registry.keys()
+            fromGuild.name + ":" + fromChannel.id in ch.webhook_sync_registry.keys()
         ):
             # Give messages time to be added to the database
             await asyncio.sleep(1)

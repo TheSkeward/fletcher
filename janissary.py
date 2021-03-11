@@ -1231,7 +1231,7 @@ async def add_inbound_sync_function(message, client, args):
             soon = "🔜"
             await message.add_reaction(soon)
         webhook = await message.channel.create_webhook(
-            name=f'{config.get("discord", dict()).get("botNavel", "botNavel")} ({toChannel.guild.name.replace(" ", "_")}:{toChannel.name.replace(" ", "_")})',
+            name=f'{config.get("discord", dict()).get("botNavel", "botNavel")} ({toChannel.guild.id}:{toChannel.id})',
             reason=f"On behalf of {message.author.name}",
         )
         await message.remove_reaction(soon, client.user)

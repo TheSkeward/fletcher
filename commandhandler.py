@@ -87,7 +87,7 @@ class CommandHandler:
         )
 
         self.webhook_sync_registry = {
-            "FromGuild:FromChannelName": {
+            "FromGuildiId:FromChannelId": {
                 "fromChannelObject": None,
                 "fromWebhook": None,
                 "toChannelObject": None,
@@ -113,7 +113,7 @@ class CommandHandler:
                 await guild.webhooks(),
             ):
                 toChannelName = (
-                    f"{guild.name}:{guild.get_channel(webhook.channel_id).name}"
+                    f"{guild.name}:{guild.get_channel(webhook.channel_id).id}"
                 )
                 fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
                 fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0]).replace(
@@ -122,7 +122,13 @@ class CommandHandler:
                 fromGuild = discord.utils.get(
                     client.guilds, name=fromTuple[0].replace("_", " ")
                 )
-                fromChannelName = fromTuple[0].replace("_", " ") + ":" + fromTuple[1]
+                if not fromGuild:
+                    continue
+                fromChannel = discord.utils.find(lambda channel: channel.name == fromTuple[1] or str(channel.id) == fromTuple[1], fromGuild.text_channels)
+                if fromChannel:
+                    fromChannelName = fromTuple[0].replace("_", " ") + ":" + fromChannelName.id
+                else:
+                    continue
                 try:
                     webhook_sync_registry[
                         f"{fromGuild.id}:{webhook.id}"
@@ -453,7 +459,7 @@ class CommandHandler:
                         if type(
                             channel
                         ) is discord.TextChannel and self.webhook_sync_registry.get(
-                            channel.guild.name + ":" + channel.name
+                            channel.guild.name + ":" + channel.id
                         ):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
@@ -805,7 +811,7 @@ class CommandHandler:
                 return
         except AttributeError:
             return
-        bridge_key = f"{message.guild.name}:{message.channel.name}"
+        bridge_key = f"{message.guild.name}:{message.channel.id}"
         bridge = self.webhook_sync_registry.get(bridge_key)
         sync = self.config.get(section="sync")
         user = message.author
@@ -1015,9 +1021,9 @@ class CommandHandler:
             user != self.client.user
             and type(channel) is discord.TextChannel
             and channel.guild
-            and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.name}")
+            and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.id}")
         ):
-            await self.webhook_sync_registry[f"{channel.guild.name}:{channel.name}"][
+            await self.webhook_sync_registry[f"{channel.guild.name}:{channel.id}"][
                 "toChannelObject"
             ][0].trigger_typing()
 
@@ -1058,7 +1064,7 @@ class CommandHandler:
             # Currently, we don't log empty or image-only messages
             pass
         if fromGuild and self.webhook_sync_registry.get(
-            f"{fromGuild.name}:{fromChannel.name}"
+            f"{fromGuild.name}:{fromChannel.id}"
         ):
             await asyncio.sleep(1)
             cur = conn.cursor()
@@ -1111,7 +1117,7 @@ class CommandHandler:
                 if (
                     fromMessage.channel.is_nsfw()
                     and not self.webhook_sync_registry[
-                        f"{fromMessage.guild.name}:{fromMessage.channel.name}"
+                        f"{fromMessage.guild.name}:{fromMessage.channel.id}"
                     ]["toChannelObject"][0].is_nsfw()
                 ):
                     content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
@@ -1234,7 +1240,7 @@ class CommandHandler:
 
             syncMessage = await webhook_edit(
                 self.webhook_sync_registry[
-                    f"{fromMessage.guild.name}:{fromMessage.channel.name}"
+                    f"{fromMessage.guild.name}:{fromMessage.channel.id}"
                 ]["toWebhook"][0],
                 content=content,
                 username=fromMessageName,
