@@ -124,9 +124,15 @@ class CommandHandler:
                 )
                 if not fromGuild:
                     continue
-                fromChannel = discord.utils.find(lambda channel: channel.name == fromTuple[1] or str(channel.id) == fromTuple[1], fromGuild.text_channels)
+                fromChannel = discord.utils.find(
+                    lambda channel: channel.name == fromTuple[1]
+                    or str(channel.id) == fromTuple[1],
+                    fromGuild.text_channels,
+                )
                 if fromChannel:
-                    fromChannelName = fromTuple[0].replace("_", " ") + ":" + fromChannelName.id
+                    fromChannelName = (
+                        fromTuple[0].replace("_", " ") + ":" + fromChannel.id
+                    )
                 else:
                     continue
                 try:
