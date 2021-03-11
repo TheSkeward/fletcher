@@ -1015,7 +1015,7 @@ async def qdb_search_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-@asynccache(TTLCache(1024, 6000))
+@asynccached(TTLCache(1024, 6000))
 def wikidata_get(name):
     return wikiClient.get(name, load=True)
 
