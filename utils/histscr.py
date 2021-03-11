@@ -27,6 +27,9 @@ async def on_ready():
                     print("{} {}:{} {} <{}>: {}".format(message.id, message.guild.name, message.channel.name, message.created_at, message.author.display_name, message.content))
                     for attachment in message.attachments:
                         print("{} Attachment: {}".format(message.id, attachment.url))
+                    for reaction in message.reactions:
+                        async for user in reaction.users():
+                            print("{} from {}".format(str(reaction), str(user)))
             except discord.Forbidden as e:
                 print("Not enough permissions to retrieve logs for {}:{}".format(guild.name, channel.name))
                 pass
