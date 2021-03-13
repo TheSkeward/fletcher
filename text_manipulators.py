@@ -3140,7 +3140,7 @@ async def reaction_request_function(message, client, args):
         flip = message.content.startswith("!tcaerx")
         emoji_query = args[0].strip(":")
         emoji = None
-        target = None
+        target = message.reference.message_id if message.reference and message.type is not discord.MessageType.pins_add else None
         try:
             urlParts = messagefuncs.extract_identifiers_messagelink.search(
                 message.content

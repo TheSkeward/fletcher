@@ -94,7 +94,11 @@ def xchannel(targetChannel, currentGuild):
                 raise exceptions.DirectMessageException(
                     "Can't disambiguate channel name if in DM"
                 )
-            toChannel = discord.utils.find(lambda channel: channel.name == toTuple[1] or str(channel.id) == toTuple[1], toGuild.text_channels)
+            toChannel = discord.utils.find(
+                lambda channel: channel.name == toTuple[1]
+                or str(channel.id) == toTuple[1],
+                toGuild.text_channels,
+            )
     elif channelLookupBy == "ID":
         toChannel = ch.client.get_channel(int(targetChannel))
         toGuild = toChannel.guild
