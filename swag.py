@@ -2601,7 +2601,6 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
-                "!glowsearch",
                 "<:glowfic_const_search_quote:796416363312185384>",
                 "<:glowsearch:799184607555747870>",
                 "<:glowsearch:799817787593457744>",
@@ -2618,6 +2617,7 @@ def autoload(ch):
                 606896038183436318,
                 542027203383394304,
                 289207224075812864,
+                764930810179747850,
             ],
             "args_num": 0,
             "args_name": [],
