@@ -775,6 +775,42 @@ async def subscribe_function(message, client, args):
                 conn.commit()
                 if args[1].id not in guild_config["subscribe"][message.id]:
                     guild_config["subscribe"][message.id].append(args[1].id)
+                ch.add_message_reaction_remove_handler(
+                    [message.id],
+                    {
+                        "trigger": [""],  # empty string: a special catch-all trigger
+                        "function": subscribe_send_function,
+                        "exclusive": False,
+                        "async": True,
+                        "args_num": 0,
+                        "args_name": [],
+                        "description": "Notify on emoji send",
+                    },
+                )
+                ch.add_message_reaction_handler(
+                    [message.id],
+                    {
+                        "trigger": [""],  # empty string: a special catch-all trigger
+                        "function": subscribe_send_function,
+                        "exclusive": False,
+                        "async": True,
+                        "args_num": 0,
+                        "args_name": [],
+                        "description": "Notify on emoji send",
+                    },
+                )
+                ch.add_message_reply_handler(
+                    [message.id],
+                    {
+                        "trigger": [""],  # empty string: a special catch-all trigger
+                        "function": subscribe_send_function,
+                        "exclusive": False,
+                        "async": True,
+                        "args_num": 0,
+                        "args_name": [],
+                        "description": "Notify on emoji send",
+                    },
+                )
                 await sendWrappedMessage(
                     f"By reacting with {args[0].emoji}, you subscribed to reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} ({message.channel.name}:{message.guild.name}). You can unreact to unsubscribe from these notifications.",
                     args[1],

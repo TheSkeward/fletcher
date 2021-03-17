@@ -100,7 +100,7 @@ async def addrole_function(message, client, args):
                     .replace("pingable", "mentionable")
                 )
                 it = iter(
-                    argString.trim().replace(" and ", "").replace(", ", "").split(" ")
+                    argString.strip().replace(" and ", "").replace(", ", "").split(" ")
                 )
                 for prop, val in zip(it, it):
                     if prop == "colour":
