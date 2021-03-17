@@ -293,9 +293,15 @@ async def shindan_function(message, client, args):
 
 
 pick_regexes = {
-        "no_commas": lambda argStr: re.compile(r"[\s]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?").split(argStr),
-        "has_commas": lambda argStr: re.compile(r"[,]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?").split(argStr),
-    "has_quotes_and_commas": lambda argStr: list(reader([argStr], skipinitialspace=True))[0],
+    "no_commas": lambda argStr: re.compile(
+        r"[\s]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"
+    ).split(argStr),
+    "has_commas": lambda argStr: re.compile(
+        r"[,]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"
+    ).split(argStr),
+    "has_quotes_and_commas": lambda argStr: list(
+        reader([argStr], skipinitialspace=True)
+    )[0],
 }
 
 
@@ -564,7 +570,9 @@ async def pick_function(message, client, args):
                     "I couldn't find a sheet configuration with that name.",
                     message.channel,
                 )
-            args = [line+"," for line in (await get_google_sheet(*sheetInfo)).split("\n")]
+            args = [
+                line + "," for line in (await get_google_sheet(*sheetInfo)).split("\n")
+            ]
         elif args[0].startswith("list="):
             if message.guild and ch.scope_config(guild=message.guild).get(
                 f"pick-list-{args[0][5:]}"
@@ -583,9 +591,7 @@ async def pick_function(message, client, args):
             pick_regex = pick_regexes["has_commas"]
         else:
             pick_regex = pick_regexes["no_commas"]
-        choices = [
-            choice.strip() for choice in pick_regex(argstr) if choice.strip()
-        ]
+        choices = [choice.strip() for choice in pick_regex(argstr) if choice.strip()]
         if len(choices) == 1:
             choices = args
         try:
@@ -2157,7 +2163,7 @@ def amulet_function(message, client, args):
 async def amulet_filter(message, client, args):
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
-        await messagefuncs.sendWrappedMessage(is_am, message.channel)
+        await messagefuncs.sendWrappedMessage(is_am, message.channel, reference=message.to_reference())
 
 
 async def autounload(ch):
