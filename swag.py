@@ -5,6 +5,7 @@ from asyncache import cached as asynccached
 from collections import Counter, defaultdict, deque
 from cachetools import TTLCache, cached as synccached
 import chronos
+from csv import reader
 from googleapiclient.discovery import build
 import time
 import discord
@@ -292,8 +293,15 @@ async def shindan_function(message, client, args):
 
 
 pick_regexes = {
-    "no_commas": re.compile(r"[\s]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"),
-    "has_commas": re.compile(r"[,]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"),
+    "no_commas": lambda argStr: re.compile(
+        r"[\s]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"
+    ).split(argStr),
+    "has_commas": lambda argStr: re.compile(
+        r"[,]\s*(?:(?:and|or|but|nor|for|so|yet)\s+)?"
+    ).split(argStr),
+    "has_quotes_and_commas": lambda argStr: list(
+        reader([argStr], skipinitialspace=True)
+    )[0],
 }
 
 
@@ -515,6 +523,21 @@ async def roll_function(message, client, args):
         logger.error("RDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+@asynccached(TTLCache(1024, 6000))
+async def get_google_sheet(sheetId, sheetName, skip=0, cellRange=None, query=None):
+    params = {"tqx": "out:csv", "sheet": str(sheetName)}
+    if cellRange:
+        params["range"] = str(cellRange)
+    if query:
+        params["tq"] = str(query)
+    logger.debug(params)
+    async with session.get(
+        f"https://docs.google.com/spreadsheets/d/{sheetId}/gviz/tq", params=params
+    ) as response:
+        logger.debug(f"https://docs.google.com/spreadsheets/d/{sheetId}/gviz/tq")
+        return (await response.text()).split("\n", int(skip) if len(skip) else 0)[-1]
+
+
 async def pick_function(message, client, args):
     global ch
     try:
@@ -529,7 +552,28 @@ async def pick_function(message, client, args):
             pass
         if args[0] in ["between", "among", "in", "of"]:
             args = args[1:]
-        if args[0].startswith("list="):
+        if args[0].startswith("sheet="):
+            if ch.user_config(message.author.id, None, f"pick-sheet-{args[0][6:]}"):
+                sheetInfo = ch.user_config(
+                    message.author.id, None, f"pick-sheet-{args[0][6:]}"
+                ).split(",", 4)
+            elif message.guild and ch.scope_config(guild=message.guild).get(
+                f"pick-sheet-{args[0][6:]}"
+            ):
+                sheetInfo = (
+                    ch.scope_config(guild=message.guild)
+                    .get(f"pick-sheet-{args[0][6:]}", "")
+                    .split(",", 4)
+                )
+            else:
+                return await messagefuncs.sendWrappedMessage(
+                    "I couldn't find a sheet configuration with that name.",
+                    message.channel,
+                )
+            args = [
+                line + "," for line in (await get_google_sheet(*sheetInfo)).split("\n")
+            ]
+        elif args[0].startswith("list="):
             if message.guild and ch.scope_config(guild=message.guild).get(
                 f"pick-list-{args[0][5:]}"
             ):
@@ -541,13 +585,13 @@ async def pick_function(message, client, args):
             else:
                 args = pick_lists.get(args[0][5:], "No such list,").split(" ")
         argstr = " ".join(args).rstrip(" ?.!")
-        if "," in argstr:
+        if "," in argstr and '"' in argstr:
+            pick_regex = pick_regexes["has_quotes_and_commas"]
+        elif "," in argstr:
             pick_regex = pick_regexes["has_commas"]
         else:
             pick_regex = pick_regexes["no_commas"]
-        choices = [
-            choice.strip() for choice in pick_regex.split(argstr) if choice.strip()
-        ]
+        choices = [choice.strip() for choice in pick_regex(argstr) if choice.strip()]
         if len(choices) == 1:
             choices = args
         try:
@@ -2119,7 +2163,7 @@ def amulet_function(message, client, args):
 async def amulet_filter(message, client, args):
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
-        await messagefuncs.sendWrappedMessage(is_am, message.channel)
+        await messagefuncs.sendWrappedMessage(is_am, message.channel, reference=message.to_reference())
 
 
 async def autounload(ch):
