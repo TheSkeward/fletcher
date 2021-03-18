@@ -2163,7 +2163,9 @@ def amulet_function(message, client, args):
 async def amulet_filter(message, client, args):
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
-        await messagefuncs.sendWrappedMessage(is_am, message.channel, reference=message.to_reference())
+        await messagefuncs.sendWrappedMessage(
+            is_am, message.channel, reference=message.to_reference()
+        )
 
 
 async def autounload(ch):
@@ -2640,6 +2642,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Poem"],
             "description": "Check amulet status",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!bubblewrap",
+            ],
+            "function": lambda message, client, args: "||pop||" * (int(args[0]) if len(args) else 20),
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Pop",
         }
     )
     ch.add_command(
