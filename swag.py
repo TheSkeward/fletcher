@@ -2649,7 +2649,8 @@ def autoload(ch):
             "trigger": [
                 "!bubblewrap",
             ],
-            "function": lambda message, client, args: "||pop||" * (int(args[0]) if len(args) else 20),
+            "function": lambda message, client, args: f"||{'pop' if len(args) < 2 else args[1]}||"
+            * (int(args[0]) if len(args) else 20),
             "async": False,
             "args_num": 0,
             "args_name": [],
