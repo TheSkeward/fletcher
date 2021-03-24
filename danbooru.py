@@ -94,6 +94,7 @@ async def posts_search_function(message, client, args):
         await messagefuncs.sendWrappedMessage(
             f"{post_count} results\n<{base_url}/posts/?md5={search_result['md5']}>",
             message.channel,
+            reference=message.to_reference(),
             files=[
                 discord.File(
                     buffer, f"{search_result['md5']}.{search_result['file_ext']}"
