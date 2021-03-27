@@ -1338,7 +1338,7 @@ async def error_report_function(error_str, guild, client):
     users = list(expand_target_list(users, guild))
     for target in users:
         modmail = await messagefuncs.sendWrappedMessage(
-            report_content, target, current_user_id=target.id
+            error_str, target, current_user_id=target.id
         )
 
 
