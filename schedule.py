@@ -126,7 +126,7 @@ class ScheduleFunctions:
         else:
             channel_log = []
         overwrites = ujson.loads(mode_args)
-        for channel in channels:
+        for channel in filter(None, channels):
             if channel is None:
                 return f"Error in executing channel override: channel does not exist for {target_message}. This is probably due to the channel being deleted since the snooze record was added.\n> {cached_content}"
             logger.debug(f"Checking {user} in {channel}")
