@@ -4,6 +4,8 @@ import aiohttp
 from asyncache import cached as asynccached
 from collections import Counter, defaultdict, deque
 from cachetools import TTLCache, cached as synccached
+from google.oauth2 import service_account
+from google.cloud import vision
 import chronos
 from csv import reader
 from googleapiclient.discovery import build
@@ -2647,6 +2649,19 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
+                "!stuporfy",
+            ],
+            "function": lambda message, client, args: f"{message.author.mention}: ZAP",
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "hidden": True,
+            "description": "Zap",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
                 "!bubblewrap",
             ],
             "function": lambda message, client, args: f"||{'pop' if len(args) < 2 else args[1]}||"
@@ -2730,4 +2745,8 @@ def autoload(ch):
             headers={
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
             }
+        )
+    if not googleCloud:
+        credentials = service_account.Credentials.from_service_account_info(
+            dict(config.get("google-cloud"))
         )
