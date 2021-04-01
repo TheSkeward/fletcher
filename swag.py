@@ -2746,7 +2746,3 @@ def autoload(ch):
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
             }
         )
-    if not googleCloud:
-        credentials = service_account.Credentials.from_service_account_info(
-            dict(config.get("google-cloud"))
-        )
