@@ -2651,7 +2651,7 @@ def autoload(ch):
             "trigger": [
                 "!stuporfy",
             ],
-            "function": lambda message, client, args: f"{message.author.mention}: ZAP",
+            "function": lambda message, client, args: f"{message.mentions[0].mention if len(message.mentions) else message.author.mention}: ZAP",
             "async": False,
             "args_num": 0,
             "args_name": [],
