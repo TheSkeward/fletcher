@@ -1064,6 +1064,11 @@ async def copy_permissions_function(message, client, args):
         sourceChannel = args[0]
         targetChannel = message.channel
 
+        if type(targetChannel) is discord.DMChannel:
+            return await messagefuncs.sendWrappedMessage(
+                f"This command cannot be run in DMs.",
+                message.author,
+            )
         if sourceChannel.startswith("<#"):
             sourceChannel = message.guild.get_channel(int(sourceChannel[2:-1]))
         else:
