@@ -25,7 +25,10 @@ async def pinterest_randomize_function(message, client, args):
         board_entry = board_cache[cachekey].pop()
     except (IndexError, KeyError):
         await message.channel.trigger_typing()
-        board_cache[cachekey] = copy.deepcopy(get_board(username, boardname))
+        try:
+            board_cache[cachekey] = copy.deepcopy(get_board(username, boardname))
+        except requests.exceptions.HTTPError:
+            await messagefuncs.sendWrappedMessage("Received a 404 while retrieving boards.")
         random.shuffle(board_cache[cachekey])
         board_entry = board_cache[cachekey].pop()
     logger.debug(board_entry)
@@ -42,7 +45,7 @@ async def pinterest_randomize_function(message, client, args):
         url=url,
     )
     embedPreview.set_footer(
-        icon_url="http://download.nova.anticlack.com/fletcher/pinterest.png",
+        icon_url="https://dorito.space/fletcher/pinterest.png",
         text=f"On behalf of {message.author.display_name}",
     )
     embedPreview.set_image(url=orig_url)
@@ -54,7 +57,11 @@ async def pinterest_randomize_function(message, client, args):
 @cached(TTLCache(1024, 600))
 def get_boards(username):
     boards = []
-    board_batch = pinterest.boards(username=username)
+    board_batch = None
+    try:
+        board_batch = pinterest.boards(username=username)
+    except requests.exceptions.HTTPError:
+        board_batch = pinterest.boards(username=username)
     while len(board_batch) > 0:
         boards += board_batch
         board_batch = pinterest.boards(username=username)
