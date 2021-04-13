@@ -879,16 +879,20 @@ class CommandHandler:
                         content += f"\n• <{attachment.url}>"
 
                 user_mentions = []
-                content = re.sub(
-                    r"@.*?#0000",
-                    lambda member: list_append(
-                        user_mentions,
-                        bridge["toChannelObject"][i].guild.get_member_named(
-                            member[0][1:-5]
-                        ),
-                    ).mention,
-                    content,
-                )
+                try:
+                    content = re.sub(
+                            r"@.*?#0000",
+                            lambda member: list_append(
+                                user_mentions,
+                                bridge["toChannelObject"][i].guild.get_member_named(
+                                    member[0][1:-5]
+                                    ),
+                                ).mention,
+                            content,
+                            )
+                except AttributeError:
+                    # Skipping substitution
+                    pass
                 toMember = bridge["toChannelObject"][i].guild.get_member(user.id)
                 fromMessageName = (
                     toMember.display_name if toMember else user.display_name
