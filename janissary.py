@@ -1186,7 +1186,7 @@ async def copy_emoji_function(message, client, args):
             await messagefuncs.sendWrappedMessage(custom_emoji, message.channel)
     except discord.Forbidden as e:
         await messagefuncs.sendWrappedMessage(
-            "There was a permissions error ({e}) when executing this command, please grant me the Manage Emojis permission and try again!",
+            f"There was a permissions error ({e}) when executing this command, please grant me the Manage Emojis permission and try again!",
             message.author,
         )
         exc_type, exc_obj, exc_tb = exc_info()
