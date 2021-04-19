@@ -558,6 +558,12 @@ async def preview_messagelink_function(message, client, args):
                 content = "SCP Preview"
         # TODO 🔭 to preview?
         if content:
+            try:
+                if message.author.id == client.id:
+                    await message.edit(content=message.content+"\n"+content)
+                    return
+            except:
+                pass
             outMessage = await sendWrappedMessage(
                 content,
                 message.channel,
