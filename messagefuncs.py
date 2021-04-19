@@ -559,8 +559,8 @@ async def preview_messagelink_function(message, client, args):
         # TODO 🔭 to preview?
         if content:
             try:
-                if message.author.id == client.id:
-                    await message.edit(content=message.content+"\n"+content)
+                if message.author.id == client.user.id:
+                    await message.edit(content=message.content + "\n" + content)
                     return
             except:
                 pass
