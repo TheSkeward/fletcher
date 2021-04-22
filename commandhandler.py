@@ -881,15 +881,15 @@ class CommandHandler:
                 user_mentions = []
                 try:
                     content = re.sub(
-                            r"@.*?#0000",
-                            lambda member: list_append(
-                                user_mentions,
-                                bridge["toChannelObject"][i].guild.get_member_named(
-                                    member[0][1:-5]
-                                    ),
-                                ).mention,
-                            content,
-                            )
+                        r"@.*?#0000",
+                        lambda member: list_append(
+                            user_mentions,
+                            bridge["toChannelObject"][i].guild.get_member_named(
+                                member[0][1:-5]
+                            ),
+                        ).mention,
+                        content,
+                    )
                 except AttributeError:
                     # Skipping substitution
                     pass
@@ -2363,7 +2363,13 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
-    return f"```{ch.user_config(message.author.id, message.guild.id if message.guild else None, args[0], value,)}```"
+    if ":" in args[0]:
+        args[0] = args[0].split(":")
+        guild = int(args[0][0])
+        args[0] = args[0][1]
+    else:
+        guild = message.guild.id if message.guild else None
+    return f"```{ch.user_config(message.author.id, guild, args[0], value,)}```"
 
 
 async def dumptasks_function(message, client, args):
