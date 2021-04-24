@@ -277,7 +277,9 @@ async def reminder_function(message, client, args):
     try:
         global conn
         cur = conn.cursor()
-        interval = chronos.parse_time.search(message.content.lower().split(" in ", 1)[1])
+        interval = chronos.parse_time.search(
+            message.content.lower().split(" in ", 1)[1]
+        )
         content = "Remind me"
         if args[0].lower() == "in" and interval is not None:
             target = f"NOW() + '{interval.group(0)}'::interval"
@@ -299,7 +301,7 @@ async def reminder_function(message, client, args):
         conn.commit()
         return await messagefuncs.sendWrappedMessage(
             f"Setting a reminder at {target}\n> {content}",
-            message.channel.id,
+            message.channel,
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
