@@ -7,6 +7,7 @@ import messagefuncs
 import datetime
 import dateparser
 import dateparser.search
+import pytz
 from sentry_sdk import configure_scope
 import traceback
 import re
@@ -316,6 +317,7 @@ async def reminder_function(message, client, args):
                 and " am" not in d[0].lower()
             ):
                 interval = interval - datetime.timedelta(hours=12)
+            interval = interval.astimezone(pytz.utc)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
         else:
