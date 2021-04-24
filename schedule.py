@@ -309,7 +309,7 @@ async def reminder_function(message, client, args):
             f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
             [
                 message.author.id,
-                message.guild.id if message.guild else None,
+                message.guild.id if message.guild else 0,
                 message.channel.id,
                 message.id,
                 content,
@@ -347,7 +347,7 @@ async def table_function(message, client, args):
                     + "');",
                     [
                         args[1].id,
-                        message.guild.id if message.guild else None,
+                        message.guild.id if message.guild else 0,
                         message.channel.id,
                         message.id,
                         message.content,
