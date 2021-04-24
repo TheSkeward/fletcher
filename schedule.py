@@ -282,10 +282,10 @@ async def reminder_function(message, client, args):
         cur = conn.cursor()
         content = "Remind me"
         interval = None
-        if args[0].lower() == "in" and interval is not None:
+        if args[0].lower() == "in":
             interval = chronos.parse_interval.search(
-                    message.content.lower().split(" in ", 1)[1]
-                    )
+                message.content.lower().split(" in ", 1)[1]
+            )
             target = f"NOW() + '{interval.group(0)}'::interval"
             content = (
                 message.content.split(" in ", 1)[1][interval.end(0) :].strip()
@@ -294,8 +294,8 @@ async def reminder_function(message, client, args):
         elif args[0].lower() == "at" and interval is not None:
             tz = get_tz(message=message, user=user, guild=guild)
             interval = chronos.parse_time.search(
-                    message.content.lower().split(" at ", 1)[1]
-                    )
+                message.content.lower().split(" at ", 1)[1]
+            )
             target = f"'{interval.group(0)}'"
             content = (
                 message.content.split(" in ", 1)[1][interval.end(0) :].strip()
@@ -319,7 +319,7 @@ async def reminder_function(message, client, args):
         return await messagefuncs.sendWrappedMessage(
             f"Setting a reminder at {target}\n> {content}",
             message.channel,
-            delete_after=30
+            delete_after=30,
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
