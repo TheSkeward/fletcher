@@ -292,23 +292,20 @@ async def reminder_function(message, client, args):
                 message.content.split(" in ", 1)[1][interval.end(0) :].strip()
                 or content
             )
-        elif args[0].lower() == "at" and interval is not None:
-            tz = get_tz(message=message, user=user, guild=guild)
+        elif args[0].lower() == "at":
+            tz = chronos.get_tz(message=message, user=message.author, guild=message.guild)
             d = dateparser.search.search_dates(
-                    message.content,
-                    settings={
-                        "PREFER_DATES_FROM": "future",
-                        "PREFER_DAY_OF_MONTH": "first",
-                        },
-                    )[0]
+                message.content,
+                settings={
+                    "PREFER_DATES_FROM": "future",
+                    "PREFER_DAY_OF_MONTH": "first",
+                },
+            )[0]
             if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d) is None:
                 d[1] = d[1].replace(tzinfo=tz)
             interval = d[1]
             target = f"'{interval}'"
-            content = (
-                message.content.split(d[0], 1)[1].strip()
-                or content
-            )
+            content = message.content.split(d[0], 1)[1].strip() or content
         else:
             return
         if not target or not interval:
