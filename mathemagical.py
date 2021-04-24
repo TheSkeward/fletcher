@@ -46,7 +46,14 @@ def renderLatex(formula, fontsize=12, dpi=300, format="svg", file=None, preamble
 async def latex_render_function(message, client, args):
     global config
     try:
-        renderstring = message.content.split(" ", 1)[1]
+        try:
+            renderstring = message.content.split(" ", 1)[1]
+        except:
+            return await messagefuncs.sendWrappedMessage(
+                "Please specify string to render as LaTeX",
+                message.channel,
+                delete_after=30,
+            )
         if message.content.split(" ", 1)[0] == "!math":
             renderstring = f"$${renderstring}$$"
         if "math" in config and "extra-packages" in config["math"]:
