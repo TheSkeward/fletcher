@@ -277,12 +277,14 @@ async def reminder_function(message, client, args):
     try:
         global conn
         cur = conn.cursor()
-        interval = chronos.parse_time.search(message.content)
+        interval = chronos.parse_time.search(message.content.lower().split(" in ", 1)[1])
         content = "Remind me"
         if args[0].lower() == "in" and interval is not None:
             target = f"NOW() + '{interval.group(0)}'::interval"
             content = message.content[interval.end(0) :].strip() or content
         else:
+            return
+        if not target:
             return
         cur.execute(
             f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
