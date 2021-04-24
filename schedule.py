@@ -310,7 +310,11 @@ async def reminder_function(message, client, args):
                 interval = d[1].replace(tzinfo=tz)
             else:
                 interval = d[1]
-            if interval.day == datetime.datetime.now(tz).day and interval.hour < 12 and " am" not in d[0].lower():
+            if (
+                interval.day == datetime.datetime.now(tz).day + 1
+                and interval.hour < 12
+                and " am" not in d[0].lower()
+            ):
                 interval = interval - datetime.timedelta(hours=12)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
