@@ -221,7 +221,7 @@ async def table_exec_function():
                     mode_args = mode_params[1]
                 mode_desc = modes[mode].description
                 guild = client.get_guild(guild_id)
-                if guild is None:
+                if guild is None and guild_id:
                     logger.info(f"PMF: Fletcher is not in guild {guild_id}")
                     await messagefuncs.sendWrappedMessage(
                         f"You {mode_desc} in a server that Fletcher no longer services, so this request cannot be fulfilled. The content of the command is reproduced below: {content}",
@@ -230,7 +230,7 @@ async def table_exec_function():
                     processed_ctids += [ctid]
                     tabtuple = cur.fetchone()
                     continue
-                from_channel = guild.get_channel(channel_id)
+                from_channel = client.get_channel(channel_id)
                 target_message = None
                 try:
                     target_message = await from_channel.fetch_message(message_id)
