@@ -283,7 +283,7 @@ async def reminder_function(message, client, args):
         content = "Remind me"
         if args[0].lower() == "in" and interval is not None:
             target = f"NOW() + '{interval.group(0)}'::interval"
-            content = message.content[interval.end(0) :].strip() or content
+            content = message.content.split(" in ", 1)[1][interval.end(0) :].strip() or content
         else:
             return
         if not target:
