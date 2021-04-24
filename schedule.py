@@ -1,4 +1,5 @@
 import asyncio
+import chronos
 import commandhandler
 import discord
 import logging
@@ -25,6 +26,11 @@ class ScheduleFunctions:
             and permissions.send_messages == False
             and permissions.embed_links == False
         )
+
+    async def reminder(
+        target_message, user, cached_content, mode_args, created_at, from_channel
+    ):
+        return [f"Reminder:\n> {cached_content}", from_channel]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -161,6 +167,9 @@ class ScheduleFunctions:
 
 
 modes = {
+    "reminder": commandhandler.Command(
+        description="set a reminder", function=ScheduleFunctions.reminder, sync=False
+    ),
     "table": commandhandler.Command(
         description="tabled a discussion", function=ScheduleFunctions.table, sync=False
     ),
@@ -225,17 +234,22 @@ async def table_exec_function():
                     # created_at is naîve, but specified as UTC by Discord API docs
                 except (discord.NotFound, AttributeError) as e:
                     pass
-                await messagefuncs.sendWrappedMessage(
-                    await modes[mode].function(
-                        target_message,
-                        user,
-                        content,
-                        mode_args,
-                        created_at,
-                        from_channel,
-                    ),
+                todo = await modes[mode].function(
+                    target_message,
                     user,
+                    content,
+                    mode_args,
+                    created_at,
+                    from_channel,
                 )
+                if type(todo) is str:
+                    await messagefuncs.sendWrappedMessage(todo, user)
+                elif type(todo) is list:
+                    await messagefuncs.sendWrappedMessage(*todo)
+                elif type(todo) is dict:
+                    await messagefuncs.sendWrappedMessage(**todo)
+                else:
+                    raise asyncio.CancelledError()
                 processed_ctids += [ctid]
                 tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
@@ -257,6 +271,39 @@ async def table_exec_function():
             )
         logger.info(traceback.format_exc())
         logger.error(f"TXF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
+async def reminder_function(message, client, args):
+    try:
+        global conn
+        cur = conn.cursor()
+        interval = chronos.parse_time.search(message.content)
+        content = "Remind me"
+        if args[0].lower() == "in" and interval is not None:
+            target = "NOW() + '{interval.group(0)}'::interval"
+            content = message.content[interval.end(0) :].strip() or content
+        else:
+            return
+        cur.execute(
+            f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, 'trigger_type') VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
+            [
+                message.author.id,
+                message.guild.id,
+                message.channel.id,
+                message.id,
+                content,
+            ],
+        )
+        conn.commit()
+        return await messagefuncs.sendWrappedMessage(
+            f"Setting a reminder at {target}\n> {content}",
+            message.channel.id,
+        )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("TF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
 async def table_function(message, client, args):
@@ -314,6 +361,16 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Table a discussion for later.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!remindme"],
+            "function": reminder_function,
+            "async": True,
+            "args_num": 2,
+            "args_name": ["in x months x weeks x weeks x days x hours x minutes"],
+            "description": "Set a reminder.",
         }
     )
     global reminder_timerhandle
