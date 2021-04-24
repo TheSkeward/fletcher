@@ -280,25 +280,36 @@ async def reminder_function(message, client, args):
     try:
         global conn
         cur = conn.cursor()
-        interval = chronos.parse_time.search(
-            message.content.lower().split(" in ", 1)[1]
-        )
         content = "Remind me"
+        interval = None
         if args[0].lower() == "in" and interval is not None:
+            interval = chronos.parse_interval.search(
+                    message.content.lower().split(" in ", 1)[1]
+                    )
             target = f"NOW() + '{interval.group(0)}'::interval"
+            content = (
+                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
+                or content
+            )
+        elif args[0].lower() == "at" and interval is not None:
+            tz = get_tz(message=message, user=user, guild=guild)
+            interval = chronos.parse_time.search(
+                    message.content.lower().split(" at ", 1)[1]
+                    )
+            target = f"'{interval.group(0)}'"
             content = (
                 message.content.split(" in ", 1)[1][interval.end(0) :].strip()
                 or content
             )
         else:
             return
-        if not target:
+        if not target or not interval:
             return
         cur.execute(
             f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
             [
                 message.author.id,
-                message.guild.id,
+                message.guild.id if message.guild else None,
                 message.channel.id,
                 message.id,
                 content,
@@ -308,12 +319,13 @@ async def reminder_function(message, client, args):
         return await messagefuncs.sendWrappedMessage(
             f"Setting a reminder at {target}\n> {content}",
             message.channel,
+            delete_after=30
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("TF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error("RDRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
 async def table_function(message, client, args):
@@ -335,7 +347,7 @@ async def table_function(message, client, args):
                     + "');",
                     [
                         args[1].id,
-                        message.guild.id,
+                        message.guild.id if message.guild else None,
                         message.channel.id,
                         message.id,
                         message.content,
@@ -346,7 +358,8 @@ async def table_function(message, client, args):
                     "Tabling conversation in #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to {} for {}".format(
                         message.channel.name,
                         message.channel.guild.name,
-                        message.channel.guild.id,
+                        message.guild.name if message.guild else "Direct Message",
+                        message.guild.id if message.guild else "@me",
                         message.channel.id,
                         message.id,
                         message.content,
