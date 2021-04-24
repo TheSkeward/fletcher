@@ -305,8 +305,9 @@ async def reminder_function(message, client, args):
                 },
             )[0]
             if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d) is None:
-                d[1] = d[1].replace(tzinfo=tz)
-            interval = d[1]
+                interval = d[1].replace(tzinfo=tz)
+            else:
+                interval = d[1]
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
         else:
