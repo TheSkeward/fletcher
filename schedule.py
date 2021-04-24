@@ -4,6 +4,7 @@ import commandhandler
 import discord
 import logging
 import messagefuncs
+import datetime
 import dateparser
 import dateparser.search
 from sentry_sdk import configure_scope
@@ -298,16 +299,19 @@ async def reminder_function(message, client, args):
             d = dateparser.search.search_dates(
                 message.content,
                 settings={
+                    "RELATIVE_BASE": datetime.datetime.now(tz).replace(tzinfo=None),
                     "PREFER_DATES_FROM": "future",
                     "PREFER_DAY_OF_MONTH": "first",
                     "TIMEZONE": str(tz),
-                    'RETURN_AS_TIMEZONE_AWARE': True,
+                    "RETURN_AS_TIMEZONE_AWARE": True,
                 },
             )[0]
             if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d[1]) is None:
                 interval = d[1].replace(tzinfo=tz)
             else:
                 interval = d[1]
+            if interval.day == datetime.datetime.now(tz).day and interval.hour < 12 and " am" not in d[0].lower():
+                interval = interval - datetime.timedelta(hours=12)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
         else:
