@@ -52,7 +52,7 @@ def get_tz(message=None, user=None, guild=None):
     if guild and isinstance(guild, discord.Guild):
         guild = guild.id
     if ch.user_config(user, guild, "tz"):
-        tz = pytz.timezone(ch.user_config(message.author.id, message.guild.id, "tz"))
+        tz = pytz.timezone(ch.user_config(message.author, message.guild, "tz"))
     elif ch.scope_config(guild=guild, channel=message.channel).get("tz"):
         tz = pytz.timezone(
             ch.scope_config(guild=guild, channel=message.channel).get("tz")
