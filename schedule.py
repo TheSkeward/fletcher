@@ -280,7 +280,7 @@ async def reminder_function(message, client, args):
         interval = chronos.parse_time.search(message.content)
         content = "Remind me"
         if args[0].lower() == "in" and interval is not None:
-            target = "NOW() + '{interval.group(0)}'::interval"
+            target = f"NOW() + '{interval.group(0)}'::interval"
             content = message.content[interval.end(0) :].strip() or content
         else:
             return
