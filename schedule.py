@@ -30,7 +30,10 @@ class ScheduleFunctions:
     async def reminder(
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
-        return [f"Reminder:\n> {cached_content}", from_channel]
+        if type(from_channel) is not discord.DMChannel:
+            return [f"Reminder for {user.mention}:\n> {cached_content}", from_channel]
+        else:
+            return [f"Reminder:\n> {cached_content}", from_channel]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -283,7 +286,10 @@ async def reminder_function(message, client, args):
         content = "Remind me"
         if args[0].lower() == "in" and interval is not None:
             target = f"NOW() + '{interval.group(0)}'::interval"
-            content = message.content.split(" in ", 1)[1][interval.end(0) :].strip() or content
+            content = (
+                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
+                or content
+            )
         else:
             return
         if not target:
