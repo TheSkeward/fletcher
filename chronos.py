@@ -1,3 +1,4 @@
+import re
 from sys import exc_info
 import logging
 from geopy.geocoders import Nominatim
@@ -92,6 +93,12 @@ def autoload(ch):
             "description": "Current time (at optional location)",
         }
     )
+
+
+parse_time = re.compile(
+    r"(?:\d+\s*?y(?:ears?)?)?[,\s]*(?:\d+\s*?m(?:on(?:ths?)?)?)?[,\s]*(?:\d+\s*?w(?:e*ks?)?)?[,\s]*(?:\d+\s*?d(?:ays?)?)?[,\s]*(?:\d+\s*?h(?:[ou]*rs?)?)?[,\s]*(?:\d+\s*?min(?:utes?)?)?",
+    re.IGNORECASE,
+)
 
 
 async def autounload(ch):
