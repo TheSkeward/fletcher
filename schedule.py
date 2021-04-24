@@ -4,6 +4,7 @@ import commandhandler
 import discord
 import logging
 import messagefuncs
+from dateutil.parser import parse
 from sentry_sdk import configure_scope
 import traceback
 import re
@@ -293,12 +294,19 @@ async def reminder_function(message, client, args):
             )
         elif args[0].lower() == "at" and interval is not None:
             tz = get_tz(message=message, user=user, guild=guild)
-            interval = chronos.parse_time.search(
-                message.content.lower().split(" at ", 1)[1]
-            )
-            target = f"'{interval.group(0)}'"
+            d = dateparser.search.search_dates(
+                    message.content,
+                    settings={
+                        "PREFER_DATES_FROM": "future",
+                        "PREFER_DAY_OF_MONTH": "first",
+                        },
+                    )[0]
+            if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d) is None:
+                d[1] = d[1].replace(tzinfo=tz)
+            interval = d[1]
+            target = f"'{interval}'"
             content = (
-                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
+                message.content.split(d[0], 1)[1].strip()
                 or content
             )
         else:
