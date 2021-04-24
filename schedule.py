@@ -285,7 +285,7 @@ async def reminder_function(message, client, args):
         else:
             return
         cur.execute(
-            f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, 'trigger_type') VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
+            f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
             [
                 message.author.id,
                 message.guild.id,
