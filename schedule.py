@@ -4,7 +4,8 @@ import commandhandler
 import discord
 import logging
 import messagefuncs
-from dateutil.parser import parse
+import dateparser
+import dateparser.search
 from sentry_sdk import configure_scope
 import traceback
 import re
@@ -293,7 +294,9 @@ async def reminder_function(message, client, args):
                 or content
             )
         elif args[0].lower() == "at":
-            tz = chronos.get_tz(message=message, user=message.author, guild=message.guild)
+            tz = chronos.get_tz(
+                message=message, user=message.author, guild=message.guild
+            )
             d = dateparser.search.search_dates(
                 message.content,
                 settings={
