@@ -294,17 +294,17 @@ async def reminder_function(message, client, args):
                 or content
             )
         elif args[0].lower() == "at":
-            tz = chronos.get_tz(
-                message=message, user=message.author, guild=message.guild
-            )
+            tz = chronos.get_tz(message=message)
             d = dateparser.search.search_dates(
                 message.content,
                 settings={
                     "PREFER_DATES_FROM": "future",
                     "PREFER_DAY_OF_MONTH": "first",
+                    "TIMEZONE": str(tz),
+                    'RETURN_AS_TIMEZONE_AWARE': True,
                 },
             )[0]
-            if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d) is None:
+            if d[1].tzinfo is None or d[1].tzinfo.utcoffset(d[1]) is None:
                 interval = d[1].replace(tzinfo=tz)
             else:
                 interval = d[1]
