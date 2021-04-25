@@ -317,14 +317,17 @@ async def reminder_function(message, client, args):
                 and " am" not in d[0].lower()
             ):
                 interval = interval - datetime.timedelta(hours=12)
-            interval = interval.astimezone(datetime.datetime.now().astimezone().tzinfo).replace(tzinfo=None)
+            interval = interval.astimezone(
+                datetime.datetime.now().astimezone().tzinfo
+            ).replace(tzinfo=None)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
         else:
             return
         if not target or not interval:
             return
-        cur.execute(
+        try:
+            cur.execute(
             f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
             [
                 message.author.id,
@@ -333,13 +336,20 @@ async def reminder_function(message, client, args):
                 message.id,
                 content,
             ],
-        )
-        conn.commit()
-        return await messagefuncs.sendWrappedMessage(
+            )
+            conn.commit()
+            return await messagefuncs.sendWrappedMessage(
             f"Setting a reminder at {target}\n> {content}",
             message.channel,
             delete_after=30,
-        )
+            )
+        except InvalidDatetimeFormat:
+            conn.rollback()
+            return await messagefuncs.sendWrappedMessage(
+                f"Couldn't parse time syntax",
+                message.channel,
+                delete_after=30,
+            )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
