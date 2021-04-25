@@ -35,9 +35,9 @@ class ScheduleFunctions:
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
         if type(from_channel) is not discord.DMChannel:
-            return [f"Reminder for {user.mention}:\n> {cached_content}", from_channel]
+            return [f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}", from_channel]
         else:
-            return [f"Reminder:\n> {cached_content}", from_channel]
+            return [f"Reminder from https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}", from_channel]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -328,20 +328,24 @@ async def reminder_function(message, client, args):
             return
         try:
             cur.execute(
-            f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
-            [
-                message.author.id,
-                message.guild.id if message.guild else 0,
-                message.channel.id,
-                message.id,
-                content,
-            ],
+                f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
+                [
+                    message.author.id,
+                    message.guild.id if message.guild else 0,
+                    message.channel.id,
+                    message.id,
+                    content,
+                ],
             )
             conn.commit()
+            try:
+                await message.add_reaction("✅")
+            except:
+                pass
             return await messagefuncs.sendWrappedMessage(
-            f"Setting a reminder at {target}\n> {content}",
-            message.channel,
-            delete_after=30,
+                f"Setting a reminder at {target}\n> {content}",
+                message.channel,
+                delete_after=30,
             )
         except InvalidDatetimeFormat:
             conn.rollback()
