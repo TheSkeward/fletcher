@@ -749,9 +749,6 @@ async def tiktok_function(message, client, args):
         file_name = None
         with youtube_dl.YoutubeDL() as ydl:
             media_info = ydl.extract_info(url, download=False)
-            input_image_blob = await netcode.simple_get_image(
-                media_info["formats"][0]["url"]
-            )
             async with session.get(
                 media_info["formats"][0]["url"],
                 headers=media_info["formats"][0]["http_headers"],
