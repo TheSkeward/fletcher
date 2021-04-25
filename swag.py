@@ -758,7 +758,7 @@ async def tiktok_function(message, client, args):
                         f"HttpProcessingError: {resp.status} Retrieving image failed!"
                     )
                 input_image_blob = io.BytesIO(await resp.read())
-            file_name = f'{request_body["id"]}.{media_info["formats"][0]["ext"]}'
+            file_name = f'{media_info["id"]}.{media_info["formats"][0]["ext"]}'
         return discord.File(input_image_blob, file_name)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
