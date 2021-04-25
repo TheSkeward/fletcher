@@ -753,7 +753,8 @@ async def tiktok_function(message, client, args):
                 media_info["formats"][0]["url"]
             )
             async with session.get(
-                    media_info["formats"][0]["url"], headers={"Referer": "https://www.tiktok.com/"}
+                media_info["formats"][0]["url"],
+                headers=media_info["formats"][0]["http_headers"],
             ) as resp:
                 if resp.status != 200:
                     raise Exception(
