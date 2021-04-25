@@ -317,7 +317,7 @@ async def reminder_function(message, client, args):
                 and " am" not in d[0].lower()
             ):
                 interval = interval - datetime.timedelta(hours=12)
-            interval = interval.astimezone(pytz.utc)
+            interval = interval.astimezone(datetime.datetime.now().astimezone().tzinfo).replace(tzinfo=None)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
         else:
