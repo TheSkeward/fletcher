@@ -542,11 +542,14 @@ async def preview_messagelink_function(message, client, args):
             elif "tiktok.com" in previewable_parts[0]:
                 import swag
 
-                content = await swag.tiktok_function(
+                content = "TikTok Preview"
+                attachments = [
+                await swag.tiktok_function(
                     message,
                     client,
                     [previewable_parts[0], "INTPROC"],
                 )
+                ]
             elif "azlyrics.com" in previewable_parts[0]:
                 import swag
 
