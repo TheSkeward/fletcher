@@ -1620,6 +1620,7 @@ async def card_choice_game_function(message, client, args):
 
 async def glowfic_subscribe_function(message, client, args):
     key = args[1] if "https://" in args[1] else f"glowfic-subscribe-{args[1]}"
+    webhook = None
     if args[0] == "subscribe":
         try:
             webhooks = await message.channel.webhooks()
@@ -1628,7 +1629,7 @@ async def glowfic_subscribe_function(message, client, args):
                 f"Unable to list webhooks to fulfill your request in {message.channel}! I need the Manage Webhooks permission to do that.",
                 message.author,
             )
-            return  
+            return
         if len(webhooks) > 0:
             webhook = discord.utils.get(
                 webhooks, name=ch.config.get(section="discord", key="botNavel")
@@ -1647,6 +1648,7 @@ async def glowfic_subscribe_function(message, client, args):
         key,
         value=value,
     )
+
 
 def memo_function(message, client, args):
     value = message.clean_content.split(args[0] + " ", 1)[1] if len(args) > 1 else None
