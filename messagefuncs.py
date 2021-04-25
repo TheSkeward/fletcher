@@ -577,13 +577,13 @@ async def preview_messagelink_function(message, client, args):
                 pass
             try:
                 outMessage = await sendWrappedMessage(
-                        content,
-                        message.channel,
-                        files=attachments,
-                        embed=embed,
-                        current_user_id=message.author.id,
-                        allowed_mentions=discord.AllowedMentions.none(),
-                        )
+                    content,
+                    message.channel,
+                    files=attachments,
+                    embed=embed,
+                    current_user_id=message.author.id,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
             except discord.errors.HTTPException:
                 return
             reaction = client.get_emoji(787460478527078450)

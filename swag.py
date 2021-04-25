@@ -1618,6 +1618,36 @@ async def card_choice_game_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def glowfic_subscribe_function(message, client, args):
+    key = args[1] if "https://" in args[1] else f"glowfic-subscribe-{args[1]}"
+    if args[0] == "subscribe":
+        try:
+            webhooks = await message.channel.webhooks()
+        except discord.Forbidden:
+            await messagefuncs.sendWrappedMessage(
+                f"Unable to list webhooks to fulfill your request in {message.channel}! I need the Manage Webhooks permission to do that.",
+                message.author,
+            )
+            return  
+        if len(webhooks) > 0:
+            webhook = discord.utils.get(
+                webhooks, name=ch.config.get(section="discord", key="botNavel")
+            )
+        if not webhook:
+            webhook = await message.channel.create_webhook(
+                name=ch.config.get(section="discord", key="botNavel"),
+                reason="Autocreating for nickmask",
+            )
+        value = webhook.url
+    else:
+        value = "null"
+    return ch.user_config(
+        message.author.id,
+        message.guild.id,
+        key,
+        value=value,
+    )
+
 def memo_function(message, client, args):
     value = message.clean_content.split(args[0] + " ", 1)[1] if len(args) > 1 else None
     return ch.user_config(
@@ -2696,6 +2726,19 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Pop",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!glownotify",
+            ],
+            "function": glowfic_subscribe_function,
+            "async": True,
+            "admin": "channel",
+            "args_num": 2,
+            "args_name": ["[subscribe|unsubscribe]", "[URL of post|Author name]"],
+            "description": "Manage subscriptions for glowfic post",
         }
     )
     ch.add_command(
