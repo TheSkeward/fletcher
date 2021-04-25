@@ -364,7 +364,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*)",
     re.IGNORECASE,
 )
 
@@ -575,14 +575,17 @@ async def preview_messagelink_function(message, client, args):
                     return
             except:
                 pass
-            outMessage = await sendWrappedMessage(
-                content,
-                message.channel,
-                files=attachments,
-                embed=embed,
-                current_user_id=message.author.id,
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
+            try:
+                outMessage = await sendWrappedMessage(
+                        content,
+                        message.channel,
+                        files=attachments,
+                        embed=embed,
+                        current_user_id=message.author.id,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                        )
+            except discord.errors.HTTPException:
+                return
             reaction = client.get_emoji(787460478527078450)
             try:
                 await outMessage.add_reaction(reaction)
@@ -592,7 +595,7 @@ async def preview_messagelink_function(message, client, args):
                     await outMessage.add_reaction(reaction)
                 except:
                     pass
-            await asyncio.sleep(60 * 60)
+            await asyncio.sleep(60)
             try:
                 outMessage.remove_reaction(reaction, client.user)
             except:
