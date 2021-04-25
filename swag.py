@@ -752,7 +752,9 @@ async def tiktok_function(message, client, args):
             input_image_blob = await netcode.simple_get_image(
                 media_info["formats"][0]["url"]
             )
-            async with session.get(media_info["formats"][0]["url"], headers={'referer': url}) as resp:
+            async with session.get(
+                    media_info["formats"][0]["url"], headers={"Referer": "https://www.tiktok.com/"}
+            ) as resp:
                 if resp.status != 200:
                     raise Exception(
                         f"HttpProcessingError: {resp.status} Retrieving image failed!"
