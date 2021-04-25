@@ -1642,12 +1642,13 @@ async def glowfic_subscribe_function(message, client, args):
         value = webhook.url
     else:
         value = "null"
-    return ch.user_config(
+    ch.user_config(
         message.author.id,
         message.guild.id,
         key,
         value=value,
     )
+    return await message.add_reaction("✅")
 
 
 def memo_function(message, client, args):
