@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 from markdownify import markdownify
 from functools import partial, lru_cache
 import periodictable
+import youtube_dl
 
 # Super Waifu Animated Girlfriend
 
@@ -737,6 +738,23 @@ async def dog_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
+async def tiktok_function(message, client, args):
+    global ch
+    try:
+        url = args[0]
+        input_image_blob = None
+        file_name = None
+        with youtube_dl.YoutubeDL() as ydl:
+            media_info = ydl.extract_info(url, download=False)
+            input_image_blob = await netcode.simple_get_image(media_info["formats"][0]["url"])
+            file_name = f'{request_body["id"]}.{media_info["formats"][0]["ext"]}'
+        return discord.File(input_image_blob, file_name)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("TTF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
 

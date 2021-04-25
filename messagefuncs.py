@@ -364,7 +364,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*)",
     re.IGNORECASE,
 )
 
@@ -539,6 +539,14 @@ async def preview_messagelink_function(message, client, args):
                     )
                 ]
                 content = "Vine Preview"
+            elif "tiktok.com" in previewable_parts[0]:
+                import swag
+
+                content = await swag.tiktok_function(
+                    message,
+                    client,
+                    [previewable_parts[0], "INTPROC"],
+                )
             elif "azlyrics.com" in previewable_parts[0]:
                 import swag
 
