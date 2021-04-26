@@ -35,9 +35,15 @@ class ScheduleFunctions:
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
         if type(from_channel) is not discord.DMChannel:
-            return [f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}", from_channel]
+            return [
+                f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
+                from_channel,
+            ]
         else:
-            return [f"Reminder from https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}", from_channel]
+            return [
+                f"Reminder from https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
+                from_channel,
+            ]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -282,6 +288,8 @@ async def table_exec_function():
 
 async def reminder_function(message, client, args):
     try:
+        if 378641129916203019 in [member.id for member in message.channel.members]:
+            return
         global conn
         cur = conn.cursor()
         content = "Remind me"
