@@ -846,6 +846,7 @@ class CommandHandler:
                 + sync.get(f"tupper-ignore-m{user.id}", []),
             )
         )
+        ignores.append("!mobilespoil")
         if (
             not message.webhook_id
             and len(ignores)
