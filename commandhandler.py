@@ -2310,46 +2310,48 @@ WHERE p.key = 'tupper';
             hottuple = cur.fetchone()
             while hottuple:
                 [user_id, guild_id, hotword_json] = hottuple
-                logger.debug(f"Loading {user_id} on {guild_id}: {hotword_json}")
-                guild_config = ch.scope_config(guild=guild_id, mutable=True)
-                try:
-                    hotwords = ujson.loads(hotword_json)
-                except ValueError as e:
-                    exc_type, exc_obj, exc_tb = exc_info()
-                    logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-                    hottuple = cur.fetchone()
-                    continue
-                if not guild_config.get("hotwords_loaded"):
-                    guild_config["hotwords_loaded"] = ""
-                for word in hotwords.keys():
+                if guild_id == 0 or guild_id is None:
+                    guilds = ch.client.get_user(user_id).mutual_guids
+                else:
+                    guilds = [ch.client.get_guild(guild_id)]
+                for guild in guilds:
+                    if guild is None:
+                        continue
+                    logger.debug(f"Loading {user_id} on {guild.id}: {hotword_json}")
+                    guild_config = ch.scope_config(guild=guild.id, mutable=True)
                     try:
-                        if guild_id == 0:
-                            guilds = ch.client.get_user(user_id).mutual_guids
-                        else:
-                            guilds = [ch.client.get_guild(guild_id)]
-                        for guild in guilds:
+                        hotwords = ujson.loads(hotword_json)
+                    except ValueError as e:
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                        hottuple = cur.fetchone()
+                        continue
+                    if not guild_config.get("hotwords_loaded"):
+                        guild_config["hotwords_loaded"] = ""
+                    for word in hotwords.keys():
+                        try:
                             hotword = Hotword(
                                 ch,
                                 word,
                                 hotwords[word],
-                                ch.client.get_guild(guild_id).get_member(user_id),
+                                guild.get_member(user_id),
                             )
-                    except (ValueError, KeyError) as e:
-                        logger.error(f"Parsing {word} for {user_id} failed: {e}")
-                        continue
-                    except AttributeError as e:
-                        logger.info(
-                            f"Parsing {word} for {user_id} failed: User is not on server {e}"
-                        )
-                        continue
-                    hotwords[word] = hotword
-                    guild_config["hotwords_loaded"] += ", " + word
-                if not regex_cache.get(guild_id):
-                    regex_cache[guild_id] = []
-                add_me = list(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
-                logger.debug(f"Extending regex_cache[{guild_id}] with {add_me}")
-                regex_cache[guild_id].extend(add_me)
-                hottuple = cur.fetchone()
+                        except (ValueError, KeyError) as e:
+                            logger.error(f"Parsing {word} for {user_id} failed: {e}")
+                            continue
+                        except AttributeError as e:
+                            logger.info(
+                                f"Parsing {word} for {user_id} failed: User is not on server {e}"
+                            )
+                            continue
+                        hotwords[word] = hotword
+                        guild_config["hotwords_loaded"] += ", " + word
+                        if not regex_cache.get(guild.id):
+                            regex_cache[guild.id] = []
+                    add_me = list(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
+                    logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
+                    regex_cache[guild.id].extend(add_me)
+                    hottuple = cur.fetchone()
             conn.commit()
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
