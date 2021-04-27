@@ -2323,12 +2323,17 @@ WHERE p.key = 'tupper';
                     guild_config["hotwords_loaded"] = ""
                 for word in hotwords.keys():
                     try:
-                        hotword = Hotword(
-                            ch,
-                            word,
-                            hotwords[word],
-                            ch.client.get_guild(guild_id).get_member(user_id),
-                        )
+                        if guild_id == 0:
+                            guilds = ch.client.get_user(user_id).mutual_guids
+                        else:
+                            guilds = [ch.client.get_guild(guild_id)]
+                        for guild in guilds:
+                            hotword = Hotword(
+                                ch,
+                                word,
+                                hotwords[word],
+                                ch.client.get_guild(guild_id).get_member(user_id),
+                            )
                     except (ValueError, KeyError) as e:
                         logger.error(f"Parsing {word} for {user_id} failed: {e}")
                         continue
