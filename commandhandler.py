@@ -2311,7 +2311,7 @@ WHERE p.key = 'tupper';
             while hottuple:
                 [user_id, guild_id, hotword_json] = hottuple
                 if guild_id == 0 or guild_id is None:
-                    guilds = ch.client.get_user(user_id).mutual_guids
+                    guilds = ch.client.get_user(user_id).mutual_guilds
                 else:
                     guilds = [ch.client.get_guild(guild_id)]
                 for guild in guilds:
@@ -2348,7 +2348,9 @@ WHERE p.key = 'tupper';
                         guild_config["hotwords_loaded"] += ", " + word
                         if not regex_cache.get(guild.id):
                             regex_cache[guild.id] = []
-                    add_me = list(filter(lambda hw: type(hw) == Hotword, hotwords.values()))
+                    add_me = list(
+                        filter(lambda hw: type(hw) == Hotword, hotwords.values())
+                    )
                     logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
                     regex_cache[guild.id].extend(add_me)
                     hottuple = cur.fetchone()
