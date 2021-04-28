@@ -288,7 +288,7 @@ async def table_exec_function():
 
 async def reminder_function(message, client, args):
     try:
-        if type(message.channel) is discord.DMChannel and 378641129916203019 in [
+        if type(message.channel) is not discord.DMChannel and 378641129916203019 in [
             member.id for member in message.channel.members
         ]:
             return
