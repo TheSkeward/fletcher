@@ -288,7 +288,7 @@ async def table_exec_function():
 
 async def reminder_function(message, client, args):
     try:
-        if 378641129916203019 in [member.id for member in message.channel.members]:
+        if type(channel) is discord.DMChannel and 378641129916203019 in [member.id for member in message.channel.members]:
             return
         global conn
         cur = conn.cursor()
