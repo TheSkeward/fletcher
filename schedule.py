@@ -8,6 +8,7 @@ import datetime
 import dateparser
 import dateparser.search
 import pytz
+import psycopg2
 from sentry_sdk import configure_scope
 import traceback
 import re
@@ -357,7 +358,7 @@ async def reminder_function(message, client, args):
                 message.channel,
                 delete_after=30,
             )
-        except InvalidDatetimeFormat:
+        except psycopg2.errors.InvalidDatetimeFormat:
             conn.rollback()
             return await messagefuncs.sendWrappedMessage(
                 f"Couldn't parse time syntax",
