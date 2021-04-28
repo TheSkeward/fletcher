@@ -37,19 +37,19 @@ class ScheduleFunctions:
     ):
         if type(from_channel) is not discord.DMChannel:
             return [
-                f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
+                f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
                 from_channel,
             ]
         else:
             return [
-                f"Reminder from https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
+                f"Reminder from https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
                 from_channel,
             ]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
-        return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
+        return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
 
     async def unban(
         target_message, user, cached_content, mode_args, created_at, from_channel
