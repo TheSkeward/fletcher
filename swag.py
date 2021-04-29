@@ -688,6 +688,30 @@ async def azlyrics_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def bunny_function(message, client, args):
+    global ch
+    try:
+        url = None
+        input_image_blob = None
+        file_name = None
+        async with session.get("https://api.bunnies.io/v2/loop/random/?media=png,gif,mp4") as resp:
+            request_body = await resp.json()
+            url = request_body["media"]["poster"]
+            input_image_blob = await netcode.simple_get_image(url)
+            file_name = url.split("/")[-1]
+        try:
+            await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(input_image_blob, file_name)],
+            )
+        except discord.HTTPException:
+            await messagefuncs.sendWrappedMessage(url, message.channel)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("BIF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def fox_function(message, client, args):
     global ch
     try:
@@ -2564,6 +2588,16 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Article name"],
             "description": "Search wikipedia for article",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!bunny"],
+            "function": bunny_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "*nibbles carrots*",
         }
     )
     ch.add_command(
