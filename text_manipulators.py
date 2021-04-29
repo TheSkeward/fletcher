@@ -2689,6 +2689,8 @@ async def ocr_function(message, client, args):
                 url = lessage.embeds[0].thumbnail.url
             elif len(args) and args[0]:
                 url = args[0]
+        if type(url) is not str:
+            return
         logger.debug(url)
         try:
             input_image_blob = await netcode.simple_get_image(url)
