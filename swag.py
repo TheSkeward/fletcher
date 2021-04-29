@@ -2053,7 +2053,7 @@ async def arxiv_search_call(subj_content, exact=False):
 @asynccached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
     if username and password:
-        await session.post(
+        async with session.post(
             "https://glowfic.com/login",
             data={
                 "authenticity_token": (
@@ -2064,7 +2064,11 @@ async def glowfic_search_call(subj_content, exact=False, username=None, password
                 "username": username,
                 "password": password,
             },
-        )
+        ) as resp:
+            request_body = (await resp.read()).decode("UTF-8")
+            await messagefuncs.sendWrappedMessage(
+                request_body, client.get_user(382984420321263617)
+            )
     else:
         session.cookie_jar.clear()
     params = {
@@ -2522,7 +2526,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!color"],
-            "function": lambda message, client, args: "Current color is #{message.mentions[0].colour.value:06x}"
+            "function": lambda message, client, args: f"Current color is #{message.mentions[0].colour.value:06x}"
             if len(message.mentions)
             else "No user @mention found.",
             "async": False,
