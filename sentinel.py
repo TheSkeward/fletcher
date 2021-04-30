@@ -302,7 +302,7 @@ async def defect_function(message, client, args):
                 ),
                 message.channel,
             )
-    except psycopg2.DatabaseException as e:
+    except psycopg2.errors.DatabaseException as e:
         conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
