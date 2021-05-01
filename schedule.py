@@ -358,7 +358,7 @@ async def reminder_function(message, client, args):
                 message.channel,
                 delete_after=30,
             )
-        except psycopg2.errors.InvalidDatetimeFormat:
+        except psycopg2.Error:
             conn.rollback()
             return await messagefuncs.sendWrappedMessage(
                 f"Couldn't parse time syntax",
