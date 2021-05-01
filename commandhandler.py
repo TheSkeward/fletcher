@@ -2340,6 +2340,7 @@ WHERE p.key = 'tupper';
                             logger.error(f"Parsing {word} for {user_id} failed: {e}")
                             continue
                         except AttributeError as e:
+                            logger.debug(traceback.format_exc())
                             logger.info(
                                 f"Parsing {word} for {user_id} failed: User is not on server {e}"
                             )
