@@ -1,4 +1,5 @@
 import aiohttp
+import requests.exceptions
 import copy
 import datetime
 import discord
@@ -28,7 +29,9 @@ async def pinterest_randomize_function(message, client, args):
         try:
             board_cache[cachekey] = copy.deepcopy(get_board(username, boardname))
         except requests.exceptions.HTTPError:
-            await messagefuncs.sendWrappedMessage("Received a 404 while retrieving boards.")
+            await messagefuncs.sendWrappedMessage(
+                "Received a 404 while retrieving boards."
+            )
         random.shuffle(board_cache[cachekey])
         board_entry = board_cache[cachekey].pop()
     logger.debug(board_entry)
