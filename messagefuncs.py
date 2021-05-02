@@ -952,7 +952,7 @@ async def emoji_image_function(message, client, args):
         buffer = io.BytesIO(await emoji.url_as().read())
         image = discord.File(
             buffer,
-            "emoji.{'gif' if emoji.animated else 'png'",
+            f"emoji.{'gif' if emoji.animated else 'png'}",
         )
         return await sendWrappedMessage(files=[image], target=message.channel)
     except Exception as e:
