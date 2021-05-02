@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 import discord
 import exceptions
+import netcode
 import io
 import logging
 import re
