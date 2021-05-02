@@ -3,7 +3,6 @@ import asyncio
 import aiohttp
 import discord
 import exceptions
-import netcode
 import io
 import logging
 import re
@@ -951,7 +950,7 @@ async def emoji_image_function(message, client, args):
                 target=message.channel,
             )
         image = discord.File(
-            (await netcode.simple_get_image(emoji.as_url())).read(),
+            await emoji.url_as().read(),
             "emoji.{'gif' if emoji.animated else 'png'",
         )
         return await sendWrappedMessage(file=image, target=message.channel)
