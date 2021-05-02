@@ -30,7 +30,11 @@ async def pinterest_randomize_function(message, client, args):
             board_cache[cachekey] = copy.deepcopy(get_board(username, boardname))
         except requests.exceptions.HTTPError:
             await messagefuncs.sendWrappedMessage(
-                "Received a 404 while retrieving boards."
+                "Received a 404 while retrieving boards.", delete_after=30
+            )
+        except Exception as e:
+            await messagefuncs.sendWrappedMessage(
+                "An error occurred while retrieving boards.", delete_after=30
             )
         random.shuffle(board_cache[cachekey])
         board_entry = board_cache[cachekey].pop()
@@ -68,6 +72,8 @@ def get_boards(username):
     while len(board_batch) > 0:
         boards += board_batch
         board_batch = pinterest.boards(username=username)
+    if boards is None:
+        raise Exception()
     return boards
 
 
