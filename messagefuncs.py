@@ -954,7 +954,7 @@ async def emoji_image_function(message, client, args):
             buffer,
             "emoji.{'gif' if emoji.animated else 'png'",
         )
-        return await sendWrappedMessage(file=image, target=message.channel)
+        return await sendWrappedMessage(files=[image], target=message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
