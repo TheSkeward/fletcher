@@ -2446,16 +2446,15 @@ async def edit_tup_function(message, client, args):
                         webhooks_cache[
                             f"{message.guild.id}:{message.channel.id}"
                         ] = webhook
-                    editMessage = await webhook_edit(
+                    editMessage = await webhook.edit_message(
+                            message.id,
                         webhook,
                         content=msg.content,
-                        wait=False,
                         allowed_mentions=discord.AllowedMentions(
                             users=False, roles=False, everyone=False
                         ),
-                        message_id=message.id,
                     )
-                    return await preview_message.add_reaction("✅")
+                    return await msg.add_reaction("✅")
             conn.commit()
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
