@@ -31,6 +31,109 @@ remote_command_runner = None
 Ans = None
 
 
+async def webhook_edit(
+    self,
+    content=None,
+    *,
+    wait=False,
+    username=None,
+    avatar_url=None,
+    tts=False,
+    file=None,
+    files=None,
+    embed=None,
+    embeds=None,
+    allowed_mentions=None,
+    message_id=None,
+):
+    payload = {}
+    if self.token is None:
+        raise discord.errors.InvalidArgument(
+            "This webhook does not have a token associated with it"
+        )
+    if files is not None and file is not None:
+        raise discord.errors.InvalidArgument(
+            "Cannot mix file and files keyword arguments."
+        )
+    if embeds is not None and embed is not None:
+        raise discord.errors.InvalidArgument(
+            "Cannot mix embed and embeds keyword arguments."
+        )
+
+    if embeds is not None:
+        if len(embeds) > 10:
+            raise discord.errors.InvalidArgument(
+                "embeds has a maximum of 10 elements."
+            )
+        payload["embeds"] = [e.to_dict() for e in embeds]
+
+    if embed is not None:
+        payload["embeds"] = [embed.to_dict()]
+
+    if content is not None:
+        payload["content"] = str(content)
+
+    payload["tts"] = tts
+    if avatar_url:
+        payload["avatar_url"] = str(avatar_url)
+    if username:
+        payload["username"] = username
+
+    previous_mentions = getattr(self._state, "allowed_mentions", None)
+
+    if allowed_mentions:
+        if previous_mentions is not None:
+            payload["allowed_mentions"] = previous_mentions.merge(
+                allowed_mentions
+            ).to_dict()
+        else:
+            payload["allowed_mentions"] = allowed_mentions.to_dict()
+    elif previous_mentions is not None:
+        payload["allowed_mentions"] = previous_mentions.to_dict()
+
+    return execute_webhook(
+        self,
+        wait=wait,
+        file=file,
+        files=files,
+        payload=payload,
+        message_id=message_id,
+    )
+
+def execute_webhook(
+    self, *, payload, wait=False, file=None, files=None, message_id=None
+):
+    cleanup = None
+    data = payload
+    multipart = None
+    files_to_pass = None
+
+    url = "%s/messages/%d?wait=%d" % (
+        self._adapter._request_url,
+        message_id,
+        wait,
+    )
+    maybe_coro = None
+    try:
+        maybe_coro = self._adapter.request(
+            "PATCH",
+            url,
+            multipart=multipart,
+            payload=data,
+            files=files_to_pass,
+        )
+    finally:
+        if maybe_coro is not None and cleanup is not None:
+            if not asyncio.iscoroutine(maybe_coro):
+                cleanup()
+            else:
+                maybe_coro = self._adapter._wrap_coroutine_and_cleanup(
+                    maybe_coro, cleanup
+                )
+
+    # if request raises up there then this should never be `None`
+    return self._adapter.handle_execution_response(maybe_coro, wait=wait)
+
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
     if strip:
@@ -1143,109 +1246,6 @@ class CommandHandler:
             fromMessageName = fromMessage.author.display_name
             if toGuild.get_member(fromMessage.author.id) is not None:
                 fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
-
-            async def webhook_edit(
-                self,
-                content=None,
-                *,
-                wait=False,
-                username=None,
-                avatar_url=None,
-                tts=False,
-                file=None,
-                files=None,
-                embed=None,
-                embeds=None,
-                allowed_mentions=None,
-                message_id=None,
-            ):
-                payload = {}
-                if self.token is None:
-                    raise discord.errors.InvalidArgument(
-                        "This webhook does not have a token associated with it"
-                    )
-                if files is not None and file is not None:
-                    raise discord.errors.InvalidArgument(
-                        "Cannot mix file and files keyword arguments."
-                    )
-                if embeds is not None and embed is not None:
-                    raise discord.errors.InvalidArgument(
-                        "Cannot mix embed and embeds keyword arguments."
-                    )
-
-                if embeds is not None:
-                    if len(embeds) > 10:
-                        raise discord.errors.InvalidArgument(
-                            "embeds has a maximum of 10 elements."
-                        )
-                    payload["embeds"] = [e.to_dict() for e in embeds]
-
-                if embed is not None:
-                    payload["embeds"] = [embed.to_dict()]
-
-                if content is not None:
-                    payload["content"] = str(content)
-
-                payload["tts"] = tts
-                if avatar_url:
-                    payload["avatar_url"] = str(avatar_url)
-                if username:
-                    payload["username"] = username
-
-                previous_mentions = getattr(self._state, "allowed_mentions", None)
-
-                if allowed_mentions:
-                    if previous_mentions is not None:
-                        payload["allowed_mentions"] = previous_mentions.merge(
-                            allowed_mentions
-                        ).to_dict()
-                    else:
-                        payload["allowed_mentions"] = allowed_mentions.to_dict()
-                elif previous_mentions is not None:
-                    payload["allowed_mentions"] = previous_mentions.to_dict()
-
-                return execute_webhook(
-                    self,
-                    wait=wait,
-                    file=file,
-                    files=files,
-                    payload=payload,
-                    message_id=message_id,
-                )
-
-            def execute_webhook(
-                self, *, payload, wait=False, file=None, files=None, message_id=None
-            ):
-                cleanup = None
-                data = payload
-                multipart = None
-                files_to_pass = None
-
-                url = "%s/messages/%d?wait=%d" % (
-                    self._adapter._request_url,
-                    message_id,
-                    wait,
-                )
-                maybe_coro = None
-                try:
-                    maybe_coro = self._adapter.request(
-                        "PATCH",
-                        url,
-                        multipart=multipart,
-                        payload=data,
-                        files=files_to_pass,
-                    )
-                finally:
-                    if maybe_coro is not None and cleanup is not None:
-                        if not asyncio.iscoroutine(maybe_coro):
-                            cleanup()
-                        else:
-                            maybe_coro = self._adapter._wrap_coroutine_and_cleanup(
-                                maybe_coro, cleanup
-                            )
-
-                # if request raises up there then this should never be `None`
-                return self._adapter.handle_execution_response(maybe_coro, wait=wait)
 
             syncMessage = await webhook_edit(
                 self.webhook_sync_registry[
@@ -2385,6 +2385,28 @@ async def dumptasks_function(message, client, args):
     tasks = asyncio.Task.all_tasks(client.loop)
     await messagefuncs.sendWrappedMessage(tasks, message.author)
 
+async def edit_tup_function(message, client, args):
+    try:
+        preview_message = await messagefuncs.sendWrappedMessage(f"Reply to edit message at {message.jump_url}", message.author)
+        await preview_messagelink_function(preview_message, client, None)
+        try:
+            msg = await client.wait_for('message', check=check)
+        except asyncio.TimeoutError:
+            return await preview_message.edit(content="Message edit timed out.")
+        else:
+            editMessage = await webhook_edit(
+                webhooks_cache.get(f"{message.guild.id}:{message.channel.id}"),
+                content=msg.content,
+                wait=False,
+                allowed_mentions=discord.AllowedMentions(
+                    users=False, roles=False, everyone=False
+                ),
+                message_id=message.id,
+            )
+            return await preview_message.add_reaction("✅")
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"ETF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 async def autounload(ch):
     try:
@@ -2471,6 +2493,16 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "List commands and arguments",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["📝"],
+            "function": edit_tup_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Allows you to edit a nickmasked message",
         }
     )
     ch.user_config.cache_clear()
