@@ -133,6 +133,10 @@ def execute_webhook(
     # if request raises up there then this should never be `None`
     return self._adapter.handle_execution_response(maybe_coro, wait=wait)
 
+def list_append(lst, item):
+    lst.append(item)
+    return item
+
 
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
@@ -389,6 +393,21 @@ class CommandHandler:
                         discord.File(attachment_blob, attachment.filename)
                     )
             fromMessageName = sync.get(f"{tupperreplace}-nick", user.display_name)
+            reply_embed = None
+            if message.reference:
+                refGuild = self.client.get_guild(message.reference.guild_id)
+                refChannel = refGuild.get_channel(message.reference.channel_id)
+                try:
+                    refMessage = await refChannel.fetch_message(
+                        message.reference.message_id
+                    )
+                    reply_embed = [
+                        discord.Embed(
+                            description=f"Reply to [{refMessage.author}]({refMessage.jump_url})"
+                        )
+                    ]
+                except:
+                    pass
             webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
             if not webhook:
                 try:
@@ -417,7 +436,7 @@ class CommandHandler:
                     f"{tupperreplace}-avatar",
                     user.avatar_url_as(format="png", size=128),
                 ),
-                embeds=message.embeds,
+                embeds=message.embeds if len(message.embeds) else reply_embed,
                 tts=message.tts,
                 files=attachments,
                 allowed_mentions=discord.AllowedMentions(
@@ -967,10 +986,6 @@ class CommandHandler:
                 bridge["toChannelObject"] = [bridge["toChannelObject"]]
             if type(bridge["toWebhook"]) is not list:
                 bridge["toWebhook"] = [bridge["toWebhook"]]
-
-            def list_append(lst, item):
-                lst.append(item)
-                return item
 
             for i in range(len(bridge["toWebhook"])):
                 content = message.content or " "
