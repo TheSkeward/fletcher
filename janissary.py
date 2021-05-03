@@ -1170,7 +1170,7 @@ async def copy_emoji_function(message, client, args):
                     "raw_reaction_add",
                     timeout=6000.0,
                     check=lambda reaction: (str(reaction.emoji) == str("✅"))
-                    and reaction.member.permissions_in(message.channel).manage_emojis
+                    and reaction.member and reaction.member.permissions_in(message.channel).manage_emojis
                     and reaction.member.id != client.user.id
                     and reaction.message_id == target.id,
                 )
