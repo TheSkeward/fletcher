@@ -2389,6 +2389,10 @@ async def dumptasks_function(message, client, args):
 async def edit_tup_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
+            try:
+                await message.remove_reaction("📝", args[1])
+            except:
+                pass
             cur = conn.cursor()
             query_param = [message.id, message.channel.id]
             if type(message.channel) is not discord.DMChannel:
@@ -2403,10 +2407,14 @@ async def edit_tup_function(message, client, args):
                 preview_message = await messagefuncs.sendWrappedMessage(
                     f"Reply to edit message at {message.jump_url}", args[1]
                 )
-                await preview_messagelink_function(preview_message, client, None)
+                await messagefuncs.preview_messagelink_function(preview_message, client, None)
                 try:
+
                     def check(m):
-                        return m.channel == preview_message.channel and m.author == args[1]
+                        return (
+                            m.channel == preview_message.channel and m.author == args[1]
+                        )
+
                     msg = await client.wait_for("message", check=check, timeout=6000)
                 except asyncio.TimeoutError:
                     return await preview_message.edit(content="Message edit timed out.")
