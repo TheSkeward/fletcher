@@ -62,9 +62,7 @@ async def webhook_edit(
 
     if embeds is not None:
         if len(embeds) > 10:
-            raise discord.errors.InvalidArgument(
-                "embeds has a maximum of 10 elements."
-            )
+            raise discord.errors.InvalidArgument("embeds has a maximum of 10 elements.")
         payload["embeds"] = [e.to_dict() for e in embeds]
 
     if embed is not None:
@@ -100,6 +98,7 @@ async def webhook_edit(
         message_id=message_id,
     )
 
+
 def execute_webhook(
     self, *, payload, wait=False, file=None, files=None, message_id=None
 ):
@@ -133,6 +132,7 @@ def execute_webhook(
 
     # if request raises up there then this should never be `None`
     return self._adapter.handle_execution_response(maybe_coro, wait=wait)
+
 
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
@@ -2385,28 +2385,47 @@ async def dumptasks_function(message, client, args):
     tasks = asyncio.Task.all_tasks(client.loop)
     await messagefuncs.sendWrappedMessage(tasks, message.author)
 
+
 async def edit_tup_function(message, client, args):
     try:
-        preview_message = await messagefuncs.sendWrappedMessage(f"Reply to edit message at {message.jump_url}", message.author)
-        await preview_messagelink_function(preview_message, client, None)
-        try:
-            msg = await client.wait_for('message', check=check)
-        except asyncio.TimeoutError:
-            return await preview_message.edit(content="Message edit timed out.")
-        else:
-            editMessage = await webhook_edit(
-                webhooks_cache.get(f"{message.guild.id}:{message.channel.id}"),
-                content=msg.content,
-                wait=False,
-                allowed_mentions=discord.AllowedMentions(
-                    users=False, roles=False, everyone=False
-                ),
-                message_id=message.id,
+        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
+            if message.author.id != client.user.id:
+                return
+            cur = conn.cursor()
+            query_param = [message.id, message.channel.id]
+            if type(message.channel) is not discord.DMChannel:
+                query_param.append(message.guild.id)
+            cur.execute(
+                f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
+                query_param,
             )
-            return await preview_message.add_reaction("✅")
+            subtuple = cur.fetchone()
+            if subtuple and int(subtuple[0]) == args[1].id:
+                conn.commit()
+                preview_message = await messagefuncs.sendWrappedMessage(
+                    f"Reply to edit message at {message.jump_url}", message.author
+                )
+                await preview_messagelink_function(preview_message, client, None)
+                try:
+                    msg = await client.wait_for("message", check=check)
+                except asyncio.TimeoutError:
+                    return await preview_message.edit(content="Message edit timed out.")
+                else:
+                    editMessage = await webhook_edit(
+                        webhooks_cache.get(f"{message.guild.id}:{message.channel.id}"),
+                        content=msg.content,
+                        wait=False,
+                        allowed_mentions=discord.AllowedMentions(
+                            users=False, roles=False, everyone=False
+                        ),
+                        message_id=message.id,
+                    )
+                    return await preview_message.add_reaction("✅")
+            conn.commit()
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"ETF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
 
 async def autounload(ch):
     try:
