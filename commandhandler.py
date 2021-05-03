@@ -2389,8 +2389,6 @@ async def dumptasks_function(message, client, args):
 async def edit_tup_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
-            if message.author.id != client.user.id:
-                return
             cur = conn.cursor()
             query_param = [message.id, message.channel.id]
             if type(message.channel) is not discord.DMChannel:
