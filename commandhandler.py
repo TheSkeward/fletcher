@@ -2407,7 +2407,9 @@ async def edit_tup_function(message, client, args):
                 preview_message = await messagefuncs.sendWrappedMessage(
                     f"Reply to edit message at {message.jump_url}", args[1]
                 )
-                await messagefuncs.preview_messagelink_function(preview_message, client, None)
+                await messagefuncs.preview_messagelink_function(
+                    preview_message, client, None
+                )
                 try:
 
                     def check(m):
@@ -2419,8 +2421,33 @@ async def edit_tup_function(message, client, args):
                 except asyncio.TimeoutError:
                     return await preview_message.edit(content="Message edit timed out.")
                 else:
+                    global webhooks_cache
+                    webhook = webhooks_cache.get(
+                        f"{message.guild.id}:{message.channel.id}"
+                    )
+                    if not webhook:
+                        try:
+                            webhooks = await message.channel.webhooks()
+                        except discord.Forbidden:
+                            return await messagefuncs.sendWrappedMessage(
+                                f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.",
+                                user,
+                            )
+                        if len(webhooks) > 0:
+                            webhook = discord.utils.get(
+                                webhooks,
+                                name=config.get(section="discord", key="botNavel"),
+                            )
+                        if not webhook:
+                            webhook = await message.channel.create_webhook(
+                                name=config.get(section="discord", key="botNavel"),
+                                reason="Autocreating for nickmask",
+                            )
+                        webhooks_cache[
+                            f"{message.guild.id}:{message.channel.id}"
+                        ] = webhook
                     editMessage = await webhook_edit(
-                        webhooks_cache.get(f"{message.guild.id}:{message.channel.id}"),
+                        webhook,
                         content=msg.content,
                         wait=False,
                         allowed_mentions=discord.AllowedMentions(
