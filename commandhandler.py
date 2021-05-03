@@ -2401,11 +2401,13 @@ async def edit_tup_function(message, client, args):
             if subtuple and int(subtuple[0]) == args[1].id:
                 conn.commit()
                 preview_message = await messagefuncs.sendWrappedMessage(
-                    f"Reply to edit message at {message.jump_url}", message.author
+                    f"Reply to edit message at {message.jump_url}", args[1]
                 )
                 await preview_messagelink_function(preview_message, client, None)
                 try:
-                    msg = await client.wait_for("message", check=check)
+                    def check(m):
+                        return m.channel == preview_message.channel and m.author == args[1]
+                    msg = await client.wait_for("message", check=check, timeout=6000)
                 except asyncio.TimeoutError:
                     return await preview_message.edit(content="Message edit timed out.")
                 else:
