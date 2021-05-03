@@ -2447,8 +2447,7 @@ async def edit_tup_function(message, client, args):
                             f"{message.guild.id}:{message.channel.id}"
                         ] = webhook
                     editMessage = await webhook.edit_message(
-                            message.id,
-                        webhook,
+                        message.id,
                         content=msg.content,
                         allowed_mentions=discord.AllowedMentions(
                             users=False, roles=False, everyone=False
