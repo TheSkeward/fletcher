@@ -1170,7 +1170,8 @@ async def copy_emoji_function(message, client, args):
                     "raw_reaction_add",
                     timeout=6000.0,
                     check=lambda reaction: (str(reaction.emoji) == str("✅"))
-                    and reaction.member and reaction.member.permissions_in(message.channel).manage_emojis
+                    and reaction.member
+                    and reaction.member.permissions_in(message.channel).manage_emojis
                     and reaction.member.id != client.user.id
                     and reaction.message_id == target.id,
                 )
@@ -1971,6 +1972,17 @@ async def toggle_mute_role_function(message, client, args):
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def nick_change_function(message, client, args):
+    try:
+        if not message.guild:
+            return
+        if message.author.guild_permissions.manage_nicknames or (message.guild.get_role(int(ch.config.get(guild=guild, key="nick-changeadmin-role"))) in message.author.roles and message.guild.get_role(int(ch.config.get(guild=guild, key="nick-changeme-role"))) in message.mentions[0].roles):
+            await message.mentions[0].edit(nick=" ".join(args[1:]), reason=f"On behalf of {message.author}")
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"NCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 def autoload(ch):
     ch.add_command(
         {
@@ -2372,6 +2384,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["rolename"],
             "description": "Toggle speak on role",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!nick"],
+            "function": nick_change_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 2,
+            "args_name": ["@user_mention", "nickname"],
+            "description": "Set nickname for user mentioned",
         }
     )
 
