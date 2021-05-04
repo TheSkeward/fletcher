@@ -1976,7 +1976,7 @@ async def nick_change_function(message, client, args):
     try:
         if not message.guild:
             return
-        if message.author.guild_permissions.manage_nicknames or (message.guild.get_role(int(ch.config.get(guild=guild, key="nick-changeadmin-role"))) in message.author.roles and message.guild.get_role(int(ch.config.get(guild=guild, key="nick-changeme-role"))) in message.mentions[0].roles):
+        if message.author.guild_permissions.manage_nicknames or (message.guild.get_role(int(ch.config.get(guild=message.guild, key="nick-changeadmin-role"))) in message.author.roles and message.guild.get_role(int(ch.config.get(guild=message.guild, key="nick-changeme-role"))) in message.mentions[0].roles):
             await message.mentions[0].edit(nick=" ".join(args[1:]), reason=f"On behalf of {message.author}")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
