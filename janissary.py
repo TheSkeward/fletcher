@@ -2404,6 +2404,7 @@ def autoload(ch):
             "trigger": ["!nick"],
             "function": nick_change_function,
             "async": True,
+            "admin": "server",
             "hidden": False,
             "args_num": 2,
             "args_name": ["@user_mention", "nickname"],
