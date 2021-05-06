@@ -115,6 +115,7 @@ async def assemble_function(message, client, args):
         conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await messagefuncs.sendWrappedMessage("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e), message.author)
     except Exception as e:
         if "cur" in locals():
             conn.rollback()
