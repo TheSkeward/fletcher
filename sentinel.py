@@ -30,7 +30,7 @@ def listbanners_function(message, client, args):
             if sentuple[2]:
                 bannerMessage = bannerMessage + sentuple[2]
             supporterPluralized = "supporters"
-            if len(sentuple[6]) == 1:
+            if sentuple[6] and len(sentuple[6]) == 1:
                 supporterPluralized = "supporter"
             goalAchievedVerb = "is"
             if sentuple[4]:
@@ -115,7 +115,10 @@ async def assemble_function(message, client, args):
         conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
-        await messagefuncs.sendWrappedMessage("DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e), message.author)
+        await messagefuncs.sendWrappedMessage(
+            "DBF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e),
+            message.author,
+        )
     except Exception as e:
         if "cur" in locals():
             conn.rollback()
