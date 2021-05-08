@@ -14,6 +14,7 @@ import discord
 import hashlib
 import ephem
 import io
+from kaomoji.Kaomoji import Kaomoji
 import logging
 import messagefuncs
 import text_manipulators
@@ -33,6 +34,7 @@ import youtube_dl
 
 logger = logging.getLogger("fletcher")
 
+kao = Kaomoji()
 session = None
 cseClient = None
 wikiClient = None
@@ -2850,6 +2852,18 @@ def autoload(ch):
             "args_num": 2,
             "args_name": ["[subscribe|unsubscribe]", "[URL of post|Author name]"],
             "description": "Manage subscriptions for glowfic post",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!kao",
+            ],
+            "function": lambda message, client, args: (kao.create(args[0]) if args[0] in ["indifference", "joy", "love", "sadness"] else kao.create()) + (" " + " ".join(args[1:]) if len(args) > 1 else ""),
+            "async": False,
+            "args_num": 0,
+            "args_name": ["indifference|joy|love|sadness"],
+            "description": "Generate a kaomoji for the occasion",
         }
     )
     ch.add_command(
