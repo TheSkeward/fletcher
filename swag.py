@@ -14,7 +14,7 @@ import discord
 import hashlib
 import ephem
 import io
-from kaomoji.Kaomoji import Kaomoji
+from kaomoji.kaomoji import Kaomoji
 import logging
 import messagefuncs
 import text_manipulators
@@ -2859,7 +2859,12 @@ def autoload(ch):
             "trigger": [
                 "!kao",
             ],
-            "function": lambda message, client, args: (kao.create(args[0]) if args[0] in ["indifference", "joy", "love", "sadness"] else kao.create()) + (" " + " ".join(args[1:]) if len(args) > 1 else ""),
+            "function": lambda message, client, args: (
+                kao.create(args[0])
+                if args[0] in ["indifference", "joy", "love", "sadness"]
+                else kao.create()
+            )
+            + (" " + " ".join(args[1:]) if len(args) > 1 else ""),
             "async": False,
             "args_num": 0,
             "args_name": ["indifference|joy|love|sadness"],
