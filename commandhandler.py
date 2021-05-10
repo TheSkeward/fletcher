@@ -133,6 +133,7 @@ def execute_webhook(
     # if request raises up there then this should never be `None`
     return self._adapter.handle_execution_response(maybe_coro, wait=wait)
 
+
 def list_append(lst, item):
     lst.append(item)
     return item
@@ -2170,10 +2171,11 @@ class Hotword:
 
             async def dm_me(owner, message, client, args):
                 try:
-                    await messagefuncs.sendWrappedMessage(
+                    response_message = await messagefuncs.sendWrappedMessage(
                         f"Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
                         client.get_user(owner.id),
                     )
+                    await messagefuncs.preview_messagelink_function(response_message, client, None)
                 except AttributeError:
                     logger.debug(
                         f"Couldn't send message because owner couln't be dereferenced for {word} in {message.guild}"
@@ -2339,7 +2341,6 @@ WHERE p.key = 'tupper';
                     except ValueError as e:
                         exc_type, exc_obj, exc_tb = exc_info()
                         logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-                        hottuple = cur.fetchone()
                         continue
                     if not guild_config.get("hotwords_loaded"):
                         guild_config["hotwords_loaded"] = ""
@@ -2369,7 +2370,7 @@ WHERE p.key = 'tupper';
                     )
                     logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
                     regex_cache[guild.id].extend(add_me)
-                    hottuple = cur.fetchone()
+                hottuple = cur.fetchone()
             conn.commit()
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
