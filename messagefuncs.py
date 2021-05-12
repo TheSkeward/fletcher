@@ -320,7 +320,7 @@ async def teleport_function(message, client, args):
             icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
             text=f"On behalf of {behest}",
         )
-        if ch.config.get(section="teleport", key="embeds"):
+        if ch.config.get(key="teleports", guild=fromGuild) == "embed":
             tmp = await fromMessage.edit(
                 content=f"<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>",
                 embed=embedPortal,
@@ -340,7 +340,7 @@ async def teleport_function(message, client, args):
             icon_url="https://dorito.space/fletcher/orange-portal.png",
             text=f"On behalf of {behest}",
         )
-        if ch.config.get(section="teleport", key="embeds"):
+        if ch.config.get(key="teleports", guild=fromGuild) == "embed":
             tmp = await toMessage.edit(
                 content=f"<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>",
                 embed=embedPortal,
