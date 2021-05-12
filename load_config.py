@@ -74,7 +74,7 @@ class FletcherConfig:
             "sync-edits": True,
             "blacklist-commands": [],
             "color-role-autocreate": True,
-            "teleports": "embed"
+            "teleports": "embed",
         }
         self.channel_defaults = {"synchronize": False}
 
