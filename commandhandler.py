@@ -2175,7 +2175,9 @@ class Hotword:
                         f"Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
                         client.get_user(owner.id),
                     )
-                    await messagefuncs.preview_messagelink_function(response_message, client, None)
+                    await messagefuncs.preview_messagelink_function(
+                        response_message, client, None
+                    )
                 except AttributeError:
                     logger.debug(
                         f"Couldn't send message because owner couln't be dereferenced for {word} in {message.guild}"
