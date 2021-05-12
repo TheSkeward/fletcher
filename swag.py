@@ -1695,7 +1695,11 @@ async def card_choice_game_function(message, client, args):
 
 
 async def glowfic_subscribe_function(message, client, args):
-    key = args[1] if "https://" in args[1] else f"glowfic-subscribe-{args[1]}"
+    key = (
+        args[1].replace("www.", "")
+        if "https://" in args[1]
+        else f"glowfic-subscribe-{args[1]}"
+    )
     webhook = None
     if args[0] == "subscribe":
         try:
