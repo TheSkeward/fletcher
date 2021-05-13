@@ -230,3 +230,226 @@ Report an issue to the repository associated with this server.
 ## Kick (`!kick`):
 #### 1-args (reason for kick)
  Kicks user from server, and DMs them a reason. Does not delete any of the user's messages.
+## Mobilespoil (`!mobilespoil`):
+ Spoilers images while on mobile. Preface message with image with `!mobilespoil`.
+#### 📳 (`:vibration_mode:`)
+ Spoilers an image sent when used as a reaction.
+
+## OCR (`!ocr`):
+ Pastes the text in an image using optical character recognition.
+#### 🔏 (`:lock_with_ink_pen:)
+ DMs user the OCR of an image.
+
+## Reminders (`!remindme`):
+ Sets a reminder for a specified time.
+
+Ex:
+
+```
+[12:08] #general <Cain> !remindme in 3 days 2 hours 5 minutes check messages
+[12:08] #general <Fletcher> Setting a reminder at NOW() + '3 days 2 hours 5 minutes'::interval
+| check messages
+```
+
+## MD5 (`!md5`):
+ Provides an MD5 (https://en.wikipedia.org/wiki/MD5) hash of the message content.
+
+## Smallcaps (`!smallcaps`):
+ Provides a smallcaps version of the message content.
+
+## Smoltext (`!smoltext`):
+ Provides a smoltext (superscript) version of the message content.
+
+## Bigemoji (`!bigemoji`):
+ Sends a larger version of an emoji.
+
+## Avatar (`!pfp` or `!avatar`):
+ Sends the profile picture of a mentioned user, or if no user is mentioned, sends the profile 
+ picture of the sender.
+
+## Role color (`!rolecolor` or `!rolecolour`):
+ Recolors a role if the user has the permissions to do so, with the format `!rolecolor role_name   hexcode`.
+
+## Notification of message reacts:
+#### 📡 (`:satellite:`)
+ When used to react to a message, notifies the user whenever a new react is added to the message.
+
+## Markdown of a message:
+#### #️⃣  (`:hash:`)
+ DMs user the markdown of a message.
+
+## Archive links:
+#### 📁 (`:file_folder:`)
+ Archives links in a message.
+
+## List users (`!names`):
+ Lists the display names of all users currently in a channnel (and on the other side of a bridge, if the channel is bridged).
+
+## Next new moon (`!nextnewmoon`):
+ Displays the date of the next new moon.
+
+## Next full moon (`!nextfullmoon`):
+ Displays the date of the next full moon.
+
+## On this day (`!onthisday`):
+ Provides significant events that happened on the current date in history.
+
+## Inspire (`!inspire`):
+ Sends an AI-generated inspirational image from https://inspirobot.me.
+
+## My color (`!mycolor` or `!mycolour`):
+ Tells you your current role color.
+
+
+## Color (`!color @user`)
+ Tells you a mentioned user's role color.
+
+## XKCD (`!xkcd`): 
+ Sends the daily XKCD comic.
+
+## Delete a Fletcher post:
+#### ❌ (`:x:` or `:deletethispost:`)
+ Some Fletcher messages (e.g. linked message previews) can be deleted using this react.
+
+## Animal image commands (`!fox`, `!dog`, `!pupper` or `!possum`):
+ Sends a random image of the animal in the command. 
+
+## Bubblewrap (`!bubblewrap`):
+ Sends digital "bubblewrap".
+
+## Copy emoji (`!copy_emoji` or `!esteal`):
+ Lets you take an emoji from another fletcher-enabled server.
+
+## Fling (`!fling`)
+ Sends `(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧` plus whatever text the user puts after.
+
+## Current time (`!now` or `!time`):
+ Tells you the current time. Defaults to America/New_York if the user hasn't set a timezone.
+
+## Pin messages:
+#### 📍 (`:round_pushpin:`)
+ Pins a message if the user has the right permissions.
+
+## Translate (`!translate`):
+ Translates from one language to another.
+
+Ex:
+```
+[10:42] <Cain> !translate en fr hello
+[10:42] <Fletcher> Translating...
+[10:43] <Fletcher> Bonjour
+```
+
+## Thingiverse (`!thing`):
+ Sends a Thingiverse page (desired search term needs to be followed with `query`).
+
+## Image stylize (`!stylish`):
+ Stylizes an image sent with the command with the style `wave`, `mosaic`, `candy`, or `pencil`.
+
+## Rank (`!rank`):
+ Displays the user's or a mentioned user's rank and corresponding element and wikidata object.
+
+## Lesbaru (`!lesbaru`):
+ Sends a lesbian subaru forester ad.
+
+## Help (`!help` or `!man`):
+ Sends a command list and descriptions.
+
+## Privacy (`!privacy`):
+ Provides information about Fletcher's privacy policy.
+
+## Preferences (`!preference`):
+ Allows you to set a number of preferences.
+
+## LIFX (`!lifx`):
+ Lets users change the colors of each other's LIFX bulbs.
+
+## Ace Attorney (`!ace`):
+ Makes messages into an ace-attorney style courtroom scene given a message ID for starting point.
+
+## Channel log (`!chanlog`): 
+ Takes a log of the channel a user does it in if they have admin permissions.
+
+## Memo (`!memo`):
+ Stores a memo under the name the user sets it as.
+
+Ex:
+```
+[10:27] <Cain> !memo work submit work on May 25th
+[10:27] <Fletcher> submit work on May 25th
+[12:15] <Cain> !memo work
+[12:15] <Fletcher> submit work on May 25th
+```
+
+## Clickbait (`!clickbait`):
+ Sends an AI-generated clickbait title.
+
+## Glowfic site status (`!glowup`):
+ Tells the user whether the Glowfic site is up.
+
+## Glowfic notifications (`!glownotify`):
+ Lets the user receive notifications for updates to Glowfic threads.
+
+## Wikipedia (`!wiki`):
+ Searches Wikipedia for whatever text the user includes with the command.
+
+
+## Channel topic (`!topic`):
+ Tells the user the topic of the channel they're currently in.
+
+## Add role (`!roleadd` or `!addrole`): 
+ Adds a role to the server if the user has the correct permissions.
+
+## Delete role (`!roledel` or `!delrole`):
+ Deletes a role from the server if the user has the correct permissions.
+
+## Mod ping (`!modping`):
+ Pings a role as a mod.
+
+## Last active channel (`!lastactive_channel` or `!lastactivity_channel`):
+ Displays the last active channel in a server.
+
+## Last active user (`!lastactive_user` or `!lastactivity_user`):
+ Displays the last active user.
+
+## Slow mode (`!cooldown` or `!slowmode`):
+ Sets a cooldown time for the channel if the user has the correct permissions.
+
+## Bridge channels (`!bridge server_name:channel_name`):
+ Bridges channels between servers.
+
+## Copy permissions (`!copy_permissions_from`):
+ Copies permissions from another channel.
+
+## Open role (`!openrole`):
+ Assigns a role to every user who reacts.
+
+## Invite (`!invite`):
+ Sends a channel invite to a specified user.
+
+## Delete invites (`!delete_all_invites`):
+ Deletes all active invites for a server.
+
+## Lockout (`!lockout`):
+ Lockout or reset a user's permissions.
+
+## Voice opt-out (`!voiceoptout`):
+ Leaves all voice channels for a server.
+
+## Channel invite request (`!requestinvitechannel`):
+ Makes the reacts to a channel invite message send an invitation request to the user, who can approve or disapprove them.
+
+## Role assignment (`!revoke` or `!assign`):
+ Revokes or assigns a role for a mentioned user.
+
+## Open channel (`!openchannel`): 
+ Automatically adds anyone who reacts to the channel invite message.
+
+## Trello (`!trello`):
+ Allows user to utilize some Trello functionalities, `!login trello` to access.
+
+## Amulet (`!amulet` or `!amulet_filter`):
+ Checks if a poem is an amulet (https://text.bargains/amulet/).
+
+## Kaomoji (`!kao sadness/joy/love/indifference`):
+ Sends a random kaomoji within the specified category along with the text the user includes after it.
