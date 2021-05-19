@@ -110,15 +110,24 @@ async def latex_render_function(message, client, args, extrapackages=[]):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+
 async def tengwar_render_function(message, client, args):
     try:
-        command = ['perl', './ptt/ptt.pl', '-oq', './ptt/es.ptm']
-        p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        tengwar = p.communicate(input=' '.join(args).encode())[0]
-        await latex_render_function(message, client, tengwar.split(" "), extrapackages=['tengwarscript'])
+        command = ["perl", "./ptt/ptt.pl", "-oq", "./ptt/es.ptm"]
+        p = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        tengwar = p.communicate(input=" ".join(args).encode("utf-8"))[0].decode("utf-8")
+        await latex_render_function(
+            message, client, tengwar.split(" "), extrapackages=["tengwarscript"]
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
 
 # Register functions in client
 def autoload(ch):
