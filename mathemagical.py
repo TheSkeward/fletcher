@@ -61,9 +61,9 @@ async def latex_render_function(message, client, args, extrapackages=[]):
             preamble = (
                 r"\usepackage{"
                 + r"}\usepackage{".join(config["math"]["extra-packages"].split(","))
-                + r"}\usepackage{" if len(extrapackages) else ""
-                + r"}\usepackage{".join(extrapackages)
-                + r"}"
+                + r"}\usepackage{"
+                if len(extrapackages)
+                else "" + r"}\usepackage{".join(extrapackages) + r"}"
             )
         else:
             preamble = "\\usepackage[utf8]{inputenc}"
@@ -122,6 +122,7 @@ async def tengwar_render_function(message, client, args):
             stderr=subprocess.STDOUT,
         )
         tengwar = p.communicate(input=" ".join(args).encode("utf-8"))[0].decode("utf-8")
+        logger.debug(tengwar)
         await latex_render_function(
             message, client, tengwar.split(" "), extrapackages=["tengwarscript"]
         )
