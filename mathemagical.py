@@ -61,6 +61,7 @@ async def latex_render_function(message, client, args, extrapackages=[]):
             preamble = (
                 r"\usepackage{"
                 + r"}\usepackage{".join(config["math"]["extra-packages"].split(","))
+                + r"}\usepackage{" if len(extrapackages) else ""
                 + r"}\usepackage{".join(extrapackages)
                 + r"}"
             )
