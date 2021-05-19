@@ -44,26 +44,28 @@ def renderLatex(formula, fontsize=12, dpi=300, format="svg", file=None, preamble
         return output
 
 
-async def latex_render_function(message, client, args, extrapackages=[]):
+async def latex_render_function(message, client, args, body=None, preamble=""):
     global config
     try:
-        try:
-            renderstring = message.content.split(" ", 1)[1]
-        except:
-            return await messagefuncs.sendWrappedMessage(
-                "Please specify string to render as LaTeX",
-                message.channel,
-                delete_after=30,
-            )
+        if body:
+            renderstring = body
+        else:
+            try:
+                renderstring = message.content.split(" ", 1)[1]
+            except:
+                return await messagefuncs.sendWrappedMessage(
+                    "Please specify string to render as LaTeX",
+                    message.channel,
+                    delete_after=30,
+                )
         if message.content.split(" ", 1)[0] == "!math":
             renderstring = f"$${renderstring}$$"
         if "math" in config and "extra-packages" in config["math"]:
             preamble = (
                 r"\usepackage{"
                 + r"}\usepackage{".join(config["math"]["extra-packages"].split(","))
-                + r"}\usepackage{"
-                if len(extrapackages)
-                else "" + r"}\usepackage{".join(extrapackages) + r"}"
+                + preamble
+                + r"}"
             )
         else:
             preamble = "\\usepackage[utf8]{inputenc}"
@@ -105,7 +107,14 @@ async def latex_render_function(message, client, args, extrapackages=[]):
         logger.debug("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
         await messagefuncs.sendWrappedMessage(
-            f"Error rendering LaTeX: {e}", message.author
+            "||```tex\n"
+            + preamble
+            + "```||\n"
+            + "||```tex\n"
+            + renderstring
+            + "```||\n"
+            + f"Error rendering LaTeX: {e}",
+            message.author,
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -121,10 +130,17 @@ async def tengwar_render_function(message, client, args):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
-        tengwar = p.communicate(input=" ".join(args).encode("utf-8"))[0].decode("utf-8")
-        logger.debug(tengwar)
+        tengwar = (
+            p.communicate(input=" ".join(args).encode("utf-8"))[0]
+            .decode("utf-8")
+            .strip()
+        )
         await latex_render_function(
-            message, client, tengwar.split(" "), extrapackages=["tengwarscript"]
+            message,
+            client,
+            args,
+            body=tengwar,
+            preamble=r"}\usepackage[all]{tengwarscript",
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
