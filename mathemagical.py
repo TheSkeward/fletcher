@@ -4,6 +4,7 @@ import io
 import logging
 import matplotlib.pyplot as plt
 import messagefuncs
+import subprocess
 import sympy
 import tempfile
 
@@ -43,7 +44,7 @@ def renderLatex(formula, fontsize=12, dpi=300, format="svg", file=None, preamble
         return output
 
 
-async def latex_render_function(message, client, args):
+async def latex_render_function(message, client, args, extrapackages=[]):
     global config
     try:
         try:
@@ -60,6 +61,7 @@ async def latex_render_function(message, client, args):
             preamble = (
                 r"\usepackage{"
                 + r"}\usepackage{".join(config["math"]["extra-packages"].split(","))
+                + r"}\usepackage{".join(extrapackages)
                 + r"}"
             )
         else:
@@ -108,6 +110,15 @@ async def latex_render_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+async def tengwar_render_function(message, client, args):
+    try:
+        command = ['perl', './ptt/ptt.pl', '-oq', './ptt/es.ptm']
+        p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        tengwar = p.communicate(input=' '.join(args).encode())[0]
+        await latex_render_function(message, client, tengwar.split(" "), extrapackages=['tengwarscript'])
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("LRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 # Register functions in client
 def autoload(ch):
@@ -120,6 +131,17 @@ def autoload(ch):
             "long_run": True,
             "args_name": [],
             "description": "Render arguments as LaTeX formula (does not require `$$` in `!math` mode)",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!tengwar"],
+            "function": tengwar_render_function,
+            "async": True,
+            "args_num": 0,
+            "long_run": True,
+            "args_name": [],
+            "description": "Render arguments as Tengwar via LaTeX (tengwarscript package)",
         }
     )
 
