@@ -944,6 +944,14 @@ async def emoji_image_function(message, client, args):
         if not emoji:
             emoji = discord.utils.get(client.emojis, name=args[0])
         if not emoji:
+            emoji_query = args[0]
+            try:
+                image_blob = await netcode.simple_get_image(
+                    f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png"
+                )
+            except Exception as e:
+                logger.debug("404 Image Not Found")
+        if not emoji:
             return await sendWrappedMessage(
                 "No emoji found with the given name",
                 delete_after=60,
