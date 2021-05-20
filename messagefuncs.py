@@ -939,6 +939,7 @@ async def translate_function(message, client, args):
 async def emoji_image_function(message, client, args):
     try:
         emoji = None
+        buffer = None
         if message.guild:
             emoji = discord.utils.get(message.guild.emojis, name=args[0])
         if not emoji:

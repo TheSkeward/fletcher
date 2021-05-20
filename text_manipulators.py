@@ -3264,7 +3264,7 @@ async def reaction_request_function(message, client, args):
                 await client.wait_for(
                     "raw_reaction_add",
                     timeout=6000.0,
-                    check=lambda reaction: str(reaction.emoji) == str(emoji),
+                    check=lambda reaction: str(reaction.emoji) == str(emoji) and reaction.user_id != client.user.id,
                 )
             except asyncio.TimeoutError:
                 pass
