@@ -3264,7 +3264,8 @@ async def reaction_request_function(message, client, args):
                 await client.wait_for(
                     "raw_reaction_add",
                     timeout=6000.0,
-                    check=lambda reaction: str(reaction.emoji) == str(emoji) and reaction.user_id != client.user.id,
+                    check=lambda reaction: str(reaction.emoji) == str(emoji)
+                    and reaction.user_id != client.user.id,
                 )
             except asyncio.TimeoutError:
                 pass
@@ -3542,6 +3543,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": [],
             "description": "Smol text (superscript)",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!unzalgo"],
+            "function": lambda message, client, args: re.sub(r"(?i)([aeiouy]̈)|[̀-ͯ҉]", r"\1", " ".join(args)),
+            "async": False,
+            "args_num": 1,
+            "args_name": [],
+            "description": "HE GOES",
         }
     )
 
