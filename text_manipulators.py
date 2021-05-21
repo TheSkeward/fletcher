@@ -12,6 +12,7 @@ import math
 import messagefuncs
 import netcode
 import random
+import re
 import shortuuid
 import textwrap
 import ujson
@@ -3549,7 +3550,9 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!unzalgo"],
-            "function": lambda message, client, args: re.sub(r"(?i)([aeiouy]̈)|[̀-ͯ҉]", r"\1", " ".join(args)),
+            "function": lambda message, client, args: re.sub(
+                r"(?i)([aeiouy]̈)|[̀-ͯ҉]", r"\1", " ".join(args)
+            ),
             "async": False,
             "args_num": 1,
             "args_name": [],
