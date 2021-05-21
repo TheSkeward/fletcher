@@ -31,9 +31,9 @@ class ScheduleFunctions:
                 permissions.read_messages == False
                 and permissions.send_messages == False
                 and permissions.embed_links == False
-                )
+            )
         except AttributeError:
-            return True
+            return False
 
     async def reminder(
         target_message, user, cached_content, mode_args, created_at, from_channel
