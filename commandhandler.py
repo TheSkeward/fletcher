@@ -2390,11 +2390,15 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
-    if ":" in args[0]:
-        args[0] = args[0].split(":")
-        guild = int(args[0][0])
-        args[0] = args[0][1]
-    else:
+    guild = None
+    try:
+        if ":" in args[0]:
+            args[0] = args[0].split(":")
+            guild = int(args[0][0])
+            args[0] = args[0][1]
+    except:
+        args[0] = ":".join(args[0])
+    if guild is None:
         guild = message.guild.id if message.guild else None
     return f"```{ch.user_config(message.author.id, guild, args[0], value,)}```"
 
