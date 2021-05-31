@@ -3151,7 +3151,7 @@ def kao_function(message, client, args):
     if args[0] in ["indifference", "joy", "love", "sadness"]:
         kao_part = kao.create(args[0])
     elif args[0] in extra_kao.keys():
-        kao_part = random.sample(extra_kao[args[0]], 1)
+        kao_part = random.sample(extra_kao[args[0]], 1)[0]
     else:
         kao_part = kao.create()
     return kao_part + (" " + " ".join(args[1:]) if len(args) > 1 else "")
