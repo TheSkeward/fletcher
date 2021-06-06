@@ -915,6 +915,21 @@ async def archive_function(message, client, args):
         logger.error("ARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def star_function(message, client, args):
+    try:
+        threshold = ch.config.get(section="starboard-threshold", guild=message.guild.id)
+        channel = ch.config.get(section="starboard-channel", guild=message.guild.id)
+        channel = discord.utils.get(client.guilds, name=channel) or discord.utils.get(client.guilds, id=int(channel))
+        if not threshold and channel:
+            return
+        if discord.utils.get(message.reactions, emoji="⭐").count >= threshold:
+            preview_message = await sendWrappedMessage(message.jump_url, target=channel)
+            await preview_messagelink_function(preview_message, client, None)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("STARF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def translate_function(message, client, args):
     try:
         base_url = ch.config.get(section="translate", key="server_url")
@@ -1088,6 +1103,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Archive links in a message",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["⭐"],
+            "function": star_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "(if configured) put message into a starboard channel if a threshold is reached",
         }
     )
 
