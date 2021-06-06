@@ -924,7 +924,7 @@ async def star_function(message, client, args):
         )
         if not threshold and not channel:
             return
-        if discord.utils.get(message.reactions, emoji="⭐").count >= threshold:
+        if discord.utils.get(message.reactions, emoji="⭐").count == threshold:
             preview_message = await sendWrappedMessage(message.jump_url, target=channel)
             await preview_messagelink_function(preview_message, client, None)
     except Exception as e:
