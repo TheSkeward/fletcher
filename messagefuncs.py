@@ -919,8 +919,10 @@ async def star_function(message, client, args):
     try:
         threshold = ch.config.get(section="starboard-threshold", guild=message.guild.id)
         channel = ch.config.get(section="starboard-channel", guild=message.guild.id)
-        channel = discord.utils.get(client.guilds, name=channel) or discord.utils.get(client.guilds, id=int(channel))
-        if not threshold and channel:
+        channel = discord.utils.get(client.guilds, name=channel) or discord.utils.get(
+            client.guilds, id=int(channel)
+        )
+        if not threshold and not channel:
             return
         if discord.utils.get(message.reactions, emoji="⭐").count >= threshold:
             preview_message = await sendWrappedMessage(message.jump_url, target=channel)
