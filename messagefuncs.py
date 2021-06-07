@@ -1,6 +1,7 @@
 from sys import exc_info
 import asyncio
 import aiohttp
+import netcode
 import discord
 import exceptions
 import io
