@@ -1579,7 +1579,7 @@ class CommandHandler:
                     message.channel,
                     delete_after=60,
                 )
-        if regex_cache.get(message.guild.id):
+        if message.guild:
             for hotword in filter(
                 lambda hw: (type(hw) is Hotword)
                 and (
