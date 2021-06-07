@@ -34,7 +34,9 @@ async def minecraft_get_time_function(message, client, args):
                 default="",
             ),
         ) as session:
-            await messagefuncs.sendWrappedMessage(session.time("query daytime"), message.channel)
+            await messagefuncs.sendWrappedMessage(
+                session.time("query daytime"), message.channel
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"MCGTF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
