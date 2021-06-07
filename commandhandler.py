@@ -2370,8 +2370,9 @@ WHERE p.key = 'tupper';
                     add_me = list(
                         filter(lambda hw: type(hw) == Hotword, hotwords.values())
                     )
-                    logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
-                    regex_cache[guild.id].extend(add_me)
+                    if regex_cache.get(guild.id):
+                        logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
+                        regex_cache[guild.id].extend(add_me)
                 hottuple = cur.fetchone()
             conn.commit()
         except Exception as e:
