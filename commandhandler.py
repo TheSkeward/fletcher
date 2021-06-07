@@ -2167,7 +2167,7 @@ class Hotword:
                     await message.add_reaction(hotword["target_emoji"])
 
                 self.target = [add_emoji]
-        elif hotword.get("dm_me"):
+        elif hotword.get("dm_me") or hotword.get("dm-me"):
 
             async def dm_me(owner, message, client, args):
                 try:
