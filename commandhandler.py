@@ -293,7 +293,7 @@ class CommandHandler:
                 ]
             )
         )
-        await asyncio.sleep(15)
+        await asyncio.sleep(10)
         await client.change_presence(
             activity=discord.Game(name="fletcher.fun | !help", start=datetime.utcnow())
         )
