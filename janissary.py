@@ -1214,19 +1214,22 @@ async def clear_inbound_sync_function(message, client, args):
 
 
 async def add_inbound_sync_function(message, client, args):
-    global config
     global ch
     try:
-        toChannelName = " ".join(args).strip()
-        toChannel = messagefuncs.xchannel(toChannelName, message.guild)
+        fromChannelName = " ".join(args).strip()
+        fromChannel = messagefuncs.xchannel(fromChannelName, message.guild)
+        toChannel = message.channel
 
-        logger.debug(f"Checking permissions for {message.author} on {toChannel}")
-        toAdmin = ch.is_admin(toChannel, toChannel.guild.get_member(message.author.id))
-        logger.debug(toAdmin)
-        if not toAdmin["channel"]:
+        logger.debug(f"Checking permissions for {message.author} on {fromChannel}")
+        fromAdmin = ch.is_admin(
+            fromChannel, fromChannel.guild.get_member(message.author.id)
+        )
+        logger.debug(fromAdmin)
+        if not fromAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
             await messagefuncs.sendWrappedMessage(
-                "You aren't an admin for the target channel, refusing.", message.author
+                "You aren't an admin (Manage Webhooks permission) on the target channel, refusing.",
+                message.author,
             )
             return
 
@@ -1236,8 +1239,8 @@ async def add_inbound_sync_function(message, client, args):
         except (discord.Forbidden, discord.InvalidArgument):
             soon = "🔜"
             await message.add_reaction(soon)
-        webhook = await message.channel.create_webhook(
-            name=f'{config.get("discord", dict()).get("botNavel", "botNavel")} ({toChannel.guild.name}:{toChannel.id})',
+        webhook = await toChannel.create_webhook(
+            name=f"{ch.config.get(section='discord', key='botNavel')} ({fromChannel.guild.name}:{toChannel.id})",
             reason=f"On behalf of {message.author.name}",
         )
         await message.remove_reaction(soon, client.user)
@@ -1246,17 +1249,21 @@ async def add_inbound_sync_function(message, client, args):
             channel=message.channel.id, guild=message.guild.id, key="synchronize"
         ):
             await messagefuncs.sendWrappedMessage(
-                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the server configuration at https://fletcher.fun",
+                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the {fromChannel.guild.name} server configuration at https://fletcher.fun",
                 message.author,
             )
         else:
-            ch.webhook_sync_registry[f"{toChannel.guild.name}:{toChannel.id}"] = {
-                "toChannelObject": toChannel,
-                "toWebhook": webhook,
-                "toChannelName": message.channel.id,
-                "fromChannelObject": toChannel,
-                "fromWebhook": None,
-            }
+            fromChannelName = f"{fromChannel.guild.name}:{fromChannel.id}"
+            if webhook_sync_registry.get(fromChannelName):
+                ch.webhook_sync_registry[fromChannelName]["toChannelObject"].append(
+                    toChannel
+                )
+                ch.webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
+            else:
+                ch.webhook_sync_registry[fromChannelName] = {
+                    "toChannelObject": toChannel,
+                    "toWebhook": webhook,
+                }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")

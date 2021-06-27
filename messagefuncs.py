@@ -365,7 +365,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://[^ ]*?instagram.com/[^ *])",
+    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/)",
     re.IGNORECASE,
 )
 
@@ -554,15 +554,19 @@ async def preview_messagelink_function(message, client, args):
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
                 async with session.get(
-                    previewable_parts[0],
-                    headers={"User-Agent": "WhatsApp/2.19.81 A"},
+                    "https://graph.facebook.com/v10.0/instagram_oembed",
+                    params={
+                        "access_token": config.get(
+                            section="facebook", key="access_token"
+                        ),
+                        "url": previewable_parts[0],
+                    },
                 ) as resp:
-                    body = await resp.text()
+                    json = await resp.json()
+                    logger.debug(await resp.text())
                     attachments = [
                         discord.File(
-                            await netcode.simple_get_image(
-                                body.split('og:image" content="')[1].split('"')[0]
-                            ),
+                            await netcode.simple_get_image(json["thumbnail_url"]),
                             "instagram.jpg",
                         )
                     ]
