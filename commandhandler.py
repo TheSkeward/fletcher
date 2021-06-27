@@ -240,13 +240,15 @@ class CommandHandler:
                 )
                 webhook_sync_registry[f"{fromGuild.id}:{webhook.id}"] = fromChannelName
                 if webhook_sync_registry.get(fromChannelName):
-                    webhook_sync_registry[fromChannelName]["toChannelObject"].append(toChannel)
+                    webhook_sync_registry[fromChannelName]["toChannelObject"].append(
+                        toChannel
+                    )
                     webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
                 else:
                     webhook_sync_registry[fromChannelName] = {
-                            "toChannelObject": [toChannel],
-                            "toWebhook": [webhook],
-                            }
+                        "toChannelObject": [toChannel],
+                        "toWebhook": [webhook],
+                    }
         self.webhook_sync_registry = webhook_sync_registry
         logger.debug("Webhooks loaded:")
         logger.debug(

@@ -554,19 +554,19 @@ async def preview_messagelink_function(message, client, args):
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
                 async with session.get(
-                        "https://graph.facebook.com/v10.0/instagram_oembed",
-                        params={
-                            "access_token": config.get(section='facebook', key='access_token'),
-                            "url": previewable_parts[0],
-                            }
+                    "https://graph.facebook.com/v10.0/instagram_oembed",
+                    params={
+                        "access_token": config.get(
+                            section="facebook", key="access_token"
+                        ),
+                        "url": previewable_parts[0],
+                    },
                 ) as resp:
                     json = await resp.json()
                     logger.debug(await resp.text())
                     attachments = [
                         discord.File(
-                            await netcode.simple_get_image(
-                                json['thumbnail_url']
-                            ),
+                            await netcode.simple_get_image(json["thumbnail_url"]),
                             "instagram.jpg",
                         )
                     ]

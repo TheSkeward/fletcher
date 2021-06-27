@@ -1221,12 +1221,15 @@ async def add_inbound_sync_function(message, client, args):
         toChannel = message.channel
 
         logger.debug(f"Checking permissions for {message.author} on {fromChannel}")
-        fromAdmin = ch.is_admin(fromChannel, fromChannel.guild.get_member(message.author.id))
+        fromAdmin = ch.is_admin(
+            fromChannel, fromChannel.guild.get_member(message.author.id)
+        )
         logger.debug(fromAdmin)
         if not fromAdmin["channel"]:
             await message.add_reaction("🙅‍♀️")
             await messagefuncs.sendWrappedMessage(
-                "You aren't an admin (Manage Webhooks permission) on the target channel, refusing.", message.author
+                "You aren't an admin (Manage Webhooks permission) on the target channel, refusing.",
+                message.author,
             )
             return
 
@@ -1252,13 +1255,15 @@ async def add_inbound_sync_function(message, client, args):
         else:
             fromChannelName = f"{fromChannel.guild.name}:{fromChannel.id}"
             if webhook_sync_registry.get(fromChannelName):
-                ch.webhook_sync_registry[fromChannelName]["toChannelObject"].append(toChannel)
+                ch.webhook_sync_registry[fromChannelName]["toChannelObject"].append(
+                    toChannel
+                )
                 ch.webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
             else:
                 ch.webhook_sync_registry[fromChannelName] = {
-                        "toChannelObject": toChannel,
-                        "toWebhook": webhook,
-                        }
+                    "toChannelObject": toChannel,
+                    "toWebhook": webhook,
+                }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
