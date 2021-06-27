@@ -196,8 +196,6 @@ class CommandHandler:
 
         self.webhook_sync_registry = {
             "FromGuildiId:FromChannelId": {
-                "fromChannelObject": None,
-                "fromWebhook": None,
                 "toChannelObject": None,
                 "toWebhook": None,
             }
@@ -205,7 +203,7 @@ class CommandHandler:
 
     async def load_webhooks(self, ch=None):
         webhook_sync_registry = {}
-        navel_filter = "{} (".format(self.config.get(section="discord", key="botNavel"))
+        navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
         for guild in filter(
             lambda guild: self.config.get(guild=guild, key="synchronize"),
             self.client.guilds,
@@ -220,9 +218,6 @@ class CommandHandler:
                 lambda webhook: webhook.name.startswith(navel_filter),
                 await guild.webhooks(),
             ):
-                toChannelName = (
-                    f"{guild.name}:{guild.get_channel(webhook.channel_id).id}"
-                )
                 fromTuple = webhook.name.split("(")[1].split(")")[0].split(":")
                 fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0]).replace(
                     ":", ""
@@ -230,64 +225,34 @@ class CommandHandler:
                 fromGuild = discord.utils.get(
                     client.guilds, name=fromTuple[0].replace("_", " ")
                 )
-                if not fromGuild:
+                if not fromGuild or not fromGuild.id:
                     continue
+                toChannel = guild.get_channel(webhook.channel_id)
                 fromChannel = discord.utils.find(
                     lambda channel: channel.name == fromTuple[1]
                     or str(channel.id) == fromTuple[1],
                     fromGuild.text_channels,
                 )
-                if fromChannel:
-                    fromChannelName = (
-                        fromTuple[0].replace("_", " ") + ":" + str(fromChannel.id)
-                    )
+                if not fromChannel:
+                    continue
+                fromChannelName = (
+                    fromTuple[0].replace("_", " ") + ":" + str(fromChannel.id)
+                )
+                webhook_sync_registry[f"{fromGuild.id}:{webhook.id}"] = fromChannelName
+                if webhook_sync_registry.get(fromChannelName):
+                    webhook_sync_registry[fromChannelName]["toChannelObject"].append(toChannel)
+                    webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
                 else:
-                    continue
-                try:
-                    webhook_sync_registry[
-                        f"{fromGuild.id}:{webhook.id}"
-                    ] = fromChannelName
-                except AttributeError:
-                    logger.debug(f"LWH: fromGuild.id not defined")
-                    continue
-                webhook_sync_registry[fromChannelName] = {
-                    "toChannelObject": [guild.get_channel(webhook.channel_id)],
-                    "toWebhook": [webhook],
-                    "toChannelName": toChannelName,
-                    "fromChannelObject": None,
-                    "fromWebhook": None,
-                }
-                webhook_sync_registry[fromChannelName][
-                    "fromChannelObject"
-                ] = discord.utils.get(fromGuild.text_channels, name=fromTuple[1])
-                if not webhook_sync_registry[fromChannelName]["fromChannelObject"]:
-                    logger.warning(
-                        f"LWH: Could not find fromChannel {fromTuple[1]} in {fromGuild}"
-                    )
-                    continue
-                try:
-                    # webhook_sync_registry[fromChannelName]['fromWebhook'] = discord.utils.get(await fromGuild.webhooks(), channel__name=fromTuple[1])
-                    webhook_sync_registry[fromChannelName][
-                        "fromWebhook"
-                    ] = await webhook_sync_registry[fromChannelName][
-                        "fromChannelObject"
-                    ].webhooks()
-                    webhook_sync_registry[fromChannelName]["fromWebhook"] = (
-                        webhook_sync_registry[fromChannelName]["fromWebhook"][0]
-                        if len(webhook_sync_registry[fromChannelName]["fromWebhook"])
-                        else None
-                    )
-                except discord.Forbidden as e:
-                    logger.warning(
-                        f'LWH: Error getting fromWebhook for {webhook_sync_registry[fromChannelName]["fromChannelObject"]}'
-                    )
-                    pass
+                    webhook_sync_registry[fromChannelName] = {
+                            "toChannelObject": [toChannel],
+                            "toWebhook": [webhook],
+                            }
         self.webhook_sync_registry = webhook_sync_registry
         logger.debug("Webhooks loaded:")
         logger.debug(
             "\n".join(
                 [
-                    f'{key} to {webhook_sync_registry[key]["toChannelName"]} (Guild {", ".join([str(channel.guild.id) for channel in webhook_sync_registry[key]["toChannelObject"]])})'
+                    f'{key} to {webhook_sync_registry[key]["toChannelObject"].guild.name}:{webhook_sync_registry[key]["toChannelObject"].name} (Guild {", ".join([str(channel.guild.id) for channel in webhook_sync_registry[key]["toChannelObject"]])})'
                     for key in list(self.webhook_sync_registry)
                     if type(self.webhook_sync_registry[key]) is not str
                 ]
