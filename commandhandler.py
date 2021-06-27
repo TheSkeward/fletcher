@@ -997,7 +997,7 @@ class CommandHandler:
                         message.reference.guild_id,
                         message.reference.channel_id,
                         message.reference.message_id,
-                        message.guild_id
+                        message.guild_id,
                     ]
                     cur = conn.cursor()
                     cur.execute(
@@ -1234,9 +1234,11 @@ class CommandHandler:
                 fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
 
             syncMessage = await webhook_edit(
-                self.webhook_sync_registry[
-                    f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                ]["toWebhook"][0],
+                    discord.utils.get(
+                        self.webhook_sync_registry[
+                            f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                            ]["toWebhook"], channel__id=toChannel.id
+                        ),
                 content=content,
                 username=fromMessageName,
                 avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
