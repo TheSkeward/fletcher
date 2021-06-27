@@ -254,7 +254,7 @@ class CommandHandler:
         logger.debug(
             "\n".join(
                 [
-                    f'{key} to {webhook_sync_registry[key]["toChannelObject"].guild.name}:{webhook_sync_registry[key]["toChannelObject"].name} (Guild {", ".join([str(channel.guild.id) for channel in webhook_sync_registry[key]["toChannelObject"]])})'
+                    f'{key} to {", ".join([channel.guild.name+":"+channel.name for channel in webhook_sync_registry[key]["toChannelObject"]])} (Guild {", ".join([str(channel.guild.id) for channel in webhook_sync_registry[key]["toChannelObject"]])})'
                     for key in list(self.webhook_sync_registry)
                     if type(self.webhook_sync_registry[key]) is not str
                 ]
