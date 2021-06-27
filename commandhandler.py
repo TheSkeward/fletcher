@@ -597,12 +597,11 @@ class CommandHandler:
                                 return
                             cur = conn.cursor()
                             cur.execute(
-                                "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                                "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s;",
                                 [message.guild.id, message.channel.id, message.id],
                             )
                             metuple = cur.fetchone()
-                            conn.commit()
-                            if metuple is not None:
+                            while metuple is not None:
                                 fromGuild = self.client.get_guild(metuple[0])
                                 fromChannel = fromGuild.get_channel(metuple[1])
                                 fromMessage = await fromChannel.fetch_message(
@@ -623,6 +622,7 @@ class CommandHandler:
                                 syncReaction = await fromMessage.add_reaction(
                                     processed_emoji
                                 )
+                                metuple = cur.fetchone()
                                 # cur = conn.cursor()
                                 # cur.execute(
                                 #     "UPDATE messagemap SET reactions = reactions || %s WHERE toguild = %s AND tochannel = %s AND tomessage = %s;",
@@ -634,14 +634,14 @@ class CommandHandler:
                                 #     ],
                                 # )
                                 # conn.commit()
+                            conn.commit()
                             cur = conn.cursor()
                             cur.execute(
-                                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                                 [message.guild.id, message.channel.id, message.id],
                             )
                             metuple = cur.fetchone()
-                            conn.commit()
-                            if metuple is not None:
+                            while metuple is not None:
                                 toGuild = self.client.get_guild(metuple[0])
                                 toChannel = toGuild.get_channel(metuple[1])
                                 try:
@@ -669,6 +669,7 @@ class CommandHandler:
                                 syncReaction = await toMessage.add_reaction(
                                     processed_emoji
                                 )
+                                metuple = cur.fetchone()
                                 # cur = conn.cursor()
                                 # cur.execute(
                                 #     f'UPDATE messagemap SET reactions = reactions || %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;',
@@ -680,6 +681,7 @@ class CommandHandler:
                                 #     ],
                                 # )
                                 # conn.commit()
+                            conn.commit()
                     except discord.InvalidArgument as e:
                         if "cur" in locals() and "conn" in locals():
                             conn.rollback()
@@ -995,10 +997,11 @@ class CommandHandler:
                         message.reference.guild_id,
                         message.reference.channel_id,
                         message.reference.message_id,
+                        message.guild_id
                     ]
                     cur = conn.cursor()
                     cur.execute(
-                        "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                        "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
                         query_params,
                     )
                     metuple = cur.fetchone()
@@ -1006,7 +1009,7 @@ class CommandHandler:
                     if metuple is None:
                         cur = conn.cursor()
                         cur.execute(
-                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s AND fromguild = %s LIMIT 1;",
                             query_params,
                         )
                         metuple = cur.fetchone()
@@ -1165,15 +1168,15 @@ class CommandHandler:
             cur = conn.cursor()
             query_params = [fromGuild.id, fromChannel.id, message.id]
             cur.execute(
-                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                 query_params,
             )
-            metuple = cur.fetchone()
+            metuples = cur.fetchall()
             conn.commit()
-            logger.debug(f"[Bridge] {query_params} -> {metuple}")
+            logger.debug(f"[Bridge] {query_params} -> {metuples}")
         else:
-            metuple = None
-        if metuple is not None:
+            metuples = []
+        for metuple in metuples:
             toGuild = self.client.get_guild(metuple[0])
             toChannel = toGuild.get_channel(metuple[1])
             toMessage = await toChannel.fetch_message(metuple[2])
@@ -1240,26 +1243,12 @@ class CommandHandler:
                 embeds=fromMessage.embeds if fromMessage.author.bot else None,
                 tts=fromMessage.tts,
                 files=attachments,
-                wait=True,
                 allowed_mentions=discord.AllowedMentions(
                     users=False, roles=False, everyone=False
                 ),
                 message_id=toMessage.id,
             )
             syncMessage = await syncMessage
-            cur = conn.cursor()
-            cur.execute(
-                "UPDATE messagemap SET toguild = %s, tochannel = %s, tomessage = %s WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
-                [
-                    syncMessage.guild.id,
-                    syncMessage.channel.id,
-                    syncMessage.id,
-                    message.guild.id,
-                    message.channel.id,
-                    message.id,
-                ],
-            )
-            conn.commit()
         await self.tupper_proc(message)
 
     async def command_handler(self, message):
