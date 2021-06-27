@@ -1261,8 +1261,8 @@ async def add_inbound_sync_function(message, client, args):
                 ch.webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
             else:
                 ch.webhook_sync_registry[fromChannelName] = {
-                    "toChannelObject": toChannel,
-                    "toWebhook": webhook,
+                    "toChannelObject": [toChannel],
+                    "toWebhook": [webhook],
                 }
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
