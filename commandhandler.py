@@ -997,7 +997,7 @@ class CommandHandler:
                         message.reference.guild_id,
                         message.reference.channel_id,
                         message.reference.message_id,
-                        message.guild_id,
+                        message.guild.id,
                     ]
                     cur = conn.cursor()
                     cur.execute(
