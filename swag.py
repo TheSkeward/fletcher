@@ -2980,9 +2980,9 @@ async def glowfic_search_call(subj_content, exact=False, username=None, password
             },
         ) as resp:
             request_body = (await resp.read()).decode("UTF-8")
-            await messagefuncs.sendWrappedMessage(
-                request_body, client.get_user(382984420321263617)
-            )
+            # await messagefuncs.sendWrappedMessage(
+            #     request_body, client.get_user(382984420321263617)
+            # )
     else:
         session.cookie_jar.clear()
     params = {
