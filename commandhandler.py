@@ -946,18 +946,18 @@ class CommandHandler:
         ):
             return
         if bridge:
-            attachments = []
-            for attachment in message.attachments:
-                logger.debug(f"Syncing {attachment.filename}")
-                attachment_blob = BytesIO()
-                await attachment.save(attachment_blob)
-                attachments.append(discord.File(attachment_blob, attachment.filename))
             if type(bridge["toChannelObject"]) is not list:
                 bridge["toChannelObject"] = [bridge["toChannelObject"]]
             if type(bridge["toWebhook"]) is not list:
                 bridge["toWebhook"] = [bridge["toWebhook"]]
 
             for i in range(len(bridge["toWebhook"])):
+                attachments = []
+                for attachment in message.attachments:
+                    logger.debug(f"Syncing {attachment.filename}")
+                    attachment_blob = BytesIO()
+                    await attachment.save(attachment_blob)
+                    attachments.append(discord.File(attachment_blob, attachment.filename))
                 content = message.content or " "
                 if len(message.attachments) > 0 and (
                     message.channel.is_nsfw()
@@ -1234,11 +1234,12 @@ class CommandHandler:
                 fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
 
             syncMessage = await webhook_edit(
-                    discord.utils.get(
-                        self.webhook_sync_registry[
-                            f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                            ]["toWebhook"], channel__id=toChannel.id
-                        ),
+                discord.utils.get(
+                    self.webhook_sync_registry[
+                        f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                    ]["toWebhook"],
+                    channel__id=toChannel.id,
+                ),
                 content=content,
                 username=fromMessageName,
                 avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
