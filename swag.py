@@ -3722,6 +3722,7 @@ def autoload(ch):
                 "<:glowsearch:799817787593457744>",
                 "<:glowsearch:811320496883892279>",
                 "<:quotesearch:815017247349276672>",
+                "<:glowfic_const_search_quote:858135840957661214>",
             ],
             "function": glowfic_search_function,
             "async": True,
