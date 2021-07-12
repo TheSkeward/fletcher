@@ -419,7 +419,7 @@ async def preview_messagelink_function(message, client, args):
                 return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
-            sent_at = target_message.created_at.strftime("<t:%s:R>")
+            sent_at = target_message.created_at.replace(tzinfo=pytz.UTC).strftime("<t:%s:R>")
             content = target_message.content
             if target_message.author.bot and len(target_message.embeds):
                 embed = target_message.embeds[0]
