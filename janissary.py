@@ -1249,7 +1249,7 @@ async def add_inbound_sync_function(message, client, args):
             channel=message.channel.id, guild=message.guild.id, key="synchronize"
         ):
             await messagefuncs.sendWrappedMessage(
-                "Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the {fromChannel.guild.name} server configuration at https://fletcher.fun",
+                f"Please note that the bridge that you just constructed will not be active until the server admin sets the `synchronize` key in the {fromChannel.guild.name} server configuration at https://fletcher.fun",
                 message.author,
             )
         else:
