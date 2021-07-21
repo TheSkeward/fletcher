@@ -1282,7 +1282,8 @@ async def names_sync_aware_function(message, client, args):
             toChannel = ch.webhook_sync_registry[
                 message.guild.name + ":" + message.channel.name
             ]["toChannelObject"]
-            members.extend(toChannel.members)
+            for channel in toChannel:
+                members.extend(channel.members)
         members = [member.display_name for member in members]
         members = sorted(set(members))
         for member in members:
