@@ -999,7 +999,7 @@ class CommandHandler:
                         message.reference.guild_id,
                         message.reference.channel_id,
                         message.reference.message_id,
-                        bridge["toWebhook"][i].guild.id,
+                        bridge["toChannelObject"][i].guild.id,
                     ]
                     cur = conn.cursor()
                     cur.execute(
