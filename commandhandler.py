@@ -1001,13 +1001,16 @@ class CommandHandler:
                         message.reference.message_id,
                         bridge["toChannelObject"][i].guild.id,
                     ]
-                    cur = conn.cursor()
-                    cur.execute(
-                        "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                        query_params,
-                    )
-                    metuple = cur.fetchone()
-                    conn.commit()
+                    if query_params[0] == query_params[3]:
+                        metuple = query_params[3:]
+                    if metuple is None:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                            query_params,
+                        )
+                        metuple = cur.fetchone()
+                        conn.commit()
                     if metuple is None:
                         cur = conn.cursor()
                         cur.execute(
