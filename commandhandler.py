@@ -617,7 +617,7 @@ class CommandHandler:
                                     )
                                     return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {fromMessage.id}"
+                                    f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})"
                                 )
                                 syncReaction = await fromMessage.add_reaction(
                                     processed_emoji
@@ -664,7 +664,7 @@ class CommandHandler:
                                     )
                                     return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {toMessage.id}"
+                                    f"RXH: {processed_emoji} -> {toMessage.id} ({toGuild.name})"
                                 )
                                 syncReaction = await toMessage.add_reaction(
                                     processed_emoji
