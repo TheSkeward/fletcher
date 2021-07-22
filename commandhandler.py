@@ -1014,6 +1014,14 @@ class CommandHandler:
                             "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s AND fromguild = %s LIMIT 1;",
                             query_params,
                         )
+                        query_params = cur.fetchone()
+                        conn.commit()
+                        query_params.append(bridge["toChannelObject"][i].guild.id)
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                            query_params,
+                        )
                         metuple = cur.fetchone()
                         conn.commit()
                     if metuple is not None:
