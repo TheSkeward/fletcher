@@ -1011,8 +1011,8 @@ class CommandHandler:
                     if metuple is None:
                         cur = conn.cursor()
                         cur.execute(
-                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s AND fromguild = %s LIMIT 1;",
-                            query_params,
+                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                            query_params[:3],
                         )
                         query_params = cur.fetchone()
                         conn.commit()
