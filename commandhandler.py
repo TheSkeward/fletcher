@@ -617,7 +617,7 @@ class CommandHandler:
                                     )
                                     return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {fromMessage.id}"
+                                    f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})"
                                 )
                                 syncReaction = await fromMessage.add_reaction(
                                     processed_emoji
@@ -664,7 +664,7 @@ class CommandHandler:
                                     )
                                     return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {toMessage.id}"
+                                    f"RXH: {processed_emoji} -> {toMessage.id} ({toGuild.name})"
                                 )
                                 syncReaction = await toMessage.add_reaction(
                                     processed_emoji
@@ -957,7 +957,9 @@ class CommandHandler:
                     logger.debug(f"Syncing {attachment.filename}")
                     attachment_blob = BytesIO()
                     await attachment.save(attachment_blob)
-                    attachments.append(discord.File(attachment_blob, attachment.filename))
+                    attachments.append(
+                        discord.File(attachment_blob, attachment.filename)
+                    )
                 content = message.content or " "
                 if len(message.attachments) > 0 and (
                     message.channel.is_nsfw()
@@ -997,7 +999,7 @@ class CommandHandler:
                         message.reference.guild_id,
                         message.reference.channel_id,
                         message.reference.message_id,
-                        message.guild.id,
+                        bridge["toWebhook"][i].guild.id,
                     ]
                     cur = conn.cursor()
                     cur.execute(
