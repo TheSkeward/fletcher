@@ -1016,14 +1016,15 @@ class CommandHandler:
                         )
                         query_params = list(cur.fetchone())
                         conn.commit()
-                        query_params.append(bridge["toChannelObject"][i].guild.id)
-                        cur = conn.cursor()
-                        cur.execute(
-                            "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                            query_params,
-                        )
-                        metuple = cur.fetchone()
-                        conn.commit()
+                        if query_params[0] != bridge["toChannelObject"][i].guild.id:
+                            query_params.append(bridge["toChannelObject"][i].guild.id)
+                            cur = conn.cursor()
+                            cur.execute(
+                                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                                query_params,
+                            )
+                            metuple = cur.fetchone()
+                            conn.commit()
                     if metuple is not None:
                         toGuild = self.client.get_guild(metuple[0])
                         toChannel = toGuild.get_channel(metuple[1])
