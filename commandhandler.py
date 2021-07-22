@@ -1001,6 +1001,7 @@ class CommandHandler:
                         message.reference.message_id,
                         bridge["toChannelObject"][i].guild.id,
                     ]
+                    metuple = None
                     if query_params[0] == query_params[3]:
                         metuple = query_params[3:]
                     if metuple is None:
