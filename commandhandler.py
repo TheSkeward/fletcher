@@ -1014,7 +1014,7 @@ class CommandHandler:
                             "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
                             query_params[:3],
                         )
-                        query_params = cur.fetchone()
+                        query_params = list(cur.fetchone())
                         conn.commit()
                         query_params.append(bridge["toChannelObject"][i].guild.id)
                         cur = conn.cursor()
