@@ -138,7 +138,7 @@ logger.addHandler(
 logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.all()
-intents.presences = False
+# intents.presences = False
 client = discord.Client(intents=intents, chunk_guilds_at_startup=False)
 
 # token from https://discordapp.com/developers
@@ -735,6 +735,36 @@ async def doissetep_omega_autoconnect():
             pass
         except AttributeError as e:
             logger.exception(e)
+
+
+@client.event
+async def on_invite_create(invite):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
+    if not ch.guild_invites.get(invite.guild.id):
+        ch.guild_invites[invite.guild.id] = {}
+    ch.guild_invites[invite.guild.id][invite.code] = invite
+
+
+@client.event
+async def on_invite_delete(invite):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
+    if not ch.guild_invites.get(invite.guild.id):
+        ch.guild_invites[invite.guild.id] = {}
+    del ch.guild_invites[invite.guild.id][invite.code]
 
 
 @client.event

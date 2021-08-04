@@ -200,6 +200,7 @@ class CommandHandler:
                 "toWebhook": None,
             }
         }
+        self.guild_invites = {}
 
     async def load_webhooks(self, ch=None):
         webhook_sync_registry = {}
@@ -818,6 +819,20 @@ class CommandHandler:
                 member_join_actions = config.get(
                     guild=user.guild, key="on_member_join_list", default=[]
                 )
+                guild_invites = self.guild_invites[user.guild.id]
+                self.guild_invites[user.guild.id] = {invite.code: invite for invite in await user.guild.invites()}
+                for code in guild_invites.keys():
+                    if (not self.guild_invites[user.guild.id].get(code)) or self.guild_invites[user.guild.id].uses < guild_invites[user.guild.id].uses:
+                        logger.info(
+                                f"#{user.guild.name}:{user.name} <join> {user.name} joined via {code}",
+                                extra={
+                                    "SENDER_NAME": user.name,
+                                    "SENDER_ID": user.id,
+                                    "CODE": code,
+                                    "GUILD_IDENTIFIER": user.guild.name,
+                                    },
+                                )
+                        break
                 for member_join_action in filter(None, member_join_actions):
                     if member_join_action in self.join_handlers.keys():
                         await self.join_handlers[member_join_action](
@@ -865,12 +880,16 @@ class CommandHandler:
                     after,
                 )
 
+    async def load_guild_invites(self, guild):
+        self.guild_invites[guild.id] = {invite.code: invite for invite in await guild.invites()}
+
     async def reload_handler(self):
         try:
             loop = asyncio.get_event_loop()
             # Trigger reload handlers
             successful_events = []
             for guild in self.client.guilds:
+                loop.create_task(self.load_guild_invites(guild))
                 reload_actions = self.scope_config(guild=guild).get(
                     "on_reload_list", []
                 )
@@ -1020,7 +1039,10 @@ class CommandHandler:
                         )
                         metuple = cur.fetchone()
                         conn.commit()
-                        if metuple and metuple[0] != bridge["toChannelObject"][i].guild.id:
+                        if (
+                            metuple
+                            and metuple[0] != bridge["toChannelObject"][i].guild.id
+                        ):
                             query_params = list(metuple)
                             query_params.append(bridge["toChannelObject"][i].guild.id)
                             cur = conn.cursor()
