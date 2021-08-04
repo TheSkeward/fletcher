@@ -819,7 +819,7 @@ class CommandHandler:
                 member_join_actions = config.get(
                     guild=user.guild, key="on_member_join_list", default=[]
                 )
-                if user.guild.get_member(client.user).manage_channels:
+                if user.guild.get_member(client.user) and user.guild.get_member(client.user).manage_channels:
                     guild_invites = self.guild_invites[user.guild.id]
                     self.guild_invites[user.guild.id] = {
                         invite.code: invite for invite in await user.guild.invites()
@@ -898,7 +898,7 @@ class CommandHandler:
             # Trigger reload handlers
             successful_events = []
             for guild in self.client.guilds:
-                if guild.get_member(client.user).manage_channels:
+                if guild.get_member(client.user) and guild.get_member(client.user).manage_channels:
                     loop.create_task(self.load_guild_invites(guild))
                 reload_actions = self.scope_config(guild=guild).get(
                     "on_reload_list", []
