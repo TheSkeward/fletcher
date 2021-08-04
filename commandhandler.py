@@ -820,18 +820,24 @@ class CommandHandler:
                     guild=user.guild, key="on_member_join_list", default=[]
                 )
                 guild_invites = self.guild_invites[user.guild.id]
-                self.guild_invites[user.guild.id] = {invite.code: invite for invite in await user.guild.invites()}
+                self.guild_invites[user.guild.id] = {
+                    invite.code: invite for invite in await user.guild.invites()
+                }
                 for code in guild_invites.keys():
-                    if (not self.guild_invites[user.guild.id].get(code)) or self.guild_invites[user.guild.id].uses < guild_invites[user.guild.id].uses:
+                    if (
+                        not self.guild_invites[user.guild.id].get(code)
+                    ) or self.guild_invites[user.guild.id].uses < guild_invites[
+                        user.guild.id
+                    ].uses:
                         logger.info(
-                                f"#{user.guild.name}:{user.name} <join> {user.name} joined via {code}",
-                                extra={
-                                    "SENDER_NAME": user.name,
-                                    "SENDER_ID": user.id,
-                                    "CODE": code,
-                                    "GUILD_IDENTIFIER": user.guild.name,
-                                    },
-                                )
+                            f"#{user.guild.name}:{user.name} <join> {user.name} joined via {code}",
+                            extra={
+                                "SENDER_NAME": user.name,
+                                "SENDER_ID": user.id,
+                                "CODE": code,
+                                "GUILD_IDENTIFIER": user.guild.name,
+                            },
+                        )
                         break
                 for member_join_action in filter(None, member_join_actions):
                     if member_join_action in self.join_handlers.keys():
@@ -881,7 +887,9 @@ class CommandHandler:
                 )
 
     async def load_guild_invites(self, guild):
-        self.guild_invites[guild.id] = {invite.code: invite for invite in await guild.invites()}
+        self.guild_invites[guild.id] = {
+            invite.code: invite for invite in await guild.invites()
+        }
 
     async def reload_handler(self):
         try:
