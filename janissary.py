@@ -878,7 +878,9 @@ async def snooze_channel_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.info(f"SNCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await messagefuncs.sendWrappedMessage(
-            "Snooze forbidden! I don't have the authority to do that.", message.channel, delete_after=30
+            "Snooze forbidden! I don't have the authority to do that.",
+            message.channel,
+            delete_after=30,
         )
     except psycopg2.errors.InvalidDatetimeFormat as e:
         conn.rollback()
@@ -1791,7 +1793,7 @@ async def self_service_channel_function(
                             message.author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{message.channel_mentions[0].name}__",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention})",
                             args[1],
                         )
                     else:
