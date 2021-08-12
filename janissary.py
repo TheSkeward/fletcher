@@ -513,7 +513,7 @@ async def lastactive_user_function(message, client, args):
         except IndexError:
             pass
         if message.guild.large:
-            client.request_offline_members(message.guild)
+            message.guild.chunk()
         users = {}
         tomorrow = datetime.today() + timedelta(days=1)
         for m in message.guild.members:
@@ -878,7 +878,12 @@ async def snooze_channel_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.info(f"SNCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await messagefuncs.sendWrappedMessage(
-            "Snooze forbidden! I don't have the authority to do that.", message.channel
+            "Snooze forbidden! I don't have the authority to do that.", message.channel, delete_after=30
+        )
+    except psycopg2.errors.InvalidDatetimeFormat as e:
+        conn.rollback()
+        await messagefuncs.sendWrappedMessage(
+            "Invalid time specifier.", message.channel, delete_after=30
         )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
