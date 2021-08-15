@@ -26,7 +26,7 @@ logger = logging.getLogger("fletcher")
 
 regex_cache = {}
 webhooks_cache = {}
-remote_command_runner = None
+remote_command_runner = asyncio.Event()
 Ans = None
 
 
@@ -2550,8 +2550,7 @@ async def edit_tup_function(message, client, args):
 async def autounload(ch):
     try:
         logger.debug("Shutting down site")
-        remote_command_runner.cancel()
-        await remote_command_runner
+        remote_command_runner.set()
     except Exception as e:
         logger.debug(e)
 
@@ -2652,11 +2651,12 @@ async def run_web_api(config, ch):
     global remote_command_runner
     app = Quart("WebApi")
     ch.app = app
-    app.add_url_rule("/", view_func=ch.web_handler, methods=["POST"])
-    remote_command_runner = ch.client.loop.create_task(
+    app.add_url_rule("/", endpoint="index", view_func=ch.web_handler, methods=["POST"])
+    ch.client.loop.create_task(
         app.run_task(
             host=config.get("webconsole", {}).get("hostname", "::"),
             port=config.get("webconsole", {}).get("port", 25585),
             use_reloader=False,
+            shutdown_trigger=remote_command_runner
         )
     )
