@@ -3186,10 +3186,10 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
     async with session.get(base) as resp:
         request_body = (await resp.read()).decode("UTF-8")
         root = html.document_fromstring(request_body)
-        links = root.xpath('//table[@class="directory-listing-table"]/a')
-        return filter(
+        links = root.xpath('//table[@class="directory-listing-table"]//a')
+        return list(filter(
             filter_function, [base + "/" + link.attrib["href"] for link in links]
-        )
+        ))
 
 
 async def get_rotating_food(message, client, args):
