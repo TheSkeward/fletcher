@@ -3279,6 +3279,7 @@ def autoload(ch):
             "trigger": ["!food"],
             "function": get_rotating_food,
             "async": True,
+            "long_run": True,
             "args_num": 0,
             "args_name": [],
             "description": "Gives you a food (rotating)",
