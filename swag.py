@@ -39,6 +39,7 @@ session = None
 cseClient = None
 wikiClient = None
 glowfic_search_databases = []
+rotating_food_lists = []
 
 extra_kao = {
     "Joy": [
@@ -3180,6 +3181,43 @@ def kao_function(message, client, args):
         kao_part = kao.create()
     return kao_part + (" " + " ".join(args[1:]) if len(args) > 1 else "")
 
+async def get_archive_gallery(base, filter_function=lambda link: link.endswith("gif")):
+        async with session.get(
+            base
+        ) as resp:
+            request_body = (await resp.read()).decode("UTF-8")
+            root = html.document_fromstring(request_body)
+            links = root.xpath('//table[@class="directory-listing-table"]/a')
+            return filter(filter_function, [base+"/"+link.attrib['href'] for link in links])
+
+async def get_rotating_food(message, client, args):
+    try:
+        global rotating_food_lists
+        if not len(rotating_food_lists):
+            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood")
+            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood2")
+            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood3")
+            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood4")
+            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood5")
+        random.shuffle(rotating_food_lists)
+        image = rotating_food_lists.pop()
+        async with session.get(image) as resp:
+            buffer = io.BytesIO(await resp.read())
+            if resp.status != 200:
+                raise Exception(
+                    "HttpProcessingError: "
+                    + str(resp.status)
+                    + " Retrieving image failed!"
+                )
+            await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(buffer, image.split("/")[-1])],
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("GRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
 
 async def autounload(ch):
     global session
@@ -3210,6 +3248,16 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "uwu",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!food"],
+            "function": get_rotating_food,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Gives you a food (rotating)",
         }
     )
     ch.add_command(
