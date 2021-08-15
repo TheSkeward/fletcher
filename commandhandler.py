@@ -2,8 +2,7 @@ from datetime import datetime
 from emoji import UNICODE_EMOJI
 import asyncio
 from io import BytesIO
-from aiohttp import web
-from aiohttp.web import AppRunner, Application, TCPSite
+from quart import Quart, request
 
 import discord
 import logging
@@ -29,6 +28,7 @@ regex_cache = {}
 webhooks_cache = {}
 remote_command_runner = None
 Ans = None
+
 
 
 async def webhook_edit(
@@ -439,8 +439,9 @@ class CommandHandler:
                     user,
                 )
 
-    async def web_handler(self, request):
-        json = await request.json()
+    async def web_handler(self):
+        global webhooks_cache
+        json = await request.get_json()
         remote_ip = self.config.get(
             guild=json["guild_id"],
             channel=json["channel_id"],
@@ -474,7 +475,7 @@ class CommandHandler:
                     webhooks_cache[f"{channel.guild.id}:{channel.id}"] = webhook
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(json["message"], channel)
-                    return web.Response(status=200)
+                    return "OK", 200
             try:
                 messageParts = json["message"].search(r"> <([^>]*)> (.*)").groups()
                 member = discord.utils.get(
@@ -505,8 +506,8 @@ class CommandHandler:
                     await messagefuncs.sendWrappedMessage(json["message"], channel)
             except AttributeError:
                 await messagefuncs.sendWrappedMessage(json["message"], channel)
-            return web.Response(status=200)
-        return web.Response(status=400)
+            return "OK", 200
+        return "Error", 400
 
     async def reaction_handler(self, reaction):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
@@ -2550,13 +2551,8 @@ async def edit_tup_function(message, client, args):
 async def autounload(ch):
     try:
         logger.debug("Shutting down site")
-        await ch.site.stop()
-        logger.debug("Shutting down app")
-        await ch.app.shutdown()
-        logger.debug("Shutting down runner")
-        await ch.runner.shutdown()
-        logger.debug("Cleaning up runner")
-        await ch.runner.cleanup()
+        remote_command_runner.cancel()
+        await remote_command_runner
     except Exception as e:
         logger.debug(e)
 
@@ -2654,23 +2650,12 @@ def autoload(ch):
 
 
 async def run_web_api(config, ch):
-    app = Application()
+    global remote_command_runner
+    app = Quart("WebApi")
     ch.app = app
-    app.router.add_post("/", ch.web_handler)
-
-    runner = AppRunner(app)
-    await runner.setup()
-    ch.runner = runner
-    site = web.TCPSite(
-        runner,
+    app.add_url_rule("/", ch.web_handler, methods=["POST"])
+    remote_command_runner = ch.client.loop.create_task(app.run_task(host=
         config.get("webconsole", {}).get("hostname", "::"),
-        config.get("webconsole", {}).get("port", 25585),
-        reuse_port=True,
-        shutdown_timeout=1,
-    )
-    try:
-        await site.start()
-    except OSError as e:
-        logger.debug(e)
-        pass
-    ch.site = site
+        port=config.get("webconsole", {}).get("port", 25585),
+        use_reloader=False
+    ))
