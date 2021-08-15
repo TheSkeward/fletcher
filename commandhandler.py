@@ -499,7 +499,7 @@ class CommandHandler:
                             sent_message.id,
                             sent_message.channel.id,
                             sent_message.guild.id,
-                            "Bridged"
+                            "Bridged",
                         ],
                     )
                     conn.commit()
@@ -1205,6 +1205,8 @@ class CommandHandler:
                 )
             )
         ):
+            if message.webhook_id:
+                await asyncio.sleep(1)
             cur = conn.cursor()
             cur.execute(
                 "SELECT description FROM attributions WHERE message = %s AND channel = %s AND guild = %s",
