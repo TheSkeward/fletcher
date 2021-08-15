@@ -30,7 +30,6 @@ remote_command_runner = None
 Ans = None
 
 
-
 async def webhook_edit(
     self,
     content=None,
@@ -2653,9 +2652,11 @@ async def run_web_api(config, ch):
     global remote_command_runner
     app = Quart("WebApi")
     ch.app = app
-    app.add_url_rule("/", ch.web_handler, methods=["POST"])
-    remote_command_runner = ch.client.loop.create_task(app.run_task(host=
-        config.get("webconsole", {}).get("hostname", "::"),
-        port=config.get("webconsole", {}).get("port", 25585),
-        use_reloader=False
-    ))
+    app.add_url_rule("/", view_func=ch.web_handler, methods=["POST"])
+    remote_command_runner = ch.client.loop.create_task(
+        app.run_task(
+            host=config.get("webconsole", {}).get("hostname", "::"),
+            port=config.get("webconsole", {}).get("port", 25585),
+            use_reloader=False,
+        )
+    )
