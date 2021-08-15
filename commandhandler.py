@@ -490,7 +490,7 @@ class CommandHandler:
                     )
                     cur = conn.cursor()
                     cur.execute(
-                        "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                        "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild, description) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                         [
                             member.id,
                             None,
@@ -499,6 +499,7 @@ class CommandHandler:
                             sent_message.id,
                             sent_message.channel.id,
                             sent_message.guild.id,
+                            "Bridged"
                         ],
                     )
                     conn.commit()
@@ -1204,20 +1205,30 @@ class CommandHandler:
                 )
             )
         ):
-            await self.run_command(
-                self.get_command(
-                    self.config.get(
-                        guild=message.guild.id,
-                        channel=message.channel.id,
-                        key="bridge_function",
-                    ),
-                    message,
-                    min_args=1,
-                )[0],
-                message,
-                message.content.split(" "),
-                user,
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT description FROM attributions WHERE message = %s AND channel = %s AND guild = %s",
+                [message.id, message.channel.id, message.guild.id],
             )
+            subtuple = cur.fetchone()
+            if subtuple and subtuple[0] == "Bridged":
+                conn.commit()
+            else:
+                conn.commit()
+                await self.run_command(
+                    self.get_command(
+                        self.config.get(
+                            guild=message.guild.id,
+                            channel=message.channel.id,
+                            key="bridge_function",
+                        ),
+                        message,
+                        min_args=1,
+                    )[0],
+                    message,
+                    message.content.split(" "),
+                    user,
+                )
 
     async def typing_handler(self, channel, user):
         if (
