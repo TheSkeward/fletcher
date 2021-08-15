@@ -3187,9 +3187,11 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
         request_body = (await resp.read()).decode("UTF-8")
         root = html.document_fromstring(request_body)
         links = root.xpath('//table[@class="directory-listing-table"]//a')
-        return list(filter(
-            filter_function, [base + "/" + link.attrib["href"] for link in links]
-        ))
+        return list(
+            filter(
+                filter_function, [base + "/" + link.attrib["href"] for link in links]
+            )
+        )
 
 
 async def get_rotating_food(message, client, args):
@@ -3211,20 +3213,30 @@ async def get_rotating_food(message, client, args):
             rotating_food_lists += await get_archive_gallery(
                 "https://archive.org/download/rotatingfood5"
             )
-        random.shuffle(rotating_food_lists)
-        image = rotating_food_lists.pop()
-        async with session.get(image) as resp:
-            buffer = io.BytesIO(await resp.read())
-            if resp.status != 200:
-                raise Exception(
-                    "HttpProcessingError: "
-                    + str(resp.status)
-                    + " Retrieving image failed!"
-                )
-            await messagefuncs.sendWrappedMessage(
-                target=message.channel,
-                files=[discord.File(buffer, image.split("/")[-1])],
-            )
+            random.shuffle(rotating_food_lists)
+        for counter in range(5):
+            try:
+                image = rotating_food_lists.pop()
+                async with session.get(image) as resp:
+                    buffer = io.BytesIO(await resp.read())
+                    if resp.status != 200:
+                        raise Exception(
+                            "HttpProcessingError: "
+                            + str(resp.status)
+                            + " Retrieving image failed!"
+                        )
+                    return await messagefuncs.sendWrappedMessage(
+                        target=message.channel,
+                        files=[discord.File(buffer, image.split("/")[-1])],
+                    )
+            except (
+                ValueError,
+                BrokenPipeError,
+                IndexError,
+                AttributeError,
+                discord.HTTPException,
+            ) as e:
+                pass
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("GRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
