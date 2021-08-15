@@ -461,13 +461,13 @@ class CommandHandler:
             webhook = webhooks_cache.get(f"{channel.guild.id}:{channel.id}")
             if not webhook:
                 try:
-                    webhooks = await message.channel.webhooks()
+                    webhooks = await channel.webhooks()
                     if len(webhooks) > 0:
                         webhook = discord.utils.get(
                             webhooks, name=config.get(section="discord", key="botNavel")
                         )
                     if not webhook:
-                        webhook = await message.channel.create_webhook(
+                        webhook = await channel.create_webhook(
                             name=config.get(section="discord", key="botNavel"),
                             reason="Autocreating for web_handler",
                         )
