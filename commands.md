@@ -451,5 +451,8 @@ Ex:
 ## Amulet (`!amulet` or `!amulet_filter`):
  Checks if a poem is an amulet (https://text.bargains/amulet/).
 
+## Food (`!food`):
+ Sends a random rotating food from https://archive.org/download/rotatingfood.
+
 ## Kaomoji (`!kao sadness/joy/love/indifference`):
  Sends a random kaomoji within the specified category along with the text the user includes after it.
