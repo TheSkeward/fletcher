@@ -458,7 +458,53 @@ class CommandHandler:
             channel = self.client.get_guild(json["guild_id"]).get_channel(
                 json["channel_id"]
             )
-            await messagefuncs.sendWrappedMessage(json["message"], channel)
+            webhook = webhooks_cache.get(f"{channel.guild.id}:{channel.id}")
+            if not webhook:
+                try:
+                    webhooks = await message.channel.webhooks()
+                    if len(webhooks) > 0:
+                        webhook = discord.utils.get(
+                            webhooks, name=config.get(section="discord", key="botNavel")
+                        )
+                    if not webhook:
+                        webhook = await message.channel.create_webhook(
+                            name=config.get(section="discord", key="botNavel"),
+                            reason="Autocreating for web_handler",
+                        )
+                    webhooks_cache[f"{channel.guild.id}:{channel.id}"] = webhook
+                except discord.Forbidden:
+                    await messagefuncs.sendWrappedMessage(json["message"], channel)
+                    return web.Response(status=200)
+            try:
+                messageParts = json["message"].search(r"> <([^>]*)> (.*)").groups()
+                member = discord.utils.get(
+                    channel.members, display_name=messageParts[0]
+                )
+                if member:
+                    sent_message = await webhook.send(
+                        content=messageParts[1],
+                        username=member.display_name,
+                        avatar_url=member.avatar_url_as(format="png", size=128),
+                        wait=True,
+                    )
+                    cur = conn.cursor()
+                    cur.execute(
+                        "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                        [
+                            member.id,
+                            None,
+                            None,
+                            None,
+                            sent_message.id,
+                            sent_message.channel.id,
+                            sent_message.guild.id,
+                        ],
+                    )
+                    conn.commit()
+                else:
+                    await messagefuncs.sendWrappedMessage(json["message"], channel)
+            except AttributeError:
+                await messagefuncs.sendWrappedMessage(json["message"], channel)
             return web.Response(status=200)
         return web.Response(status=400)
 
