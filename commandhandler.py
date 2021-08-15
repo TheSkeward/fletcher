@@ -477,7 +477,7 @@ class CommandHandler:
                     await messagefuncs.sendWrappedMessage(json["message"], channel)
                     return web.Response(status=200)
             try:
-                messageParts = json["message"].search(r"> <([^>]*)> (.*)").groups()
+                messageParts = re.search(r"> <([^>]*)> (.*)", json["message"]).groups()
                 member = discord.utils.get(
                     channel.members, display_name=messageParts[0]
                 )
