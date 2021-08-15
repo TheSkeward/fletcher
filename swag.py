@@ -3181,24 +3181,36 @@ def kao_function(message, client, args):
         kao_part = kao.create()
     return kao_part + (" " + " ".join(args[1:]) if len(args) > 1 else "")
 
+
 async def get_archive_gallery(base, filter_function=lambda link: link.endswith("gif")):
-        async with session.get(
-            base
-        ) as resp:
-            request_body = (await resp.read()).decode("UTF-8")
-            root = html.document_fromstring(request_body)
-            links = root.xpath('//table[@class="directory-listing-table"]/a')
-            return filter(filter_function, [base+"/"+link.attrib['href'] for link in links])
+    async with session.get(base) as resp:
+        request_body = (await resp.read()).decode("UTF-8")
+        root = html.document_fromstring(request_body)
+        links = root.xpath('//table[@class="directory-listing-table"]/a')
+        return filter(
+            filter_function, [base + "/" + link.attrib["href"] for link in links]
+        )
+
 
 async def get_rotating_food(message, client, args):
     try:
         global rotating_food_lists
-        if not len(rotating_food_lists):
-            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood")
-            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood2")
-            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood3")
-            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood4")
-            rotating_food_lists += await get_archive_gallery("https://archive.org/download/rotatingfood5")
+        if len(rotating_food_lists) == 0:
+            rotating_food_lists += await get_archive_gallery(
+                "https://archive.org/download/rotatingfood"
+            )
+            rotating_food_lists += await get_archive_gallery(
+                "https://archive.org/download/rotatingfood2"
+            )
+            rotating_food_lists += await get_archive_gallery(
+                "https://archive.org/download/rotatingfood3"
+            )
+            rotating_food_lists += await get_archive_gallery(
+                "https://archive.org/download/rotatingfood4"
+            )
+            rotating_food_lists += await get_archive_gallery(
+                "https://archive.org/download/rotatingfood5"
+            )
         random.shuffle(rotating_food_lists)
         image = rotating_food_lists.pop()
         async with session.get(image) as resp:
