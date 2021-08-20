@@ -2,6 +2,31 @@
 
 Three things are required to set up synchronization: Fletcher must be granted permission to use Discord features on both servers, configured to synchronize both servers, and webhooks must be created such that Fletcher can detect the channels. Note that this can be used for unidirectional sync, and both the input and output server could be the same.
 
+## Bridge Configuration
+ To bridge a channel, send `!bridge servername:channelname`, in the channels you want bridged to each other.
+
+ To demolish a bridge, send `!demolish` on both sides. 
+
+## Three+-way bridges
+ Bridging more than two channels together is possible. To bridge three channels, creating a median between the three, you can:
+#### In channel #sync-a
+```
+!bridge sync-b
+!bridge sync-c
+```
+
+#### In channel #sync-b
+```
+!bridge sync-a
+!bridge sync-c
+```
+
+#### In channel #sync-c
+```
+!bridge sync-a
+!bridge sync-b
+```
+
 ## Permissions
 Discord-Discord sync requires the *Read Messages*, *Read Message History*, and *Manage Webhooks* permissions on both servers.
 
