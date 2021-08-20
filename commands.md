@@ -456,3 +456,6 @@ Ex:
 
 ## Kaomoji (`!kao sadness/joy/love/indifference`):
  Sends a random kaomoji within the specified category along with the text the user includes after it.
+
+## Two Stats (`!2stats`):
+      Pulls 2 stats from the list at https://twostats.neocities.org/.
