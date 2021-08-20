@@ -720,12 +720,26 @@ async def bookmark_function(message, client, args):
                             pass
                 ao3_session = None
                 for url in filter(lambda url: "archiveofourown.org/works" in url, urls):
-                    if ch.user_config(args[1].id, None, "ao3-username") and ch.user_config(args[1].id, None, "ao3-password") and not ao3_session:
-                        ao3_session = AO3.Session(ch.user_config(args[1].id, None, "ao3-username"), ch.user_config(args[1].id, None, "ao3-password"))
+                    if (
+                        ch.user_config(args[1].id, None, "ao3-username")
+                        and ch.user_config(args[1].id, None, "ao3-password")
+                        and not ao3_session
+                    ):
+                        ao3_session = AO3.Session(
+                            ch.user_config(args[1].id, None, "ao3-username"),
+                            ch.user_config(args[1].id, None, "ao3-password"),
+                        )
                         ao3_session.refresh_auth_token()
                     if ao3_session:
-                        work = AO3.Work(AO3.utils.workid_from_url(url), session=ao3_session)
-                        work.bookmark(notes=message.jump_url, private=ch.user_config(args[1].id, None, "ao3-bookmark-private", True))
+                        work = AO3.Work(
+                            AO3.utils.workid_from_url(url), session=ao3_session
+                        )
+                        work.bookmark(
+                            notes=f'<a href="{message.jump_url}">Source</a>',
+                            private=ch.user_config(
+                                args[1].id, None, "ao3-bookmark-private", True
+                            ),
+                        )
             elif str(args[0].emoji) == "🔗":
                 return await sendWrappedMessage(
                     f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
