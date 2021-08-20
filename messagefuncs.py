@@ -736,9 +736,9 @@ async def bookmark_function(message, client, args):
                         )
                         work.bookmark(
                             notes=f'<a href="{message.jump_url}">Source</a>',
-                            private=ch.user_config(
+                            private=config.normalize_booleans(ch.user_config(
                                 args[1].id, None, "ao3-bookmark-private", True
-                            ),
+                            )),
                         )
             elif str(args[0].emoji) == "🔗":
                 return await sendWrappedMessage(
