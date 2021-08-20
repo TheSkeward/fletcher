@@ -3172,7 +3172,7 @@ async def amulet_filter(message, client, args):
         )
 
 
-two_stats = [
+stat_names = [
     "Ability",
     "Adoration",
     "Advantage",
@@ -3343,7 +3343,7 @@ two_stats = [
 
 
 def two_stats_function(message, client, args):
-    two_stats = random.sample(two_stats, 2)
+    two_stats = random.sample(stat_names, 2)
     return "You have two stats, {two_stats[0]} and {two_stats[1]}"
 
 
