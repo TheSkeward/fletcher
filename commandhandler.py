@@ -2478,9 +2478,16 @@ def preference_function(message, client, args):
         key = ":".join(key)
     if guild is None:
         guild = message.guild.id if message.guild else None
-    value = ch.user_config(message.author.id, guild, key, value,)
+    if value:
+        ch.user_config.cache_clear()
+    value = ch.user_config(
+        message.author.id,
+        guild,
+        key,
+        value,
+    )
     if value and ("secret" in key) or ("password" in key) or ("token" in key):
-            return "```REDACTED```"
+        return "```REDACTED```"
     return f"```{value}```"
 
 
