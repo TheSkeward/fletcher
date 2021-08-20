@@ -1838,8 +1838,6 @@ class CommandHandler:
         conn.commit()
         if value is None:
             value = default
-        if value and ("secret" in key) or ("password" in key) or ("token" in key):
-            return "REDACTED"
         return value
 
     def is_admin(self, message, user=None):
@@ -2469,17 +2467,21 @@ def preference_function(message, client, args):
         value = " ".join(args[1:])
     else:
         value = None
+    key = args[0]
     guild = None
     try:
-        if ":" in args[0]:
-            args[0] = args[0].split(":")
-            guild = int(args[0][0])
-            args[0] = args[0][1]
+        if ":" in key:
+            key = key.split(":")
+            guild = int(key[0])
+            key = key[1]
     except:
-        args[0] = ":".join(args[0])
+        key = ":".join(key)
     if guild is None:
         guild = message.guild.id if message.guild else None
-    return f"```{ch.user_config(message.author.id, guild, args[0], value,)}```"
+    value = ch.user_config(message.author.id, guild, key, value,)
+    if value and ("secret" in key) or ("password" in key) or ("token" in key):
+            return "```REDACTED```"
+    return f"```{value}```"
 
 
 async def dumptasks_function(message, client, args):
