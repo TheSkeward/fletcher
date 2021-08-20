@@ -3253,7 +3253,6 @@ stat_names = [
     "Hatred",
     "Honesty",
     "Horror",
-    "",
     "Idea",
     "Infancy",
     "Infatuation",
