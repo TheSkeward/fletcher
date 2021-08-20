@@ -3344,7 +3344,7 @@ stat_names = [
 
 def two_stats_function(message, client, args):
     two_stats = random.sample(stat_names, 2)
-    return "You have two stats, {two_stats[0]} and {two_stats[1]}"
+    return f"You have two stats, {two_stats[0]} and {two_stats[1]}"
 
 
 def kao_function(message, client, args):
