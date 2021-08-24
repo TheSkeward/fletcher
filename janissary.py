@@ -812,9 +812,10 @@ async def snooze_channel_function(message, client, args):
                 interval = float(args[0].rstrip("h"))
             except (ValueError, IndexError):
                 interval = float(24)
+        quote = "'"
         overwrites = "overwrite " + ujson.dumps(
             {
-                f"{guild.name}:{channel.name}": dict(
+                f'{guild.name.replace(quote, quote+quote)}:{channel.name}': dict(
                     channel.overwrites_for(message.author)
                 )
                 for channel in channels
