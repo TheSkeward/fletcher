@@ -1549,6 +1549,43 @@ async def lizard_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def dogdie_function(message, client, args):
+    global ch
+    try:
+        message = "%20".join(args)
+        url = None
+        async with session.get(
+            f"https://www.doesthedogdie.com/dddsearch?q={message}",
+            headers={
+                "Accept": "application/json",
+                "X-API-KEY": ch.config.get(section="doesthedogdie", key="api-key"),
+            },
+        ) as resp:
+            request_body = await resp.json()
+            url = request_body["items"][0]["id"]
+            if not url:
+                return await messagefuncs.sendWrappedMessage(
+                    "No dog data found.", message.channel
+                )
+            message = f'__{request_body["items"][0]["name"]}__\n'
+        async with session.get(
+            f"https://www.doesthedogdie.com/media/{url}",
+            headers={
+                "Accept": "application/json",
+                "X-API-KEY": ch.config.get(section="doesthedogdie", key="api-key"),
+            },
+        ) as resp:
+            request_body = await resp.json()
+            for topic in request_body["topicItemStats"]:
+                message = f"{message}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic['isYes'] else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
+            message = message.rstrip()
+            return await messagefuncs.sendWrappedMessage(message, message.channel)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def duck_function(message, client, args):
     global ch
     try:
@@ -3998,6 +4035,18 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
+                "!doesthedogdie",
+            ],
+            "function": dogdie_function,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["Movie Name"],
+            "description": "Does the dog die in X piece of media?",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
                 "!kao",
             ],
             "function": kao_function,
@@ -4028,6 +4077,7 @@ def autoload(ch):
                 542027203383394304,
                 289207224075812864,
                 764930810179747850,
+                630487117688078358,
             ],
             "args_num": 0,
             "args_name": [],
