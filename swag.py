@@ -1552,10 +1552,10 @@ async def lizard_function(message, client, args):
 async def dogdie_function(message, client, args):
     global ch
     try:
-        if args[-1].startswith('keyword='):
-            keyword = args.pop().split('=')[-1]
+        if args[-1].startswith("keyword="):
+            keyword = args.pop().split("=")[-1]
         else:
-            keyword = 'dog'
+            keyword = "dog"
         msg = "%20".join(args)
         url = None
         async with session.get(
@@ -1581,7 +1581,11 @@ async def dogdie_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             for topic in request_body["topicItemStats"]:
-                if not keyword or (keyword in topic['keywords']) or (keyword in topic['topic']['doesName']):
+                if (
+                    not keyword
+                    or (keyword in topic["topic"]["keywords"])
+                    or (keyword in topic["topic"]["doesName"])
+                ):
                     msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
             return await messagefuncs.sendWrappedMessage(msg, message.channel)
     except Exception as e:
