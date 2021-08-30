@@ -1583,7 +1583,7 @@ async def dogdie_function(message, client, args):
             for topic in request_body["topicItemStats"]:
                 if (
                     not keyword
-                    or (keyword in topic["topic"]["keywords"])
+                    or (keyword in (topic["topic"]["keywords"] or ''))
                     or (keyword in topic["topic"]["doesName"])
                 ):
                     msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
