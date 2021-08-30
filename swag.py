@@ -1553,7 +1553,7 @@ async def dogdie_function(message, client, args):
     global ch
     try:
         if args[-1].startswith("keyword="):
-            keyword = args.pop().split("=")[-1]
+            keyword = args.shift().split("=")[-1]
         else:
             keyword = "dog"
         msg = "%20".join(args)
@@ -1585,9 +1585,11 @@ async def dogdie_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             for topic in request_body["topicItemStats"]:
+                if not topic["topic"]["keywords"]:
+                    topic["topic"]["keywords"] = ""
                 if (
                     not keyword
-                    or (keyword in (topic["topic"]["keywords"] or ""))
+                    or (keyword in topic["topic"]["keywords"])
                     or (keyword in topic["topic"]["doesName"])
                 ):
                     msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
