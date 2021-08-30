@@ -218,6 +218,9 @@ async def table_exec_function():
         while tabtuple:
             with configure_scope() as scope:
                 user = client.get_user(tabtuple[0])
+                if not user:
+                    tabtuple = cur.fetchone()
+                    continue
                 scope.user = {"id": user.id, "username": str(user)}
                 guild_id = tabtuple[1]
                 channel_id = tabtuple[2]
