@@ -1577,7 +1577,7 @@ async def dogdie_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             for topic in request_body["topicItemStats"]:
-                message = f"{message}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic['isYes'] else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
+                message = f"{message}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
             message = message.rstrip()
             return await messagefuncs.sendWrappedMessage(message, message.channel)
     except Exception as e:
