@@ -1553,7 +1553,7 @@ async def dogdie_function(message, client, args):
     global ch
     try:
         if args[-1].startswith("keyword="):
-            keyword = args.shift().split("=")[-1]
+            keyword = args.pop().split("=")[-1]
         else:
             keyword = "dog"
         msg = "%20".join(args)
