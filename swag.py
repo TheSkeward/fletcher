@@ -1568,12 +1568,12 @@ async def dogdie_function(message, client, args):
             request_body = await resp.json()
             if not len(request_body["items"]):
                 return await messagefuncs.sendWrappedMessage(
-                    "No dog data found.", message.channel
+                    "No dog data found.", target=message.channel, delete_after=30
                 )
             url = request_body["items"][0]["id"]
             if not url:
                 return await messagefuncs.sendWrappedMessage(
-                    "No dog data found.", message.channel
+                    "No dog data found.", target=message.channel, delete_after=30
                 )
             msg = f'__{request_body["items"][0]["name"]}__'
         async with session.get(
