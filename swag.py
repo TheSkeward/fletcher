@@ -1552,10 +1552,10 @@ async def lizard_function(message, client, args):
 async def dogdie_function(message, client, args):
     global ch
     try:
-        message = "%20".join(args)
+        msg = "%20".join(args)
         url = None
         async with session.get(
-            f"https://www.doesthedogdie.com/dddsearch?q={message}",
+            f"https://www.doesthedogdie.com/dddsearch?q={msg}",
             headers={
                 "Accept": "application/json",
                 "X-API-KEY": ch.config.get(section="doesthedogdie", key="api-key"),
@@ -1567,7 +1567,7 @@ async def dogdie_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     "No dog data found.", message.channel
                 )
-            message = f'__{request_body["items"][0]["name"]}__\n'
+            msg = f'__{request_body["items"][0]["name"]}__\n'
         async with session.get(
             f"https://www.doesthedogdie.com/media/{url}",
             headers={
@@ -1577,9 +1577,8 @@ async def dogdie_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             for topic in request_body["topicItemStats"]:
-                message = f"{message}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
-            message = message.rstrip()
-            return await messagefuncs.sendWrappedMessage(message, message.channel)
+                msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
+            return await messagefuncs.sendWrappedMessage(msg, message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("DDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
