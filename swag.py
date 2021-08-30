@@ -1566,6 +1566,10 @@ async def dogdie_function(message, client, args):
             },
         ) as resp:
             request_body = await resp.json()
+            if not len(request_body["items"]):
+                return await messagefuncs.sendWrappedMessage(
+                    "No dog data found.", message.channel
+                )
             url = request_body["items"][0]["id"]
             if not url:
                 return await messagefuncs.sendWrappedMessage(
@@ -1583,7 +1587,7 @@ async def dogdie_function(message, client, args):
             for topic in request_body["topicItemStats"]:
                 if (
                     not keyword
-                    or (keyword in (topic["topic"]["keywords"] or ''))
+                    or (keyword in (topic["topic"]["keywords"] or ""))
                     or (keyword in topic["topic"]["doesName"])
                 ):
                     msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
