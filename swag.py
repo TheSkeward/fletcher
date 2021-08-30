@@ -1552,6 +1552,10 @@ async def lizard_function(message, client, args):
 async def dogdie_function(message, client, args):
     global ch
     try:
+        if args[-1].startswith('keyword='):
+            keyword = args.pop().split('=')[-1]
+        else:
+            keyword = 'dog'
         msg = "%20".join(args)
         url = None
         async with session.get(
@@ -1567,7 +1571,7 @@ async def dogdie_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     "No dog data found.", message.channel
                 )
-            msg = f'__{request_body["items"][0]["name"]}__\n'
+            msg = f'__{request_body["items"][0]["name"]}__'
         async with session.get(
             f"https://www.doesthedogdie.com/media/{url}",
             headers={
@@ -1577,7 +1581,8 @@ async def dogdie_function(message, client, args):
         ) as resp:
             request_body = await resp.json()
             for topic in request_body["topicItemStats"]:
-                msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
+                if not keyword or (keyword in topic['keywords']) or (keyword in topic['topic']['doesName']):
+                    msg = f"{msg}\n{topic['topic']['doesName']}: {'||' if topic['topic']['isSpoiler'] else ''}{topic['topic']['name'] if topic.get('isYes') else topic['topic']['notName']}{'||' if topic['topic']['isSpoiler'] else ''}"
             return await messagefuncs.sendWrappedMessage(msg, message.channel)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
