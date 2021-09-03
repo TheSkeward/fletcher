@@ -1657,7 +1657,7 @@ async def self_service_role_function(message, client, args):
             if args[2] == "add":
                 try:
                     await args[1].add_roles(message.role_mentions[0])
-                    if self.user_config(
+                    if ch.user_config(
                         message.author,
                         message.guild,
                         "notifications-openrole",
@@ -1680,7 +1680,7 @@ async def self_service_role_function(message, client, args):
             else:
                 try:
                     await args[1].remove_roles(message.role_mentions[0])
-                    if self.user_config(
+                    if ch.user_config(
                         message.author,
                         message.guild,
                         "notifications-openrole",
@@ -1818,7 +1818,7 @@ async def self_service_channel_function(
                             send_messages=False,
                             read_message_history=False,
                         )
-                        if self.user_config(
+                        if ch.user_config(
                             message.author,
                             message.guild,
                             "notifications-openchannel",
