@@ -828,7 +828,7 @@ class CommandHandler:
                     if command and self.allowCommand(command, message, user=user):
                         if not ch.config.get(
                             guild=message.guild, key="active-emoji", default=False
-                        ):
+                        ) and not command.get("exclusive", False):
                             return
                         await self.run_command(command, message, args, user)
                         if command.get("exclusive", False):
