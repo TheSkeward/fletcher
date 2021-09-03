@@ -1658,8 +1658,8 @@ async def self_service_role_function(message, client, args):
                 try:
                     await args[1].add_roles(message.role_mentions[0])
                     if ch.user_config(
-                        message.author,
-                        message.guild,
+                        message.author.id,
+                        message.guild.id,
                         "notifications-openrole",
                         default=True,
                         allow_global_substitute=True,
@@ -1681,8 +1681,8 @@ async def self_service_role_function(message, client, args):
                 try:
                     await args[1].remove_roles(message.role_mentions[0])
                     if ch.user_config(
-                        message.author,
-                        message.guild,
+                        message.author.id,
+                        message.guild.id,
                         "notifications-openrole",
                         default=True,
                         allow_global_substitute=True,
@@ -1819,8 +1819,8 @@ async def self_service_channel_function(
                             read_message_history=False,
                         )
                         if ch.user_config(
-                            message.author,
-                            message.guild,
+                            message.author.id,
+                            message.guild.id,
                             "notifications-openchannel",
                             default=False,
                             allow_global_substitute=True,
