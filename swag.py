@@ -1165,7 +1165,7 @@ async def roll_function(message, client, args):
                 comment = " ".join(args[idx + 1 :])
                 args = args[:idx]
             else:
-                comment = message.author.display_name
+                comment = ""
             if ("+" in args) or ("-" in args):
                 try:
                     idx = args.index("+")
@@ -1198,7 +1198,7 @@ async def roll_function(message, client, args):
                     if comment:
                         response = f"> {comment}\n{response}"
                     return await messagefuncs.sendWrappedMessage(
-                        response, message.channel
+                        response, message.channel, reference=message.to_reference()
                     )
                 elif "d" in args[0].lower():
                     args[0] = args[0].lower().split("d")
@@ -1237,7 +1237,7 @@ async def roll_function(message, client, args):
                     if comment:
                         response = f"> {comment}\n{response}"
                     return await messagefuncs.sendWrappedMessage(
-                        response, message.channel
+                        response, message.channel, reference=message.to_reference()
                     )
                 else:
                     args = [args[0], args[1]]
@@ -1347,7 +1347,7 @@ async def roll_function(message, client, args):
             response += f"\n{str(int(result[3:-2])-offset)+offset_str if offset else 'Result'}: {result}"
         if comment:
             response = f"> {comment}\n{response}"
-        await messagefuncs.sendWrappedMessage(response, message.channel)
+        await messagefuncs.sendWrappedMessage(response, message.channel, reference=message.to_reference())
     except ValueError as e:
         if "invalid literal for int()" in str(e):
             await messagefuncs.sendWrappedMessage(
