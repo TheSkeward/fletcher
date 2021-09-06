@@ -478,6 +478,7 @@ def autoload(ch):
                 messagefuncs.sendWrappedMessage(
                     f"You matched with {u2.mention} on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
                     u1,
+                    allowed_mentions=discord.AllowedMentions(users=[u2])
                 )
             )
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
