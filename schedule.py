@@ -463,7 +463,13 @@ def autoload(ch):
         try:
             u1 = ch.client.get_user(luckytuple[0])
             u2 = ch.client.get_user(luckytuple[1])
-            luckytuple[2] = [{'date': 'go on a date or something', 'friend': 'hang out some time'}[cat] for cat in luckytuple[2]]
+            luckytuple[2] = [
+                {
+                    "date": "go on a date or something",
+                    "friend": "hang out some time",
+                }.get(cat, cat)
+                for cat in luckytuple[2]
+            ]
             asyncio.create_task(
                 messagefuncs.sendWrappedMessage(
                     f"You matched with {u2.mention} on the following categories: {', '.join(luckytuple[2][:-2] + [' and '.join(luckytuple[2][-2:])])}. Best wishes, and I hope you enjoy each other's company!",
