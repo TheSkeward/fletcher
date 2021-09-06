@@ -665,7 +665,15 @@ class CommandHandler:
                                         "Demurring to bridge reaction to message of users on the blacklist"
                                     )
                                     return
-                                if discord.utils.get(fromMessage.reactions, name=processed_emoji.name) and discord.utils.get(fromMessage.reactions, name=processed_emoji.name).me:
+                                if (
+                                    processed_emoji.guild == emoteServer
+                                    and discord.utils.get(
+                                        fromMessage.reactions, emoji__name=reaction.emoji.name
+                                    )
+                                    and discord.utils.get(
+                                        fromMessage.reactions, emoji__name=reaction.emoji.name
+                                    ).me
+                                ):
                                     return
                                 logger.debug(
                                     f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})"
