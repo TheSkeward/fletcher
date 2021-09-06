@@ -480,12 +480,6 @@ def autoload(ch):
                     u1,
                 )
             )
-            asyncio.create_task(
-                messagefuncs.sendWrappedMessage(
-                    f"You matched with {u1.mention} ({u1.name}#{u1.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
-                    u2,
-                )
-            )
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
         except Exception as e:
             logger.debug(f"{e}")
