@@ -459,7 +459,7 @@ def autoload(ch):
     )
     luckytuple = cur.fetchone()
     todo = "UPDATE matches SET notification_sent = 't' WHERE "
-    toSend = []
+    toSend = {}
     while luckytuple:
         try:
             u1 = ch.client.get_user(luckytuple[0])
