@@ -458,18 +458,22 @@ def autoload(ch):
         [],
     )
     luckytuple = cur.fetchone()
-    todo = 'UPDATE matches SET notification_sent = \'t\' WHERE ';
+    todo = "UPDATE matches SET notification_sent = 't' WHERE "
     while luckytuple:
         try:
             u1 = ch.client.get_user(luckytuple[0])
             u2 = ch.client.get_user(luckytuple[1])
-            asyncio.create_task(messagefuncs.sendWrappedMessage(f"You matched with {u2.mention} on the following categories: {luckytuple[2]}. Best wishes, and I hope you enjoy each other's company!", u1))
-            todo += f'(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR '
+            asyncio.create_task(
+                messagefuncs.sendWrappedMessage(
+                    f"You matched with {u2.mention} on the following categories: {luckytuple[2]}. Best wishes, and I hope you enjoy each other's company!",
+                    u1,
+                )
+            )
+            todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
         except Exception as e:
             pass
         luckytuple = cur.fetchone()
-    cur.execute(f'{todo}0;', [])
-
+    cur.execute(f"{todo}'t';", [])
 
 
 async def autounload(ch):
