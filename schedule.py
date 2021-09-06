@@ -463,6 +463,9 @@ def autoload(ch):
         try:
             u1 = ch.client.get_user(luckytuple[0])
             u2 = ch.client.get_user(luckytuple[1])
+            if not u1 or not u2:
+                luckytuple = cur.fetchone()
+                continue
             luckytuple[2] = [
                 {
                     "date": "go on a date or something",
