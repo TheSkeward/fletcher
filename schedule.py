@@ -466,21 +466,23 @@ def autoload(ch):
             if not u1 or not u2:
                 luckytuple = cur.fetchone()
                 continue
-            luckytuple[2] = [
+            desc = [
                 {
                     "date": "go on a date or something",
                     "friend": "hang out some time",
                 }.get(cat, cat)
                 for cat in luckytuple[2]
             ]
+            desc = ', '.join(desc[:-2] + [' and '.join(desc[-2:])])
             asyncio.create_task(
                 messagefuncs.sendWrappedMessage(
-                    f"You matched with {u2.mention} on the following categories: {', '.join(luckytuple[2][:-2] + [' and '.join(luckytuple[2][-2:])])}. Best wishes, and I hope you enjoy each other's company!",
+                    f"You matched with {u2.mention} on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
                     u1,
                 )
             )
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
         except Exception as e:
+            logger.debug(f'{e}')
             pass
         luckytuple = cur.fetchone()
     cur.execute(f"{todo}'t';", [])
