@@ -8,7 +8,7 @@ Configuration example: this is a fletcherrc configuration entry for a guild that
 
 ```
 [Guild 000000000000000001]
-on_member_join = lockout
+on_member_join_list = lockout
 lockout_message = Be nice, don't do crimes.
 lockout_timeout = 3600.00
 ```
@@ -22,7 +22,7 @@ Configuration example: this is a fletcherrc configuration entry for a guild that
 
 ```
 [Guild 000000000000000001]
-on_member_join = randomize_role
+on_member_join_list = randomize_role
 randomize_role_list = 000000000000000001,000000000000000001
 ```
 
@@ -34,6 +34,6 @@ Configuration example:
 
 ```
 [Guild 000000000000000001]
-on_member_join = restore_roles
-on_member_remove = save_roles
+on_member_join_list = restore_roles
+on_member_remove_list = save_roles
 ```
