@@ -666,12 +666,15 @@ class CommandHandler:
                                     )
                                     return
                                 if (
-                                    processed_emoji.guild == emoteServer
+                                    emoteServer
+                                    and processed_emoji.guild == emoteServer
                                     and discord.utils.get(
-                                        fromMessage.reactions, emoji__name=reaction.emoji.name
+                                        fromMessage.reactions,
+                                        emoji__name=reaction.emoji.name,
                                     )
                                     and discord.utils.get(
-                                        fromMessage.reactions, emoji__name=reaction.emoji.name
+                                        fromMessage.reactions,
+                                        emoji__name=reaction.emoji.name,
                                     ).me
                                 ):
                                     return
