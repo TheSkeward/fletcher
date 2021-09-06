@@ -478,7 +478,6 @@ def autoload(ch):
                 messagefuncs.sendWrappedMessage(
                     f"You matched with {u2.mention} ({u2.name}#{u2.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
                     u1,
-                    allowed_mentions=discord.AllowedMentions(users=[u2]),
                 )
             )
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
@@ -486,7 +485,7 @@ def autoload(ch):
             logger.debug(f"{e}")
             pass
         luckytuple = cur.fetchone()
-    cur.execute(f"{todo}'t';", [])
+    cur.execute(f"{todo}'f';", [])
 
 
 async def autounload(ch):
