@@ -465,7 +465,7 @@ def autoload(ch):
             u2 = ch.client.get_user(luckytuple[1])
             asyncio.create_task(
                 messagefuncs.sendWrappedMessage(
-                    f"You matched with {u2.mention} on the following categories: {luckytuple[2]}. Best wishes, and I hope you enjoy each other's company!",
+                    f"You matched with {u2.mention} on the following categories: {', '.join(luckytuple[2][:-2] + [' and '.join(luckytuple[2][-2:])])}. Best wishes, and I hope you enjoy each other's company!",
                     u1,
                 )
             )
