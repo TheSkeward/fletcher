@@ -491,7 +491,7 @@ def autoload(ch):
     for to, send in toSend.items():
         asyncio.create_task(
             messagefuncs.sendWrappedMessage(
-                send, ch.client.get_user(int(to.split(",")[0]))
+                send[1], send[0]
             )
         )
     cur.execute(f"{todo}'f';", [])
