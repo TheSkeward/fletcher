@@ -452,6 +452,24 @@ def autoload(ch):
     except NameError:
         pass
     reminder_timerhandle = asyncio.create_task(table_exec_function())
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT m1.user1 AS user1, m1.user2 AS user2, array_intersect(string_to_array(m1.description, ','), string_to_array(m2.description, ',')) AS categories FROM matches m1 LEFT JOIN matches m2 ON m1.user1 = m2.user2 AND m1.user2 = m2.user1 WHERE m1.notification_sent = 'f' AND string_to_array(m1.description, ',') && string_to_array(m2.description, ',');",
+        [],
+    )
+    luckytuple = cur.fetchone()
+    todo = 'UPDATE matches SET notification_sent = \'t\' WHERE ';
+    while luckytuple:
+        try:
+            u1 = ch.client.get_user(luckytuple[0])
+            u2 = ch.client.get_user(luckytuple[1])
+            asyncio.create_task(messagefuncs.sendWrappedMessage(f"You matched with {u2.mention} on the following categories: {luckytuple[2]}. Best wishes, and I hope you enjoy each other's company!", u1))
+            todo += f'(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR '
+        except Exception as e:
+            pass
+        luckytuple = cur.fetchone()
+    cur.execute(f'{todo}0;', [])
+
 
 
 async def autounload(ch):
