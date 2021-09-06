@@ -666,8 +666,9 @@ class CommandHandler:
                                     )
                                     return
                                 if (
-                                    emoteServer
-                                    and processed_emoji.guild == emoteServer
+                                    processed_emoji.guild_id == config.get(
+                                        section="discord", key="emoteServer", default=0
+                                    )
                                     and discord.utils.get(
                                         fromMessage.reactions,
                                         emoji__name=reaction.emoji.name,
