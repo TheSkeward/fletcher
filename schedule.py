@@ -454,7 +454,7 @@ def autoload(ch):
     reminder_timerhandle = asyncio.create_task(table_exec_function())
     cur = conn.cursor()
     cur.execute(
-        "SELECT m1.user1 AS user1, m1.user2 AS user2, array_intersect(string_to_array(m1.description, ','), string_to_array(m2.description, ',')) AS categories FROM matches m1 LEFT JOIN matches m2 ON m1.user1 = m2.user2 AND m1.user2 = m2.user1 WHERE m1.notification_sent = 'f' AND string_to_array(m1.description, ',') && string_to_array(m2.description, ',') AND (m1.description <> '') IS NOT TRUE AND (m2.description <> '') IS NOT TRUE;",
+        "SELECT m1.user1 AS user1, m1.user2 AS user2, array_intersect(string_to_array(m1.description, ','), string_to_array(m2.description, ',')) AS categories FROM matches m1 LEFT JOIN matches m2 ON m1.user1 = m2.user2 AND m1.user2 = m2.user1 WHERE m1.notification_sent = 'f' AND string_to_array(m1.description, ',') && string_to_array(m2.description, ',') AND (m1.description <> '') IS TRUE AND (m2.description <> '') IS TRUE;",
         [],
     )
     luckytuple = cur.fetchone()
@@ -475,15 +475,25 @@ def autoload(ch):
                 for cat in luckytuple[2]
             ]
             desc = ", ".join(desc[:-2] + [" and ".join(desc[-2:])])
-            toSend[f"{u1},{u2}"] = (u1, f"You matched with {u2.mention} ({u2.name}#{u2.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!")
-            toSend[f"{u2},{u1}"] = (u2, f"You matched with {u1.mention} ({u1.name}#{u1.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!")
+            toSend[f"{u1},{u2}"] = (
+                u1,
+                f"You matched with {u2.mention} ({u2.name}#{u2.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
+            )
+            toSend[f"{u2},{u1}"] = (
+                u2,
+                f"You matched with {u1.mention} ({u1.name}#{u1.discriminator}) on the following categories: {desc}. Best wishes, and I hope you enjoy each other's company!",
+            )
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
         except Exception as e:
             logger.debug(f"{e}")
             pass
         luckytuple = cur.fetchone()
     for to, send in toSend.items():
-        asyncio.create_task(messagefuncs.sendWrappedMessage(send, ch.client.get_user(int(to.split(",")[0]))))
+        asyncio.create_task(
+            messagefuncs.sendWrappedMessage(
+                send, ch.client.get_user(int(to.split(",")[0]))
+            )
+        )
     cur.execute(f"{todo}'f';", [])
 
 
