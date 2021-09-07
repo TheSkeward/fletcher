@@ -331,7 +331,7 @@ Ex:
  Pins a message if the user has the right permissions.
 
 ## Translate (`!translate`):
- Translates from one language to another.
+ Translates from one language to another, uses abbreviations from https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes.
 
 Ex:
 ```
