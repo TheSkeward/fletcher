@@ -82,8 +82,7 @@ async def saverole_function(member, client, config):
 
 async def greet_function(member, client, config):
     try:
-        if type(member) is discord.Member:
-            await messagefuncs.sendWrappedMessage(config["greet_message"], member)
+        await messagefuncs.sendWrappedMessage(config["greet_message"], member)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"GF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
