@@ -80,6 +80,15 @@ async def saverole_function(member, client, config):
         logger.error(f"SRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def greet_function(member, client, config):
+    try:
+        if type(member) is discord.Member:
+            await messagefuncs.sendWrappedMessage(config["greet_message"], member)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"GF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 async def lockout_function(member, client, config):
     try:
         if type(member) is discord.Member:
@@ -384,6 +393,7 @@ def autoload(ch):
     ch.add_remove_handler("save_roles", saverole_function)
     ch.add_join_handler("restore_roles", restorerole_function)
     ch.add_join_handler("lockout", lockout_function)
+    ch.add_join_handler("greet", greet_function)
     ch.add_join_handler("randomize_role", randomize_role_function)
     ch.add_reload_handler("printhello", printhello_reload_function)
     ch.add_join_handler("chanban", chanban_join_function)
