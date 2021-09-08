@@ -2656,14 +2656,16 @@ def memo_function(message, client, args):
 
 async def ssc_function(message, client, args):
     try:
-        url = None
-        if len(args) == 0:
-            async with session.get(
-                "https://novalinium.com/sscd.archive.search.pl"
-            ) as resp:
-                return await messagefuncs.sendWrappedMessage(
-                    resp.headers["Location"], target=message.channel
-                )
+        async with session.get(
+            "https://novalinium.com/sscd.archive.search.pl",
+            allow_redirects=False,
+            params={
+                'q': " ".join(args)
+                }
+        ) as resp:
+            return await messagefuncs.sendWrappedMessage(
+                resp.headers["Location"], target=message.channel
+            )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SSC[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
