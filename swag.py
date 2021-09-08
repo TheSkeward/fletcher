@@ -3514,6 +3514,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!ssc"],
+            "function": ssc_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 0,
+            "args_name": ["query"],
+            "description": "Searches SSC for a query, or returns a random article",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!thing"],
             "function": thingiverse_function,
             "long_run": "channel",
