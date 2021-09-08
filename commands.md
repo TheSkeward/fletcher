@@ -424,4 +424,7 @@ Ex:
  Sends a random kaomoji within the specified category along with the text the user includes after it.
 
 ## Two Stats (`!2stats`):
-      Pulls 2 stats from the list at https://twostats.neocities.org/.
+ Pulls 2 stats from the list at https://twostats.neocities.org/.
+
+## SSC (`!ssc`)
+ Generates a random SSC article if sent without text, or, if sent with keyword(s),searchs SSC for those keywords (case insensitive).
