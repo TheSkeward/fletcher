@@ -668,9 +668,13 @@ class CommandHandler:
                                 if (
                                     type(processed_emoji) is not str
                                     and processed_emoji.guild_id
-                                    == int(config.get(
-                                        section="discord", key="emoteServer", default=0
-                                    ))
+                                    == int(
+                                        config.get(
+                                            section="discord",
+                                            key="emoteServer",
+                                            default=0,
+                                        )
+                                    )
                                     and discord.utils.get(
                                         fromMessage.reactions,
                                         emoji__name=reaction.emoji.name,
@@ -2187,14 +2191,14 @@ async def help_function(message, client, args):
                 await messagefuncs.sendWrappedMessage(
                     "Response to that help query was too long, please try a more specific query or https://fletcher.fun/man",
                     target,
-                    wrap_as_embed=True,
+                    wrap_as_embed=False,
                     delete_after=delete_after,
                 )
             else:
                 await messagefuncs.sendWrappedMessage(
                     helpMessageBody,
                     target,
-                    wrap_as_embed=True,
+                    wrap_as_embed=False,
                     delete_after=delete_after,
                 )
         except discord.Forbidden:
