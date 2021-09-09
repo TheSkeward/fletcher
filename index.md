@@ -5,3 +5,5 @@ Fletcher documentation is currently a work in progress. Please refer to the sour
 - [Bridging Channels](bridge.md)
 - [Join/Remove User Handlers](join-behavior.md)
 - [Customization](hotwords.md)
+- [Fletcher proxying](nickmask.md)
+
