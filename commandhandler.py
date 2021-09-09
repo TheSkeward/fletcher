@@ -31,109 +31,6 @@ remote_command_runner = None
 Ans = None
 
 
-async def webhook_edit(
-    self,
-    content=None,
-    *,
-    wait=False,
-    username=None,
-    avatar_url=None,
-    tts=False,
-    file=None,
-    files=None,
-    embed=None,
-    embeds=None,
-    allowed_mentions=None,
-    message_id=None,
-):
-    payload = {}
-    if self.token is None:
-        raise discord.errors.InvalidArgument(
-            "This webhook does not have a token associated with it"
-        )
-    if files is not None and file is not None:
-        raise discord.errors.InvalidArgument(
-            "Cannot mix file and files keyword arguments."
-        )
-    if embeds is not None and embed is not None:
-        raise discord.errors.InvalidArgument(
-            "Cannot mix embed and embeds keyword arguments."
-        )
-
-    if embeds is not None:
-        if len(embeds) > 10:
-            raise discord.errors.InvalidArgument("embeds has a maximum of 10 elements.")
-        payload["embeds"] = [e.to_dict() for e in embeds]
-
-    if embed is not None:
-        payload["embeds"] = [embed.to_dict()]
-
-    if content is not None:
-        payload["content"] = str(content)
-
-    payload["tts"] = tts
-    if avatar_url:
-        payload["avatar_url"] = str(avatar_url)
-    if username:
-        payload["username"] = username
-
-    previous_mentions = getattr(self._state, "allowed_mentions", None)
-
-    if allowed_mentions:
-        if previous_mentions is not None:
-            payload["allowed_mentions"] = previous_mentions.merge(
-                allowed_mentions
-            ).to_dict()
-        else:
-            payload["allowed_mentions"] = allowed_mentions.to_dict()
-    elif previous_mentions is not None:
-        payload["allowed_mentions"] = previous_mentions.to_dict()
-
-    return execute_webhook(
-        self,
-        wait=wait,
-        file=file,
-        files=files,
-        payload=payload,
-        message_id=message_id,
-    )
-
-
-def execute_webhook(
-    self, *, payload, wait=False, file=None, files=None, message_id=None
-):
-    cleanup = None
-    data = payload
-    multipart = None
-    files_to_pass = None
-
-    url = "%s/messages/%d?wait=%d" % (
-        self._adapter._request_url,
-        message_id,
-        wait,
-    )
-    maybe_coro = None
-    try:
-        maybe_coro = self._adapter.request(
-            "PATCH",
-            url,
-            multipart=multipart,
-            payload=data,
-            files=files_to_pass,
-        )
-    finally:
-        if maybe_coro is not None and cleanup is not None:
-            if not asyncio.iscoroutine(maybe_coro):
-                cleanup()
-            else:
-                maybe_coro = self._adapter._wrap_coroutine_and_cleanup(
-                    maybe_coro, cleanup
-                )
-
-    # if request raises up there then this should never be `None`
-    return self._adapter.handle_execution_response(maybe_coro, wait=wait)
-
-
 def list_append(lst, item):
     lst.append(item)
     return item
@@ -362,7 +259,7 @@ class CommandHandler:
                         discord.File(attachment_blob, attachment.filename)
                     )
             fromMessageName = sync.get(f"{tupperreplace}-nick", user.display_name)
-            reply_embed = None
+            reply_embed = []
             if message.reference:
                 refGuild = self.client.get_guild(message.reference.guild_id)
                 refChannel = refGuild.get_channel(message.reference.channel_id)
@@ -403,7 +300,7 @@ class CommandHandler:
                 username=fromMessageName,
                 avatar_url=sync.get(
                     f"{tupperreplace}-avatar",
-                    user.avatar_url_as(format="png", size=128),
+                    user.display_avatar,
                 ),
                 embeds=message.embeds if len(message.embeds) else reply_embed,
                 tts=message.tts,
@@ -485,7 +382,7 @@ class CommandHandler:
                     sent_message = await webhook.send(
                         content=messageParts[1],
                         username=member.display_name,
-                        avatar_url=member.avatar_url_as(format="png", size=128),
+                        avatar_url=member.display_avatar,
                         wait=True,
                     )
                     cur = conn.cursor()
@@ -1097,7 +994,7 @@ class CommandHandler:
                 )
                 # wait=True: blocking call for messagemap insertions to work
                 syncMessage = None
-                reply_embed = None
+                reply_embed = []
                 if (
                     message.reference
                     and message.type is not discord.MessageType.pins_add
@@ -1153,7 +1050,7 @@ class CommandHandler:
                     syncMessage = await bridge["toWebhook"][i].send(
                         content=content,
                         username=fromMessageName,
-                        avatar_url=user.avatar_url_as(format="png", size=128),
+                        avatar_url=user.display_avatar,
                         embeds=message.embeds if user.bot else reply_embed,
                         tts=message.tts,
                         files=[]
@@ -1176,7 +1073,7 @@ class CommandHandler:
                         syncMessage = await bridge["toWebhook"][i].send(
                             content=content,
                             username=fromMessageName,
-                            avatar_url=user.avatar_url_as(format="png", size=128),
+                            avatar_url=user.display_avatar,
                             embeds=message.embeds if user.bot else None,
                             tts=message.tts,
                             wait=True,
@@ -1371,25 +1268,20 @@ class CommandHandler:
             if toGuild.get_member(fromMessage.author.id) is not None:
                 fromMessageName = toGuild.get_member(fromMessage.author.id).display_name
 
-            syncMessage = await webhook_edit(
-                discord.utils.get(
+            syncMessage = await discord.utils.get(
                     self.webhook_sync_registry[
                         f"{fromMessage.guild.name}:{fromMessage.channel.id}"
                     ]["toWebhook"],
                     channel__id=toChannel.id,
-                ),
+                ).edit_message(
                 content=content,
-                username=fromMessageName,
-                avatar_url=fromMessage.author.avatar_url_as(format="png", size=128),
-                embeds=fromMessage.embeds if fromMessage.author.bot else None,
-                tts=fromMessage.tts,
+                embeds=fromMessage.embeds if fromMessage.author.bot else [],
                 files=attachments,
                 allowed_mentions=discord.AllowedMentions(
                     users=False, roles=False, everyone=False
                 ),
                 message_id=toMessage.id,
             )
-            syncMessage = await syncMessage
         await self.tupper_proc(message)
 
     async def command_handler(self, message):
@@ -1886,7 +1778,7 @@ class CommandHandler:
             or serverAdmin
             or (
                 type(user) is discord.Member
-                and user.permissions_in(channel).manage_webhooks
+                and channel.permissions_for(user).manage_webhooks
             )
         )
         return {"global": globalAdmin, "server": serverAdmin, "channel": channelAdmin}

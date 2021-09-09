@@ -36,7 +36,7 @@ def listbanners_function(message, client, args):
             if sentuple[4]:
                 goalAchievedVerb = "was"
             bannerMessage = bannerMessage + "\n{} {} · goal {} {}\nMᴀᴅᴇ: {}\n".format(
-                str(len(sentuple[6])),
+                str(len(sentuple[6] or [])),
                 supporterPluralized,
                 goalAchievedVerb,
                 str(sentuple[7]),

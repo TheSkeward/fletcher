@@ -1040,7 +1040,7 @@ async def wiki_otd_function(message, client, args):
                     url=f'https:{titlebar.getnext().xpath("//img")[0].attrib["src"]}'
                 )
                 .set_footer(
-                    icon_url=message.author.avatar_url,
+                    icon_url=message.author.display_avatar,
                     text='Wikipedia "On This Day {}" on behalf of {}'.format(
                         date.replace("_", " "), message.author.display_name
                     ),
@@ -1067,6 +1067,7 @@ async def wiki_otd_function(message, client, args):
 
 
 async def shindan_function(message, client, args):
+    global session
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
             if message.author.id != 429368441577930753:
@@ -1117,7 +1118,7 @@ async def shindan_function(message, client, args):
                     .strip(),
                     url=url,
                 ).set_footer(
-                    icon_url=message.author.avatar_url,
+                    icon_url=message.display_avatar,
                     text="ShindanMaker {} on behalf of {}".format(
                         author, message.author.display_name
                     ),
