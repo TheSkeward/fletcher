@@ -163,7 +163,7 @@ Ex:
 #### #d sides
  Roll some dice and show statistics with results.
 
-## Shindan (`!shindan`):
+## [CURRENTLY DOWN] Shindan (`!shindan`):
  Displays information about the Shindan quiz linked. prepopulates a 📛 reaction.
 #### 📛 (`:name_badge:`)
  Run Shindan with your username.
@@ -290,7 +290,7 @@ Ex:
  Sends `(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧` plus whatever text the user puts after.
 
 ## Current time (`!now` or `!time`):
- Tells you the current time. Defaults to America/New_York if the user hasn't set a timezone.
+ Tells you the current time. Defaults to UTC if the user hasn't set a timezone.
 
 ## Pin messages:
 #### 📍 (`:round_pushpin:`)
