@@ -1,5 +1,5 @@
 # Fletcher: A Discord Moderation Bot.
-Copyright (C) 2020 Novalinium <fletcher@noblejury.com> (Noble Jury Software)
+Copyright (C) 2021 Novalinium <fletcher@noblejury.com> (Noble Jury Software)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -48,7 +48,7 @@ If you would like to self-host Fletcher, email the author: we'll work something
 out. This is a source code release of only the main modules, without optional
 modules or other ancillaries provided. Alternatively, simply add the hosted
 Fletcher to your own Discord server using the OAuth grant link at
-https://fletcher.fun.add
+https://fletcher.fun/add
 
 ## Documentation
 Documentation for this code is in progress at https://man.sr.ht/~nova/fletcher
@@ -64,7 +64,7 @@ and on the author's blog - https://novalinium.com/blog
 
 Most announcements take place on a Discord that this bot was built for; email the 
 author if you would like access to the announcements Discord. Development and hosting 
-costs are generously supported through Liberapay: https://liberapay.com/novalinium/
+costs are generously supported through BuyMeACoffee: https://buymeacoffee.com/fletcher/
 It takes time and resources to support this bot, and Liberapay helps make this possible.
 
 If you have feature requests or would like to contribute to the project,
