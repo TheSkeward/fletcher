@@ -9,6 +9,7 @@ import dateparser
 import dateparser.search
 import pytz
 import psycopg2
+from contextlib import closing
 from sentry_sdk import configure_scope
 import traceback
 import re
@@ -38,16 +39,30 @@ class ScheduleFunctions:
     async def reminder(
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
-        if type(from_channel) is not discord.DMChannel:
-            return [
-                f"Reminder for {user.mention} https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
-                from_channel,
-            ]
-        else:
-            return [
-                f"Reminder from https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\n> {cached_content}",
-                from_channel,
-            ]
+        if "every " in cached_content.lower() and target_message:
+            every = chronos.parse_every.search(cached_content).groups(default=1)
+            try:
+                cur = conn.cursor()
+                target = f"NOW() + '{every[0]} {every[1]}'::interval"
+                cur.execute(
+                    f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
+                    [
+                        target_message.author.id,
+                        target_message.guild.id if target_message.guild else 0,
+                        target_message.channel.id,
+                        target_message.id,
+                        cached_content,
+                    ],
+                )
+                conn.commit()
+            except Exception as e:
+                logger.debug(e)
+                conn.rollback()
+        link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}" if target_message else "<missing link>"
+        return [
+            f"Reminder for {user.mention} {link}\n> {cached_content}",
+            from_channel,
+        ]
 
     async def table(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -303,16 +318,8 @@ async def reminder_function(message, client, args):
         cur = conn.cursor()
         content = "Remind me"
         interval = None
-        if args[0].lower() == "in":
-            interval = chronos.parse_interval.search(
-                message.content.lower().split(" in ", 1)[1]
-            )
-            target = f"NOW() + '{interval.group(0)}'::interval"
-            content = (
-                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
-                or content
-            )
-        elif args[0].lower() == "at":
+        every = None
+        if args[0].lower() == "at":
             tz = chronos.get_tz(message=message)
             d = dateparser.search.search_dates(
                 message.content,
@@ -339,8 +346,18 @@ async def reminder_function(message, client, args):
             ).replace(tzinfo=None)
             target = f"'{interval}'"
             content = message.content.split(d[0], 1)[1].strip() or content
+        # if args[0].lower() == "in":
         else:
-            return
+            interval = chronos.parse_interval.search(
+                message.content.lower().split(
+                    " in " if args[0].lower() == "in" else "!remindme", 1
+                )[1]
+            )
+            target = f"NOW() + '{interval.group(0)}'::interval"
+            content = (
+                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
+                or content
+            )
         if not target or not interval:
             return
         try:
@@ -489,11 +506,7 @@ def autoload(ch):
             pass
         luckytuple = cur.fetchone()
     for to, send in toSend.items():
-        asyncio.create_task(
-            messagefuncs.sendWrappedMessage(
-                send[1], send[0]
-            )
-        )
+        asyncio.create_task(messagefuncs.sendWrappedMessage(send[1], send[0]))
     cur.execute(f"{todo}'f';", [])
 
 

@@ -76,11 +76,10 @@ def tzwheremst():
 
 
 def autoload(ch):
-    global config
     global geolocator
     if not geolocator:
         geolocator = Nominatim(
-            user_agent=config.get("discord", dict()).get("botLogName", "botLogName")
+            user_agent=ch.config.get("discord", dict()).get("botLogName", "botLogName")
         )
     ch.add_command(
         {
@@ -105,6 +104,10 @@ parse_instant = re.compile(
     re.IGNORECASE,
 )
 
+parse_every = re.compile(
+    r"([\d.]+)?\s*(h(?:[ou]*rs?)|min(?:utes?)|w(?:e*ks?))",
+    re.IGNORECASE,
+    )
 
 async def autounload(ch):
     pass

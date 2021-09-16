@@ -6,7 +6,7 @@ import messagefuncs
 import random
 import re
 from sys import exc_info
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # global conn set by reload_function
 
@@ -197,7 +197,7 @@ async def randomize_role_function(member, client, config):
 
 async def printhello_reload_function(guild, client, config):
     logger.debug(
-        "PHRF: Hello to guild " + guild.name + " at " + str(datetime.utcnow()) + "!"
+        "PHRF: Hello to guild " + guild.name + " at " + str(datetime.now(timezone.utc)) + "!"
     )
 
 
@@ -221,7 +221,7 @@ async def chanban_reload_function(guild, client, config):
         logger.debug(
             "CBRF: " + str(config["chanban_younger_than"]) + " " + channel.name
         )
-        now = datetime.utcnow()
+        now = datetime.now(tz=timezone.utc)
         age_of_consent = timedelta(seconds=int(config["chanban_younger_than"]))
         age_of_consent_expiry = timedelta(
             seconds=int(config["chanban_younger_than"]), hours=2

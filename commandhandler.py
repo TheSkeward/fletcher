@@ -22,6 +22,7 @@ from functools import lru_cache, partial
 import sentry_sdk
 from asyncache import cached
 from cachetools import TTLCache
+import load_config
 
 logger = logging.getLogger("fletcher")
 
@@ -34,7 +35,6 @@ Ans = None
 def list_append(lst, item):
     lst.append(item)
     return item
-
 
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
@@ -262,7 +262,7 @@ class CommandHandler:
             reply_embed = []
             if message.reference:
                 refGuild = self.client.get_guild(message.reference.guild_id)
-                refChannel = refGuild.get_channel(message.reference.channel_id)
+                refChannel = refGuild.get_channel(message.reference.channel_id) or refGuild.get_thread(message.reference.channel_id)
                 try:
                     refMessage = await refChannel.fetch_message(
                         message.reference.message_id
@@ -413,7 +413,7 @@ class CommandHandler:
                 try:
                     global config
                     messageContent = str(reaction.emoji)
-                    channel = self.client.get_channel(reaction.channel_id)
+                    channel = self.client.get_channel(reaction.channel_id) or self.client.get_thread(reaction.channel_id)
                     if not channel:
                         logger.info("Channel does not exist")
                         return
@@ -447,7 +447,7 @@ class CommandHandler:
                             channel_config = {}
                     if type(channel) is discord.TextChannel:
                         logger.info(
-                            f"#{channel.guild.name}:{channel.name} <{user.name if user else 'Unknown User'}:{reaction.user_id}> reacting with {messageContent} to {message.id}",
+                            f"{message.id} #{channel.guild.name}:{channel.name} <{user.name if user else 'Unknown User'}:{reaction.user_id}> reacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": channel.guild.name,
                                 "CHANNEL_IDENTIFIER": channel.name,
@@ -459,7 +459,7 @@ class CommandHandler:
                         )
                     elif type(channel) is discord.DMChannel:
                         logger.info(
-                            f"@{channel.recipient.name} <{user.name if user else 'Unkown User'}:{reaction.user_id}> reacting with {messageContent} to {message.id}",
+                            f"{message.id} @{channel.recipient.name} <{user.name if user else 'Unkown User'}:{reaction.user_id}> reacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": "@",
                                 "CHANNEL_IDENTIFIER": channel.recipient.name,
@@ -686,7 +686,7 @@ class CommandHandler:
                 try:
                     global config
                     messageContent = str(reaction.emoji)
-                    channel = self.client.get_channel(reaction.channel_id)
+                    channel = self.client.get_channel(reaction.channel_id) or self.client.get_thread(reaction.channel_id)
                     if not channel:
                         logger.info("Channel does not exist")
                         return
@@ -705,7 +705,7 @@ class CommandHandler:
                     message = await channel.fetch_message(reaction.message_id)
                     if type(channel) is discord.TextChannel:
                         logger.info(
-                            f"#{channel.guild.name}:{channel.name} <{user.name}:{user.id}> unreacting with {messageContent} from {message.id}",
+                            f"{message.id} #{channel.guild.name}:{channel.name} <{user.name}:{user.id}> unreacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": channel.guild.name,
                                 "CHANNEL_IDENTIFIER": channel.name,
@@ -717,7 +717,7 @@ class CommandHandler:
                         )
                     elif type(channel) is discord.DMChannel:
                         logger.info(
-                            f"@{channel.recipient.name} <{user.name}:{user.id}> unreacting with {messageContent} from {message.id}",
+                            f"{message.id} @{channel.recipient.name} <{user.name}:{user.id}> unreacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": "@",
                                 "CHANNEL_IDENTIFIER": channel.recipient.name,
@@ -1039,7 +1039,7 @@ class CommandHandler:
                             conn.commit()
                     if metuple is not None:
                         toGuild = self.client.get_guild(metuple[0])
-                        toChannel = toGuild.get_channel(metuple[1])
+                        toChannel = toGuild.get_channel(metuple[1]) or toGuild.get_thread(metuple[1])
                         reference_message = await toChannel.fetch_message(metuple[2])
                         reply_embed = [
                             discord.Embed(
@@ -1161,6 +1161,8 @@ class CommandHandler:
             ][0].trigger_typing()
 
     async def edit_handler(self, message):
+        if isinstance(message.channel, discord.DMChannel) and self.client.get_channel(message.channel.id) is None:
+            await message.author.create_dm()
         fromMessage = message
         fromChannel = message.channel
         if hasattr(message, "guild"):
@@ -1291,6 +1293,8 @@ class CommandHandler:
 
         user = message.author
         global Ans
+        if isinstance(message.channel, discord.DMChannel) and self.client.get_channel(message.channel.id) is None:
+            await message.author.create_dm()
         if (
             user.id == 382984420321263617
             and type(message.channel) is discord.DMChannel
@@ -1310,6 +1314,8 @@ class CommandHandler:
                 await messagefuncs.sendWrappedMessage(
                     f"{traceback.format_exc()}\nEVAL: {type(e).__name__} {e}", user
                 )
+        if type(message.channel) is discord.DMChannel and message.channel.recipient is None:
+            message.channel = client.get_channel(message.channel.id)
 
         await self.bridge_message(message)
         if user == client.user:
@@ -1388,10 +1394,10 @@ class CommandHandler:
                     )
                 elif type(message.channel) is discord.DMChannel:
                     logger.info(
-                        f"{message.id} @{message.channel.recipient.name} <{user.name}:{user.id}> [Nil] {message.system_content}",
+                        f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                         extra={
                             "GUILD_IDENTIFIER": "@",
-                            "CHANNEL_IDENTIFIER": message.channel.recipient.name,
+                            "CHANNEL_IDENTIFIER": message.channel.recipient.name or message.channel.id,
                             "SENDER_NAME": user.name,
                             "SENDER_ID": user.id,
                             "MESSAGE_ID": str(message.id),
@@ -1414,10 +1420,10 @@ class CommandHandler:
                 )
             elif type(message.channel) is discord.DMChannel:
                 logger.info(
-                    f"{message.id} @{message.channel.recipient.name} <{user.name}:{user.id}> [Nil] {message.system_content}",
+                    f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                     extra={
                         "GUILD_IDENTIFIER": "@",
-                        "CHANNEL_IDENTIFIER": message.channel.recipient.name,
+                        "CHANNEL_IDENTIFIER": message.channel.recipient.name or message.channel.id,
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
@@ -1454,7 +1460,7 @@ class CommandHandler:
             ("!preview", "!blockquote", "!xreact")
         )
         should_preview_guild = type(message.channel) == discord.DMChannel or config.get(
-            guild=message.guild.id, key="preview", default=False
+            guild=None if not message.guild else message.guild.id, key="preview", default=False
         )
         user_blacklisted = user.id in config.get(
             section="moderation", key="blacklist-user-usage"
@@ -1523,7 +1529,7 @@ class CommandHandler:
             ):
                 scoped_command = self.message_reply_handlers[message.channel.id]
             refGuild = self.client.get_guild(message.reference.guild_id)
-            refChannel = refGuild.get_channel(message.reference.channel_id)
+            refChannel = refGuild.get_channel(message.reference.channel_id) or refGuild.get_thread(message.reference.channel_id)
             try:
                 refMessage = await refChannel.fetch_message(
                     message.reference.message_id
@@ -1822,6 +1828,22 @@ class CommandHandler:
         else:
             # No admin set == Unprivileged
             return True
+
+    async def thread_add(self, thread):
+        if not thread.me:
+            logger.debug(f'Adding myself to new thread {thread.name} ({thread.id})')
+            await thread.add_user(thread.guild.get_member(self.client.user.id))
+        else:
+            if thread.guild:
+                if thread.channel.category_id not in self.config.get(key="automod-blacklist-category", guild=thread.guild.id):
+                    for user in list(filter(lambda user: user in thread.parent.members, load_config.expand_target_list(self.config.get(key="manual-mod-userslist", default=[thread.guild.owner.id], guild=thread.guild.id), thread.guild))):
+                        if self.config.normalize_booleans(self.user_config(user.id, thread.guild.id, key="use_threads", default=True, allow_global_substitute=True)):
+                            logger.debug(f'Adding mod {user} to thread {thread.name} ({thread.id})')
+                            await thread.add_user(user)
+                for user in thread.parent.members:
+                    if self.config.normalize_booleans(self.user_config(user.id, thread.guild.id, key="use_threads", default=False, allow_global_substitute=True)):
+                        logger.debug(f'Adding {user} to thread {thread.name} ({thread.id})')
+                        await thread.add_user(user)
 
     async def guild_add(self, guild):
         await guild.chunk()
@@ -2317,6 +2339,9 @@ WHERE p.key = 'tupper';
             while hottuple:
                 [user_id, guild_id, hotword_json] = hottuple
                 if guild_id == 0 or guild_id is None:
+                    if not ch.client.get_user(user_id):
+                        hottuple = cur.fetchone()
+                        continue
                     guilds = ch.client.get_user(user_id).mutual_guilds
                 else:
                     guilds = [ch.client.get_guild(guild_id)]

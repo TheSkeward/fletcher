@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from PIL import Image, ImageOps
 from sys import exc_info
 import asyncio
-import aiohttp
 import codecs
 import discord
 import hashlib
@@ -2946,7 +2945,7 @@ def pretty_date(time=False):
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
     'just now', etc
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time)
     elif isinstance(time, datetime):
@@ -3141,142 +3140,143 @@ async def reaction_request_function(message, client, args):
         if not message.channel.permissions_for(message.author).external_emojis:
             return False
         flip = message.content.startswith("!tcaerx")
-        emoji_query = args[0].strip(":")
         emoji = None
-        target = (
-            await message.channel.fetch_message(message.reference.message_id)
-            if message.reference and message.type is not discord.MessageType.pins_add
-            else None
-        )
-        try:
-            urlParts = messagefuncs.extract_identifiers_messagelink.search(
-                message.content
-            ).groups()
-            if len(urlParts) == 3:
-                guild_id = int(urlParts[0])
-                channel_id = int(urlParts[1])
-                message_id = int(urlParts[2])
-                guild = client.get_guild(guild_id)
-                if guild is None:
-                    logger.warning("QAF: Fletcher is not in guild ID " + str(guild_id))
-                    return
-                channel = guild.get_channel(channel_id)
-                target = await channel.fetch_message(message_id)
-        except AttributeError:
-            pass
-        if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000:
-            emoji = list(filter(lambda m: m.name == emoji_query, client.emojis))
-            emoji = emoji[int(args[1])]
+        urlParts = messagefuncs.extract_identifiers_messagelink.search(message.content)
+        target = None
+        if message.reference and message.type is not discord.MessageType.pins_add:
+            target = await message.channel.fetch_message(message.reference.message_id)
+        elif urlParts:
+            try:
+                target = await client.get_guild(int(urlParts.group(1))).get_channel(int(urlParts.group(2))).fetch_message(int(urlParts.group(3)))
+            except:
+                await messagefuncs.sendWrappedMessage(
+                        f"XRF: Couldn't find message at specified link.",
+                        message.author,
+                        )
+                return
+            if not target:
+                return
+        elif urlParts:
+            # Invalid URL
+            return
+        elif discord.utils.find(lambda arg: arg.isnumeric() and int(arg) > 1000000, args):
+            target = await message.channel.fetch_message(int(discord.utils.find(lambda arg: arg.isnumeric() and int(arg) > 1000000, args)))
+            if not target:
+                return
+            args = list(filter(lambda arg: not str(arg).isnumeric() or int(str(arg)) < 1000000, args))
         else:
-            if ":" in emoji_query:
-                emoji_query = emoji_query.split(":")
-                emoji_query[0] = messagefuncs.expand_guild_name(
-                    emoji_query[0], suffix=""
-                )
-                filter_query = (
-                    lambda m: m.name == emoji_query[1]
-                    and m.guild.name == emoji_query[0]
-                )
-            else:
-                filter_query = lambda m: m.name == emoji_query
-                emoji = list(filter(filter_query, client.emojis))
-                if len(emoji):
-                    emoji = emoji.pop(0)
-                else:
-                    emoji_query = emoji_query[0]
-                    try:
-                        image_blob = await netcode.simple_get_image(
-                            f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png"
-                        )
-                    except Exception as e:
-                        logger.debug("404 Image Not Found")
-                        await message.add_reaction("🚫")
-                        return
-                    image_blob.seek(0)
-                    emoteServer = client.get_guild(
-                        config.get(section="discord", key="emoteServer", default=0)
-                    )
-                    try:
-                        emoji = await emoteServer.create_custom_emoji(
-                            name=hex(ord(emoji_query))[2:],
-                            image=image_blob.read(),
-                            reason="xreact custom copier",
-                        )
-                    except discord.Forbidden:
-                        logger.error("discord.emoteServer misconfigured!")
-                    except discord.HTTPException:
-                        image_blob.seek(0)
-                        await random.choice(emoteServer.emojis).delete()
-                        emoji = await emoteServer.create_custom_emoji(
-                            name=hex(ord(emoji_query))[2:],
-                            image=image_blob.read(),
-                            reason="xreact custom copier",
-                        )
-        if len(args) >= 2 and args[-1].isnumeric() and int(args[1]) >= 1000000:
-            target = await message.channel.fetch_message(int(args[-1]))
-        if emoji:
-            if target is None:
+            try:
                 async for historical_message in message.channel.history(
-                    before=message, oldest_first=False
-                ):
+                        before=message, oldest_first=False
+                        ):
                     if historical_message.author != message.author:
                         target = historical_message
                         break
-            if flip:
+                if not target:
+                    return
+            except Exception as e:
+                return
+        emoji_query = args[0].strip(":")
+        if emoji_query.startswith("<:"):
+            filter_query = lambda m: m.id == int(emoji_query.split(":")[2].rstrip(">"))
+        elif ":" in emoji_query:
+            emoji_query = emoji_query.split(":")
+            emoji_query[0] = messagefuncs.expand_guild_name(
+                emoji_query[0], suffix=""
+            )
+            filter_query = (
+                lambda m: m.name == emoji_query[1]
+                and m.guild.name == emoji_query[0]
+            )
+        else:
+            filter_query = lambda m: m.name == emoji_query
+        emoji = list(filter(filter_query, client.emojis))
+        logger.debug(emoji)
+        if len(emoji):
+            emoji = emoji.pop(int(args[1]) if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000 else 0)
+        else:
+            emoji_query = emoji_query[0]
+            try:
                 image_blob = await netcode.simple_get_image(
-                    f"https://cdn.discordapp.com/emojis/{emoji.id}.png?v=1"
+                    f"https://twemoji.maxcdn.com/v/13.0.0/72x72/{hex(ord(emoji_query))[2:]}.png"
                 )
-                image_blob.seek(0)
-                image = Image.open(image_blob)
-                flip_image = ImageOps.mirror(ImageOps.flip(image))
-                output_image_blob = io.BytesIO()
-                flip_image.save(output_image_blob, format="PNG", optimize=True)
-                output_image_blob.seek(0)
-                emoteServer = client.get_guild(
-                    config.get(section="discord", key="emoteServer", default=0)
-                )
-                try:
-                    processed_emoji = await emoteServer.create_custom_emoji(
-                        name=emoji.name[::-1],
-                        image=output_image_blob.read(),
-                        reason="xreact flip-o-matic",
-                    )
-                except discord.Forbidden:
-                    logger.error("discord.emoteServer misconfigured!")
-                except discord.HTTPException:
-                    output_image_blob.seek(0)
-                    await random.choice(emoteServer.emojis).delete()
-                    processed_emoji = await emoteServer.create_custom_emoji(
-                        name=emoji.name[::-1],
-                        image=output_image_blob.read(),
-                        reason="xreact flip-o-matic",
-                    )
-                emoji = processed_emoji
-            try:
-                await target.add_reaction(emoji)
-            except AttributeError:
+            except Exception as e:
+                logger.debug("404 Image Not Found")
                 await message.add_reaction("🚫")
-                await messagefuncs.sendWrappedMessage(
-                    f"XRF: Couldn't find message target, did you specify one?",
-                    message.author,
-                )
-            await asyncio.sleep(0.1)
+                return
+            image_blob.seek(0)
+            emoteServer = client.get_guild(
+                config.get(section="discord", key="emoteServer", default=0)
+            )
             try:
-                await client.wait_for(
-                    "raw_reaction_add",
-                    timeout=6000.0,
-                    check=lambda reaction: str(reaction.emoji) == str(emoji)
-                    and reaction.user_id != client.user.id,
+                emoji = await emoteServer.create_custom_emoji(
+                    name=hex(ord(emoji_query))[2:],
+                    image=image_blob.read(),
+                    reason="xreact custom copier",
                 )
-            except asyncio.TimeoutError:
-                pass
+            except discord.Forbidden:
+                logger.error("discord.emoteServer misconfigured!")
+            except discord.HTTPException:
+                image_blob.seek(0)
+                await random.choice(emoteServer.emojis).delete()
+                emoji = await emoteServer.create_custom_emoji(
+                    name=hex(ord(emoji_query))[2:],
+                    image=image_blob.read(),
+                    reason="xreact custom copier",
+                )
+        if flip:
+            image_blob = await netcode.simple_get_image(emoji.url)
+            image_blob.seek(0)
+            image = Image.open(image_blob)
+            flip_image = ImageOps.mirror(ImageOps.flip(image))
+            output_image_blob = io.BytesIO()
+            flip_image.save(output_image_blob, format="PNG", optimize=True)
+            output_image_blob.seek(0)
+            emoteServer = client.get_guild(
+                config.get(section="discord", key="emoteServer", default=0)
+            )
             try:
-                await target.remove_reaction(emoji, client.user)
-            except discord.NotFound:
-                # Message deleted before we could remove the reaction
-                pass
+                processed_emoji = await emoteServer.create_custom_emoji(
+                    name=emoji.name[::-1],
+                    image=output_image_blob.read(),
+                    reason="xreact flip-o-matic",
+                )
+            except discord.Forbidden:
+                logger.error("discord.emoteServer misconfigured!")
+            except discord.HTTPException:
+                output_image_blob.seek(0)
+                await random.choice(emoteServer.emojis).delete()
+                processed_emoji = await emoteServer.create_custom_emoji(
+                    name=emoji.name[::-1],
+                    image=output_image_blob.read(),
+                    reason="xreact flip-o-matic",
+                )
+            emoji = processed_emoji
         try:
-            if config["discord"].get("snappy"):
+            await target.add_reaction(emoji)
+        except AttributeError:
+            await message.add_reaction("🚫")
+            await messagefuncs.sendWrappedMessage(
+                f"XRF: Couldn't find message target, did you specify one?",
+                message.author,
+            )
+        await asyncio.sleep(0.1)
+        try:
+            await client.wait_for(
+                "raw_reaction_add",
+                timeout=6000.0,
+                check=lambda reaction: str(reaction.emoji) == str(emoji)
+                and reaction.user_id != client.user.id,
+            )
+        except asyncio.TimeoutError:
+            pass
+        try:
+            await target.remove_reaction(emoji, client.user)
+        except discord.NotFound:
+            # Message deleted before we could remove the reaction
+            pass
+        try:
+            if message.guild and ch.user_config(reaction.user_id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
                 await message.delete()
         except discord.Forbidden:
             logger.warning("XRF: Couldn't delete message but snappy mode is on")
@@ -3369,7 +3369,7 @@ async def blockquote_embed_function(message, client, args):
         else:
             quoted_by = f"On behalf of {quoted_by}"
         embed = discord.Embed().set_footer(
-            icon_url=message.author.avatar_url, text=quoted_by
+            icon_url=message.display_avatar, text=quoted_by
         )
         if title:
             embed.title = title

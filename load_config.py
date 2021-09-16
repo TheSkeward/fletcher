@@ -63,6 +63,7 @@ class FletcherConfig:
                 "botLogName": "fletcher",
                 "globalAdminIsServerAdmin": True,
                 "profile": False,
+                "snappy": False,
             },
             "nickmask": {
                 "conflictbots": [431544605209788416],
@@ -75,6 +76,8 @@ class FletcherConfig:
             "blacklist-commands": [],
             "color-role-autocreate": True,
             "teleports": "embed",
+            "snappy": False,
+            "automod-blacklist-category": [],
         }
         self.channel_defaults = {"synchronize": False}
 
@@ -170,6 +173,8 @@ class FletcherConfig:
         if (
             guild
             and channel
+            and self.client.get_guild(guild)
+            and self.client.get_guild(guild).get_channel(channel)
             and self.client.get_guild(guild).get_channel(channel).category_id
         ):
             category = self.client.get_guild(guild).get_channel(channel).category_id
@@ -339,3 +344,36 @@ class FletcherConfig:
             return f"Guild 0 - {key.recipient.id:d}" in self.config_dict
         else:
             return key in self.config_dict or key in self.defaults
+
+def expand_target_list(targets, guild):
+    try:
+        inputs = list(targets)
+    except TypeError:
+        inputs = [targets]
+    targets = set()
+    for target in inputs:
+        if type(target) == str:
+            if target.startswith("r:"):
+                try:
+                    members = guild.get_role(int(target[2:])).members
+                except ValueError:
+                    members = discord.utils.get(guild.roles, name=target[2:]).members
+                targets.update(set(members))
+            elif target.startswith("c:"):
+                try:
+                    channel = guild.get_channel(int(target[2:]))
+                except ValueError:
+                    channel = discord.utils.get(guild.text_channels, name=target[2:])
+                targets.add(channel)
+            else:
+                try:
+                    targets.add(guild.get_member(int(target)))
+                except ValueError:
+                    logger.info("Misconfiguration: could not expand {target}")
+        else:
+            # ID asssumed to be targets
+            targets.add(guild.get_member(int(target)))
+    targets.discard(None)
+    return targets
+
+

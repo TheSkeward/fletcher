@@ -1,7 +1,8 @@
 import aiohttp
+import psycopg2
 from functools import partial
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import dateparser.search
 import discord
 import logging
@@ -9,10 +10,10 @@ import messagefuncs
 import netcode
 from sys import exc_info
 import random
-import textwrap
 import text_manipulators
 import ujson
 import exceptions
+import load_config
 
 # global conn set by reload_function
 
@@ -393,7 +394,7 @@ async def modreport_function(message, client, args):
             users = scoped_config["mod-userslist"]
         else:
             users = scoped_config.get("manual-mod-userslist", [message.guild.owner.id])
-        users = list(expand_target_list(users, message.guild))
+        users = list(load_config.expand_target_list(users, message.guild))
         for target in users:
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
             if message.channel.is_nsfw():
@@ -409,43 +410,11 @@ async def modreport_function(message, client, args):
         logger.error(f"MRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
-def expand_target_list(targets, guild):
-    try:
-        inputs = list(targets)
-    except TypeError:
-        inputs = [targets]
-    targets = set()
-    for target in inputs:
-        if type(target) == str:
-            if target.startswith("r:"):
-                try:
-                    members = guild.get_role(int(target[2:])).members
-                except ValueError:
-                    members = discord.utils.get(guild.roles, name=target[2:]).members
-                targets.update(set(members))
-            elif target.startswith("c:"):
-                try:
-                    channel = guild.get_channel(int(target[2:]))
-                except ValueError:
-                    channel = discord.utils.get(guild.text_channels, name=target[2:])
-                targets.add(channel)
-            else:
-                try:
-                    targets.add(guild.get_member(int(target)))
-                except ValueError:
-                    logger.info("Misconfiguration: could not expand {target}")
-        else:
-            # ID asssumed to be targets
-            targets.add(guild.get_member(int(target)))
-    targets.discard(None)
-    return targets
-
-
 async def lastactive_channel_function(message, client, args):
     try:
         lastMonth = None
         before = True
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         try:
             if args[0]:
                 try:
@@ -673,10 +642,11 @@ async def part_channel_function(message, client, args):
                 .strip()[:-2]
                 .replace("_", " "),
             )
-            channels = guild.text_channels
+            channels = [*guild.text_channels, *guild.voice_channels]
         else:
             try:
-                channel = messagefuncs.xchannel(args[0].strip(), message.guild)
+                channel_name, args = consume_channel_token(args)
+                channel = messagefuncs.xchannel(channel_name, message.guild)
             except (exceptions.DirectMessageException, AttributeError):
                 return await messagefuncs.sendWrappedMessage(
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
@@ -778,8 +748,7 @@ async def snooze_channel_function(message, client, args):
             )
         if (
             channel
-            and not guild.get_member(client.user.id)
-            .permissions_in(channel)
+            and not channel.permissions_for(guild.get_member(client.user.id))
             .manage_roles
         ) or (
             not channel
@@ -1132,7 +1101,7 @@ async def copy_permissions_function(message, client, args):
 
 async def copy_emoji_function(message, client, args):
     try:
-        if not message.author.permissions_in(message.channel).manage_emojis:
+        if not message.channel.permissions_for(message.author).manage_emojis:
             await message.add_reaction("🙅‍♀️")
             return
         if len(args) == 2:
@@ -1179,7 +1148,7 @@ async def copy_emoji_function(message, client, args):
                     timeout=6000.0,
                     check=lambda reaction: (str(reaction.emoji) == str("✅"))
                     and reaction.member
-                    and reaction.member.permissions_in(message.channel).manage_emojis
+                    and message.channel.permissions_for(reaction.member).manage_emojis
                     and reaction.member.id != client.user.id
                     and reaction.message_id == target.id,
                 )
@@ -1357,7 +1326,7 @@ async def error_report_function(error_str, guild, client):
         scoped_config.get(scoped_config.get("errorCC", "mod-userslist"))
         or guild.owner.id
     )
-    users = list(expand_target_list(users, guild))
+    users = list(load_config.expand_target_list(users, guild))
     for target in users:
         modmail = await messagefuncs.sendWrappedMessage(
             error_str, target, current_user_id=target.id
@@ -1396,7 +1365,7 @@ async def set_slowmode_function(message, client, args):
     try:
         if len(message.channel_mentions) > 0:
             target = message.channel_mentions[0]
-            if not message.author.permissions_in(target).manage_webhooks:
+            if not target.permissions_for(message.author).manage_webhooks:
                 logger.warning(
                     "SSMF: Forbidden to set slowmode without target admin privileges"
                 )
@@ -1925,15 +1894,14 @@ async def self_service_channel_function(
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.guild.get_member(client.user.id).permissions_in(message.channel_mentions[0]).manage_permissions else ''}",
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.channel_mentions[0].permissions_for(message.guild.get_member(client.user.id)).manage_permissions else ''}",
                 message.author,
             )
             err = (
                 f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
             )
             if (
-                not message.guild.get_member(client.user.id)
-                .permissions_in(message.channel_mentions[0])
+                not message.channel_mentions[0].permissions_for(message.guild.get_member(client.user.id))
                 .manage_permissions
             ):
                 await error_report_function(err, message.guild, client)
@@ -2113,6 +2081,7 @@ def autoload(ch):
             "trigger": ["!lastactive_channel", "!lastactivity_channel", "!lsc"],
             "function": lastactive_channel_function,
             "async": True,
+            "long_run": True,
             "admin": "server",
             "args_num": 0,
             "long_run": "author",

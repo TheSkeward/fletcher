@@ -15,6 +15,7 @@ import hashlib
 import ephem
 import io
 from kaomoji.kaomoji import Kaomoji
+from urllib.parse import quote
 import logging
 import messagefuncs
 import text_manipulators
@@ -2655,6 +2656,42 @@ def memo_function(message, client, args):
     )
 
 
+async def eaf_function(message, client, args):
+    try:
+        async with session.post(
+            'https://j261xpy4tf-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=J261XPY4TF&x-algolia-api-key=a18008476db83aaca9b51b6444d80d18',
+            json={
+                'requests': [{'indexName': 'test_posts', 'params': 'hitsPerPage=1&query=' + quote(" ".join(args))}]
+                }
+        ) as resp:
+            body = (await resp.json())['results'][0]['hits'][0]
+            return await messagefuncs.sendWrappedMessage(
+                    f'https://forum.effectivealtruism.org/posts/{body["_id"]}/{body["slug"]}/', target=message.channel
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("LW[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
+async def lw_function(message, client, args):
+    try:
+        async with session.post(
+            'https://z0gr6exqhd-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=Z0GR6EXQHD&x-algolia-api-key=0b1d20b957917dbb5e1c2f3ad1d04ee2',
+            json={
+                'requests': [{'indexName': 'test_posts', 'params': 'hitsPerPage=1&query=' + quote(" ".join(args))}]
+                }
+        ) as resp:
+            body = (await resp.json())['results'][0]['hits'][0]
+            return await messagefuncs.sendWrappedMessage(
+                    f'https://lesswrong.com/posts/{body["_id"]}/{body["slug"]}/', target=message.channel
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("LW[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def ssc_function(message, client, args):
     try:
         async with session.get(
@@ -3513,6 +3550,28 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Gives you a food (rotating)",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!eaf"],
+            "function": eaf_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["query"],
+            "description": "Searches the EA Forum for a query",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!lw"],
+            "function": lw_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["query"],
+            "description": "Searches LW for a query",
         }
     )
     ch.add_command(

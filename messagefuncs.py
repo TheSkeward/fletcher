@@ -1,4 +1,5 @@
 from sys import exc_info
+import commandhandler
 import asyncio
 import aiohttp
 import netcode
@@ -76,7 +77,7 @@ def xchannel(targetChannel, currentGuild):
     if channelLookupBy == "Name":
         if ":" not in targetChannel and "#" not in targetChannel:
             toChannel = discord.utils.get(
-                currentGuild.text_channels, name=targetChannel
+                [*currentGuild.text_channels, *currentGuild.voice_channels], name=targetChannel
             )
             toGuild = currentGuild
         else:
@@ -99,7 +100,7 @@ def xchannel(targetChannel, currentGuild):
             toChannel = discord.utils.find(
                 lambda channel: channel.name == toTuple[1]
                 or str(channel.id) == toTuple[1],
-                toGuild.text_channels,
+                [*toGuild.text_channels, *toGuild.voice_channels],
             )
     elif channelLookupBy == "ID":
         toChannel = ch.client.get_channel(int(targetChannel))
@@ -186,7 +187,7 @@ async def sendWrappedMessage(
                 )
                 conn.commit()
             embed = discord.Embed().set_footer(
-                icon_url=client.user.avatar_url, text=client.user.name
+                icon_url=client.user.display_avatar, text=client.user.name
             )
             msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
             for hunk in msg_chunks:
@@ -219,7 +220,7 @@ async def sendWrappedMessage(
 
 
 extract_identifiers_messagelink = re.compile(
-    "(?<!<)https?://(?:canary\.|ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)",
+    r"(?<!<)https?://(?:canary\.|ptb\.)?discord(?:app)?.com/channels/(\d+)/(\d+)/(\d+)",
     re.IGNORECASE,
 )
 
@@ -366,7 +367,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/)",
+    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4)",
     re.IGNORECASE,
 )
 
@@ -495,6 +496,8 @@ async def preview_messagelink_function(message, client, args):
                 )
                 attachments = [preview_tup[0]]
                 content = preview_tup[1]
+            elif "media.discordapp.net" in previewable_parts[0]:
+                content = previewable_parts[0].replace("media.discordapp.net", "cdn.discordapp.com")
             elif "todo.sr.ht" in previewable_parts[0]:
                 import versionutils
 
@@ -969,6 +972,13 @@ async def translate_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+async def create_thread(message, client, args):
+    await message.create_thread(name=message.content.split("\n").pop(0))
+    await asyncio.sleep(0.5)
+    notification = (await message.channel.history(limit=1).flatten())[0]
+    if notification.type == discord.MessageType.thread_created:
+        await notification.delete()
+
 
 async def emoji_image_function(message, client, args):
     try:
@@ -1032,7 +1042,7 @@ def autoload(ch):
             "function": lambda message, client, args: str(
                 (
                     message.mentions[0] if len(message.mentions) else message.author
-                ).avatar_url
+                ).display_avatar
             ).replace(".webp?", ".png?"),
             "async": False,
             "args_num": 0,
@@ -1148,6 +1158,18 @@ def autoload(ch):
                 "Query",
             ],
             "description": "Translate text from language to language",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["create_thread"],
+            "function": create_thread,
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": [],
+            "description": "Creates thread",
         }
     )
 

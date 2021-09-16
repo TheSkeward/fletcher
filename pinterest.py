@@ -57,7 +57,7 @@ async def pinterest_randomize_function(message, client, args):
     )
     embedPreview.set_image(url=orig_url)
     await messagefuncs.sendWrappedMessage(
-        None, target=message.channel, embed=embedPreview
+        '', target=message.channel, embed=embedPreview
     )
 
 
