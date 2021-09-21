@@ -2500,6 +2500,80 @@ emoji_name_lookup = {
 }
 
 
+def unendertext(text=False):
+    if text:
+        return text.translate(
+            str.maketrans(
+                {value : key for (key, value) in {
+                    "a": "⏃",
+                    "b": "⏚",
+                    "c": "☊",
+                    "d": "⎅",
+                    "e": "⟒",
+                    "f": "⎎",
+                    "g": "☌",
+                    "h": "⊑",
+                    "i": "⟟",
+                    "j": "⟊",
+                    "k": "☍",
+                    "l": "⌰",
+                    "m": "⋔",
+                    "n": "⋏",
+                    "o": "⍜",
+                    "p": "⌿",
+                    "q": "ᑫ",
+                    "r": "⍀",
+                    "s": "⌇",
+                    "t": "⏁",
+                    "u": "⎍",
+                    "v": "⎐",
+                    "w": "⍙",
+                    "x": "⌖",
+                    "y": "⊬",
+                    "z": "⋉",
+                }.items()}
+            )
+        )
+    return None
+
+
+def endertext(text=False):
+    if text:
+        return text.translate(
+            str.maketrans(
+                {
+                    "a": "⏃",
+                    "b": "⏚",
+                    "c": "☊",
+                    "d": "⎅",
+                    "e": "⟒",
+                    "f": "⎎",
+                    "g": "☌",
+                    "h": "⊑",
+                    "i": "⟟",
+                    "j": "⟊",
+                    "k": "☍",
+                    "l": "⌰",
+                    "m": "⋔",
+                    "n": "⋏",
+                    "o": "⍜",
+                    "p": "⌿",
+                    "q": "ᑫ",
+                    "r": "⍀",
+                    "s": "⌇",
+                    "t": "⏁",
+                    "u": "⎍",
+                    "v": "⎐",
+                    "w": "⍙",
+                    "x": "⌖",
+                    "y": "⊬",
+                    "z": "⋉",
+                }
+            )
+        )
+    return None
+
+
 def smoltext(text=False):
     if text:
         return text.translate(
@@ -3261,12 +3335,15 @@ async def reaction_request_function(message, client, args):
                 message.author,
             )
         await asyncio.sleep(0.1)
+        reaction = None
+        def check(new_reaction):
+            reaction = new_reaction
+            return str(reaction.emoji) == str(emoji) and reaction.user_id != client.user.id
         try:
             await client.wait_for(
                 "raw_reaction_add",
                 timeout=6000.0,
-                check=lambda reaction: str(reaction.emoji) == str(emoji)
-                and reaction.user_id != client.user.id,
+                check=check
             )
         except asyncio.TimeoutError:
             pass
@@ -3276,7 +3353,7 @@ async def reaction_request_function(message, client, args):
             # Message deleted before we could remove the reaction
             pass
         try:
-            if message.guild and ch.user_config(reaction.user_id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
+            if message.guild and reaction and ch.user_config(reaction.user_id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
                 await message.delete()
         except discord.Forbidden:
             logger.warning("XRF: Couldn't delete message but snappy mode is on")
@@ -3309,7 +3386,7 @@ async def blockquote_embed_function(message, client, args):
                 message_id = int(urlParts.group(3))
                 guild = client.get_guild(guild_id)
                 if guild is None:
-                    logger.info("PMF: Fletcher is not in guild ID " + str(guild_id))
+                    logger.info("BEF: Fletcher is not in guild ID " + str(guild_id))
                     await message.add_reaction("🚫")
                     return await messagefuncs.sendWrappedMessage(
                         "I don't have permission to access that message, please check server configuration.",
@@ -3533,6 +3610,28 @@ def autoload(ch):
             "args_num": 1,
             "args_name": [],
             "description": "Smallcaps text",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!unendertext"],
+            "function": lambda message, client, args: unendertext(" ".join(args).lower()),
+            "async": False,
+            "args_num": 1,
+            "args_name": [],
+            "description": "Ranboo enderman script (decode)",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["!endertext"],
+            "function": lambda message, client, args: endertext(" ".join(args).lower()),
+            "async": False,
+            "args_num": 1,
+            "args_name": [],
+            "description": "Ranboo enderman script",
         }
     )
 
