@@ -367,7 +367,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4)",
+        "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?)",
     re.IGNORECASE,
 )
 
@@ -411,7 +411,7 @@ async def preview_messagelink_function(message, client, args):
                         message.author,
                     )
                 return
-            channel = guild.get_channel(channel_id)
+            channel = guild.get_channel(channel_id) or guild.get_thread(channel_id)
             if not (
                 guild.get_member(message.author.id)
                 and channel.permissions_for(
@@ -527,6 +527,17 @@ async def preview_messagelink_function(message, client, args):
                         [previewable_parts[0], "INTPROC"],
                     )
                 ]
+            elif "arxiv.org" in previewable_parts[0]:
+                async with session.get(
+                    previewable_parts[0].replace("pdf", "abs", 1).strip(".pdf")
+                ) as resp:
+                    text = await resp.text()
+                    content = f"""
+__{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
+{", ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
+<{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>
+>>> {re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip()}
+"""
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
                 async with session.get(
@@ -571,6 +582,8 @@ async def preview_messagelink_function(message, client, args):
                     return
             except:
                 pass
+            if not all([type(attachment) is discord.File for attachment in attachments]):
+                return
             try:
                 outMessage = await sendWrappedMessage(
                     content,
@@ -937,12 +950,10 @@ async def archive_function(message, client, args):
 
 async def star_function(message, client, args):
     try:
-        threshold = ch.config.get(section="starboard-threshold", guild=message.guild.id)
-        channel = ch.config.get(section="starboard-channel", guild=message.guild.id)
-        channel = discord.utils.get(client.guilds, name=channel) or discord.utils.get(
-            client.guilds, id=int(channel)
-        )
-        if not threshold and not channel:
+        threshold = ch.config.get(section="starboard-threshold", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
+        channel = ch.config.get(section="starboard-channel", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
+        channel = discord.utils.get(client.guilds, name=channel) if type(channel) is str else client.get_channel(int(channel))
+        if threshold is None or channel is None:
             return
         if discord.utils.get(message.reactions, emoji="⭐").count == threshold:
             preview_message = await sendWrappedMessage(message.jump_url, target=channel)
@@ -973,7 +984,7 @@ async def translate_function(message, client, args):
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 async def create_thread(message, client, args):
-    await message.create_thread(name=message.content.split("\n").pop(0))
+    await message.create_thread(name=message.content.split("\n").pop(0)[:100])
     await asyncio.sleep(0.5)
     notification = (await message.channel.history(limit=1).flatten())[0]
     if notification.type == discord.MessageType.thread_created:
