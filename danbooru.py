@@ -7,6 +7,7 @@ from random import shuffle
 import discord
 import io
 from sys import exc_info
+from typing import Dict, List
 
 import logging
 
@@ -14,7 +15,7 @@ logger = logging.getLogger("fletcher")
 
 
 session = None
-search_results_cache = None
+search_results_cache : Dict[str, List[Dict[str, str]]]
 base_url = "https://danbooru.donmai.us"
 
 
@@ -24,16 +25,8 @@ async def posts_search_function(message, client, args):
     try:
         tags = " ".join(args)
 
-        if type(message.channel) is not discord.DMChannel:
-            channel_config = ch.scope_config(
-                guild=message.guild, channel=message.channel
-            )
-        else:
-            channel_config = dict()
-        if type(message.channel) is not discord.DMChannel and channel_config.get(
-            "danbooru_default_filter"
-        ):
-            tags += " " + channel_config.get("danbooru_default_filter")
+        if message.guild:
+            tags += " " + ch.config.get("danbooru_default_filter", default="", guild=message.guild, channel=message.channel, use_guild_as_channel_fallback=True)
         if ch.user_config(
             message.author.id,
             message.guild.id if message.guild else None,
@@ -58,7 +51,7 @@ async def posts_search_function(message, client, args):
         try:
             search_results = await warm_post_cache(tags)
         except Exception as e:
-            await messagefuncs.sendWrappedMessage(
+            return await messagefuncs.sendWrappedMessage(
                 "Error retrieving posts, upstream server had an issue. Please try again later.",
                 message.channel,
                 delete_after=60,
@@ -68,7 +61,7 @@ async def posts_search_function(message, client, args):
                 "No images found for query", message.channel
             )
         search_result = search_results.pop()
-        if search_result["file_size"] > 8000000:
+        if int(search_result["file_size"]) > 8000000:
             url = search_result["preview_file_url"]
         else:
             url = search_result["file_url"]
@@ -125,20 +118,16 @@ async def warm_post_cache(tags):
     global search_results_cache
     global session
     params = {"tags": tags, "random": "true", "limit": 100}
-    try:
-        if search_results_cache.get(tags) and len(search_results_cache[tags]):
-            return search_results_cache[tags]
-        async with session.get(f"{base_url}/posts.json", params=params) as resp:
-            response_body = await resp.json()
-            logger.debug(resp.url)
-            if len(response_body) == 0:
-                return []
-            shuffle(response_body)
-            search_results_cache[tags] = response_body
-            return search_results_cache[tags]
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"WPC[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+    if search_results_cache.get(tags) and len(search_results_cache[tags]):
+        return search_results_cache[tags]
+    async with session.get(f"{base_url}/posts.json", params=params) as resp:
+        response_body = await resp.json()
+        logger.debug(resp.url)
+        if len(response_body) == 0:
+            return []
+        shuffle(response_body)
+        search_results_cache[tags] = response_body
+        return search_results_cache[tags]
 
 
 async def autounload(ch):
