@@ -40,7 +40,7 @@ async def set_role_color_function(message, client, args):
     try:
         role_list = message.channel.guild.roles
         role = discord.utils.get(role_list, name=args[0].replace("_", " "))
-        if role is None and ch.config.get("color-role-autocreate"):
+        if role is None and ch.config.get("color-role-autocreate", guild=message.guild.id, default=False):
             role = await message.guild.create_role(
                 name=args[0], reason="Auto-created color role"
             )
@@ -1153,7 +1153,7 @@ async def copy_emoji_function(message, client, args):
                     and reaction.message_id == target.id,
                 )
             except asyncio.TimeoutError:
-                await target.edit(message="Cancelled, timeout.")
+                await target.edit(content="Cancelled, timeout.")
                 await message.remove_reaction("✅", client.user)
                 return
             custom_emoji = await message.guild.create_custom_emoji(
@@ -1250,6 +1250,8 @@ async def add_inbound_sync_function(message, client, args):
 async def names_sync_aware_function(message, client, args):
     global ch
     try:
+        if type(message.channel) is discord.DMChannel:
+            return
         message_body = "**Users currently in this channel**:\n"
         members = message.channel.members
         if (
@@ -1427,7 +1429,7 @@ async def unpin_message_function(message, client, args):
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"UPMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.error(f"UPNMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def pin_message_function(message, client, args):
@@ -1477,7 +1479,7 @@ async def pin_message_function(message, client, args):
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"PMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        logger.error(f"PNMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def invite_function(message, client, args):
@@ -2409,7 +2411,6 @@ def autoload(ch):
             "trigger": ["!nick"],
             "function": nick_change_function,
             "async": True,
-            "admin": "server",
             "hidden": False,
             "args_num": 2,
             "args_name": ["@user_mention", "nickname"],
