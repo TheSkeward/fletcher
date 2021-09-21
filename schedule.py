@@ -9,12 +9,11 @@ import dateparser
 import dateparser.search
 import pytz
 import psycopg2
-from contextlib import closing
+from typing import Dict
 from sentry_sdk import configure_scope
 import traceback
 import re
 from sys import exc_info
-import textwrap
 import ujson
 
 # global conn set by reload_function
@@ -144,6 +143,8 @@ class ScheduleFunctions:
         else:
             if hasattr(target_message, "guild"):
                 guild = target_message.guild
+            elif hasattr(from_channel, "guild"):
+                guild = from_channel.guild
             else:
                 guild = discord.utils.get(
                     client.guilds,
@@ -198,7 +199,7 @@ class ScheduleFunctions:
         return f"Permission overwrite triggered by schedule for {channel_log} (`!part` to leave channel permanently)"
 
 
-modes = {
+modes: Dict[str, commandhandler.Command] = {
     "reminder": commandhandler.Command(
         description="set a reminder", function=ScheduleFunctions.reminder, sync=False
     ),
@@ -254,7 +255,7 @@ async def table_exec_function():
                 mode_desc = modes[mode].description
                 guild = client.get_guild(guild_id)
                 if guild is None and guild_id:
-                    logger.info(f"PMF: Fletcher is not in guild {guild_id}")
+                    logger.info(f"TXF: Fletcher is not in guild {guild_id}")
                     await messagefuncs.sendWrappedMessage(
                         f"You {mode_desc} in a server that Fletcher no longer services, so this request cannot be fulfilled. The content of the command is reproduced below: {content}",
                         user,
@@ -277,14 +278,17 @@ async def table_exec_function():
                     created_at,
                     from_channel,
                 )
-                if type(todo) is str:
-                    await messagefuncs.sendWrappedMessage(todo, user)
-                elif type(todo) is list:
-                    await messagefuncs.sendWrappedMessage(*todo)
-                elif type(todo) is dict:
-                    await messagefuncs.sendWrappedMessage(**todo)
-                else:
-                    raise asyncio.CancelledError()
+                try:
+                    if type(todo) is str:
+                        await messagefuncs.sendWrappedMessage(todo, user)
+                    elif type(todo) is list:
+                        await messagefuncs.sendWrappedMessage(*todo)
+                    elif type(todo) is dict:
+                        await messagefuncs.sendWrappedMessage(**todo)
+                    else:
+                        raise asyncio.CancelledError()
+                except discord.errors.Forbidden:
+                    pass
                 processed_ctids += [ctid]
                 tabtuple = cur.fetchone()
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
@@ -362,7 +366,7 @@ async def reminder_function(message, client, args):
             return
         try:
             cur.execute(
-                f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
+                f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder') RETURNING scheduled;",
                 [
                     message.author.id,
                     message.guild.id if message.guild else 0,
@@ -371,13 +375,15 @@ async def reminder_function(message, client, args):
                     content,
                 ],
             )
+            target = cur.fetchone()[0]
+            target = f"<t:{int(target.astimezone(pytz.utc).timestamp())}:R>"
             conn.commit()
             try:
                 await message.add_reaction("✅")
             except:
                 pass
             return await messagefuncs.sendWrappedMessage(
-                f"Setting a reminder at {target}\n> {content}",
+                f"Setting a reminder {target}\n> {content}",
                 message.channel,
                 delete_after=30,
             )
