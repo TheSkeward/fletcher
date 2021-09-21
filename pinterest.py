@@ -32,7 +32,7 @@ async def pinterest_randomize_function(message, client, args):
             await messagefuncs.sendWrappedMessage(
                 "Received a 404 while retrieving boards.", delete_after=30
             )
-        except Exception as e:
+        except Exception:
             await messagefuncs.sendWrappedMessage(
                 "An error occurred while retrieving boards.", delete_after=30
             )
