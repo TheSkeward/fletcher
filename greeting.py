@@ -32,7 +32,7 @@ async def restorerole_function(member, client, config):
         conn.commit()
         if roles is None and config.get("default_join_role"):
             name = None
-            roles = config.get("default_join_role")
+            roles = [config.get("default_join_role")]
         elif roles is None:
             return
         # Silently drop deleted roles
