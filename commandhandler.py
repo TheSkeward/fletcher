@@ -413,7 +413,7 @@ class CommandHandler:
                 try:
                     global config
                     messageContent = str(reaction.emoji)
-                    channel = self.client.get_channel(reaction.channel_id) or self.client.get_thread(reaction.channel_id)
+                    channel = self.client.get_channel(reaction.channel_id)
                     if not channel:
                         logger.info("Channel does not exist")
                         return
@@ -696,6 +696,8 @@ class CommandHandler:
                         if type(channel) is not discord.DMChannel
                         else "DM",
                     )
+                    if isinstance(channel, discord.DMChannel) and self.client.get_channel(channel.id) is None:
+                        channel = await self.client.get_user(reaction.user_id).create_dm()
                     if type(channel) == discord.DMChannel:
                         user = self.client.get_user(reaction.user_id)
                     else:
@@ -825,7 +827,6 @@ class CommandHandler:
     async def channel_update_handler(self, before, after):
         if not before.guild:
             return
-        scoped_config = self.scope_config(guild=before.guild)
         if type(before) == discord.TextChannel and before.name != after.name:
             logger.info(
                 f"#{before.guild.name}:{before.name} <name> Name changed from {before.name} to {after.name}",
@@ -834,30 +835,26 @@ class CommandHandler:
                     "CHANNEL_IDENTIFIER": before.name,
                 },
             )
-            if scoped_config.get("name_change_notify", False):
+            if ch.config.get("name_change_notify", False, guild=before.guild.id, channel=before.id):
                 await messagefuncs.sendWrappedMessage(
-                    scoped_confg.get(
-                        "name_change_notify_prefix",
-                        "Name changed from {before.name} to {after.name}",
-                    ).format(before=before, after=after),
-                    after,
-                )
+                        ch.config.get("name_change_notify_message", "Name changed from {before.name} to {after.name}", guild=before.guild.id, channel=before.id)
+                        .format(before=before, after=after),
+                        after,
+                        )
         if type(before) == discord.TextChannel and before.topic != after.topic:
             logger.info(
-                f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
-                extra={
-                    "GUILD_IDENTIFIER": before.guild.name,
-                    "CHANNEL_IDENTIFIER": before.name,
-                },
-            )
-            if scoped_config.get("topic_change_notify", False):
+                    f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
+                    extra={
+                        "GUILD_IDENTIFIER": before.guild.name,
+                        "CHANNEL_IDENTIFIER": before.name,
+                        },
+                    )
+            if ch.config.get("topic_change_notify", False, guild=before.guild.id, channel=before.id):
                 await messagefuncs.sendWrappedMessage(
-                    scoped_confg.get(
-                        "topic_change_notify_prefix",
-                        "Topic changed from {before.topic} to {after.topic}",
-                    ).format(before=before, after=after),
-                    after,
-                )
+                        ch.config.get("topic_change_notify_message", "Topic changed from {before.topic} to {after.topic}", guild=before.guild.id, channel=before.id)
+                        .format(before=before, after=after),
+                        after,
+                        )
 
     async def load_guild_invites(self, guild):
         self.guild_invites[guild.id] = {
@@ -1726,6 +1723,11 @@ class CommandHandler:
             if value:
                 value = value[0]
         else:
+            if key == 'hotwords':
+                try:
+                    ujson.loads(value)
+                except:
+                    return 'Value for `hotwords` must be valid JSON. Example: ``````json\n{"dm-on-name":{"dm_me": 1, "regex": "myname", "insensitive": "true"}}\n'
             if guild:
                 cur.execute(
                     "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
@@ -1835,7 +1837,7 @@ class CommandHandler:
             await thread.add_user(thread.guild.get_member(self.client.user.id))
         else:
             if thread.guild:
-                if thread.channel.category_id not in self.config.get(key="automod-blacklist-category", guild=thread.guild.id):
+                if thread.category_id not in self.config.get(key="automod-blacklist-category", guild=thread.guild.id):
                     for user in list(filter(lambda user: user in thread.parent.members, load_config.expand_target_list(self.config.get(key="manual-mod-userslist", default=[thread.guild.owner.id], guild=thread.guild.id), thread.guild))):
                         if self.config.normalize_booleans(self.user_config(user.id, thread.guild.id, key="use_threads", default=True, allow_global_substitute=True)):
                             logger.debug(f'Adding mod {user} to thread {thread.name} ({thread.id})')
@@ -2343,6 +2345,14 @@ WHERE p.key = 'tupper';
                         hottuple = cur.fetchone()
                         continue
                     guilds = ch.client.get_user(user_id).mutual_guilds
+                    try:
+                        ujson.loads(hotword_json)
+                    except ValueError:
+                        ch.client.loop.create_task(
+                                messagefuncs.sendWrappedMessage(f"Error loading your global hotwords: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.", ch.client.get_user(user_id))
+                                )
+                        hottuple = cur.fetchone()
+                        continue
                 else:
                     guilds = [ch.client.get_guild(guild_id)]
                 for guild in guilds:
@@ -2355,6 +2365,10 @@ WHERE p.key = 'tupper';
                     except ValueError as e:
                         exc_type, exc_obj, exc_tb = exc_info()
                         logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                        if guild_id == 0 or guild_id is None:
+                            ch.client.loop.create_task(
+                                messagefuncs.sendWrappedMessage(f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.", ch.client.get_user(user_id))
+                                )
                         continue
                     if not guild_config.get("hotwords_loaded"):
                         guild_config["hotwords_loaded"] = ""
