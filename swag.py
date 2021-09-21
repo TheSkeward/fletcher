@@ -6,6 +6,7 @@ from collections import Counter, defaultdict, deque
 from cachetools import TTLCache, cached as synccached
 from google.oauth2 import service_account
 from google.cloud import vision
+from twilio.rest import Client
 import chronos
 from csv import reader
 from googleapiclient.discovery import build
@@ -39,6 +40,7 @@ kao = Kaomoji()
 session = None
 cseClient = None
 wikiClient = None
+twilioClient = None
 glowfic_search_databases = []
 rotating_food_lists = []
 
@@ -3146,7 +3148,7 @@ async def glowfic_search_function(message, client, args):
                 }
                 for engine in [
                     engine.split("=", 1)
-                    for engine in config.get(
+                    for engine in ch.config.get(
                         key="quotesearch-extra-cse-list",
                         default=[],
                         guild=message.guild.id,
@@ -3174,19 +3176,19 @@ async def glowfic_search_function(message, client, args):
                     "name": "Constellation (searching as user account)",
                     "type": "native",
                 }
-            elif config.get(
+            elif ch.config.get(
                 guild=message.guild.id, key="glowfic-username", default=None
-            ) and config.get(
+            ) and ch.config.get(
                 guild=message.guild.id, key="glowfic-password", default=None
             ):
                 search_dbs[0] = {
                     "function": partial(
                         glowfic_search_call,
                         exact=True,
-                        username=config.get(
+                        username=ch.config.get(
                             guild=message.guild.id, key="glowfic-username", default=None
                         ),
-                        password=config.get(
+                        password=ch.config.get(
                             guild=message.guild.id, key="glowfic-password", default=None
                         ),
                     ),
@@ -3509,6 +3511,17 @@ async def get_rotating_food(message, client, args):
         logger.error("GRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+def callme_function(message, client, args):
+    if ch.user_config(message.author.id, None, "callme-number"):
+        return "Calling you now. Debug information for error reports: "+twilioClient.calls.create(
+                url='https://dorito.space/fletcher/callme.xml',
+                        to=ch.user_config(message.author.id, None, "callme-number"),
+                        from_=ch.config.get(section="twilio", key="from_number")
+                    ).sid
+    else:
+        return "Set a `callme-number` by DMing me with `!preference callme-number +15555555555"
+
+
 
 async def autounload(ch):
     global session
@@ -3520,6 +3533,7 @@ def autoload(ch):
     global session
     global wikiClient
     global cseClient
+    global twilioClient
     global glowfic_search_databases
     ch.add_command(
         {
@@ -3539,6 +3553,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "uwu",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!callme"],
+            "function": callme_function,
+            "async": False,
+            "long_run": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Calls your phone.",
+            "hidden": True,
         }
     )
     ch.add_command(
@@ -4175,12 +4201,12 @@ def autoload(ch):
     )
     if not wikiClient:
         wikiClient = wikidata.Client()
-    if not cseClient and config.get(section="google", key="cse_key"):
+    if not cseClient and ch.config.get(section="google", key="cse_key"):
         cseClient = (
             build(
                 "customsearch",
                 "v1",
-                developerKey=config.get(section="google", key="cse_key"),
+                developerKey=ch.config.get(section="google", key="cse_key"),
             )
             .cse()
             .list
@@ -4204,7 +4230,7 @@ def autoload(ch):
             }
             for engine in [
                 engine.split("=", 1)
-                for engine in config.get(
+                for engine in ch.config.get(
                     section="quotesearch", key="extra-cse-list", default=[]
                 )
             ]
@@ -4215,6 +4241,8 @@ def autoload(ch):
             "type": "native",
         },
     ]
+    if not twilioClient:
+        twilioClient = Client(ch.config.get(section="twilio", key="account_sid"), ch.config.get(section="twilio", key="auth_token"))
     if not session:
         session = aiohttp.ClientSession(
             headers={
