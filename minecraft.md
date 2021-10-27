@@ -3,15 +3,17 @@ The needed configuration for bridging the chat of a Minecraft server to a Discor
 There are two parts to this function - sending messages from the Discord channel to Minecraft using RCON (the Minecraft remote connection protocol), and watching the logs of the server for new in-game chat messages to send to Discord. The Channel Configuration section details the first part, while the Script section details the second.
 
 #### Channel Configuration
-The "Preferences" table for the channel you wish to bridge the Minecraft chat to (Add Section > enter the Channel ID on your server's configuration panel at [https://fletcher.fun]) should look like this:
+The "Preferences" table for the channel you wish to bridge the Minecraft chat to (Add Section > enter the Channel ID on your server's configuration panel at https://fletcher.fun ) should look like this:
 ```
-Key                    Value
-remote_ip               [server IP]
-minecraft_host          [server IP]
-bridge_function         !minecraftsendsay
-minecraft_rcon-port     [MC server port number (rcon.port in server.properties)]
-minecraft_rcon-password [MC server RCON password (rcon.password in server.properties. This will display as three stars after you set it)]
+| Key                    |  Value |
+| -----------------------|-----------|
+| remote_ip              | [server IP] |
+| minecraft_host         | [server IP] |
+| bridge_function        | `!minecraftsendsay` |
+| minecraft_rcon-port    | [MC server port number (rcon.port in `server.properties`)] |
+| minecraft_rcon-password| [MC server RCON password (rcon.password in `server.properties`. This will display as three stars after you set it)] |
 ```
+Preferences apply aproximately four times per hour, so it may take some time before this takes effect.
 
 ### Script
 NOTE: Some of the values in this script are example values and will need to be replaced. In particular, replace all of the `guild_id`s and `channel_id`s with your actual values. This script assumes that you are using PaperMC which has an Asynchronous Chat Thread. Store this in a file called `minecraft-forward-bridge.sh` in the same directory as your `server.properties` file.
