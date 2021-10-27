@@ -4,15 +4,13 @@ There are two parts to this function - sending messages from the Discord channel
 
 #### Channel Configuration
 The "Preferences" table for the channel you wish to bridge the Minecraft chat to (Add Section > enter the Channel ID on your server's configuration panel at https://fletcher.fun ) should look like this:
-```
 | Key                    |  Value |
 | -----------------------|-----------|
-| remote_ip              | [server IP] |
-| minecraft_host         | [server IP] |
-| bridge_function        | `!minecraftsendsay` |
-| minecraft_rcon-port    | [MC server port number (rcon.port in `server.properties`)] |
-| minecraft_rcon-password| [MC server RCON password (rcon.password in `server.properties`. This will display as three stars after you set it)] |
-```
+| remote\_ip              | [server IP] |
+| minecraft\_host         | [server IP] |
+| bridge\_function        | `!minecraftsendsay` |
+| minecraft\_rcon-port    | [MC server port number (rcon.port in `server.properties`)] |
+| minecraft\_rcon-password| [MC server RCON password (rcon.password in `server.properties`. This will display as three stars after you set it)] |
 Preferences apply aproximately four times per hour, so it may take some time before this takes effect.
 
 ### Script
