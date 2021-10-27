@@ -1,6 +1,6 @@
 ## Minecraft chat bridging
 The needed configuration for bridging the chat of a Minecraft server to a Discord channel.
-There are two parts to this function - sending messages from the Discord channel to Minecraft using RCON (the Minecraft remote connection protocol), and watching the logs of the server for new in-game chat messages to send to Discord. The Channel Configuration section details the first part, while the Script section details the second.
+There are two parts to this function - sending messages from the Discord channel to Minecraft using RCON (the Minecraft remote connection protocol), and watching the logs of the server for new in-game chat messages to send to Discord. The Channel Configuration section details the first part, while the Script section details the second. For security reasons, it is recommended to only expose RCON to the Fletcher main server at 45.33.77.79 using a firewall or other mechanisms.
 
 ### Channel Configuration
 The "Preferences" table for the channel you wish to bridge the Minecraft chat to (Add Section > enter the Channel ID on your server's configuration panel at https://fletcher.fun ) should look like this:
