@@ -2,7 +2,7 @@
 The needed configuration for bridging the chat of a Minecraft server to a Discord channel.
 There are two parts to this function - sending messages from the Discord channel to Minecraft using RCON (the Minecraft remote connection protocol), and watching the logs of the server for new in-game chat messages to send to Discord. The Channel Configuration section details the first part, while the Script section details the second.
 
-#### Channel Configuration
+### Channel Configuration
 The "Preferences" table for the channel you wish to bridge the Minecraft chat to (Add Section > enter the Channel ID on your server's configuration panel at https://fletcher.fun ) should look like this:
 
 | Key                    |  Value |
@@ -29,7 +29,7 @@ do
 done
 ```
 
-#### SystemD configuration
+### SystemD configuration
 This section requires technical knowledge to implement. You can get some of that knowledge at https://wiki.archlinux.org/title/Systemd. If your server is running a non-Linux operating system, you will need to launch the script above differently.
 
 NOTE: This systemd configuration is an example and will need to be edited to suit the circumstances of the individual user. Also included is a service for starting your minecraft server - this is for reference only, and is not required to be used. Replace `minecraft.service` in `minecraft-bridge.service` with the correct service file name to automatically start this service after your minecraft server starts.
