@@ -23,7 +23,7 @@ for key in [k for k in config['inbound-imap'].keys() if "_filter" in k]:
                 "body_filter": ""
                 }
     if key.split("_")[1] == "body":
-        filters[next(filter(lambda _, v: v['channel'] == key.split("_")[0], config['inbound-imap'].items()), (None))[0]]["body_filter"] = config['inbound-imap'][key]
+        filters[next(filter(lambda v: v[1]['channel'] == key.split("_")[0], config['inbound-imap'].items()), (None))[0]]["body_filter"] = config['inbound-imap'][key]
 
 notifications = []
 if not message_len:
