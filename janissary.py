@@ -42,7 +42,9 @@ async def set_role_color_function(message, client, args):
     try:
         role_list = message.channel.guild.roles
         role = discord.utils.get(role_list, name=args[0].replace("_", " "))
-        if role is None and ch.config.get("color-role-autocreate", guild=message.guild.id, default=False):
+        if role is None and ch.config.get(
+            "color-role-autocreate", guild=message.guild.id, default=False
+        ):
             role = await message.guild.create_role(
                 name=args[0], reason="Auto-created color role"
             )
@@ -342,7 +344,13 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(message.author.id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
+            if ch.user_config(
+                message.author.id,
+                message.guild.id,
+                "snappy",
+                default=False,
+                allow_global_substitute=True,
+            ) or ch.config.get(key="snappy", guild=message.guild.id):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -750,8 +758,9 @@ async def snooze_channel_function(message, client, args):
             )
         if (
             channel
-            and not channel.permissions_for(guild.get_member(client.user.id))
-            .manage_roles
+            and not channel.permissions_for(
+                guild.get_member(client.user.id)
+            ).manage_roles
         ) or (
             not channel
             and not guild.get_member(client.user.id).guild_permissions.manage_roles
@@ -1508,9 +1517,7 @@ async def invite_function(message, client, args):
                 messagefuncs.xchannel(channel_name, message.guild) or message.channel
             )
         if type(channel) == discord.DMChannel or not channel:
-            raise discord.InvalidArgument(
-                "Channel appears to not exist or is DM"
-            )
+            raise discord.InvalidArgument("Channel appears to not exist or is DM")
         localizedUser = channel.guild.get_member(message.author.id)
         if not (localizedUser and ch.is_admin(channel, localizedUser))["channel"]:
             return await messagefuncs.sendWrappedMessage(
@@ -1711,7 +1718,7 @@ async def self_service_role_function(message, client, args):
                     function=self_service_role_function,
                     exclusive=True,
                     sync=False,
-                    description="add user to role for a given message"
+                    description="add user to role for a given message",
                 ),
             )
             await message.add_reaction("🚪")
@@ -1732,7 +1739,10 @@ async def self_service_channel_function(
     global ch
     try:
         if not len(message.channel_mentions):
-            await messagefuncs.sendWrappedMessage("Could not link reactions, no channel mention found in message.", message.author)
+            await messagefuncs.sendWrappedMessage(
+                "Could not link reactions, no channel mention found in message.",
+                message.author,
+            )
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
@@ -1897,7 +1907,7 @@ async def self_service_channel_function(
                     ),
                     exclusive=True,
                     sync=False,
-                    description="add user to channel for a given message"
+                    description="add user to channel for a given message",
                 ),
             )
             await message.add_reaction("🚪")
@@ -1909,7 +1919,8 @@ async def self_service_channel_function(
                 f"{message.author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
             )
             if (
-                not message.channel_mentions[0].permissions_for(message.guild.get_member(client.user.id))
+                not message.channel_mentions[0]
+                .permissions_for(message.guild.get_member(client.user.id))
                 .manage_permissions
             ):
                 await error_report_function(err, message.guild, client)
@@ -2459,7 +2470,7 @@ def autoload(ch):
                     ),
                     exclusive=True,
                     sync=False,
-                    description="add user to channel for a given message"
+                    description="add user to channel for a given message",
                 ),
             )
             subtuple = cur.fetchone()
@@ -2504,7 +2515,7 @@ def autoload(ch):
                     function=self_service_role_function,
                     exclusive=True,
                     sync=False,
-                    description="add user to role for a given message"
+                    description="add user to role for a given message",
                 ),
             )
             subtuple = cur.fetchone()
