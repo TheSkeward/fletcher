@@ -2692,14 +2692,20 @@ def memo_function(message, client, args):
 async def eaf_function(message, client, args):
     try:
         async with session.post(
-            'https://j261xpy4tf-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=J261XPY4TF&x-algolia-api-key=a18008476db83aaca9b51b6444d80d18',
+            "https://j261xpy4tf-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=J261XPY4TF&x-algolia-api-key=a18008476db83aaca9b51b6444d80d18",
             json={
-                'requests': [{'indexName': 'test_posts', 'params': 'hitsPerPage=1&query=' + quote(" ".join(args))}]
-                }
+                "requests": [
+                    {
+                        "indexName": "test_posts",
+                        "params": "hitsPerPage=1&query=" + quote(" ".join(args)),
+                    }
+                ]
+            },
         ) as resp:
-            body = (await resp.json())['results'][0]['hits'][0]
+            body = (await resp.json())["results"][0]["hits"][0]
             return await messagefuncs.sendWrappedMessage(
-                    f'https://forum.effectivealtruism.org/posts/{body["_id"]}/{body["slug"]}/', target=message.channel
+                f'https://forum.effectivealtruism.org/posts/{body["_id"]}/{body["slug"]}/',
+                target=message.channel,
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -2710,14 +2716,20 @@ async def eaf_function(message, client, args):
 async def lw_function(message, client, args):
     try:
         async with session.post(
-            'https://z0gr6exqhd-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=Z0GR6EXQHD&x-algolia-api-key=0b1d20b957917dbb5e1c2f3ad1d04ee2',
+            "https://z0gr6exqhd-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=Z0GR6EXQHD&x-algolia-api-key=0b1d20b957917dbb5e1c2f3ad1d04ee2",
             json={
-                'requests': [{'indexName': 'test_posts', 'params': 'hitsPerPage=1&query=' + quote(" ".join(args))}]
-                }
+                "requests": [
+                    {
+                        "indexName": "test_posts",
+                        "params": "hitsPerPage=1&query=" + quote(" ".join(args)),
+                    }
+                ]
+            },
         ) as resp:
-            body = (await resp.json())['results'][0]['hits'][0]
+            body = (await resp.json())["results"][0]["hits"][0]
             return await messagefuncs.sendWrappedMessage(
-                    f'https://lesswrong.com/posts/{body["_id"]}/{body["slug"]}/', target=message.channel
+                f'https://lesswrong.com/posts/{body["_id"]}/{body["slug"]}/',
+                target=message.channel,
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
@@ -2730,9 +2742,7 @@ async def ssc_function(message, client, args):
         async with session.get(
             "https://novalinium.com/sscd.archive.search.pl",
             allow_redirects=False,
-            params={
-                'q': " ".join(args)
-                }
+            params={"q": " ".join(args)},
         ) as resp:
             return await messagefuncs.sendWrappedMessage(
                 resp.headers["Location"], target=message.channel
@@ -2942,8 +2952,13 @@ async def ace_attorney_function(message, client, args):
                 int(args[0]) if int(args[0]) > int(args[1]) else int(args[1])
             )
             history = channel.history(oldest_first=False, after=after, before=before)
-        elif len(messagefuncs.extract_identifiers_messagelink.findall(message.content)) == 2:
-            links = messagefuncs.extract_identifiers_messagelink.findall(message.content)
+        elif (
+            len(messagefuncs.extract_identifiers_messagelink.findall(message.content))
+            == 2
+        ):
+            links = messagefuncs.extract_identifiers_messagelink.findall(
+                message.content
+            )
             if int(links[0][-1]) < int(links[1][-1]):
                 after = int(links[0][-1])
                 before = int(links[1][-1])
@@ -3077,18 +3092,24 @@ async def saucenao_function(message, client, args):
         logger.debug(url)
         if not url or not isinstance(url, str) or "http" not in url:
             return
-        async with AIOSauceNao(ch.config.get(section='saucenao', key='client_key'), hide=(Hide.NONE if message.channel.nsfw else Hide.ALL)) as aio:
+        async with AIOSauceNao(
+            ch.config.get(section="saucenao", key="client_key"),
+            hide=(Hide.NONE if message.channel.nsfw else Hide.ALL),
+        ) as aio:
             assert aio is not None
             results = await aio.from_url(url)
             assert results is not None
             if results:
-                await messagefuncs.sendWrappedMessage(f"{results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today", message.channel, reference=message.to_reference())
+                await messagefuncs.sendWrappedMessage(
+                    f"{results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
+                    message.channel,
+                    reference=message.to_reference(),
+                )
     except Exception as e:
         _, _, exc_tb = exc_info()
         logger.error("SNF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
-            
 
 async def image_edit_function(message, client, args: List[str]):
     try:
@@ -3134,7 +3155,9 @@ async def image_edit_function(message, client, args: List[str]):
         endpoint = ch.config.get(section="images", key="endpoint")
         params = aiohttp.FormData()
         params.add_field("url", url)
-        params.add_field("satadj", float(args[0]) if len(args) > 1 and args[0].isnumeric() else 2)
+        params.add_field(
+            "satadj", float(args[0]) if len(args) > 1 and args[0].isnumeric() else 2
+        )
         async with session.post(f"{base_url}{endpoint}", data=params) as resp:
             if resp.status != 200:
                 return await messagefuncs.sendWrappedMessage(
@@ -3672,7 +3695,7 @@ async def bash_preview(message, client, args):
             if args[0].isnumeric():
                 mode = "quote"
             else:
-                mode="sort=0&show=25&search"
+                mode = "sort=0&show=25&search"
             async with session.get(f'http://bash.org/?{mode}={"+".join(args)}') as resp:
                 if resp.status != 200:
                     raise Exception(
@@ -3685,7 +3708,19 @@ async def bash_preview(message, client, args):
                 qt = root.xpath('//p[@class="qt"]')[0]
                 # else:
                 #     qt = random.choice(root.xpath('//p[@class="qt"]'))
-                content = '```'+unescape(re.sub(r"][\r\n\t\s]*[\r\n\t][\r\n\t\s]*", "", html.tostring(qt, method='html', with_tail=False, encoding='unicode')).replace("<br>", ""))[14:-4]+'```'
+                content = (
+                    "```"
+                    + unescape(
+                        re.sub(
+                            r"][\r\n\t\s]*[\r\n\t][\r\n\t\s]*",
+                            "",
+                            html.tostring(
+                                qt, method="html", with_tail=False, encoding="unicode"
+                            ),
+                        ).replace("<br>", "")
+                    )[14:-4]
+                    + "```"
+                )
                 if args[-1] == "INTPROC":
                     return content
                 else:
@@ -3708,12 +3743,16 @@ async def bash_preview(message, client, args):
         logger.error("BASH[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
 async def delphi(message, client, args):
     try:
         # curl 'https://delphi.allenai.org/api/solve' -X POST -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:93.0) Gecko/20100101 Firefox/93.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: https://delphi.allenai.org' -H 'Connection: keep-alive' -H 'Referer: https://delphi.allenai.org/?a1=backsolving+an+API%0A' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-origin' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'TE: trailers' --data-raw '{"action1":"backsolving an API\n"}'
         for counter in range(5):
             try:
-                async with session.post('https://delphi.allenai.org/api/solve', json={"action1": " ".join(args)}) as resp:
+                async with session.post(
+                    "https://delphi.allenai.org/api/solve",
+                    json={"action1": " ".join(args)},
+                ) as resp:
                     if resp.status != 200:
                         raise Exception(
                             "HttpProcessingError: "
@@ -3721,10 +3760,10 @@ async def delphi(message, client, args):
                             + " Retrieving image failed!"
                         )
                     return await messagefuncs.sendWrappedMessage(
-                        ((await resp.json())['answer']['text']),
+                        ((await resp.json())["answer"]["text"]),
                         target=message.channel,
-                        reference=message
-                        )
+                        reference=message,
+                    )
             except (
                 ValueError,
                 BrokenPipeError,
@@ -3738,26 +3777,41 @@ async def delphi(message, client, args):
         logger.error("DELPHI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
 def callme_function(message, client, args):
     if ch.user_config(message.author.id, None, "callme-number"):
-        return "Calling you now. Debug information for error reports: "+twilioClient.calls.create(
-                url='https://dorito.space/fletcher/callme.xml',
-                        to=ch.user_config(message.author.id, None, "callme-number"),
-                        from_=ch.config.get(section="twilio", key="from_number")
-                    ).sid
+        return (
+            "Calling you now. Debug information for error reports: "
+            + twilioClient.calls.create(
+                url="https://dorito.space/fletcher/callme.xml",
+                to=ch.user_config(message.author.id, None, "callme-number"),
+                from_=ch.config.get(section="twilio", key="from_number"),
+            ).sid
+        )
     else:
         return "Set a `callme-number` by DMing me with `!preference callme-number +15555555555"
 
+
 async def sholo_room(message, client, args):
-    room = random.choice((await get_google_sheet("105B_CdR8KNcy75FuIZdVvN-yDz1TxgECr_YfE5ILI2U", "Rooms", query="SELECT A, I, J WHERE I IS NULL OR J IS NULL")).split("\n"))[1:-1].split('","')
+    room = random.choice(
+        (
+            await get_google_sheet(
+                "105B_CdR8KNcy75FuIZdVvN-yDz1TxgECr_YfE5ILI2U",
+                "Rooms",
+                query="SELECT A, I, J WHERE I IS NULL OR J IS NULL",
+            )
+        ).split("\n")
+    )[1:-1].split('","')
     if len(room[1]) == 0 and len(room[2]) == 0:
         room[1] = ["A", "B"][random.randint(0, 1)]
     elif len(room[1]) == 0:
         room[1] = "A"
     else:
         room[1] = "B"
-    await messagefuncs.sendWrappedMessage(f"{room[0]}{room[1]}", message.channel, reference=message.to_reference())
-    await message.add_reaction('🍄')
+    await messagefuncs.sendWrappedMessage(
+        f"{room[0]}{room[1]}", message.channel, reference=message.to_reference()
+    )
+    await message.add_reaction("🍄")
 
 
 async def autounload(ch):
@@ -4548,15 +4602,25 @@ def autoload(ch):
         },
     ]
     if not twilioClient:
-        twilioClient = Client(ch.config.get(section="twilio", key="account_sid"), ch.config.get(section="twilio", key="auth_token"))
+        twilioClient = Client(
+            ch.config.get(section="twilio", key="account_sid"),
+            ch.config.get(section="twilio", key="auth_token"),
+        )
     if not session:
         session = aiohttp.ClientSession(
             headers={
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
             }
         )
+
     async def pongo(ctx, *args):
         logger.debug(f"Pongo time {ctx} {args}")
         await ctx.respond("Pong!")
-    asyncio.get_event_loop().create_task(client.http.bulk_upsert_guild_commands(client.user.id, 634249282488107028, [discord.commands.SlashCommand(pongo, name="ping").to_dict()]))
 
+    asyncio.get_event_loop().create_task(
+        client.http.bulk_upsert_guild_commands(
+            client.user.id,
+            634249282488107028,
+            [discord.commands.SlashCommand(pongo, name="ping").to_dict()],
+        )
+    )

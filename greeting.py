@@ -197,7 +197,11 @@ async def randomize_role_function(member, client, config):
 
 async def printhello_reload_function(guild, client, config):
     logger.debug(
-        "PHRF: Hello to guild " + guild.name + " at " + str(datetime.now(timezone.utc)) + "!"
+        "PHRF: Hello to guild "
+        + guild.name
+        + " at "
+        + str(datetime.now(timezone.utc))
+        + "!"
     )
 
 

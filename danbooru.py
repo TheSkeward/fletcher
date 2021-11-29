@@ -15,7 +15,7 @@ logger = logging.getLogger("fletcher")
 
 
 session = None
-search_results_cache : Optional[Dict[str, List[Dict[str, str]]]] = None
+search_results_cache: Optional[Dict[str, List[Dict[str, str]]]] = None
 base_url = "https://danbooru.donmai.us"
 
 
@@ -26,7 +26,13 @@ async def posts_search_function(message, client, args):
         tags = " ".join(args)
 
         if message.guild:
-            tags += " " + ch.config.get("danbooru_default_filter", default="", guild=message.guild, channel=message.channel, use_guild_as_channel_fallback=True)
+            tags += " " + ch.config.get(
+                "danbooru_default_filter",
+                default="",
+                guild=message.guild,
+                channel=message.channel,
+                use_guild_as_channel_fallback=True,
+            )
         if ch.user_config(
             message.author.id,
             message.guild.id if message.guild else None,

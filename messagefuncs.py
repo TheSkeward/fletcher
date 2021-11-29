@@ -77,7 +77,8 @@ def xchannel(targetChannel, currentGuild):
     if channelLookupBy == "Name":
         if ":" not in targetChannel and "#" not in targetChannel:
             toChannel = discord.utils.get(
-                [*currentGuild.text_channels, *currentGuild.voice_channels], name=targetChannel
+                [*currentGuild.text_channels, *currentGuild.voice_channels],
+                name=targetChannel,
             )
             toGuild = currentGuild
         else:
@@ -126,10 +127,28 @@ async def sendWrappedMessage(
         # current_guild_id = scope._tags.get('guild_id')
         chunk = None
         if msg and not wrap_as_embed:
-            if str(msg).startswith("||") and str(msg).endswith("||") and len(msg) > 2000:
-                msg_chunks = [f"||{chunk}||" for chunk in textwrap.wrap(str(msg)[2:-2], 1996, replace_whitespace=False)]
-            elif str(msg).startswith("```") and str(msg).endswith("```") and len(msg) > 2000:
-                msg_chunks = [f"```{chunk}```" for chunk in textwrap.wrap(str(msg)[3:-3], 1994, replace_whitespace=False)]
+            if (
+                str(msg).startswith("||")
+                and str(msg).endswith("||")
+                and len(msg) > 2000
+            ):
+                msg_chunks = [
+                    f"||{chunk}||"
+                    for chunk in textwrap.wrap(
+                        str(msg)[2:-2], 1996, replace_whitespace=False
+                    )
+                ]
+            elif (
+                str(msg).startswith("```")
+                and str(msg).endswith("```")
+                and len(msg) > 2000
+            ):
+                msg_chunks = [
+                    f"```{chunk}```"
+                    for chunk in textwrap.wrap(
+                        str(msg)[3:-3], 1994, replace_whitespace=False
+                    )
+                ]
             else:
                 msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
@@ -239,7 +258,8 @@ async def teleport_function(message, client, args):
         fromGuild = message.guild
         if (
             fromChannel.id
-            in config.get(section="teleport", key="fromchannel-banlist", default=[]) + (config.get(guild=fromGuild, key="teleport-fromchannel-banlist") or [])
+            in config.get(section="teleport", key="fromchannel-banlist", default=[])
+            + (config.get(guild=fromGuild, key="teleport-fromchannel-banlist") or [])
             and not message.author.guild_permissions.manage_webhooks
         ):
             await message.add_reaction("🚫")
@@ -372,7 +392,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
+    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
     re.IGNORECASE,
 )
 
@@ -503,14 +523,27 @@ async def preview_messagelink_function(message, client, args):
                 content = preview_tup[1]
             elif "bash.org" in previewable_parts[0]:
                 import swag
-                content = await swag.bash_preview(message, client, [previewable_parts[0].split("?")[1], "INTPROC"])
+
+                content = await swag.bash_preview(
+                    message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
+                )
             elif "media.discordapp.net" in previewable_parts[0]:
-                content = previewable_parts[0].replace("media.discordapp.net", "cdn.discordapp.com")
+                content = previewable_parts[0].replace(
+                    "media.discordapp.net", "cdn.discordapp.com"
+                )
             elif "//www.oyez.org" in previewable_parts[0]:
-                async with session.get(f"https://api.oyes.org/{previewable_parts[0].split('org/')[1]}?labels=true", headers={
-                    'Accept': 'application/json, text/plain, */*',
-                    'Origin': 'https://www.oyez.org', 'Connection': 'keep-alive', 'Referer': 'https://www.oyez.org/', 'Sec-Fetch-Dest': 'empty', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site'
-                    }) as resp:
+                async with session.get(
+                    f"https://api.oyes.org/{previewable_parts[0].split('org/')[1]}?labels=true",
+                    headers={
+                        "Accept": "application/json, text/plain, */*",
+                        "Origin": "https://www.oyez.org",
+                        "Connection": "keep-alive",
+                        "Referer": "https://www.oyez.org/",
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "same-site",
+                    },
+                ) as resp:
                     data = await resp.json()
                     content = f"""
 {data.name} - {data.description} (find at Justia {data.justia_url}
@@ -600,7 +633,9 @@ __{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
                     return
             except:
                 pass
-            if not all([type(attachment) is discord.File for attachment in attachments]):
+            if not all(
+                [type(attachment) is discord.File for attachment in attachments]
+            ):
                 return
             try:
                 outMessage = await sendWrappedMessage(
@@ -965,9 +1000,23 @@ async def archive_function(message, client, args):
 
 async def star_function(message, client, args):
     try:
-        threshold = ch.config.get(key="starboard-threshold", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
-        channel = ch.config.get(key="starboard-channel", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
-        channel = discord.utils.get(client.guilds, name=channel) if type(channel) is str else client.get_channel(int(channel))
+        threshold = ch.config.get(
+            key="starboard-threshold",
+            channel=message.channel.id,
+            guild=message.guild.id,
+            use_guild_as_channel_fallback=True,
+        )
+        channel = ch.config.get(
+            key="starboard-channel",
+            channel=message.channel.id,
+            guild=message.guild.id,
+            use_guild_as_channel_fallback=True,
+        )
+        channel = (
+            discord.utils.get(client.guilds, name=channel)
+            if type(channel) is str
+            else client.get_channel(int(channel))
+        )
         if threshold is None or channel is None:
             return
         if discord.utils.get(message.reactions, emoji="⭐").count == threshold:
@@ -998,8 +1047,11 @@ async def translate_function(message, client, args):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+
 async def create_thread(message, client, args):
-    await message.create_thread(name=message.content.split("\n").pop(0).replace("*", "").replace("__", "")[:100])
+    await message.create_thread(
+        name=message.content.split("\n").pop(0).replace("*", "").replace("__", "")[:100]
+    )
     await asyncio.sleep(0.5)
     notification = (await message.channel.history(limit=1).flatten())[0]
     if notification.type == discord.MessageType.thread_created:
@@ -1042,8 +1094,21 @@ async def emoji_image_function(message, client, args):
 
 async def getalong_filter(message, client, args):
     if ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role"):
-        role = discord.utils.get(message.guild.roles, name=ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role")) or message.guild.get_role(int(ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role")))
-        ttl = ch.config.get(guild=message.guild, channel=message.channel, key="getalong-ttl", default=20)
+        role = discord.utils.get(
+            message.guild.roles,
+            name=ch.config.get(
+                guild=message.guild, channel=message.channel, key="getalong-role"
+            ),
+        ) or message.guild.get_role(
+            int(
+                ch.config.get(
+                    guild=message.guild, channel=message.channel, key="getalong-role"
+                )
+            )
+        )
+        ttl = ch.config.get(
+            guild=message.guild, channel=message.channel, key="getalong-ttl", default=20
+        )
         members = list(filter(lambda member: member != message.author, role.members))
         global conn
         cur = conn.cursor()
@@ -1056,8 +1121,15 @@ async def getalong_filter(message, client, args):
         )
         for member in members:
             logger.debug(f"Getting {member} along in {message.channel}")
-            await message.channel.set_permissions(member, send_messages=False, reason="Getalong role")
-            interval = ch.config.get(guild=message.guild, channel=message.channel, key="getalong-ttl", default="20 minutes")
+            await message.channel.set_permissions(
+                member, send_messages=False, reason="Getalong role"
+            )
+            interval = ch.config.get(
+                guild=message.guild,
+                channel=message.channel,
+                key="getalong-ttl",
+                default="20 minutes",
+            )
             cur.execute(
                 "INSERT INTO reminders (userid, guild, channel, message, trigger_type, scheduled) VALUES (%s, %s, %s, %s, %s, NOW() + INTERVAL '"
                 + interval.replace("'", "")
@@ -1071,7 +1143,6 @@ async def getalong_filter(message, client, args):
                 ],
             )
         conn.commit()
-
 
 
 # Register this module's commands

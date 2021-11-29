@@ -42,7 +42,9 @@ class ScheduleFunctions:
             every = chronos.parse_every.search(cached_content).groups(default=1)
             try:
                 cur = conn.cursor()
-                target = f"NOW() + '{every[0]} {every[1]}'::interval - '1 minute'::interval"
+                target = (
+                    f"NOW() + '{every[0]} {every[1]}'::interval - '1 minute'::interval"
+                )
                 cur.execute(
                     f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
                     [
@@ -73,7 +75,9 @@ class ScheduleFunctions:
     async def getalong(
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
-        await from_channel.set_permissions(user, send_messages=True, reason="Can get along now")
+        await from_channel.set_permissions(
+            user, send_messages=True, reason="Can get along now"
+        )
 
     async def unban(
         target_message, user, cached_content, mode_args, created_at, from_channel

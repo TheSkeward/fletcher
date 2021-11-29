@@ -410,7 +410,9 @@ async def on_raw_message_edit(payload):
         message = payload.data
         if "guild_id" in message:
             fromGuild = client.get_guild(int(message["guild_id"]))
-            fromChannel = fromGuild.get_channel(int(message["channel_id"])) or fromGuild.get_thread(int(message["channel_id"]))
+            fromChannel = fromGuild.get_channel(
+                int(message["channel_id"])
+            ) or fromGuild.get_thread(int(message["channel_id"]))
         else:
             fromChannel = client.get_channel(int(message["channel_id"]))
         try:
@@ -799,6 +801,7 @@ async def on_thread_join(thread):
             await asyncio.sleep(1)
         break
     await ch.thread_add(thread)
+
 
 @client.event
 async def on_interaction(ctx):

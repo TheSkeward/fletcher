@@ -107,7 +107,8 @@ parse_instant = re.compile(
 parse_every = re.compile(
     r"([\d.]+)?\s*(h(?:[ou]*rs?)|min(?:utes?)|d(?:ays?)?|w(?:e*ks?))",
     re.IGNORECASE,
-    )
+)
+
 
 async def autounload(ch):
     pass

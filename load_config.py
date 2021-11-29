@@ -13,11 +13,14 @@ class FletcherConfig:
 
     def __init__(self, base_config_path=os.getenv("FLETCHER_CONFIG", "./.fletcherrc")):
         configparse = configparser.ConfigParser()
-        configparse.optionxform = str # type: ignore[attr-defined]
+        configparse.optionxform = str  # type: ignore[attr-defined]
         self.client = None
         configparse.read(base_config_path)
-        config: Dict[str, Union[Dict, Iterable, int, float, str]]  = {
-            s: {k: self.normalize(v, key=k) for k, v in dict(configparse.items(s)).items()}
+        config: Dict[str, Union[Dict, Iterable, int, float, str]] = {
+            s: {
+                k: self.normalize(v, key=k)
+                for k, v in dict(configparse.items(s)).items()
+            }
             for s in configparse.sections()
         }
         self.config_dict = config
@@ -28,8 +31,8 @@ class FletcherConfig:
             for file_name in os.listdir(rc_path):
                 if file_name.isdigit():
                     guild_config = configparser.ConfigParser()
-                    guild_config.optionxform = str # type: ignore[attr-defined]
-                    guild_config.read(f'{rc_path}/{file_name}')
+                    guild_config.optionxform = str  # type: ignore[attr-defined]
+                    guild_config.read(f"{rc_path}/{file_name}")
                     for section_name in guild_config.keys():
                         if section_name.lower() in ["default", "general"]:
                             section_key = f"Guild {file_name}"
@@ -52,9 +55,7 @@ class FletcherConfig:
                                     section[subsection_key] = {}
                                 subsection = section.get(subsection_key)
                                 assert isinstance(subsection, dict)
-                                subsection[k] = self.normalize(
-                                    v, key=k
-                                )
+                                subsection[k] = self.normalize(v, key=k)
                             else:
                                 section[k] = self.normalize(v, key=k)
         self.config_dict = config
@@ -100,7 +101,9 @@ class FletcherConfig:
             return False
         return value
 
-    def normalize_numbers(self, value: Union[str, int, float]) -> Union[str, int, float]:
+    def normalize_numbers(
+        self, value: Union[str, int, float]
+    ) -> Union[str, int, float]:
         if isinstance(value, (int, float)):
             return value
         if str(value).isdigit():
@@ -109,7 +112,9 @@ class FletcherConfig:
             return float(value)
         return value
 
-    def str_to_array(self, string: str, delim=",", strip=True, filter_function=None.__ne__):
+    def str_to_array(
+        self, string: str, delim=",", strip=True, filter_function=None.__ne__
+    ):
         array = string.split(delim)
         if strip:
             array = map(str.strip, array)
@@ -126,16 +131,16 @@ class FletcherConfig:
             return self.str_to_array(value, strip=False) or []
         return [value]
 
-    def normalize(self, value: Union[dict, list, str, int, float], key: str="") -> Union[Dict, Iterable, float, int, str]:
+    def normalize(
+        self, value: Union[dict, list, str, int, float], key: str = ""
+    ) -> Union[Dict, Iterable, float, int, str]:
         if isinstance(value, dict):
             return {k: self.normalize(v) for k, v in value.items()}
         if isinstance(value, list):
             return [self.normalize(v) for v in value]
         if isinstance(value, str) and "list" in key:
             return [self.normalize(v) for v in self.normalize_array(value)]
-        return self.normalize_numbers(
-            self.normalize_booleans(str(value))
-        )
+        return self.normalize_numbers(self.normalize_booleans(str(value)))
 
     def __getitem__(self, key):
         return self.get(key=key)
@@ -303,9 +308,9 @@ class FletcherConfig:
                 section, None
             )
             if value is None and use_category_as_channel_fallback and category:
-                value = cast(dict, self.config_dict.get(f"Guild {guild:d} - {category:d}")).get(
-                    section, None
-                )
+                value = cast(
+                    dict, self.config_dict.get(f"Guild {guild:d} - {category:d}")
+                ).get(section, None)
             if value is None and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, None)
             if value is None:
@@ -338,7 +343,9 @@ class FletcherConfig:
                     .get(key, None)
                 )
             if value is None:
-                value = cast(dict, self.channel_defaults.get(section, {})).get(key, None)
+                value = cast(dict, self.channel_defaults.get(section, {})).get(
+                    key, None
+                )
             if value is None and use_guild_as_channel_fallback:
                 value = self.guild_defaults.get(section, {}).get(key, None)
         if value is None or value == {} and default:

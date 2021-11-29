@@ -2504,34 +2504,37 @@ def unendertext(text=False):
     if text:
         return text.translate(
             str.maketrans(
-                {value : key for (key, value) in {
-                    "a": "⏃",
-                    "b": "⏚",
-                    "c": "☊",
-                    "d": "⎅",
-                    "e": "⟒",
-                    "f": "⎎",
-                    "g": "☌",
-                    "h": "⊑",
-                    "i": "⟟",
-                    "j": "⟊",
-                    "k": "☍",
-                    "l": "⌰",
-                    "m": "⋔",
-                    "n": "⋏",
-                    "o": "⍜",
-                    "p": "⌿",
-                    "q": "ᑫ",
-                    "r": "⍀",
-                    "s": "⌇",
-                    "t": "⏁",
-                    "u": "⎍",
-                    "v": "⎐",
-                    "w": "⍙",
-                    "x": "⌖",
-                    "y": "⊬",
-                    "z": "⋉",
-                }.items()}
+                {
+                    value: key
+                    for (key, value) in {
+                        "a": "⏃",
+                        "b": "⏚",
+                        "c": "☊",
+                        "d": "⎅",
+                        "e": "⟒",
+                        "f": "⎎",
+                        "g": "☌",
+                        "h": "⊑",
+                        "i": "⟟",
+                        "j": "⟊",
+                        "k": "☍",
+                        "l": "⌰",
+                        "m": "⋔",
+                        "n": "⋏",
+                        "o": "⍜",
+                        "p": "⌿",
+                        "q": "ᑫ",
+                        "r": "⍀",
+                        "s": "⌇",
+                        "t": "⏁",
+                        "u": "⎍",
+                        "v": "⎐",
+                        "w": "⍙",
+                        "x": "⌖",
+                        "y": "⊬",
+                        "z": "⋉",
+                    }.items()
+                }
             )
         )
     return None
@@ -3221,28 +3224,45 @@ async def reaction_request_function(message, client, args):
             target = await message.channel.fetch_message(message.reference.message_id)
         elif urlParts:
             try:
-                target = await client.get_guild(int(urlParts.group(1))).get_channel(int(urlParts.group(2))).fetch_message(int(urlParts.group(3)))
+                target = (
+                    await client.get_guild(int(urlParts.group(1)))
+                    .get_channel(int(urlParts.group(2)))
+                    .fetch_message(int(urlParts.group(3)))
+                )
             except:
                 await messagefuncs.sendWrappedMessage(
-                        f"XRF: Couldn't find message at specified link.",
-                        message.author,
-                        )
+                    f"XRF: Couldn't find message at specified link.",
+                    message.author,
+                )
                 return
             if not target:
                 return
         elif urlParts:
             # Invalid URL
             return
-        elif discord.utils.find(lambda arg: arg.isnumeric() and int(arg) > 1000000, args):
-            target = await message.channel.fetch_message(int(discord.utils.find(lambda arg: arg.isnumeric() and int(arg) > 1000000, args)))
+        elif discord.utils.find(
+            lambda arg: arg.isnumeric() and int(arg) > 1000000, args
+        ):
+            target = await message.channel.fetch_message(
+                int(
+                    discord.utils.find(
+                        lambda arg: arg.isnumeric() and int(arg) > 1000000, args
+                    )
+                )
+            )
             if not target:
                 return
-            args = list(filter(lambda arg: not str(arg).isnumeric() or int(str(arg)) < 1000000, args))
+            args = list(
+                filter(
+                    lambda arg: not str(arg).isnumeric() or int(str(arg)) < 1000000,
+                    args,
+                )
+            )
         else:
             try:
                 async for historical_message in message.channel.history(
-                        before=message, oldest_first=False
-                        ):
+                    before=message, oldest_first=False
+                ):
                     if historical_message.author != message.author:
                         target = historical_message
                         break
@@ -3255,19 +3275,20 @@ async def reaction_request_function(message, client, args):
             filter_query = lambda m: m.id == int(emoji_query.split(":")[2].rstrip(">"))
         elif ":" in emoji_query:
             emoji_query = emoji_query.split(":")
-            emoji_query[0] = messagefuncs.expand_guild_name(
-                emoji_query[0], suffix=""
-            )
+            emoji_query[0] = messagefuncs.expand_guild_name(emoji_query[0], suffix="")
             filter_query = (
-                lambda m: m.name == emoji_query[1]
-                and m.guild.name == emoji_query[0]
+                lambda m: m.name == emoji_query[1] and m.guild.name == emoji_query[0]
             )
         else:
             filter_query = lambda m: m.name == emoji_query
         emoji = list(filter(filter_query, client.emojis))
         logger.debug(emoji)
         if len(emoji):
-            emoji = emoji.pop(int(args[1]) if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000 else 0)
+            emoji = emoji.pop(
+                int(args[1])
+                if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000
+                else 0
+            )
         else:
             emoji_query = emoji_query[0]
             try:
@@ -3336,15 +3357,15 @@ async def reaction_request_function(message, client, args):
             )
         await asyncio.sleep(0.1)
         reaction = None
+
         def check(new_reaction):
             reaction = new_reaction
-            return str(reaction.emoji) == str(emoji) and reaction.user_id != client.user.id
-        try:
-            await client.wait_for(
-                "raw_reaction_add",
-                timeout=6000.0,
-                check=check
+            return (
+                str(reaction.emoji) == str(emoji) and reaction.user_id != client.user.id
             )
+
+        try:
+            await client.wait_for("raw_reaction_add", timeout=6000.0, check=check)
         except asyncio.TimeoutError:
             pass
         try:
@@ -3353,7 +3374,18 @@ async def reaction_request_function(message, client, args):
             # Message deleted before we could remove the reaction
             pass
         try:
-            if message.guild and reaction and ch.user_config(reaction.user_id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
+            if (
+                message.guild
+                and reaction
+                and ch.user_config(
+                    reaction.user_id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 await message.delete()
         except discord.Forbidden:
             logger.warning("XRF: Couldn't delete message but snappy mode is on")
@@ -3616,7 +3648,9 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!unendertext"],
-            "function": lambda message, client, args: unendertext(" ".join(args).lower()),
+            "function": lambda message, client, args: unendertext(
+                " ".join(args).lower()
+            ),
             "async": False,
             "args_num": 1,
             "args_name": [],

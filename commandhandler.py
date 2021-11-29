@@ -34,9 +34,11 @@ Ans = None
 config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
 
+
 def list_append(lst, item):
     lst.append(item)
     return item
+
 
 def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
     array = string.split(delim)
@@ -51,10 +53,11 @@ class Bridge:
     def __init__(self):
         self.channels: List[discord.TextChannel] = []
         self.webhooks: List[discord.Webhook] = []
-    
+
     def append(self, channel: discord.TextChannel, webhook: discord.Webhook):
         self.channels.append(channel)
         self.webhooks.append(webhook)
+
 
 class Command:
     def __init__(
@@ -123,9 +126,10 @@ class CommandHandler:
         self.emote_server = self.client.guilds[0]
         if self.config:
             emote_server = self.client.get_guild(
-                cast(int, self.config.get(
-                    section="discord", key="emoteServer", default=0
-                ))
+                cast(
+                    int,
+                    self.config.get(section="discord", key="emoteServer", default=0),
+                )
             )
             assert isinstance(emote_server, discord.Guild)
             self.emote_server = emote_server
@@ -286,7 +290,9 @@ class CommandHandler:
             if message.reference:
                 refGuild = message.guild
                 assert refGuild is not None
-                refChannel = refGuild.get_channel(message.reference.channel_id) or refGuild.get_thread(message.reference.channel_id)
+                refChannel = refGuild.get_channel(
+                    message.reference.channel_id
+                ) or refGuild.get_thread(message.reference.channel_id)
                 try:
                     refMessage = await refChannel.fetch_message(
                         message.reference.message_id
@@ -380,9 +386,7 @@ class CommandHandler:
             guild = self.client.get_guild(json["guild_id"])
             if not guild:
                 return web.Response(status=400)
-            channel = guild.get_channel(
-                json["channel_id"]
-            )
+            channel = guild.get_channel(json["channel_id"])
             if not channel:
                 return web.Response(status=400)
             try:
@@ -399,7 +403,9 @@ class CommandHandler:
                         )
                     if not webhook:
                         webhook = await channel.create_webhook(
-                            name=str(self.config.get(section="discord", key="botNavel")),
+                            name=str(
+                                self.config.get(section="discord", key="botNavel")
+                            ),
                             reason="Autocreating for web_handler",
                         )
                     webhooks_cache[f"{guild.id}:{channel.id}"] = webhook
@@ -447,7 +453,7 @@ class CommandHandler:
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             if TYPE_CHECKING:
                 assert hub is not None
-            with hub.configure_scope() as scope: # type: ignore
+            with hub.configure_scope() as scope:  # type: ignore
                 try:
                     global config
                     messageContent = str(reaction.emoji)
@@ -455,7 +461,10 @@ class CommandHandler:
                     if channel is None:
                         logger.info("Channel does not exist")
                         return
-                    assert isinstance(channel, (discord.TextChannel, discord.Thread, discord.DMChannel))
+                    assert isinstance(
+                        channel,
+                        (discord.TextChannel, discord.Thread, discord.DMChannel),
+                    )
                     scope.set_tag(
                         "channel",
                         channel.name
@@ -476,9 +485,12 @@ class CommandHandler:
                     args = [reaction, user, "add"]
                     channel_config: Dict = {}
                     try:
-                        channel_config = cast(dict, self.scope_config(
-                            guild=message.guild, channel=message.channel
-                        ))
+                        channel_config = cast(
+                            dict,
+                            self.scope_config(
+                                guild=message.guild, channel=message.channel
+                            ),
+                        )
                     except (AttributeError, ValueError) as e:
                         pass
                     if isinstance(channel, (discord.TextChannel, discord.Thread)):
@@ -516,7 +528,8 @@ class CommandHandler:
                     if (
                         channel_config.get("blacklist-emoji")
                         and not admin["channel"]
-                        and messageContent in cast(Iterable, channel_config.get("blacklist-emoji"))
+                        and messageContent
+                        in cast(Iterable, channel_config.get("blacklist-emoji"))
                     ):
                         logger.info("Emoji removed by blacklist")
                         return await message.remove_reaction(messageContent, user)
@@ -524,12 +537,22 @@ class CommandHandler:
                     scoped_command = None
                     message_handler = self.message_reaction_handlers.get(message.id)
                     channel_handler = self.message_reaction_handlers.get(channel.id)
-                    if message_handler is not None and message_handler.scope == discord.Message:
+                    if (
+                        message_handler is not None
+                        and message_handler.scope == discord.Message
+                    ):
                         scoped_command = message_handler
-                    if channel_handler is not None and channel_handler.scope == discord.TextChannel:
+                    if (
+                        channel_handler is not None
+                        and channel_handler.scope == discord.TextChannel
+                    ):
                         scoped_command = channel_handler
                     try:
-                        if isinstance(channel, discord.TextChannel) and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.id}"):
+                        if isinstance(
+                            channel, discord.TextChannel
+                        ) and self.webhook_sync_registry.get(
+                            f"{channel.guild.name}:{channel.id}"
+                        ):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
                                     reaction.emoji.id
@@ -553,7 +576,9 @@ class CommandHandler:
                                 except discord.Forbidden:
                                     logger.error("discord.emoteServer misconfigured!")
                                 except discord.HTTPException:
-                                    await random.choice(self.emote_server.emojis).delete()
+                                    await random.choice(
+                                        self.emote_server.emojis
+                                    ).delete()
                                     processed_emoji = (
                                         await self.emote_server.create_custom_emoji(
                                             name=reaction.emoji.name,
@@ -577,17 +602,25 @@ class CommandHandler:
                                 fromMessage = await fromChannel.fetch_message(
                                     metuple[2]
                                 )
-                                if fromMessage.author.id in cast(Iterable, config.get(
-                                    section="moderation",
-                                    key="blacklist-user-usage",
-                                    default=[],
-                                )):
+                                if fromMessage.author.id in cast(
+                                    Iterable,
+                                    config.get(
+                                        section="moderation",
+                                        key="blacklist-user-usage",
+                                        default=[],
+                                    ),
+                                ):
                                     logger.debug(
                                         "Demurring to bridge reaction to message of users on the blacklist"
                                     )
                                     return
-                                already_sent = next(filter(lambda emoji: emoji == reaction.emoji,
-                                        fromMessage.reactions), None)
+                                already_sent = next(
+                                    filter(
+                                        lambda emoji: emoji == reaction.emoji,
+                                        fromMessage.reactions,
+                                    ),
+                                    None,
+                                )
                                 if (
                                     type(processed_emoji) is not str
                                     and processed_emoji.guild_id == self.emote_server.id
@@ -598,9 +631,7 @@ class CommandHandler:
                                 logger.debug(
                                     f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})"
                                 )
-                                await fromMessage.add_reaction(
-                                    processed_emoji
-                                )
+                                await fromMessage.add_reaction(processed_emoji)
                                 metuple = cur.fetchone()
                                 # cur = conn.cursor()
                                 # cur.execute(
@@ -635,11 +666,14 @@ class CommandHandler:
                                     return
                                 if not toMessage:
                                     return
-                                if toMessage.author.id in cast(Iterable, config.get(
-                                    section="moderation",
-                                    key="blacklist-user-usage",
-                                    default=[],
-                                )):
+                                if toMessage.author.id in cast(
+                                    Iterable,
+                                    config.get(
+                                        section="moderation",
+                                        key="blacklist-user-usage",
+                                        default=[],
+                                    ),
+                                ):
                                     logger.debug(
                                         "Demurring to bridge reaction to message of users on the blacklist"
                                     )
@@ -647,9 +681,7 @@ class CommandHandler:
                                 logger.debug(
                                     f"RXH: {processed_emoji} -> {toMessage.id} ({toGuild.name})"
                                 )
-                                await toMessage.add_reaction(
-                                    processed_emoji
-                                )
+                                await toMessage.add_reaction(processed_emoji)
                                 metuple = cur.fetchone()
                                 # cur = conn.cursor()
                                 # cur.execute(
@@ -698,7 +730,7 @@ class CommandHandler:
 
     async def reaction_remove_handler(self, reaction):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope: # type: ignore
+            with hub.configure_scope() as scope:  # type: ignore
                 try:
                     global config
                     messageContent = str(reaction.emoji)
@@ -711,7 +743,10 @@ class CommandHandler:
                     if channel is None:
                         logger.info("Channel does not exist")
                         return
-                    assert isinstance(channel, (discord.TextChannel, discord.Thread, discord.DMChannel))
+                    assert isinstance(
+                        channel,
+                        (discord.TextChannel, discord.Thread, discord.DMChannel),
+                    )
                     scope.set_tag(
                         "channel",
                         channel.name
@@ -795,12 +830,13 @@ class CommandHandler:
 
     async def join_handler(self, user):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope: # type: ignore
+            with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
                 scope.set_tag("guild", user.guild.name)
-                member_join_actions = cast(Iterable[str], config.get(
-                    guild=user.guild, key="on_member_join_list", default=[]
-                ))
+                member_join_actions = cast(
+                    Iterable[str],
+                    config.get(guild=user.guild, key="on_member_join_list", default=[]),
+                )
                 if (
                     user.guild.get_member(self.user)
                     and user.guild.get_member(self.user).manage_channels
@@ -838,7 +874,10 @@ class CommandHandler:
     async def channel_update_handler(self, before, after):
         if not before.guild:
             return
-        if isinstance(before, (discord.TextChannel, discord.Thread)) and before.name != after.name:
+        if (
+            isinstance(before, (discord.TextChannel, discord.Thread))
+            and before.name != after.name
+        ):
             logger.info(
                 f"#{before.guild.name}:{before.name} <name> Name changed from {before.name} to {after.name}",
                 extra={
@@ -846,26 +885,44 @@ class CommandHandler:
                     "CHANNEL_IDENTIFIER": before.name,
                 },
             )
-            if self.config.get("name_change_notify", False, guild=before.guild.id, channel=before.id):
+            if self.config.get(
+                "name_change_notify", False, guild=before.guild.id, channel=before.id
+            ):
                 await messagefuncs.sendWrappedMessage(
-                        cast(str, self.config.get("name_change_notify_message", "Name changed from {before.name} to {after.name}", guild=before.guild.id, channel=before.id))
-                        .format(before=before, after=after),
-                        after,
-                        )
+                    cast(
+                        str,
+                        self.config.get(
+                            "name_change_notify_message",
+                            "Name changed from {before.name} to {after.name}",
+                            guild=before.guild.id,
+                            channel=before.id,
+                        ),
+                    ).format(before=before, after=after),
+                    after,
+                )
         if isinstance(before, discord.TextChannel) and before.topic != after.topic:
             logger.info(
-                    f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
-                    extra={
-                        "GUILD_IDENTIFIER": before.guild.name,
-                        "CHANNEL_IDENTIFIER": before.name,
-                        },
-                    )
-            if self.config.get("topic_change_notify", False, guild=before.guild.id, channel=before.id):
+                f"#{before.guild.name}:{before.name} <topic> Topic changed from {before.topic} to {after.topic}",
+                extra={
+                    "GUILD_IDENTIFIER": before.guild.name,
+                    "CHANNEL_IDENTIFIER": before.name,
+                },
+            )
+            if self.config.get(
+                "topic_change_notify", False, guild=before.guild.id, channel=before.id
+            ):
                 await messagefuncs.sendWrappedMessage(
-                        cast(str, self.config.get("topic_change_notify_message", "Topic changed from {before.topic} to {after.topic}", guild=before.guild.id, channel=before.id))
-                        .format(before=before, after=after),
-                        after,
-                        )
+                    cast(
+                        str,
+                        self.config.get(
+                            "topic_change_notify_message",
+                            "Topic changed from {before.topic} to {after.topic}",
+                            guild=before.guild.id,
+                            channel=before.id,
+                        ),
+                    ).format(before=before, after=after),
+                    after,
+                )
 
     async def load_guild_invites(self, guild):
         self.guild_invites[guild.id] = {
@@ -882,7 +939,10 @@ class CommandHandler:
                 assert member is not None
                 if member.guild_permissions.manage_guild:
                     loop.create_task(self.load_guild_invites(guild))
-                reload_actions = cast(Iterable, self.config.get(guild=guild.id, key="on_reload_list", default=[]))
+                reload_actions = cast(
+                    Iterable,
+                    self.config.get(guild=guild.id, key="on_reload_list", default=[]),
+                )
                 for reload_action in reload_actions:
                     if reload_action in self.reload_handlers.keys():
                         loop.create_task(
@@ -925,18 +985,36 @@ class CommandHandler:
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
             webhook = await self.fetch_webhook_cached(message.webhook_id)
-            if webhook.name not in cast(Iterable, self.config.get(section="sync", key="whitelist-webhooks")):
+            if webhook.name not in cast(
+                Iterable, self.config.get(section="sync", key="whitelist-webhooks")
+            ):
                 if webhook.name and not webhook.name.startswith(
                     cast(str, self.config.get(section="discord", key="botNavel"))
                 ):
                     logger.debug("Webhook isn't whitelisted for bridging")
                 return
-        spoilers = cast(list, self.config.get(section="sync", key=f"spoilerlist-{message.guild.id}") or []) + cast(list, self.config.get(guild=message.guild.id, key=f"spoilerlist") or [])
+        spoilers = cast(
+            list,
+            self.config.get(section="sync", key=f"spoilerlist-{message.guild.id}")
+            or [],
+        ) + cast(
+            list, self.config.get(guild=message.guild.id, key=f"spoilerlist") or []
+        )
         ignores = list(
             filter(
                 "".__ne__,
-                cast(list, self.config.get(section="sync", key=f"tupper-ignore-{message.guild.id}") or []) +
-                cast(list, self.config.get(section="sync", key=f"tupper-ignore-m{user.id}") or [])
+                cast(
+                    list,
+                    self.config.get(
+                        section="sync", key=f"tupper-ignore-{message.guild.id}"
+                    )
+                    or [],
+                )
+                + cast(
+                    list,
+                    self.config.get(section="sync", key=f"tupper-ignore-m{user.id}")
+                    or [],
+                ),
             )
         )
         ignores.append("!mobilespoil")
@@ -960,8 +1038,7 @@ class CommandHandler:
                 if message.author.id in spoilers:
                     content = f"||{content}||"
                 if len(message.attachments) > 0 and (
-                    message.channel.is_nsfw()
-                    and not bridge.channels[i].is_nsfw()
+                    message.channel.is_nsfw() and not bridge.channels[i].is_nsfw()
                 ):
                     content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached from an R18 channel."
                     for attachment in message.attachments:
@@ -973,9 +1050,7 @@ class CommandHandler:
                         r"@.*?#0000",
                         lambda member: list_append(
                             user_mentions,
-                            bridge.channels[i].guild.get_member_named(
-                                member[0][1:-5]
-                            ),
+                            bridge.channels[i].guild.get_member_named(member[0][1:-5]),
                         ).mention,
                         content,
                     )
@@ -1018,10 +1093,7 @@ class CommandHandler:
                         )
                         metuple = cur.fetchone()
                         conn.commit()
-                        if (
-                            metuple
-                            and metuple[0] != bridge.channels[i].guild.id
-                        ):
+                        if metuple and metuple[0] != bridge.channels[i].guild.id:
                             query_params = list(metuple)
                             query_params.append(bridge.channels[i].guild.id)
                             cur = conn.cursor()
@@ -1033,7 +1105,9 @@ class CommandHandler:
                             conn.commit()
                     if metuple is not None:
                         toGuild = self.client.get_guild(metuple[0])
-                        toChannel = toGuild.get_channel(metuple[1]) or toGuild.get_thread(metuple[1])
+                        toChannel = toGuild.get_channel(
+                            metuple[1]
+                        ) or toGuild.get_thread(metuple[1])
                         reference_message = await toChannel.fetch_message(metuple[2])
                         reply_embed = [
                             discord.Embed(
@@ -1045,7 +1119,9 @@ class CommandHandler:
                         content=content,
                         username=fromMessageName,
                         avatar_url=user.display_avatar,
-                        embeds=list(filter(None, message.embeds + reply_embed)) if user.bot else reply_embed,
+                        embeds=list(filter(None, message.embeds + reply_embed))
+                        if user.bot
+                        else reply_embed,
                         tts=message.tts,
                         files=[]
                         if len(message.attachments) > 0
@@ -1068,7 +1144,9 @@ class CommandHandler:
                             content=content,
                             username=fromMessageName,
                             avatar_url=user.display_avatar,
-                            embeds=list(filter(None, message.embeds + reply_embed)) if user.bot else reply_embed,
+                            embeds=list(filter(None, message.embeds + reply_embed))
+                            if user.bot
+                            else reply_embed,
                             tts=message.tts,
                             files=[],
                             wait=True,
@@ -1151,11 +1229,21 @@ class CommandHandler:
             and channel.guild
             and self.webhook_sync_registry.get(f"{channel.guild.name}:{channel.id}")
         ):
-            await asyncio.gather(*[channel.trigger_typing() for channel in self.webhook_sync_registry[f"{channel.guild.name}:{channel.id}"].channels])
+            await asyncio.gather(
+                *[
+                    channel.trigger_typing()
+                    for channel in self.webhook_sync_registry[
+                        f"{channel.guild.name}:{channel.id}"
+                    ].channels
+                ]
+            )
 
     async def edit_handler(self, message):
         try:
-            if isinstance(message.channel, discord.DMChannel) and self.client.get_channel(message.channel.id) is None:
+            if (
+                isinstance(message.channel, discord.DMChannel)
+                and self.client.get_channel(message.channel.id) is None
+            ):
                 await message.author.create_dm()
             fromMessage = message
             fromChannel = message.channel
@@ -1224,7 +1312,9 @@ class CommandHandler:
                     channel=toChannel.id,
                     use_category_as_channel_fallback=False,
                 ):
-                    logger.debug(f"ORMU: Demurring to edit message at client guild request")
+                    logger.debug(
+                        f"ORMU: Demurring to edit message at client guild request"
+                    )
                     return
                 if self.config.get(
                     key="sync-deletions",
@@ -1251,7 +1341,9 @@ class CommandHandler:
                         fromMessage.channel.is_nsfw()
                         and not self.webhook_sync_registry[
                             f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                        ].channels[0].is_nsfw()
+                        ]
+                        .channels[0]
+                        .is_nsfw()
                     ):
                         content = f"{content}\n {len(message.attachments)} file{plural} attached from an R18 channel."
                         for attachment in fromMessage.attachments:
@@ -1265,11 +1357,11 @@ class CommandHandler:
                                 discord.File(attachment_blob, attachment.filename)
                             )
                 webhook = discord.utils.get(
-                        self.webhook_sync_registry[
-                            f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                        ].webhooks,
-                        channel__id=toChannel.id,
-                    )
+                    self.webhook_sync_registry[
+                        f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                    ].webhooks,
+                    channel__id=toChannel.id,
+                )
                 assert webhook is not None
                 await webhook.edit_message(
                     content=content,
@@ -1280,7 +1372,9 @@ class CommandHandler:
                     ),
                     message_id=toMessage.id,
                 )
-            channel_config = cast(dict, self.scope_config(channel=fromChannel, guild=fromGuild))
+            channel_config = cast(
+                dict, self.scope_config(channel=fromChannel, guild=fromGuild)
+            )
             if channel_config.get("regex", None) and not (
                 channel_config.get("regex-tyranny", False)
                 and message.channel.permissions_for(fromMessage.author).manage_messages
@@ -1295,7 +1389,6 @@ class CommandHandler:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             logger.debug(traceback.format_exc())
-            
 
     async def command_handler(self, message):
         global config
@@ -1303,7 +1396,10 @@ class CommandHandler:
 
         user = message.author
         global Ans
-        if isinstance(message.channel, discord.DMChannel) and self.client.get_channel(message.channel.id) is None:
+        if (
+            isinstance(message.channel, discord.DMChannel)
+            and self.client.get_channel(message.channel.id) is None
+        ):
             await message.author.create_dm()
         if (
             user.id == 382984420321263617
@@ -1324,7 +1420,10 @@ class CommandHandler:
                 await messagefuncs.sendWrappedMessage(
                     f"{traceback.format_exc()}\nEVAL: {type(e).__name__} {e}", user
                 )
-        if type(message.channel) is discord.DMChannel and message.channel.recipient is None:
+        if (
+            type(message.channel) is discord.DMChannel
+            and message.channel.recipient is None
+        ):
             message.channel = self.client.get_channel(message.channel.id)
 
         await self.bridge_message(message)
@@ -1334,10 +1433,16 @@ class CommandHandler:
             logger.info(
                 f"{message.id} #{channel.guild.name if isinstance(channel, (discord.TextChannel, discord.Thread)) else 'DM'}:{channel.name if isinstance(channel, (discord.TextChannel, discord.Thread)) else (channel.recipient.name if channel.recipient else 'Unknown Recipient')} <{user.name}:{user.id}> {message.system_content}",
                 extra={
-                    "GUILD_IDENTIFIER": channel.guild.name if isinstance(channel, (discord.TextChannel, discord.Thread)) else None,
+                    "GUILD_IDENTIFIER": channel.guild.name
+                    if isinstance(channel, (discord.TextChannel, discord.Thread))
+                    else None,
                     "CHANNEL_IDENTIFIER": channel.name
                     if isinstance(channel, (discord.TextChannel, discord.Thread))
-                    else (channel.recipient.name if channel.recipient is not None else 'Unknown Recipient'),
+                    else (
+                        channel.recipient.name
+                        if channel.recipient is not None
+                        else "Unknown Recipient"
+                    ),
                     "SENDER_NAME": user.name,
                     "SENDER_ID": user.id,
                     "MESSAGE_ID": str(message.id),
@@ -1409,7 +1514,8 @@ class CommandHandler:
                         f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                         extra={
                             "GUILD_IDENTIFIER": "@",
-                            "CHANNEL_IDENTIFIER": message.channel.recipient.name or message.channel.id,
+                            "CHANNEL_IDENTIFIER": message.channel.recipient.name
+                            or message.channel.id,
                             "SENDER_NAME": user.name,
                             "SENDER_ID": user.id,
                             "MESSAGE_ID": str(message.id),
@@ -1435,7 +1541,8 @@ class CommandHandler:
                     f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                     extra={
                         "GUILD_IDENTIFIER": "@",
-                        "CHANNEL_IDENTIFIER": message.channel.recipient.name or message.channel.id,
+                        "CHANNEL_IDENTIFIER": message.channel.recipient.name
+                        or message.channel.id,
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
@@ -1472,7 +1579,9 @@ class CommandHandler:
             ("!preview", "!blockquote", "!xreact")
         )
         should_preview_guild = type(message.channel) == discord.DMChannel or config.get(
-            guild=None if not message.guild else message.guild.id, key="preview", default=False
+            guild=None if not message.guild else message.guild.id,
+            key="preview",
+            default=False,
         )
         user_blacklisted = user.id in config.get(
             section="moderation", key="blacklist-user-usage"
@@ -1526,9 +1635,9 @@ class CommandHandler:
             scoped_command = None
             if (
                 self.message_reply_handlers.get(message.reference.message_id)
-                and self.message_reply_handlers.get(message.reference.message_id, {}).get(
-                    "scope", "message"
-                )
+                and self.message_reply_handlers.get(
+                    message.reference.message_id, {}
+                ).get("scope", "message")
                 != "channel"
             ):
                 scoped_command = self.message_reply_handlers[
@@ -1545,7 +1654,9 @@ class CommandHandler:
             refGuild = self.client.get_guild(message.reference.guild_id)
             refChannel = None
             if refGuild:
-                refChannel = refGuild.get_channel(message.reference.channel_id) or refGuild.get_thread(message.reference.channel_id)
+                refChannel = refGuild.get_channel(
+                    message.reference.channel_id
+                ) or refGuild.get_thread(message.reference.channel_id)
             if refChannel:
                 try:
                     refMessage = await refChannel.fetch_message(
@@ -1560,7 +1671,9 @@ class CommandHandler:
                             and not scoped_command.get("remove", False)
                             and scoped_command["args_num"] == 0
                         ):
-                            await self.run_command(scoped_command, refMessage, args, user)
+                            await self.run_command(
+                                scoped_command, refMessage, args, user
+                            )
                     else:
                         for command in self.get_command(
                             messageContent, message, max_args=0
@@ -1568,9 +1681,27 @@ class CommandHandler:
                             if not command.get("remove", False):
                                 await self.run_command(command, refMessage, args, user)
                 except discord.Forbidden:
-                    if not self.config.normalize_booleans(self.user_config(user.id, message.guild.id, key=f"readhistory_notified", default="False", allow_global_substitute=False)):
-                        await messagefuncs.sendWrappedMessage(f"Hi there! I noticed that I was unable to dereference a reply to a message due to missing Read History permissions on {message.guild} ({message.channel.mention}). You won't get another notification about this, but functionality may be impaired.", message.guild.owner)
-                        self.user_config(user.id, message.guild.id, key=f"readhistory_notified", value="True", default="False", allow_global_substitute=False)
+                    if not self.config.normalize_booleans(
+                        self.user_config(
+                            user.id,
+                            message.guild.id,
+                            key=f"readhistory_notified",
+                            default="False",
+                            allow_global_substitute=False,
+                        )
+                    ):
+                        await messagefuncs.sendWrappedMessage(
+                            f"Hi there! I noticed that I was unable to dereference a reply to a message due to missing Read History permissions on {message.guild} ({message.channel.mention}). You won't get another notification about this, but functionality may be impaired.",
+                            message.guild.owner,
+                        )
+                        self.user_config(
+                            user.id,
+                            message.guild.id,
+                            key=f"readhistory_notified",
+                            value="True",
+                            default="False",
+                            allow_global_substitute=False,
+                        )
                 except Exception as e:
                     logger.warning(e)
                     _, _, exc_tb = exc_info()
@@ -1626,7 +1757,7 @@ class CommandHandler:
 
     async def run_command(self, command, message, args, user):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope: # type: ignore
+            with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
                 if hasattr(user, "guild"):
                     scope.set_tag("guild", user.guild.name)
@@ -1636,7 +1767,12 @@ class CommandHandler:
                     elif command.long_run:
                         await message.channel.trigger_typing()
                     logger.debug(f"[CH] Triggered {command}")
-                    if user.id in cast(Iterable, self.config.get(section="moderation", key="blacklist-user-usage")):
+                    if user.id in cast(
+                        Iterable,
+                        self.config.get(
+                            section="moderation", key="blacklist-user-usage"
+                        ),
+                    ):
                         raise Exception(f"Blacklisted command attempt by user {user}")
                     function = command.function
                     logger.debug(function)
@@ -1653,7 +1789,12 @@ class CommandHandler:
                     elif command.get("long_run"):
                         await message.channel.trigger_typing()
                     logger.debug(f"[CH] Triggered {command}")
-                    if user.id in cast(Iterable, self.config.get(section="moderation", key="blacklist-user-usage")):
+                    if user.id in cast(
+                        Iterable,
+                        self.config.get(
+                            section="moderation", key="blacklist-user-usage"
+                        ),
+                    ):
                         raise Exception(f"Blacklisted command attempt by user {user}")
                     if command["async"]:
                         await command["function"](message, self.client, args)
@@ -1765,7 +1906,7 @@ class CommandHandler:
             if value:
                 value = value[0]
         else:
-            if key == 'hotwords':
+            if key == "hotwords":
                 try:
                     ujson.loads(value)
                 except:
@@ -1879,19 +2020,63 @@ class CommandHandler:
 
     async def thread_add(self, thread):
         if not thread.me:
-            logger.debug(f'Adding myself to new thread {thread.name} ({thread.id})')
+            logger.debug(f"Adding myself to new thread {thread.name} ({thread.id})")
             await thread.add_user(thread.guild.get_member(self.user.id))
         else:
             if thread.guild:
-                if thread.category_id not in self.config.get(key="automod-blacklist-category", guild=thread.guild.id):
-                    for user in list(filter(lambda user: user in thread.parent.members, load_config.expand_target_list(self.config.get(key="manual-mod-userslist", default=[thread.guild.owner.id], guild=thread.guild.id), thread.guild))):
-                        if self.config.normalize_booleans(self.user_config(user.id, thread.guild.id, key="use_threads", default="True", allow_global_substitute=True)):
-                            logger.debug(f'Adding mod {user} to thread {thread.name} ({thread.id})')
+                if thread.category_id not in self.config.get(
+                    key="automod-blacklist-category", guild=thread.guild.id
+                ):
+                    for user in list(
+                        filter(
+                            lambda user: user in thread.parent.members,
+                            load_config.expand_target_list(
+                                self.config.get(
+                                    key="manual-mod-userslist",
+                                    default=[thread.guild.owner.id],
+                                    guild=thread.guild.id,
+                                ),
+                                thread.guild,
+                            ),
+                        )
+                    ):
+                        if self.config.normalize_booleans(
+                            self.user_config(
+                                user.id,
+                                thread.guild.id,
+                                key="use_threads",
+                                default="True",
+                                allow_global_substitute=True,
+                            )
+                        ):
+                            logger.debug(
+                                f"Adding mod {user} to thread {thread.name} ({thread.id})"
+                            )
                             await thread.add_user(user)
                 for user in thread.parent.members:
-                    use_threads = self.config.normalize(str(self.user_config(user.id, thread.guild.id, key="use_threads", default="False", allow_global_substitute=True)))
-                    if (isinstance(use_threads, bool) and use_threads) or (isinstance(use_threads, str) and thread.id in tuple(self.config.normalize(self.config.normalize_array(use_threads)))):
-                        logger.debug(f'Adding {user} to thread {thread.name} ({thread.id})')
+                    use_threads = self.config.normalize(
+                        str(
+                            self.user_config(
+                                user.id,
+                                thread.guild.id,
+                                key="use_threads",
+                                default="False",
+                                allow_global_substitute=True,
+                            )
+                        )
+                    )
+                    if (isinstance(use_threads, bool) and use_threads) or (
+                        isinstance(use_threads, str)
+                        and thread.id
+                        in tuple(
+                            self.config.normalize(
+                                self.config.normalize_array(use_threads)
+                            )
+                        )
+                    ):
+                        logger.debug(
+                            f"Adding {user} to thread {thread.name} ({thread.id})"
+                        )
                         await thread.add_user(user)
                 global conn
                 bridge_key = f"{thread.guild.name}:{thread.parent_id}"
@@ -1932,14 +2117,24 @@ class CommandHandler:
                                 metuple = cur.fetchone()
                                 conn.commit()
                         if metuple[1] != thread.parent_id and metuple:
-                            new_threads.append(await (await self.client.get_channel(metuple[1]).fetch_message(int(metuple[2]))).create_thread(name=thread.name))
+                            new_threads.append(
+                                await (
+                                    await self.client.get_channel(
+                                        metuple[1]
+                                    ).fetch_message(int(metuple[2]))
+                                ).create_thread(name=thread.name)
+                            )
                     try:
                         cur = conn.cursor()
-                        cur.execute("INSERT INTO threads (source, target) VALUES (%s, %s);", [thread.id, [thread.id for thread in new_threads]])
+                        cur.execute(
+                            "INSERT INTO threads (source, target) VALUES (%s, %s);",
+                            [thread.id, [thread.id for thread in new_threads]],
+                        )
                         conn.commit()
                     except Exception as e:
                         if "cur" in locals() and "conn" in locals():
                             conn.rollback()
+
     async def guild_add(self, guild):
         await guild.chunk()
         await (
@@ -2443,8 +2638,11 @@ WHERE p.key = 'tupper';
                         ujson.loads(hotword_json)
                     except ValueError:
                         ch.client.loop.create_task(
-                                messagefuncs.sendWrappedMessage(f"Error loading your global hotwords: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.", ch.client.get_user(user_id))
-                                )
+                            messagefuncs.sendWrappedMessage(
+                                f"Error loading your global hotwords: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
+                                ch.client.get_user(user_id),
+                            )
+                        )
                         hottuple = cur.fetchone()
                         continue
                 else:
@@ -2461,8 +2659,11 @@ WHERE p.key = 'tupper';
                         logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
                         if guild_id == 0 or guild_id is None:
                             ch.client.loop.create_task(
-                                messagefuncs.sendWrappedMessage(f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.", ch.client.get_user(user_id))
+                                messagefuncs.sendWrappedMessage(
+                                    f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
+                                    ch.client.get_user(user_id),
                                 )
+                            )
                         continue
                     if not guild_config.get("hotwords_loaded"):
                         guild_config["hotwords_loaded"] = ""
