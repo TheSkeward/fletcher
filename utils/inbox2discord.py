@@ -11,9 +11,20 @@ FLETCHER_CONFIG = os.getenv('FLETCHER_CONFIG', './.fletcherrc')
 config = configparser.ConfigParser()
 config.read(FLETCHER_CONFIG)
 imap = imaplib.IMAP4_SSL("localhost")
-imap.login(config['imap']['username'], config['imap']['password'])
+imap.login(config['inbound-imap']['username'], config['inbound-imap']['password'])
 status, messages = imap.select("INBOX")
 message_len = int(messages[0].decode('utf8'))
+
+filters = {}
+for key in [k for k in config['inbound-imap'].keys() if "_filter" in k]:
+    if key.split("_")[1] == "from":
+        filters[config['inbound-imap'][key]] = {
+                "channel": key.split("_")[0],
+                "body_filter": ""
+                }
+    if key.split("_")[1] == "body":
+        filters[next(filter(lambda _, v: v['channel'] == key.split("_")[0], config['inbound-imap'].items()), (None))[0]]["body_filter"] = config['inbound-imap'][key]
+
 notifications = []
 if not message_len:
     sys.exit(0)
@@ -33,10 +44,11 @@ for i in range(message_len, 0, -1):
             From, encoding = decode_header(msg.get("From"))[0]
             if isinstance(From, bytes):
                 From = From.decode(encoding)
-            if From != "Glowfic Constellation <glowfic.constellation@gmail.com>":
+            if From not in filters.keys():
+                imap.store(str(i), '+FLAGS', '\\Deleted')
                 continue
             To = decode_header(msg.get("To"))[0][0]
-            if "+" not in To:
+            if "+" not in To or To.split("+")[1].split("@")[0] != filters[From]["channel"]:
                 imap.store(str(i), '+FLAGS', '\\Deleted')
                 continue
             for part in msg.walk():
@@ -47,11 +59,18 @@ for i in range(message_len, 0, -1):
                     # get the email body
                     body = part.get_payload(decode=True).decode()
                 except:
+                    body = None
                     pass
                 if content_type == "text/plain" and "attachment" not in content_disposition:
+                    assert body is not None
+                    assert isinstance(body, str)
+                    if filters[From]["body_filter"] not in body:
+                        imap.store(str(i), '+FLAGS', '\\Deleted')
+                        continue
+                    if msg.get("X-Google-Group-Id"):
+                        body = "--".join(body.split("--")[:-1])
                     # print text/plain emails and skip attachments
-                    url = "http"+body.split("http")[1].split("\r\n\r\n")[0]
-                    notifications.append((int(To.split("+")[1].split("@")[0]), f"{subject}\n{url}"))
+                    notifications.append((int(To.split("+")[1].split("@")[0]), f"__{subject}__\n{body}"))
                     imap.store(str(i), '+FLAGS', '\\Deleted')
 imap.expunge()
 imap.close()
@@ -69,7 +88,7 @@ Ans = None
 async def on_ready():
     for notification in notifications:
         try:
-            await (await client.fetch_user(notification[0])).send(notification[1])
+            await client.get_channel(notification[0]).send(notification[1])
         except Exception as e:
             print(e)
     await client.close()
