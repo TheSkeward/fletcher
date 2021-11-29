@@ -2,9 +2,12 @@ import asyncio
 import traceback
 import aiohttp
 from asyncache import cached as asynccached
+from saucenao_api import AIOSauceNao
+from saucenao_api.params import Hide
 from collections import Counter, defaultdict, deque
 from cachetools import TTLCache, cached as synccached
 from google.oauth2 import service_account
+import sys
 from google.cloud import vision
 from twilio.rest import Client
 import chronos
@@ -25,12 +28,14 @@ import random
 import re
 import wikidata.client as wikidata
 from lxml import html, etree
+from html import unescape
 from sys import exc_info
 from datetime import datetime, timedelta
 from markdownify import markdownify
 from functools import partial, lru_cache
 import periodictable
 import youtube_dl
+from typing import List
 
 # Super Waifu Animated Girlfriend
 
@@ -1372,6 +1377,8 @@ async def roll_function(message, client, args):
 @asynccached(TTLCache(1024, 6000))
 async def get_google_sheet(sheetId, sheetName, skip=0, cellRange=None, query=None):
     params = {"tqx": "out:csv", "sheet": str(sheetName)}
+    if not isinstance(skip, int):
+        skip = int(skip)
     if cellRange:
         params["range"] = str(cellRange)
     if query:
@@ -1381,7 +1388,7 @@ async def get_google_sheet(sheetId, sheetName, skip=0, cellRange=None, query=Non
         f"https://docs.google.com/spreadsheets/d/{sheetId}/gviz/tq", params=params
     ) as response:
         logger.debug(f"https://docs.google.com/spreadsheets/d/{sheetId}/gviz/tq")
-        return (await response.text()).split("\n", int(skip) if len(skip) else 0)[-1]
+        return (await response.text()).split("\n", 0)[-1]
 
 
 async def pick_function(message, client, args):
@@ -1733,27 +1740,46 @@ async def dog_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-async def tiktok_function(message, client, args):
+async def tiktok_function(message, _, args):
     global ch
     try:
         url = args[0]
         input_image_blob = None
         file_name = None
-        with youtube_dl.YoutubeDL() as ydl:
-            media_info = ydl.extract_info(url, download=False)
-            async with session.get(
-                media_info["formats"][0]["url"],
-                headers=media_info["formats"][0]["http_headers"],
-            ) as resp:
-                if resp.status != 200:
-                    raise Exception(
-                        f"HttpProcessingError: {resp.status} Retrieving image failed!"
-                    )
-                input_image_blob = io.BytesIO(await resp.read())
-            file_name = f'{media_info["id"]}.{media_info["formats"][0]["ext"]}'
+        try:
+            with youtube_dl.YoutubeDL() as ydl:
+                media_info = ydl.extract_info(url, download=False)
+                assert isinstance(media_info, dict)
+                assert isinstance(session, aiohttp.ClientSession)
+                async with session.get(
+                    media_info["formats"][0]["url"],
+                    headers=media_info["formats"][0]["http_headers"],
+                ) as resp:
+                    if resp.status != 200:
+                        raise Exception(
+                            f"HttpProcessingError: {resp.status} Retrieving image failed!"
+                        )
+                    input_image_blob = io.BytesIO(await resp.read())
+                file_name = f'{media_info["id"]}.{media_info["formats"][0]["ext"]}'
+        except youtube_dl.DownloadError:
+            with youtube_dl.YoutubeDL() as ydl:
+                media_info = ydl.extract_info(url, download=False)
+                assert isinstance(media_info, dict)
+                assert isinstance(session, aiohttp.ClientSession)
+                async with session.get(
+                    media_info["formats"][0]["url"],
+                    headers=media_info["formats"][0]["http_headers"],
+                ) as resp:
+                    if resp.status != 200:
+                        raise Exception(
+                            f"HttpProcessingError: {resp.status} Retrieving image failed!"
+                        )
+                    input_image_blob = io.BytesIO(await resp.read())
+                file_name = f'{media_info["id"]}.{media_info["formats"][0]["ext"]}'
         return discord.File(input_image_blob, file_name)
     except Exception as e:
-        exc_type, exc_obj, exc_tb = exc_info()
+        _, _, exc_tb = exc_info()
+        assert exc_tb is not None
         logger.error("TTF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
@@ -2174,7 +2200,7 @@ async def ttl(url, message, client, args):
 
 
 class sliding_puzzle:
-    def __init__(self, message):
+    def __init__(self, message, args):
         self.channel = message.channel
         self.direction_parsing = defaultdict(str)
         self.direction_parsing["🇺"] = self.shift_up
@@ -2200,8 +2226,13 @@ class sliding_puzzle:
         self.blank_x = 3
         self.blank_y = 3
         # scramble it with legal moves so it stays solvable
+        if len(args) and args[0].isnumeric():
+            self.seed = int(args[0])
+        else:
+            self.seed = random.randrange(sys.maxsize)
+        rng = random.Random(self.seed)
         for i in range(1000):
-            move = random.choice(
+            move = rng.choice(
                 [self.shift_up, self.shift_down, self.shift_left, self.shift_right]
             )
             move()
@@ -2278,7 +2309,7 @@ class sliding_puzzle:
         return str(response.emoji)
 
     async def play(self):
-        exposition = """You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space."""
+        exposition = f"""You see a grid of tiles built into the top of a pedestal. The tiles can slide around in the grid, but can't be removed without breaking them. There are fifteen tiles, taking up fifteen spaces in a 4x4 grid, so any of the tiles that are adjacent to the empty space can be slid into the empty space. ||Seed: {self.seed}||"""
 
         await self.print(exposition)
         self.moves = 0
@@ -2347,7 +2378,7 @@ class sliding_puzzle:
 
     async def sliding_puzzle_function(message, client, args):
         try:
-            puzzle = sliding_puzzle(message)
+            puzzle = sliding_puzzle(message, args)
             return await puzzle.play()
         except asyncio.TimeoutError:
             await messagefuncs.sendWrappedMessage(
@@ -2715,7 +2746,7 @@ async def ssc_function(message, client, args):
 async def thingiverse_function(message, client, args):
     try:
         if args[0] not in ("search", "me"):
-            raise discord.errors.InvalidArgument("Unknown subcommand")
+            raise discord.InvalidArgument("Unknown subcommand")
         base_url = "https://api.thingiverse.com"
         endpoint = {
             "search": f"/search/{' '.join(args[1:])}/",
@@ -2745,7 +2776,7 @@ async def thingiverse_function(message, client, args):
 async def trello_function(message, client, args):
     try:
         if args[0] not in ("boards", "set_bookmark_board"):
-            raise discord.errors.InvalidArgument("Unknown subcommand")
+            raise discord.InvalidArgument("Unknown subcommand")
         base_url = "https://api.trello.com/1/"
         trello_key = ch.config.get(section="trello", key="client_key")
         trello_uat = ch.user_config(
@@ -2834,7 +2865,7 @@ async def inspirobot_function(message, client, args):
 async def complice_function(message, client, args):
     try:
         if args[0] not in ("info", "goals", "intention"):
-            raise discord.errors.InvalidArgument("Unknown subcommand")
+            raise discord.InvalidArgument("Unknown subcommand")
         base_url = "https://complice.co/api/v0/u/me/"
         endpoint = {
             "info": "userinfo.json",
@@ -2910,6 +2941,18 @@ async def ace_attorney_function(message, client, args):
             before = await channel.fetch_message(
                 int(args[0]) if int(args[0]) > int(args[1]) else int(args[1])
             )
+            history = channel.history(oldest_first=False, after=after, before=before)
+        elif len(messagefuncs.extract_identifiers_messagelink.findall(message.content)) == 2:
+            links = messagefuncs.extract_identifiers_messagelink.findall(message.content)
+            if int(links[0][-1]) < int(links[1][-1]):
+                after = int(links[0][-1])
+                before = int(links[1][-1])
+            else:
+                after = int(links[1][-1])
+                before = int(links[0][-1])
+            channel = message.guild.get_channel(int(links[0][-2]))
+            after = await channel.fetch_message(after)
+            before = await channel.fetch_message(before)
             history = channel.history(oldest_first=False, after=after, before=before)
         else:
             after = None
@@ -2994,6 +3037,117 @@ async def ace_attorney_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("AAF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
+async def saucenao_function(message, client, args):
+    try:
+        url = None
+        if len(message.attachments):
+            lessage = message
+            url = message.attachments[0].url
+        elif len(message.embeds) and message.embeds[0].image.url != discord.Embed.Empty:
+            lessage = message
+            url = message.embeds[0].image.url
+        elif (
+            len(message.embeds)
+            and message.embeds[0].thumbnail.url != discord.Embed.Empty
+        ):
+            lessage = message
+            url = message.embeds[0].thumbnail.url
+        elif len(args) > 1 and args[1]:
+            lessage = message
+            url = args[1]
+        else:
+            lessage = (
+                await message.channel.history(limit=1, before=message).flatten()
+            )[0]
+            if len(lessage.attachments):
+                url = lessage.attachments[0].url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].image.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].image.url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].thumbnail.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].thumbnail.url
+        logger.debug(url)
+        if not url or not isinstance(url, str) or "http" not in url:
+            return
+        async with AIOSauceNao(ch.config.get(section='saucenao', key='client_key'), hide=(Hide.NONE if message.channel.nsfw else Hide.ALL)) as aio:
+            assert aio is not None
+            results = await aio.from_url(url)
+            assert results is not None
+            if results:
+                await messagefuncs.sendWrappedMessage(f"{results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today", message.channel, reference=message.to_reference())
+    except Exception as e:
+        _, _, exc_tb = exc_info()
+        logger.error("SNF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+            
+
+async def image_edit_function(message, client, args: List[str]):
+    try:
+        url = None
+        if len(message.attachments):
+            lessage = message
+            url = message.attachments[0].url
+        elif len(message.embeds) and message.embeds[0].image.url != discord.Embed.Empty:
+            lessage = message
+            url = message.embeds[0].image.url
+        elif (
+            len(message.embeds)
+            and message.embeds[0].thumbnail.url != discord.Embed.Empty
+        ):
+            lessage = message
+            url = message.embeds[0].thumbnail.url
+        elif len(args) >= 1 and "http" in " ".join(args):
+            lessage = message
+            url = next(filter(lambda a: "http" in a, args), None)
+            args = list(filter(lambda a: "http" not in a, args))
+        else:
+            lessage = (
+                await message.channel.history(limit=1, before=message).flatten()
+            )[0]
+            if len(lessage.attachments):
+                url = lessage.attachments[0].url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].image.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].image.url
+            elif (
+                len(lessage.embeds)
+                and lessage.embeds[0].thumbnail.url != discord.Embed.Empty
+            ):
+                url = lessage.embeds[0].thumbnail.url
+        logger.debug(url)
+        if not url:
+            return await messagefuncs.sendWrappedMessage(
+                "Could not find URL", target=message.channel
+            )
+        base_url = ch.config.get(section="images", key="server_url")
+        endpoint = ch.config.get(section="images", key="endpoint")
+        params = aiohttp.FormData()
+        params.add_field("url", url)
+        params.add_field("satadj", float(args[0]) if len(args) > 1 and args[0].isnumeric() else 2)
+        async with session.post(f"{base_url}{endpoint}", data=params) as resp:
+            if resp.status != 200:
+                return await messagefuncs.sendWrappedMessage(
+                    "Error processing file", target=message.channel
+                )
+            buffer = io.BytesIO(await resp.read())
+            return await messagefuncs.sendWrappedMessage(
+                files=[discord.File(buffer, "stylish.jpg")],
+                target=message.channel,
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("IEF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
 
@@ -3511,6 +3665,79 @@ async def get_rotating_food(message, client, args):
         logger.error("GRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
         await message.add_reaction("🚫")
 
+
+async def bash_preview(message, client, args):
+    try:
+        try:
+            if args[0].isnumeric():
+                mode = "quote"
+            else:
+                mode="sort=0&show=25&search"
+            async with session.get(f'http://bash.org/?{mode}={"+".join(args)}') as resp:
+                if resp.status != 200:
+                    raise Exception(
+                        "HttpProcessingError: "
+                        + str(resp.status)
+                        + " Retrieving quote failed!"
+                    )
+                root = html.document_fromstring(await resp.text())
+                # if args[-1] == "INTPROC":
+                qt = root.xpath('//p[@class="qt"]')[0]
+                # else:
+                #     qt = random.choice(root.xpath('//p[@class="qt"]'))
+                content = '```'+unescape(re.sub(r"][\r\n\t\s]*[\r\n\t][\r\n\t\s]*", "", html.tostring(qt, method='html', with_tail=False, encoding='unicode')).replace("<br>", ""))[14:-4]+'```'
+                if args[-1] == "INTPROC":
+                    return content
+                else:
+                    return await messagefuncs.sendWrappedMessage(
+                        content,
+                        target=message.channel,
+                    )
+        except (
+            ValueError,
+            BrokenPipeError,
+            IndexError,
+            AttributeError,
+            discord.HTTPException,
+        ) as e:
+            logger.debug(e)
+            pass
+    except Exception as e:
+        _, _, exc_tb = exc_info()
+        assert exc_tb is not None
+        logger.error("BASH[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+async def delphi(message, client, args):
+    try:
+        # curl 'https://delphi.allenai.org/api/solve' -X POST -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:93.0) Gecko/20100101 Firefox/93.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: https://delphi.allenai.org' -H 'Connection: keep-alive' -H 'Referer: https://delphi.allenai.org/?a1=backsolving+an+API%0A' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-origin' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'TE: trailers' --data-raw '{"action1":"backsolving an API\n"}'
+        for counter in range(5):
+            try:
+                async with session.post('https://delphi.allenai.org/api/solve', json={"action1": " ".join(args)}) as resp:
+                    if resp.status != 200:
+                        raise Exception(
+                            "HttpProcessingError: "
+                            + str(resp.status)
+                            + " Retrieving image failed!"
+                        )
+                    return await messagefuncs.sendWrappedMessage(
+                        ((await resp.json())['answer']['text']),
+                        target=message.channel,
+                        reference=message
+                        )
+            except (
+                ValueError,
+                BrokenPipeError,
+                IndexError,
+                AttributeError,
+                discord.HTTPException,
+            ) as e:
+                pass
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("DELPHI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
 def callme_function(message, client, args):
     if ch.user_config(message.author.id, None, "callme-number"):
         return "Calling you now. Debug information for error reports: "+twilioClient.calls.create(
@@ -3521,6 +3748,16 @@ def callme_function(message, client, args):
     else:
         return "Set a `callme-number` by DMing me with `!preference callme-number +15555555555"
 
+async def sholo_room(message, client, args):
+    room = random.choice((await get_google_sheet("105B_CdR8KNcy75FuIZdVvN-yDz1TxgECr_YfE5ILI2U", "Rooms", query="SELECT A, I, J WHERE I IS NULL OR J IS NULL")).split("\n"))[1:-1].split('","')
+    if len(room[1]) == 0 and len(room[2]) == 0:
+        room[1] = ["A", "B"][random.randint(0, 1)]
+    elif len(room[1]) == 0:
+        room[1] = "A"
+    else:
+        room[1] = "B"
+    await messagefuncs.sendWrappedMessage(f"{room[0]}{room[1]}", message.channel, reference=message.to_reference())
+    await message.add_reaction('🍄')
 
 
 async def autounload(ch):
@@ -3553,6 +3790,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "uwu",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!oracle", "!delphi"],
+            "function": delphi,
+            "async": True,
+            "long_run": True,
+            "args_num": 1,
+            "args_name": [],
+            "description": "Tells Right From Wrong.",
+            "hidden": True,
         }
     )
     ch.add_command(
@@ -4099,6 +4348,19 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
+                "🖌️",
+            ],
+            "function": saucenao_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "hidden": False,
+            "description": "Source an image if possible.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
                 "!stuporfy",
             ],
             "function": lambda message, client, args: f"{message.mentions[0].mention if len(message.mentions) else message.author.mention}: ZAP",
@@ -4125,6 +4387,31 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
+                "!shroom",
+            ],
+            "function": sholo_room,
+            "async": True,
+            "args_num": 0,
+            "hidden": True,
+            "args_name": [],
+            "description": "Roll a Sholomance room",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!saturate",
+            ],
+            "function": image_edit_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": ["saturation", "url"],
+            "description": "Saturate an image",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
                 "!glownotify",
             ],
             "function": glowfic_subscribe_function,
@@ -4145,6 +4432,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [""],
             "description": "Generate two stats (per https://twostats.neocities.org/)",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!bash",
+            ],
+            "function": bash_preview,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["Bash number or keyword"],
+            "description": "Preview bash function",
         }
     )
     ch.add_command(
@@ -4176,8 +4475,11 @@ def autoload(ch):
             "trigger": [
                 "<:glowfic_const_search_quote:796416363312185384>",
                 "<:glowsearch:799184607555747870>",
+                "<:glowsearch:905560679052898314>",
                 "<:glowsearch:799817787593457744>",
                 "<:glowsearch:811320496883892279>",
+                "<:glowsearch:905558743482269746>",
+                "<:glowsearch:905559081383759923>",
                 "<:quotesearch:815017247349276672>",
                 "<:glowfic_const_search_quote:858135840957661214>",
             ],
@@ -4185,14 +4487,18 @@ def autoload(ch):
             "async": True,
             "hidden": True,
             "whitelist_guild": [
+                419246748020506644,
                 294167563447828481,
                 401181628015050773,
                 617953490383405056,
                 606896038183436318,
                 542027203383394304,
                 289207224075812864,
+                905525244205350914,
                 764930810179747850,
+                519334130375458844,
                 630487117688078358,
+                905525244205350914,
             ],
             "args_num": 0,
             "args_name": [],
@@ -4249,3 +4555,8 @@ def autoload(ch):
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
             }
         )
+    async def pongo(ctx, *args):
+        logger.debug(f"Pongo time {ctx} {args}")
+        await ctx.respond("Pong!")
+    asyncio.get_event_loop().create_task(client.http.bulk_upsert_guild_commands(client.user.id, 634249282488107028, [discord.commands.SlashCommand(pongo, name="ping").to_dict()]))
+

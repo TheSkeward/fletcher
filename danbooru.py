@@ -7,7 +7,7 @@ from random import shuffle
 import discord
 import io
 from sys import exc_info
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import logging
 
@@ -15,7 +15,7 @@ logger = logging.getLogger("fletcher")
 
 
 session = None
-search_results_cache : Dict[str, List[Dict[str, str]]]
+search_results_cache : Optional[Dict[str, List[Dict[str, str]]]] = None
 base_url = "https://danbooru.donmai.us"
 
 

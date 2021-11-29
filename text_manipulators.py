@@ -3446,7 +3446,7 @@ async def blockquote_embed_function(message, client, args):
         else:
             quoted_by = f"On behalf of {quoted_by}"
         embed = discord.Embed().set_footer(
-            icon_url=message.display_avatar, text=quoted_by
+            icon_url=message.author.display_avatar, text=quoted_by
         )
         if title:
             embed.title = title

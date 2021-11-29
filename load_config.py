@@ -1,32 +1,36 @@
+import configparser
+import copy
+import logging
+from typing import Dict, Union, Iterable, cast
 import os
 import discord
-import copy
-import configparser
-import logging
 
 logger = logging.getLogger("fletcher")
 
 
 class FletcherConfig:
-    config_dict = None
+    config_dict: Dict
 
     def __init__(self, base_config_path=os.getenv("FLETCHER_CONFIG", "./.fletcherrc")):
-        config = configparser.ConfigParser()
-        config.optionxform = str
-        config.read(base_config_path)
-        config = {
-            s: {k: self.normalize(v, key=k) for k, v in dict(config.items(s)).items()}
-            for s in config.sections()
+        configparse = configparser.ConfigParser()
+        configparse.optionxform = str # type: ignore[attr-defined]
+        self.client = None
+        configparse.read(base_config_path)
+        config: Dict[str, Union[Dict, Iterable, int, float, str]]  = {
+            s: {k: self.normalize(v, key=k) for k, v in dict(configparse.items(s)).items()}
+            for s in configparse.sections()
         }
         self.config_dict = config
-
-        if os.path.isdir(config.get("extra", {}).get("rc-path", "/unavailable")):
-            for file_name in os.listdir(config.get("extra", {}).get("rc-path")):
+        extra_section = config.get("extra", {})
+        assert isinstance(extra_section, Dict)
+        rc_path = str(extra_section.get("rc-path", "/unavailable"))
+        if os.path.isdir(rc_path):
+            for file_name in os.listdir(rc_path):
                 if file_name.isdigit():
                     guild_config = configparser.ConfigParser()
-                    guild_config.optionxform = str
-                    guild_config.read(f'{config["extra"]["rc-path"]}/{file_name}')
-                    for section_name, section in guild_config.items():
+                    guild_config.optionxform = str # type: ignore[attr-defined]
+                    guild_config.read(f'{rc_path}/{file_name}')
+                    for section_name in guild_config.keys():
                         if section_name.lower() in ["default", "general"]:
                             section_key = f"Guild {file_name}"
                         else:
@@ -38,18 +42,21 @@ class FletcherConfig:
                             )
                         else:
                             config[section_key] = {}
+                        section = cast(dict, config[section_key])
                         for k, v in guild_config.items(section_name):
+                            section = cast(dict, config[section_key])
                             if k.startswith("SECTION_"):
-                                k = k.split("_", 2)[1:]
-                                subsection_key = k[0]
-                                k = k[1]
-                                if subsection_key not in config[section_key]:
-                                    config[section_key][subsection_key] = {}
-                                config[section_key][subsection_key][k] = self.normalize(
+                                subsection_key, k = k.split("_", 2)[1:]
+                                subsection = section.get(subsection_key)
+                                if not subsection:
+                                    section[subsection_key] = {}
+                                subsection = section.get(subsection_key)
+                                assert isinstance(subsection, dict)
+                                subsection[k] = self.normalize(
                                     v, key=k
                                 )
                             else:
-                                config[section_key][k] = self.normalize(v, key=k)
+                                section[k] = self.normalize(v, key=k)
         self.config_dict = config
         self.defaults = {
             "database": {
@@ -84,31 +91,25 @@ class FletcherConfig:
     def clone(self):
         return copy.deepcopy(self)
 
-    def normalize_booleans(self, value, strict=False):
-        if type(value) is bool:
+    def normalize_booleans(self, value: Union[str, bool]) -> Union[str, bool]:
+        if isinstance(value, bool):
             return value
-        elif str(value).lower().strip() in ["on", "true", "yes"]:
+        if str(value).lower().strip() in ["on", "true", "yes"]:
             return True
-        elif str(value).lower().strip() in ["off", "false", "no"]:
+        if str(value).lower().strip() in ["off", "false", "no"]:
             return False
-        elif strict:
-            return None
-        else:
-            return value
+        return value
 
-    def normalize_numbers(self, value, strict=False):
-        if type(value) in [int, float]:
+    def normalize_numbers(self, value: Union[str, int, float]) -> Union[str, int, float]:
+        if isinstance(value, (int, float)):
             return value
-        elif str(value).isdigit():
+        if str(value).isdigit():
             return int(value)
-        elif str(value).isnumeric():
+        if str(value).isnumeric():
             return float(value)
-        elif strict:
-            return None
-        else:
-            return value
+        return value
 
-    def str_to_array(self, string, delim=",", strip=True, filter_function=None.__ne__):
+    def str_to_array(self, string: str, delim=",", strip=True, filter_function=None.__ne__):
         array = string.split(delim)
         if strip:
             array = map(str.strip, array)
@@ -116,29 +117,25 @@ class FletcherConfig:
             array = map(int, array)
         return list(filter(filter_function, array))
 
-    def normalize_array(self, value, strict=False):
-        if type(value) is list:
+    def normalize_array(self, value: Union[list, str]) -> list:
+        if isinstance(value, list):
             return value
-        elif ", " in value or value.startswith(" ") or value.endswith(" "):
+        if ", " in value or value.startswith(" ") or value.endswith(" "):
             return self.str_to_array(value, strip=True) or []
-        elif "," in value:
+        if "," in value:
             return self.str_to_array(value, strip=False) or []
-        elif strict:
-            return None
-        else:
-            return [value]
+        return [value]
 
-    def normalize(self, value, key=""):
-        if type(value) is dict:
+    def normalize(self, value: Union[dict, list, str, int, float], key: str="") -> Union[Dict, Iterable, float, int, str]:
+        if isinstance(value, dict):
             return {k: self.normalize(v) for k, v in value.items()}
-        elif type(value) is list:
+        if isinstance(value, list):
             return [self.normalize(v) for v in value]
-        elif "list" in key:
+        if isinstance(value, str) and "list" in key:
             return [self.normalize(v) for v in self.normalize_array(value)]
-        else:
-            return self.normalize_numbers(
-                self.normalize_booleans(value, strict=False), strict=False
-            )
+        return self.normalize_numbers(
+            self.normalize_booleans(str(value))
+        )
 
     def __getitem__(self, key):
         return self.get(key=key)
@@ -158,21 +155,25 @@ class FletcherConfig:
         use_guild_as_channel_fallback=True,
     ):
         if guild is None and channel:
-            if type(channel) in [
-                discord.TextChannel,
-                discord.VoiceChannel,
-                discord.CategoryChannel,
-            ]:
+            if isinstance(
+                channel,
+                (
+                    discord.TextChannel,
+                    discord.VoiceChannel,
+                    discord.CategoryChannel,
+                ),
+            ):
                 guild = channel.guild
             else:
                 guild = 0
-        if hasattr(guild, "id"):
+        if isinstance(guild, discord.Guild):
             guild = guild.id
         if hasattr(channel, "id"):
             channel = channel.id
         if (
             guild
             and channel
+            and self.client
             and self.client.get_guild(guild)
             and self.client.get_guild(guild).get_channel(channel)
             and self.client.get_guild(guild).get_channel(channel).category_id
@@ -261,6 +262,19 @@ class FletcherConfig:
                 "Guild was not specified and cannot be inferred from channel [This code should be unreachable, something has gone terribly wrong]"
             )
         elif (
+            key is None
+            and section is None
+            and guild is not None
+            and channel is not None
+        ):
+            value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {})
+            if value is {} and use_category_as_channel_fallback and category:
+                value = self.config_dict.get(f"Guild {guild:d} - {category:d}", {})
+            if value is {} and use_guild_as_channel_fallback:
+                value = self.config_dict.get(f"Guild {guild:d}", {})
+            if value is {}:
+                value = self.channel_defaults
+        elif (
             key is not None
             and section is None
             and guild is not None
@@ -269,15 +283,15 @@ class FletcherConfig:
             value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(
                 key, None
             )
-            if not value and use_category_as_channel_fallback:
+            if value is None and use_category_as_channel_fallback and category:
                 value = self.config_dict.get(f"Guild {guild:d} - {category:d}", {}).get(
                     key, None
                 )
-            if not value and use_guild_as_channel_fallback:
+            if value is None and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(key, None)
-            if not value:
+            if value is None:
                 value = self.channel_defaults.get(key, None)
-            if not value and use_guild_as_channel_fallback:
+            if value is None and use_guild_as_channel_fallback:
                 value = self.guild_defaults.get(key, None)
         elif (
             key is None
@@ -288,17 +302,17 @@ class FletcherConfig:
             value = self.config_dict.get(f"Guild {guild:d} - {channel:d}", {}).get(
                 section, None
             )
-            if not value and use_category_as_channel_fallback:
-                value = self.config_dict.get(f"Guild {guild:d} - {category:d}").get(
+            if value is None and use_category_as_channel_fallback and category:
+                value = cast(dict, self.config_dict.get(f"Guild {guild:d} - {category:d}")).get(
                     section, None
                 )
-            if not value and use_guild_as_channel_fallback:
+            if value is None and use_guild_as_channel_fallback:
                 value = self.config_dict.get(f"Guild {guild:d}", {}).get(section, None)
-            if not value:
+            if value is None:
                 value = self.channel_defaults.get(section, None)
-            if not value and use_guild_as_channel_fallback:
+            if value is None and use_guild_as_channel_fallback:
                 value = self.guild_defaults.get(section, None)
-            if not value:
+            if value is None:
                 value = {}
         elif (
             key is not None
@@ -311,39 +325,42 @@ class FletcherConfig:
                 .get(section, {})
                 .get(key, None)
             )
-            if not value and use_category_as_channel_fallback:
+            if value is None and use_category_as_channel_fallback and category:
                 value = (
-                    self.config_dict.get(f"Guild {guild:d} - {category:d}")
+                    cast(dict, self.config_dict.get(f"Guild {guild:d} - {category:d}"))
                     .get(section, {})
                     .get(key, None)
                 )
-            if not value and use_guild_as_channel_fallback:
+            if value is None and use_guild_as_channel_fallback:
                 value = (
                     self.config_dict.get(f"Guild {guild:d}", {})
                     .get(section, {})
                     .get(key, None)
                 )
-            if not value:
-                value = self.channel_defaults.get(section, {}).get(key, None)
-            if not value and use_guild_as_channel_fallback:
+            if value is None:
+                value = cast(dict, self.channel_defaults.get(section, {})).get(key, None)
+            if value is None and use_guild_as_channel_fallback:
                 value = self.guild_defaults.get(section, {}).get(key, None)
         if value is None or value == {} and default:
             value = default
         return value
 
     def __contains__(self, key):
-        if type(key) in [discord.Guild]:
-            return f"Guild {guild.id:d}" in self.config_dict
-        elif type(key) in [
-            discord.TextChannel,
-            discord.VoiceChannel,
-            discord.CategoryChannel,
-        ]:
+        if isinstance(key, discord.Guild):
+            return f"Guild {key.id:d}" in self.config_dict
+        if isinstance(
+            key,
+            (
+                discord.TextChannel,
+                discord.VoiceChannel,
+                discord.CategoryChannel,
+            ),
+        ):
             return f"Guild {key.guild.id:d} - {key.id:d}" in self.config_dict
-        elif type(key) in [discord.DMChannel]:
+        if isinstance(key, discord.DMChannel) and key.recipient is not None:
             return f"Guild 0 - {key.recipient.id:d}" in self.config_dict
-        else:
-            return key in self.config_dict or key in self.defaults
+        return key in self.config_dict or key in self.defaults
+
 
 def expand_target_list(targets, guild):
     try:
@@ -352,12 +369,13 @@ def expand_target_list(targets, guild):
         inputs = [targets]
     targets = set()
     for target in inputs:
-        if type(target) == str:
+        if isinstance(target, str):
             if target.startswith("r:"):
                 try:
                     members = guild.get_role(int(target[2:])).members
                 except ValueError:
-                    members = discord.utils.get(guild.roles, name=target[2:]).members
+                    role = discord.utils.get(guild.roles, name=target[2:])
+                    members = role.members if role else []
                 targets.update(set(members))
             elif target.startswith("c:"):
                 try:
@@ -375,5 +393,3 @@ def expand_target_list(targets, guild):
             targets.add(guild.get_member(int(target)))
     targets.discard(None)
     return targets
-
-

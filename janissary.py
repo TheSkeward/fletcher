@@ -1,19 +1,21 @@
-import aiohttp
-import psycopg2
-from functools import partial
-import asyncio
 from datetime import datetime, timedelta, timezone
+from functools import partial
+from sys import exc_info
+import aiohttp
+import asyncio
+import commandhandler
 import dateparser.search
+import Levenshtein
 import discord
+import exceptions
+import load_config
 import logging
 import messagefuncs
 import netcode
-from sys import exc_info
+import psycopg2
 import random
 import text_manipulators
 import ujson
-import exceptions
-import load_config
 
 # global conn set by reload_function
 
@@ -340,7 +342,7 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if "snappy" in config["discord"] and config["discord"]["snappy"]:
+            if ch.user_config(message.author.id, message.guild.id, 'snappy', default=False, allow_global_substitute=True) or ch.config.get(key='snappy', guild=message.guild.id):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -911,6 +913,11 @@ async def role_message_function(message, client, args, remove=False):
         role = ch.config.get(
             key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
         )
+        audit_channel = ch.config.get(
+            key="audit-channel", default=0, guild=message.guild
+        )
+        if audit_channel:
+            audit_channel = message.guild.get_channel(audit_channel)
         role_str = role
         if not role:
             logger.debug("No matching role")
@@ -920,9 +927,10 @@ async def role_message_function(message, client, args, remove=False):
         else:
             role = discord.utils.get(message.guild.roles, name=role)
         if not role:
-            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction.emoji} to role-message {message.id}"
+            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction.emoji} to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
+            error_message = f"Assigning role {role.mention} to {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             await message.guild.get_member(user.id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
             )
@@ -930,10 +938,15 @@ async def role_message_function(message, client, args, remove=False):
                 key="role-message-autodelete", guild=message.guild, default=[]
             ):
                 await message.remove_reaction(reaction.emoji, user)
+            if audit_channel:
+                await messagefuncs.sendWrappedMessage(error_message, audit_channel)
         else:
+            error_message = f"Removing role {role.mention} from {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             await message.guild.get_member(user.id).remove_roles(
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
+            if audit_channel:
+                await messagefuncs.sendWrappedMessage(error_message, audit_channel)
     except (discord.Forbidden, exceptions.MisconfigurationException) as e:
         exc_type, exc_obj, exc_tb = exc_info()
         await messagefuncs.sendWrappedMessage(
@@ -1127,8 +1140,11 @@ async def copy_emoji_function(message, client, args):
             elif len(emoji):
                 emoji = emoji[0]
             else:
+                error_msg = "Emoji not found on any Fletcher-enabled server."
+                if isinstance(emoji_query, str):
+                    error_msg += f" Did you mean `{sorted(client.emojis, key=lambda emoji: Levenshtein.distance(emoji.name, emoji_query))[0].name}`?"
                 await messagefuncs.sendWrappedMessage(
-                    "Emoji not found on any Fletcher-enabled server.", message.channel
+                    error_msg, message.channel, delete_after=30
                 )
                 return
             if len(args) > 0:
@@ -1143,7 +1159,7 @@ async def copy_emoji_function(message, client, args):
             )
             await target.add_reaction("✅")
             try:
-                reaction = await client.wait_for(
+                await client.wait_for(
                     "raw_reaction_add",
                     timeout=6000.0,
                     check=lambda reaction: (str(reaction.emoji) == str("✅"))
@@ -1232,15 +1248,10 @@ async def add_inbound_sync_function(message, client, args):
         else:
             fromChannelName = f"{fromChannel.guild.name}:{fromChannel.id}"
             if ch.webhook_sync_registry.get(fromChannelName):
-                ch.webhook_sync_registry[fromChannelName]["toChannelObject"].append(
-                    toChannel
-                )
-                ch.webhook_sync_registry[fromChannelName]["toWebhook"].append(webhook)
+                ch.webhook_sync_registry[fromChannelName].append(toChannel, webhook)
             else:
-                ch.webhook_sync_registry[fromChannelName] = {
-                    "toChannelObject": [toChannel],
-                    "toWebhook": [webhook],
-                }
+                ch.webhook_sync_registry[fromChannelName] = commandhandler.Bridge()
+                ch.webhook_sync_registry[fromChannelName].append(toChannel, webhook)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"AOSF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -1497,7 +1508,7 @@ async def invite_function(message, client, args):
                 messagefuncs.xchannel(channel_name, message.guild) or message.channel
             )
         if type(channel) == discord.DMChannel or not channel:
-            raise discord.errors.InvalidArgument(
+            raise discord.InvalidArgument(
                 "Channel appears to not exist or is DM"
             )
         localizedUser = channel.guild.get_member(message.author.id)
@@ -1591,7 +1602,7 @@ async def invite_function(message, client, args):
         return await messagefuncs.sendWrappedMessage(
             f"Permissions error while inviting: {e}.", message.author
         )
-    except discord.errors.InvalidArgument:
+    except discord.InvalidArgument:
         return await messagefuncs.sendWrappedMessage(
             f"Invalid arguments, could not infer channel or user: {e}", message.author
         )
@@ -1696,15 +1707,12 @@ async def self_service_role_function(message, client, args):
             )
             ch.add_message_reaction_handler(
                 [message.id],
-                {
-                    "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_role_function,
-                    "exclusive": True,
-                    "async": True,
-                    "args_num": 0,
-                    "args_name": [],
-                    "description": "add user to role for a given message",
-                },
+                commandhandler.Command(
+                    function=self_service_role_function,
+                    exclusive=True,
+                    sync=False,
+                    description="add user to role for a given message"
+                ),
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
@@ -1724,6 +1732,7 @@ async def self_service_channel_function(
     global ch
     try:
         if not len(message.channel_mentions):
+            await messagefuncs.sendWrappedMessage("Could not link reactions, no channel mention found in message.", message.author)
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
@@ -1880,19 +1889,16 @@ async def self_service_channel_function(
             )
             ch.add_message_reaction_handler(
                 [message.id],
-                {
-                    "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": partial(
+                commandhandler.Command(
+                    function=partial(
                         self_service_channel_function,
                         autoclose=autoclose,
                         confirm=confirm,
                     ),
-                    "exclusive": True,
-                    "async": True,
-                    "args_num": 0,
-                    "args_name": [],
-                    "description": "add user to channel for a given message",
-                },
+                    exclusive=True,
+                    sync=False,
+                    description="add user to channel for a given message"
+                ),
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
@@ -2445,19 +2451,16 @@ def autoload(ch):
             )
             ch.add_message_reaction_handler(
                 [message_id],
-                {
-                    "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": partial(
+                commandhandler.Command(
+                    function=partial(
                         self_service_channel_function,
                         autoclose=subtuple[2].endswith("autoclose"),
                         confirm=subtuple[2].endswith("confirm"),
                     ),
-                    "exclusive": True,
-                    "async": True,
-                    "args_num": 0,
-                    "args_name": [],
-                    "description": "add user to channel for a given message",
-                },
+                    exclusive=True,
+                    sync=False,
+                    description="add user to channel for a given message"
+                ),
             )
             subtuple = cur.fetchone()
         conn.commit()
@@ -2497,15 +2500,12 @@ def autoload(ch):
             )
             ch.add_message_reaction_handler(
                 [message_id],
-                {
-                    "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": self_service_role_function,
-                    "exclusive": True,
-                    "async": True,
-                    "args_num": 0,
-                    "args_name": [],
-                    "description": "add user to role for a given message",
-                },
+                commandhandler.Command(
+                    function=self_service_role_function,
+                    exclusive=True,
+                    sync=False,
+                    description="add user to role for a given message"
+                ),
             )
             subtuple = cur.fetchone()
         conn.commit()
@@ -2530,15 +2530,12 @@ def autoload(ch):
             )
             ch.add_message_reaction_handler(
                 rml,
-                {
-                    "trigger": [""],  # empty string: a special catch-all trigger
-                    "function": role_message_function,
-                    "exclusive": True,
-                    "async": True,
-                    "args_num": 0,
-                    "args_name": [],
-                    "description": "assign roles based on emoji for a given message",
-                },
+                commandhandler.Command(
+                    function=role_message_function,
+                    exclusive=True,
+                    sync=False,
+                    description="assign roles based on emoji for a given message",
+                ),
             )
 
     load_self_service_channels(ch)

@@ -57,7 +57,7 @@ async def saverole_function(member, client, config):
     try:
         global conn
         if len(member.roles):
-            roles = [role.id for role in member.roles]
+            roles = [role.id for role in member.roles if role.is_assignable()]
             logger.info(
                 f'SRF: Storing roles {",".join([str(role) for role in roles])} for {member.id} in {member.guild.id}'
             )
@@ -260,7 +260,7 @@ async def chanban_reload_function(guild, client, config):
 
 async def regex_filter(message, client, config):
     try:
-        if config.get("regex-listmode") == "whitelist":
+        if config.get("regex-allowmode") == "whitelist":
             whitelist_mode = True
         else:
             whitelist_mode = False
@@ -278,13 +278,14 @@ async def regex_filter(message, client, config):
             allowed = False
         elif matching and not whitelist_mode:
             allowed = False
-        elif not matching and not whitelist_mode:
+        # elif not matching and not whitelist_mode:
+        else:
             allowed = True
         if not allowed:
             if "regex-warn-reaction" in config:
                 if len(config["regex-warn-reaction"]) > 1:
                     target_emoji = discord.utils.get(
-                        guild.emojis, name=config["regex-warn-reaction"]
+                        message.guild.emojis, name=config["regex-warn-reaction"]
                     )
                     if target_emoji is None:
                         target_emoji = discord.utils.get(
@@ -313,7 +314,7 @@ async def regex_filter(message, client, config):
 
             if config.get("regex-kill"):
                 if message.channel.permissions_for(message.author).manage_messages:
-                    emoji = "\U0001F5D9"
+                    emoji = client.get_emoji(787460478527078450)
                     await message.add_reaction(emoji)
                     await asyncio.sleep(10)
                     await message.remove_reaction(emoji, client.user)

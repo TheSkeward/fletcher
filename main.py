@@ -121,6 +121,14 @@ fletcher=# \d qdb
  key      | text    |           |          | 
  value    | text    |           | not null | 
 
+fletcher=# \d threads
+               Table "public.threads"
+ Column |   Type   | Collation | Nullable | Default
+--------+----------+-----------+----------+---------
+ source | bigint   |           |          |
+ target | bigint[] |           |          |
+
+
 """
 
 logger = logging.getLogger("fletcher")
@@ -229,7 +237,7 @@ async def reload_function(message=None, client=client, args=[]):
     global doissetep_omega
     now = datetime.utcnow()
     try:
-        await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
+        # await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
         if config["discord"].get("profile"):
             global pr
             if pr:
@@ -250,7 +258,7 @@ async def reload_function(message=None, client=client, args=[]):
         # Command Handler (loaded twice to bootstrap)
         await autoload(commandhandler, None, config)
         await animate_startup("⌨", message)
-        ch = commandhandler.CommandHandler(client)
+        ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
         await autoload(versionutils, ch)
@@ -335,7 +343,7 @@ async def on_ready():
         global client
         global ch
         # print bot information
-        await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
+        # await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
         logger.info(
             f"Discord.py Version {discord.__version__}, connected as {client.user.name} ({client.user.id})"
         )
@@ -791,6 +799,18 @@ async def on_thread_join(thread):
             await asyncio.sleep(1)
         break
     await ch.thread_add(thread)
+
+@client.event
+async def on_interaction(ctx):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+        except AttributeError:
+            await asyncio.sleep(1)
+        break
+    await ch.on_interaction(ctx)
 
 
 loop = asyncio.get_event_loop()

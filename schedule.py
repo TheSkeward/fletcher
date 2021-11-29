@@ -42,7 +42,7 @@ class ScheduleFunctions:
             every = chronos.parse_every.search(cached_content).groups(default=1)
             try:
                 cur = conn.cursor()
-                target = f"NOW() + '{every[0]} {every[1]}'::interval"
+                target = f"NOW() + '{every[0]} {every[1]}'::interval - '1 minute'::interval"
                 cur.execute(
                     f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
                     [
@@ -57,7 +57,9 @@ class ScheduleFunctions:
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
-        link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}" if target_message else "<missing link>"
+        if target_message is None:
+            return None
+        link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}"
         return [
             f"Reminder for {user.mention} {link}\n> {cached_content}",
             from_channel,
@@ -67,6 +69,11 @@ class ScheduleFunctions:
         target_message, user, cached_content, mode_args, created_at, from_channel
     ):
         return f"You tabled a discussion at {created_at}: want to pick that back up?\nDiscussion link: https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}\nContent: {cached_content}"
+
+    async def getalong(
+        target_message, user, cached_content, mode_args, created_at, from_channel
+    ):
+        await from_channel.set_permissions(user, send_messages=True, reason="Can get along now")
 
     async def unban(
         target_message, user, cached_content, mode_args, created_at, from_channel
@@ -209,6 +216,9 @@ modes: Dict[str, commandhandler.Command] = {
     "unban": commandhandler.Command(
         description="snoozed a channel", function=ScheduleFunctions.unban, sync=False
     ),
+    "getalong": commandhandler.Command(
+        description="timeout is up", function=ScheduleFunctions.getalong, sync=False
+    ),
     "overwrite": commandhandler.Command(
         description="snoozed a single channel and kept the overwrite intact",
         function=ScheduleFunctions.overwrite,
@@ -285,9 +295,11 @@ async def table_exec_function():
                         await messagefuncs.sendWrappedMessage(*todo)
                     elif type(todo) is dict:
                         await messagefuncs.sendWrappedMessage(**todo)
+                    elif todo is None:
+                        pass
                     else:
                         raise asyncio.CancelledError()
-                except discord.errors.Forbidden:
+                except discord.Forbidden:
                     pass
                 processed_ctids += [ctid]
                 tabtuple = cur.fetchone()

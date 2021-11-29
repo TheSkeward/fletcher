@@ -7,27 +7,32 @@ import logging
 logger = logging.getLogger("fletcher")
 
 
-async def simple_get_image(url):
+async def simple_get_image(url) -> io.BytesIO:
+    byte_buffer: io.BytesIO = io.BytesIO()
     try:
         async with aiohttp.ClientSession(
             headers={"User-Agent": "Fletcher/0.1 (operator@noblejury.com)"}
         ) as session:
             logger.debug(url)
             async with session.get(str(url)) as resp:
-                buffer = io.BytesIO(await resp.read())
                 if resp.status != 200:
                     raise Exception(
                         f"HttpProcessingError: {resp.status} Retrieving image failed!"
                     )
-                return buffer
+                resp_buffer = await resp.read()
+                byte_buffer = io.BytesIO(resp_buffer)
+                assert isinstance(byte_buffer, io.BytesIO)
+                assert byte_buffer is not None
     except Exception as e:
         if str(e).startswith("HttpProcessingError"):
             raise e
         if type(e) is aiohttp.InvalidURL:
             raise e
         logger.debug(traceback.format_exc())
-        exc_type, exc_obj, exc_tb = exc_info()
+        _, _, exc_tb = exc_info()
+        assert exc_tb is not None
         logger.error("SGI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+    return byte_buffer
 
 
 async def simple_post_image(post_url, image, filename, image_format, field_name="file"):
@@ -50,5 +55,6 @@ async def simple_post_image(post_url, image, filename, image_format, field_name=
                     )
                 return buffer
     except Exception as e:
-        exc_type, exc_obj, exc_tb = exc_info()
+        _, _, exc_tb = exc_info()
+        assert exc_tb is not None
         logger.error("SPI[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))

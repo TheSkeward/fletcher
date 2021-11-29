@@ -126,7 +126,12 @@ async def sendWrappedMessage(
         # current_guild_id = scope._tags.get('guild_id')
         chunk = None
         if msg and not wrap_as_embed:
-            msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
+            if str(msg).startswith("||") and str(msg).endswith("||") and len(msg) > 2000:
+                msg_chunks = [f"||{chunk}||" for chunk in textwrap.wrap(str(msg)[2:-2], 1996, replace_whitespace=False)]
+            elif str(msg).startswith("```") and str(msg).endswith("```") and len(msg) > 2000:
+                msg_chunks = [f"```{chunk}```" for chunk in textwrap.wrap(str(msg)[3:-3], 1994, replace_whitespace=False)]
+            else:
+                msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
             for chunk in msg_chunks:
                 sent_message = await target.send(
@@ -234,7 +239,7 @@ async def teleport_function(message, client, args):
         fromGuild = message.guild
         if (
             fromChannel.id
-            in config.get(section="teleport", key="fromchannel-banlist", default=[])
+            in config.get(section="teleport", key="fromchannel-banlist", default=[]) + (config.get(guild=fromGuild, key="teleport-fromchannel-banlist") or [])
             and not message.author.guild_permissions.manage_webhooks
         ):
             await message.add_reaction("🚫")
@@ -367,7 +372,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        "(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?)",
+        r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
     re.IGNORECASE,
 )
 
@@ -496,8 +501,20 @@ async def preview_messagelink_function(message, client, args):
                 )
                 attachments = [preview_tup[0]]
                 content = preview_tup[1]
+            elif "bash.org" in previewable_parts[0]:
+                import swag
+                content = await swag.bash_preview(message, client, [previewable_parts[0].split("?")[1], "INTPROC"])
             elif "media.discordapp.net" in previewable_parts[0]:
                 content = previewable_parts[0].replace("media.discordapp.net", "cdn.discordapp.com")
+            elif "//www.oyez.org" in previewable_parts[0]:
+                async with session.get(f"https://api.oyes.org/{previewable_parts[0].split('org/')[1]}?labels=true", headers={
+                    'Accept': 'application/json, text/plain, */*',
+                    'Origin': 'https://www.oyez.org', 'Connection': 'keep-alive', 'Referer': 'https://www.oyez.org/', 'Sec-Fetch-Dest': 'empty', 'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'same-site'
+                    }) as resp:
+                    data = await resp.json()
+                    content = f"""
+{data.name} - {data.description} (find at Justia {data.justia_url}
+"""
             elif "todo.sr.ht" in previewable_parts[0]:
                 import versionutils
 
@@ -520,13 +537,14 @@ async def preview_messagelink_function(message, client, args):
                 import swag
 
                 content = "TikTok Preview"
-                attachments = [
-                    await swag.tiktok_function(
-                        message,
-                        client,
-                        [previewable_parts[0], "INTPROC"],
-                    )
-                ]
+                with message.channel.typing():
+                    attachments = [
+                        await swag.tiktok_function(
+                            message,
+                            client,
+                            [previewable_parts[0], "INTPROC"],
+                        )
+                    ]
             elif "arxiv.org" in previewable_parts[0]:
                 async with session.get(
                     previewable_parts[0].replace("pdf", "abs", 1).strip(".pdf")
@@ -593,7 +611,7 @@ __{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
                     current_user_id=message.author.id,
                     allowed_mentions=discord.AllowedMentions.none(),
                 )
-            except discord.errors.HTTPException:
+            except discord.HTTPException:
                 return
             reaction = client.get_emoji(787460478527078450)
             try:
@@ -842,15 +860,12 @@ async def subscribe_function(message, client, args):
                 )
                 ch.add_message_reaction_handler(
                     [message.id],
-                    {
-                        "trigger": [""],  # empty string: a special catch-all trigger
-                        "function": subscribe_send_function,
-                        "exclusive": False,
-                        "async": True,
-                        "args_num": 0,
-                        "args_name": [],
-                        "description": "Notify on emoji send",
-                    },
+                    commandhandler.Command(
+                        function=subscribe_send_function,
+                        exclusive=False,
+                        sync=False,
+                        description="Notify on emoji send",
+                    ),
                 )
                 ch.add_message_reply_handler(
                     [message.id],
@@ -950,8 +965,8 @@ async def archive_function(message, client, args):
 
 async def star_function(message, client, args):
     try:
-        threshold = ch.config.get(section="starboard-threshold", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
-        channel = ch.config.get(section="starboard-channel", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
+        threshold = ch.config.get(key="starboard-threshold", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
+        channel = ch.config.get(key="starboard-channel", channel=message.channel.id, guild=message.guild.id, use_guild_as_channel_fallback=True)
         channel = discord.utils.get(client.guilds, name=channel) if type(channel) is str else client.get_channel(int(channel))
         if threshold is None or channel is None:
             return
@@ -984,7 +999,7 @@ async def translate_function(message, client, args):
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 async def create_thread(message, client, args):
-    await message.create_thread(name=message.content.split("\n").pop(0)[:100])
+    await message.create_thread(name=message.content.split("\n").pop(0).replace("*", "").replace("__", "")[:100])
     await asyncio.sleep(0.5)
     notification = (await message.channel.history(limit=1).flatten())[0]
     if notification.type == discord.MessageType.thread_created:
@@ -1014,7 +1029,7 @@ async def emoji_image_function(message, client, args):
                 target=message.channel,
             )
         if not buffer:
-            buffer = io.BytesIO(await emoji.url_as().read())
+            buffer = await netcode.simple_get_image(emoji.url)
         image = discord.File(
             buffer,
             f"emoji.{'gif' if emoji and emoji.animated else 'png'}",
@@ -1023,6 +1038,40 @@ async def emoji_image_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("TLF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
+async def getalong_filter(message, client, args):
+    if ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role"):
+        role = discord.utils.get(message.guild.roles, name=ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role")) or message.guild.get_role(int(ch.config.get(guild=message.guild, channel=message.channel, key="getalong-role")))
+        ttl = ch.config.get(guild=message.guild, channel=message.channel, key="getalong-ttl", default=20)
+        members = list(filter(lambda member: member != message.author, role.members))
+        global conn
+        cur = conn.cursor()
+        cur.execute(
+            "DELETE FROM reminders WHERE guild = %s AND channel = %s AND trigger_type = 'getalong';",
+            [
+                message.guild.id,
+                message.channel.id,
+            ],
+        )
+        for member in members:
+            logger.debug(f"Getting {member} along in {message.channel}")
+            await message.channel.set_permissions(member, send_messages=False, reason="Getalong role")
+            interval = ch.config.get(guild=message.guild, channel=message.channel, key="getalong-ttl", default="20 minutes")
+            cur.execute(
+                "INSERT INTO reminders (userid, guild, channel, message, trigger_type, scheduled) VALUES (%s, %s, %s, %s, %s, NOW() + INTERVAL '"
+                + interval.replace("'", "")
+                + "');",
+                [
+                    member.id,
+                    message.guild.id,
+                    message.channel.id,
+                    message.id,
+                    "getalong",
+                ],
+            )
+        conn.commit()
+
 
 
 # Register this module's commands
@@ -1183,6 +1232,17 @@ def autoload(ch):
             "description": "Creates thread",
         }
     )
+    ch.add_command(
+        {
+            "trigger": ["getalong_filter"],
+            "function": getalong_filter,
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["Getalong"],
+            "description": "Getalong",
+        }
+    )
 
     def load_react_notifications(ch):
         cur = conn.cursor()
@@ -1210,15 +1270,12 @@ def autoload(ch):
                 )
                 ch.add_message_reaction_handler(
                     [int(subtuple[3])],
-                    {
-                        "trigger": [""],  # empty string: a special catch-all trigger
-                        "function": subscribe_send_function,
-                        "exclusive": False,
-                        "async": True,
-                        "args_num": 0,
-                        "args_name": [],
-                        "description": "assign roles based on emoji for a given message",
-                    },
+                    commandhandler.Command(
+                        function=subscribe_send_function,
+                        exclusive=False,
+                        sync=False,
+                        description="Notify on emoji send",
+                    ),
                 )
                 ch.add_message_reply_handler(
                     [int(subtuple[3])],
