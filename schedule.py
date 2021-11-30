@@ -374,7 +374,7 @@ async def reminder_function(message, client, args):
         else:
             if args[0].lower() != "in":
                 args = ["in", *args]
-                mcontent = " ".join(["!remindme", "in", mcontent.split(" ")[1:]])
+                mcontent = " ".join(["!remindme", "in", *mcontent.split(" ")[1:]])
             interval = chronos.parse_interval.search(
                 mcontent.lower().split(
                     " in " if args[0].lower() == "in" else "!remindme", 1
