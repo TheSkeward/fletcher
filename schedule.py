@@ -381,10 +381,7 @@ async def reminder_function(message, client, args):
                 )[1]
             )
             target = f"NOW() + '{interval.group(0)}'::interval"
-            content = (
-                mcontent.split(" in ", 1)[1][interval.end(0) :].strip()
-                or content
-            )
+            content = mcontent.split(" in ", 1)[1][interval.end(0) :].strip() or content
         if not target or not interval:
             return
         try:

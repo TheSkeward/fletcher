@@ -219,6 +219,27 @@ async def chanban_join_function(member, client, config):
     )
 
 
+async def thread_keepalive_reload_function(guild, client, config):
+    try:
+        member = guild.get_member(client.user.id)
+        for channel in (
+            channel
+            for channel in guild.text_channels
+            if channel.permissions_for(member).read_message_history
+        ):
+            async for thread in channel.archived_threads(
+                private=False, limit=50, joined=True
+            ):
+                if (
+                    not thread.locked
+                    and not thread.fetch_message(thread.last_message_id).archiver_id
+                ):
+                    await thread.edit(archived=False)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"TKRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 async def chanban_reload_function(guild, client, config):
     try:
         channel = guild.get_channel(int(config["chanban_channel"]))
@@ -402,6 +423,7 @@ def autoload(ch):
     ch.add_reload_handler("printhello", printhello_reload_function)
     ch.add_join_handler("chanban", chanban_join_function)
     ch.add_reload_handler("chanban", chanban_reload_function)
+    ch.add_reload_handler("thread_keepalive", thread_keepalive_reload_function)
     ch.add_reload_handler("azsort", alphabetize_channels)
 
 
