@@ -330,6 +330,10 @@ async def table_exec_function():
 
 async def reminder_function(message, client, args):
     try:
+        mcontent = message.content
+        if args[0] == "me":
+            args = args[1:]
+            mcontent = mcontent.replace("me ", "", 1)
         if type(message.channel) is not discord.DMChannel and 378641129916203019 in [
             member.id for member in message.channel.members
         ]:
@@ -342,7 +346,7 @@ async def reminder_function(message, client, args):
         if args[0].lower() == "at":
             tz = chronos.get_tz(message=message)
             d = dateparser.search.search_dates(
-                message.content,
+                mcontent,
                 settings={
                     "RELATIVE_BASE": datetime.datetime.now(tz).replace(tzinfo=None),
                     "PREFER_DATES_FROM": "future",
@@ -365,17 +369,20 @@ async def reminder_function(message, client, args):
                 datetime.datetime.now().astimezone().tzinfo
             ).replace(tzinfo=None)
             target = f"'{interval}'"
-            content = message.content.split(d[0], 1)[1].strip() or content
+            content = mcontent.split(d[0], 1)[1].strip() or content
         # if args[0].lower() == "in":
         else:
+            if args[0].lower() != "in":
+                args = ["in", *args]
+                mcontent = " ".join(["!remindme", "in", mcontent.split(" ")[1:]])
             interval = chronos.parse_interval.search(
-                message.content.lower().split(
+                mcontent.lower().split(
                     " in " if args[0].lower() == "in" else "!remindme", 1
                 )[1]
             )
             target = f"NOW() + '{interval.group(0)}'::interval"
             content = (
-                message.content.split(" in ", 1)[1][interval.end(0) :].strip()
+                mcontent.split(" in ", 1)[1][interval.end(0) :].strip()
                 or content
             )
         if not target or not interval:
@@ -477,7 +484,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!remindme"],
+            "trigger": ["!remindme", "!remind"],
             "function": reminder_function,
             "async": True,
             "args_num": 2,
