@@ -3598,7 +3598,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["!mobilespoil", "📳"],
+            "trigger": ["!mobilespoil"],
             "function": mobilespoil_function,
             "async": True,
             "args_num": 0,
