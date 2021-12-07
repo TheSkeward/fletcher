@@ -3517,7 +3517,7 @@ async def attribution_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
             try:
-                if message.author.id != client.user.id:
+                if message.author.id != client.user.id and not message.author.bot:
                     return
                 cur = conn.cursor()
                 query_param = [message.id, message.channel.id]
@@ -3530,7 +3530,10 @@ async def attribution_function(message, client, args):
                 subtuple = cur.fetchone()
                 conn.commit()
                 if subtuple:
-                    await messagefuncs.sendWrappedMessage(f"Messages sent by {message.guild.get_member(int(subtuple[0])).mention}", args[1])
+                    await messagefuncs.sendWrappedMessage(
+                        f"Messages sent by {message.guild.get_member(int(subtuple[0])).mention}",
+                        args[1],
+                    )
             except discord.Forbidden as e:
                 logger.warning("DMMF: Forbidden to delete self-message")
                 pass
