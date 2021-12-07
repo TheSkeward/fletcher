@@ -344,13 +344,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -1359,7 +1362,7 @@ async def delete_my_message_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
             try:
-                if message.author.id != client.user.id:
+                if message.author.id != client.user.id and not message.author.bot:
                     return
                 cur = conn.cursor()
                 query_param = [message.id, message.channel.id]
