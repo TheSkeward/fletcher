@@ -671,7 +671,7 @@ __{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
             False,
         ):
             await sendWrappedMessage(
-                f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details). To supress this message in future, use the command `!preference no_unroll_notify True`.",
+                f"Tried unrolling message link in your message https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}, but I do not have permissions for that channel. Please wrap links in `<>` if you don't want me to try to unroll them, or ask the channel owner to grant me Read Message History to unroll links to messages there successfully (https://man.sr.ht/~nova/fletcher/permissions.md for details). To supress this message in future, use the command `!preference no_unroll_notify True`.",
                 message.author,
             )
     except Exception as e:

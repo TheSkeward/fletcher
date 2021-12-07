@@ -3513,6 +3513,32 @@ async def blockquote_embed_function(message, client, args):
         logger.error("BEF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def attribution_function(message, client, args):
+    try:
+        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
+            try:
+                if message.author.id != client.user.id:
+                    return
+                cur = conn.cursor()
+                query_param = [message.id, message.channel.id]
+                if type(message.channel) is not discord.DMChannel:
+                    query_param.append(message.guild.id)
+                cur.execute(
+                    f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
+                    query_param,
+                )
+                subtuple = cur.fetchone()
+                conn.commit()
+                if subtuple:
+                    await messagefuncs.sendWrappedMessage(f"Messages sent by {message.guild.get_member(int(subtuple[0])).mention}", args[1])
+            except discord.Forbidden as e:
+                logger.warning("DMMF: Forbidden to delete self-message")
+                pass
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("ATTF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def zalgo_function(message, client, args):
     try:
         await messagefuncs.sendWrappedMessage(
@@ -3715,6 +3741,16 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["❓"],
+            "function": attribution_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Attribute a message",
+        }
+    )
     ch.add_command(
         {
             "trigger": ["!ocr", "\U0001F50F"],
