@@ -310,7 +310,7 @@ async def table_exec_function():
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
         conn.commit()
         global reminder_timerhandle
-        await asyncio.sleep(61)
+        await asyncio.sleep(16)
         reminder_timerhandle = asyncio.create_task(table_exec_function())
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
