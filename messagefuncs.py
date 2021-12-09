@@ -281,6 +281,8 @@ async def teleport_function(message, client, args):
             return
         except ValueError:
             pass
+        if toChannel is None and len(message.channel_mentions):
+            toChannel = message.channel_mentions[0]
         if toChannel is None:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
