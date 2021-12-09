@@ -3779,7 +3779,7 @@ async def bash_preview(message, client, args):
 
 
 def pydoc_function(message, client, args):
-    b = io.io.StringIO()
+    b = io.StringIO()
     pydoc.doc(args[0], output=b)
     return b.getvalue()
 
