@@ -3781,7 +3781,7 @@ async def bash_preview(message, client, args):
 def pydoc_function(message, client, args):
     b = io.StringIO()
     pydoc.doc(args[0], output=b)
-    return b.getvalue()
+    return b.getvalue()[:4000]
 
 
 async def delphi(message, client, args):
