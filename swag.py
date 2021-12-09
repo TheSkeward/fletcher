@@ -1,4 +1,5 @@
 import asyncio
+import pydoc
 import traceback
 import aiohttp
 from asyncache import cached as asynccached
@@ -1372,6 +1373,27 @@ async def roll_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("RDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
+async def append_google_sheet(message, client, args):
+    if not isinstance(message.channel, discord.DMChannel):
+        return await messagefuncs.sendWrappedMessage("This command must be used in DMs.", message.channel, delete_after=30)
+    params = {"tqx": "out:csv", "sheet": str(sheetName)}
+    if not isinstance(skip, int):
+        skip = int(skip)
+    if cellRange:
+        params["range"] = str(cellRange)
+    if query:
+        params["tq"] = str(query)
+    logger.debug(params)
+    async with session.put(
+            f"https://sheets.googleapis.com/v4/{sheetId}/values/{sheetName}!{col1}1:{col2}1:append?valueInputOption=USER_ENTERED", json={
+                "range": f"{sheetName}!{col1}1:{col2}1",
+                "majorDimension": "ROWS",
+                "values": [values]
+                }
+    ) as response:
+        return int(''.join(filter(str.isdigit, (await response.json())["updates"]["updatedRange"].split(":")[0].split("!")[1])))
 
 
 @asynccached(TTLCache(1024, 6000))
@@ -3744,6 +3766,11 @@ async def bash_preview(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def pydoc_function(message, client, args):
+    b = io.io.StringIO()
+    pydoc.doc(args[0], output=b)
+    return b.getvalue()
+
 async def delphi(message, client, args):
     try:
         # curl 'https://delphi.allenai.org/api/solve' -X POST -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:93.0) Gecko/20100101 Firefox/93.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: https://delphi.allenai.org' -H 'Connection: keep-alive' -H 'Referer: https://delphi.allenai.org/?a1=backsolving+an+API%0A' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: cors' -H 'Sec-Fetch-Site: same-origin' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'TE: trailers' --data-raw '{"action1":"backsolving an API\n"}'
@@ -4423,6 +4450,18 @@ def autoload(ch):
             "args_name": [],
             "hidden": True,
             "description": "Zap",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!pydoc",
+            ],
+            "function": pydoc_function,
+            "async": False,
+            "args_num": 1,
+            "args_name": [],
+            "description": "Return pydocs for argument",
         }
     )
     ch.add_command(
