@@ -1377,7 +1377,9 @@ async def roll_function(message, client, args):
 
 async def append_google_sheet(message, client, args):
     if not isinstance(message.channel, discord.DMChannel):
-        return await messagefuncs.sendWrappedMessage("This command must be used in DMs.", message.channel, delete_after=30)
+        return await messagefuncs.sendWrappedMessage(
+            "This command must be used in DMs.", message.channel, delete_after=30
+        )
     params = {"tqx": "out:csv", "sheet": str(sheetName)}
     if not isinstance(skip, int):
         skip = int(skip)
@@ -1387,13 +1389,23 @@ async def append_google_sheet(message, client, args):
         params["tq"] = str(query)
     logger.debug(params)
     async with session.put(
-            f"https://sheets.googleapis.com/v4/{sheetId}/values/{sheetName}!{col1}1:{col2}1:append?valueInputOption=USER_ENTERED", json={
-                "range": f"{sheetName}!{col1}1:{col2}1",
-                "majorDimension": "ROWS",
-                "values": [values]
-                }
+        f"https://sheets.googleapis.com/v4/{sheetId}/values/{sheetName}!{col1}1:{col2}1:append?valueInputOption=USER_ENTERED",
+        json={
+            "range": f"{sheetName}!{col1}1:{col2}1",
+            "majorDimension": "ROWS",
+            "values": [values],
+        },
     ) as response:
-        return int(''.join(filter(str.isdigit, (await response.json())["updates"]["updatedRange"].split(":")[0].split("!")[1])))
+        return int(
+            "".join(
+                filter(
+                    str.isdigit,
+                    (await response.json())["updates"]["updatedRange"]
+                    .split(":")[0]
+                    .split("!")[1],
+                )
+            )
+        )
 
 
 @asynccached(TTLCache(1024, 6000))
@@ -3766,10 +3778,11 @@ async def bash_preview(message, client, args):
         await message.add_reaction("🚫")
 
 
-async def pydoc_function(message, client, args):
+def pydoc_function(message, client, args):
     b = io.io.StringIO()
     pydoc.doc(args[0], output=b)
     return b.getvalue()
+
 
 async def delphi(message, client, args):
     try:
