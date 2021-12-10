@@ -204,20 +204,45 @@ class CommandHandler:
         self.commands.append(command)
         if command.get("slash_command") and len(command.get("whitelist_guild", [])):
             for guild_id in command.get("whitelist_guild"):
-                asyncio.get_event_loop().create_task(self._add_slash_command(guild_id, {"name":command.get("trigger")[0][1:], "description":command.get("description", ""), "options":[
-                    {"name": command.get("args_name", [])[i] if i < len(command.get("args_name", [])) else f"{i}", "description": "Nil", "type": 3, "required": i < command.get("args_min", command.get("args_num", 0)), "choices": [], "autocomplete": False}
-                    for i in range(command.get("args_num",0))
-                    ],"default_permission":True}, len(self.commands)-1))
+                asyncio.get_event_loop().create_task(
+                    self._add_slash_command(
+                        guild_id,
+                        {
+                            "name": command.get("trigger")[0][1:],
+                            "description": command.get("description", ""),
+                            "options": [
+                                {
+                                    "name": command.get("args_name", [])[i]
+                                    if i < len(command.get("args_name", []))
+                                    else f"{i}",
+                                    "description": "Nil",
+                                    "type": 3,
+                                    "required": i
+                                    < command.get(
+                                        "args_min", command.get("args_num", 0)
+                                    ),
+                                    "choices": [],
+                                    "autocomplete": False,
+                                }
+                                for i in range(command.get("args_num", 0))
+                            ],
+                            "default_permission": True,
+                        },
+                        len(self.commands) - 1,
+                    )
+                )
 
-    async def _add_slash_command(self, guild_id: int, payload: dict, command_internal_id: int) -> Awaitable[None]:
+    async def _add_slash_command(
+        self, guild_id: int, payload: dict, command_internal_id: int
+    ) -> Awaitable[None]:
         response = await self.client.http.upsert_guild_command(
-            self.user.id,
-            guild_id,
-            payload
+            self.user.id, guild_id, payload
         )
         logger.debug(f"Respayload {payload} {response}")
         logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
-        self.commands[command_internal_id]["guild_command_ids"][response["id"]] = guild_id
+        self.commands[command_internal_id]["guild_command_ids"][
+            response["id"]
+        ] = guild_id
 
     def add_remove_handler(self, func_name, func):
         self.remove_handlers[func_name] = func
@@ -2001,11 +2026,26 @@ class CommandHandler:
         if ctx.application_id != self.user.id:
             return
         # if ctx.type != 2: # APPLICATION_COMMAND
-        #     return 
+        #     return
         logger.debug(f"Interaction {ctx.data['id']} in {ctx.guild_id}")
-        for command in filter(lambda command: command.get("slash_command", False), self.commands):
-            if command.get("guild_command_ids", {}).get(ctx.data["id"], 0) == ctx.guild_id:
-                return await self.run_command(command, ctx.message or self.client.get_channel(ctx.channel_id).last_message, [o.get("value") for o in ctx.data.get("options",[]) if o.get("value")], ctx.user, ctx)
+        for command in filter(
+            lambda command: command.get("slash_command", False), self.commands
+        ):
+            if (
+                command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
+                == ctx.guild_id
+            ):
+                return await self.run_command(
+                    command,
+                    ctx.message or self.client.get_channel(ctx.channel_id).last_message,
+                    [
+                        o.get("value")
+                        for o in ctx.data.get("options", [])
+                        if o.get("value")
+                    ],
+                    ctx.user,
+                    ctx,
+                )
         await ctx.response.send_message("Not Implemented")
 
     def allowCommand(self, command, message, user=None):
@@ -2302,7 +2342,9 @@ class CommandHandler:
             accessible_commands = ch.accessible_commands(message, user=user)
         else:
             accessible_commands = ch.commands
-        accessible_commands = [c for c in accessible_commands if not c.get("slash_command", False)]
+        accessible_commands = [
+            c for c in accessible_commands if not c.get("slash_command", False)
+        ]
         if mode == "keyword":
 
             def query_filter(c):
@@ -2504,7 +2546,7 @@ class Hotword:
                 try:
                     response_message = await messagefuncs.sendWrappedMessage(
                         f"Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
-                        client.get_user(owner.id),
+                        client.get_user(owner.id), current_user_id=owner.id
                     )
                     await messagefuncs.preview_messagelink_function(
                         response_message, client, None
