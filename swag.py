@@ -2,6 +2,7 @@ import asyncio
 import pydoc
 import traceback
 import aiohttp
+import ujson
 from asyncache import cached as asynccached
 from saucenao_api import AIOSauceNao
 from saucenao_api.params import Hide
@@ -2747,7 +2748,7 @@ async def eaf_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-async def lw_function(message, client, args):
+async def lw_function(message, client, args, ctx):
     try:
         async with session.post(
             "https://z0gr6exqhd-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=Z0GR6EXQHD&x-algolia-api-key=0b1d20b957917dbb5e1c2f3ad1d04ee2",
@@ -2761,10 +2762,14 @@ async def lw_function(message, client, args):
             },
         ) as resp:
             body = (await resp.json())["results"][0]["hits"][0]
-            return await messagefuncs.sendWrappedMessage(
-                f'https://lesswrong.com/posts/{body["_id"]}/{body["slug"]}/',
-                target=message.channel,
-            )
+            message_body = f'https://lesswrong.com/posts/{body["_id"]}/{body["slug"]}/'
+            if ctx:
+                return await ctx.response.send_message(message_body)
+            else:
+                return await messagefuncs.sendWrappedMessage(
+                    message_body,
+                    target=message.channel,
+                )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("LW[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -3853,6 +3858,9 @@ async def sholo_room(message, client, args):
     )
     await message.add_reaction("🍄")
 
+async def pongo(message, client, args, ctx):
+    logger.debug(f"Pongo time {args}")
+    await ctx.response.send_message("Pong!", ephemeral=True)
 
 async def autounload(ch):
     global session
@@ -4665,14 +4673,32 @@ def autoload(ch):
             }
         )
 
-    async def pongo(ctx, *args):
-        logger.debug(f"Pongo time {ctx} {args}")
-        await ctx.respond("Pong!")
-
-    asyncio.get_event_loop().create_task(
-        client.http.bulk_upsert_guild_commands(
-            client.user.id,
-            634249282488107028,
-            [discord.commands.SlashCommand(pongo, name="ping").to_dict()],
-        )
+    # logger.debug(ujson.dumps(discord.commands.SlashCommand(pongo, name="ping").to_dict()))
+    # {"name":"ping","description":"No description provided","options":[{"name":"args","description":"No description provided","type":3,"required":true,"choices":[],"autocomplete":false}],"default_permission":true}
+    ch.add_command(
+        {
+            "trigger": [
+                "!pong",
+            ],
+            "function": pongo,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Pongo like a bongo",
+            "slash_command": True,
+            "whitelist_guild": [634249282488107028],
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!lw"],
+            "function": lw_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["query"],
+            "description": "Searches LW for a query",
+            "slash_command": True,
+            "whitelist_guild": [634249282488107028],
+        }
     )

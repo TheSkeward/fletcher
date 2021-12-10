@@ -103,6 +103,7 @@ class CommandHandler:
         self.message_reply_handlers = {}
         self.message_reaction_handlers: Dict[int, Command] = {}
         self.message_reaction_remove_handlers = {}
+        self._guild_payloads = {}
         assert client.user is not None
         self.user = client.user
         self.tag_id_as_command = re.compile(
@@ -198,7 +199,25 @@ class CommandHandler:
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
         logger.debug(f"Loading command {command}")
+        if command.get("slash_command") and len(command.get("whitelist_guild", [])):
+            command["guild_command_ids"] = {}
         self.commands.append(command)
+        if command.get("slash_command") and len(command.get("whitelist_guild", [])):
+            for guild_id in command.get("whitelist_guild"):
+                asyncio.get_event_loop().create_task(self._add_slash_command(guild_id, {"name":command.get("trigger")[0][1:], "description":command.get("description", ""), "options":[
+                    {"name": command.get("args_name", [])[i] if i < len(command.get("args_name", [])) else f"{i}", "description": "Nil", "type": 3, "required": i < command.get("args_min", command.get("args_num", 0)), "choices": [], "autocomplete": False}
+                    for i in range(command.get("args_num",0))
+                    ],"default_permission":True}, len(self.commands)-1))
+
+    async def _add_slash_command(self, guild_id: int, payload: dict, command_internal_id: int) -> Awaitable[None]:
+        response = await self.client.http.upsert_guild_command(
+            self.user.id,
+            guild_id,
+            payload
+        )
+        logger.debug(f"Respayload {payload} {response}")
+        logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
+        self.commands[command_internal_id]["guild_command_ids"][response["id"]] = guild_id
 
     def add_remove_handler(self, func_name, func):
         self.remove_handlers[func_name] = func
@@ -1755,7 +1774,7 @@ class CommandHandler:
             if not continue_flag:
                 return
 
-    async def run_command(self, command, message, args, user):
+    async def run_command(self, command, message, args, user, ctx=None):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
@@ -1797,7 +1816,10 @@ class CommandHandler:
                     ):
                         raise Exception(f"Blacklisted command attempt by user {user}")
                     if command["async"]:
-                        await command["function"](message, self.client, args)
+                        if command.get("slash_command", False):
+                            await command["function"](message, self.client, args, ctx)
+                        else:
+                            await command["function"](message, self.client, args)
                     else:
                         await messagefuncs.sendWrappedMessage(
                             str(command["function"](message, self.client, args)),
@@ -1976,6 +1998,14 @@ class CommandHandler:
 
     async def on_interaction(self, ctx: discord.Interaction):
         logger.debug(str(ctx))
+        if ctx.application_id != self.user.id:
+            return
+        # if ctx.type != 2: # APPLICATION_COMMAND
+        #     return 
+        logger.debug(f"Interaction {ctx.data['id']} in {ctx.guild_id}")
+        for command in filter(lambda command: command.get("slash_command", False), self.commands):
+            if command.get("guild_command_ids", {}).get(ctx.data["id"], 0) == ctx.guild_id:
+                return await self.run_command(command, ctx.message or self.client.get_channel(ctx.channel_id).last_message, [o.get("value") for o in ctx.data.get("options",[]) if o.get("value")], ctx.user, ctx)
         await ctx.response.send_message("Not Implemented")
 
     def allowCommand(self, command, message, user=None):
@@ -2272,6 +2302,7 @@ class CommandHandler:
             accessible_commands = ch.accessible_commands(message, user=user)
         else:
             accessible_commands = ch.commands
+        accessible_commands = [c for c in accessible_commands if not c.get("slash_command", False)]
         if mode == "keyword":
 
             def query_filter(c):

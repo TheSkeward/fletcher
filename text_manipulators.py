@@ -3534,7 +3534,9 @@ async def attribution_function(message, client, args):
                         f"Message {message.jump_url} sent by {message.guild.get_member(int(subtuple[0])).mention}",
                         args[1],
                     )
-                    await messagefuncs.preview_messagelink_function(attrib, client, None)
+                    await messagefuncs.preview_messagelink_function(
+                        attrib, client, None
+                    )
             except discord.Forbidden as e:
                 logger.warning("DMMF: Forbidden to delete self-message")
                 pass
