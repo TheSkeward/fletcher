@@ -138,23 +138,24 @@ class CommandHandler:
     async def load_webhooks(self):
         webhook_sync_registry: Dict[str, Bridge] = {}
         navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
-        for guild in filter(
+        bridge_guilds = list(filter(
             lambda guild: self.config.get(guild=guild, key="synchronize"),
             self.client.guilds,
-        ):
-            self.add_command(
-                {
-                    "trigger": ["!reaction_list"],
-                    "function": reaction_list_function,
-                    "async": True,
-                    "hidden": True,
-                    "args_num": 0,
-                    "args_name": [""],
-                    "description": "List reactions",
-                    "message_command": True,
-                    "whitelist_guild": [guild.id],
-                }
-            )
+        ))
+        self.add_command(
+            {
+                "trigger": ["!reaction_list"],
+                "function": reaction_list_function,
+                "async": True,
+                "hidden": True,
+                "args_num": 0,
+                "args_name": [""],
+                "description": "List reactions",
+                "message_command": True,
+                "whitelist_guild": [guild.id for guild in bridge_guilds],
+            }
+        )
+        for guild in bridge_guilds:
             self_member = guild.get_member(self.user.id)
             assert self_member is not None
             if not self_member.guild_permissions.manage_webhooks:
@@ -212,7 +213,7 @@ class CommandHandler:
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
         logger.debug(f"Loading command {command}")
-        if command.get("slash_command") and len(command.get("whitelist_guild", [])):
+        if command.get("slash_command", command.get("message_command")) and len(command.get("whitelist_guild", [])):
             command["guild_command_ids"] = {}
         self.commands.append(command)
         if command.get("message_command") and len(command.get("whitelist_guild", [])):
