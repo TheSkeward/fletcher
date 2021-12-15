@@ -138,10 +138,12 @@ class CommandHandler:
     async def load_webhooks(self):
         webhook_sync_registry: Dict[str, Bridge] = {}
         navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
-        bridge_guilds = list(filter(
-            lambda guild: self.config.get(guild=guild, key="synchronize"),
-            self.client.guilds,
-        ))
+        bridge_guilds = list(
+            filter(
+                lambda guild: self.config.get(guild=guild, key="synchronize"),
+                self.client.guilds,
+            )
+        )
         self.add_command(
             {
                 "trigger": ["!reaction_list"],
@@ -213,7 +215,9 @@ class CommandHandler:
         if type(command["trigger"]) != tuple:
             command["trigger"] = tuple(command["trigger"])
         logger.debug(f"Loading command {command}")
-        if command.get("slash_command", command.get("message_command")) and len(command.get("whitelist_guild", [])):
+        if command.get("slash_command", command.get("message_command")) and len(
+            command.get("whitelist_guild", [])
+        ):
             command["guild_command_ids"] = {}
         self.commands.append(command)
         if command.get("message_command") and len(command.get("whitelist_guild", [])):
@@ -1880,7 +1884,9 @@ class CommandHandler:
                     ):
                         raise Exception(f"Blacklisted command attempt by user {user}")
                     if command["async"]:
-                        if command.get("slash_command", False):
+                        if command.get(
+                            "slash_command", command.get("message_command", False)
+                        ):
                             await command["function"](message, self.client, args, ctx)
                         else:
                             await command["function"](message, self.client, args)
