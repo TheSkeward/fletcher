@@ -152,7 +152,7 @@ class CommandHandler:
                     "args_name": [""],
                     "description": "List reactions",
                     "message_command": True,
-                    "whitelist_guild": [634249282488107028],
+                    "whitelist_guild": [guild.id],
                 }
             )
             self_member = guild.get_member(self.user.id)
@@ -222,22 +222,6 @@ class CommandHandler:
                         guild_id,
                         {
                             "name": command.get("trigger")[0][1:],
-                            "options": [
-                                {
-                                    "name": command.get("args_name", [])[i]
-                                    if i < len(command.get("args_name", []))
-                                    else f"{i}",
-                                    "description": "Nil",
-                                    "type": 3,
-                                    "required": i
-                                    < command.get(
-                                        "args_min", command.get("args_num", 0)
-                                    ),
-                                    "choices": [],
-                                    "autocomplete": False,
-                                }
-                                for i in range(command.get("args_num", 0))
-                            ],
                             "default_permission": True,
                         },
                         len(self.commands) - 1,
