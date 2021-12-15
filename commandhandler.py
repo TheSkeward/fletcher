@@ -222,7 +222,6 @@ class CommandHandler:
                         guild_id,
                         {
                             "name": command.get("trigger")[0][1:],
-                            "description": command.get("description", ""),
                             "options": [
                                 {
                                     "name": command.get("args_name", [])[i]
@@ -2084,7 +2083,10 @@ class CommandHandler:
             return
         logger.debug(f"Interaction {ctx.data['id']} in {ctx.guild_id}")
         for command in filter(
-            lambda command: command.get("slash_command", command.get("message_command", False)), self.commands
+            lambda command: command.get(
+                "slash_command", command.get("message_command", False)
+            ),
+            self.commands,
         ):
             if (
                 command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
@@ -3072,6 +3074,7 @@ async def run_web_api(config, ch):
         logger.debug(e)
         pass
     ch.site = site
+
 
 async def reaction_list_function(message, client, args, ctx):
     return await ctx.response.send_message("message")
