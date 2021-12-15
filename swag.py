@@ -2421,6 +2421,7 @@ class sliding_puzzle:
             )
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
+            logger.debug(traceback.format_exc())
             logger.error("SPF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
             await message.add_reaction("🚫")
 
@@ -3858,9 +3859,11 @@ async def sholo_room(message, client, args):
     )
     await message.add_reaction("🍄")
 
+
 async def pongo(message, client, args, ctx):
     logger.debug(f"Pongo time {args}")
     await ctx.response.send_message("Pong!", ephemeral=True)
+
 
 async def autounload(ch):
     global session

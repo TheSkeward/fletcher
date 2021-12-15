@@ -142,6 +142,19 @@ class CommandHandler:
             lambda guild: self.config.get(guild=guild, key="synchronize"),
             self.client.guilds,
         ):
+            self.add_command(
+                {
+                    "trigger": ["!reaction_list"],
+                    "function": reaction_list_function,
+                    "async": True,
+                    "hidden": True,
+                    "args_num": 0,
+                    "args_name": [""],
+                    "description": "List reactions",
+                    "message_command": True,
+                    "whitelist_guild": [634249282488107028],
+                }
+            )
             self_member = guild.get_member(self.user.id)
             assert self_member is not None
             if not self_member.guild_permissions.manage_webhooks:
@@ -202,6 +215,35 @@ class CommandHandler:
         if command.get("slash_command") and len(command.get("whitelist_guild", [])):
             command["guild_command_ids"] = {}
         self.commands.append(command)
+        if command.get("message_command") and len(command.get("whitelist_guild", [])):
+            for guild_id in command.get("whitelist_guild"):
+                asyncio.get_event_loop().create_task(
+                    self._add_message_command(
+                        guild_id,
+                        {
+                            "name": command.get("trigger")[0][1:],
+                            "description": command.get("description", ""),
+                            "options": [
+                                {
+                                    "name": command.get("args_name", [])[i]
+                                    if i < len(command.get("args_name", []))
+                                    else f"{i}",
+                                    "description": "Nil",
+                                    "type": 3,
+                                    "required": i
+                                    < command.get(
+                                        "args_min", command.get("args_num", 0)
+                                    ),
+                                    "choices": [],
+                                    "autocomplete": False,
+                                }
+                                for i in range(command.get("args_num", 0))
+                            ],
+                            "default_permission": True,
+                        },
+                        len(self.commands) - 1,
+                    )
+                )
         if command.get("slash_command") and len(command.get("whitelist_guild", [])):
             for guild_id in command.get("whitelist_guild"):
                 asyncio.get_event_loop().create_task(
@@ -231,6 +273,19 @@ class CommandHandler:
                         len(self.commands) - 1,
                     )
                 )
+
+    async def _add_message_command(
+        self, guild_id: int, payload: dict, command_internal_id: int
+    ) -> Awaitable[None]:
+        payload["type"] = 3
+        response = await self.client.http.upsert_guild_command(
+            self.user.id, guild_id, payload
+        )
+        logger.debug(f"Respayload {payload} {response}")
+        logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
+        self.commands[command_internal_id]["guild_command_ids"][
+            response["id"]
+        ] = guild_id
 
     async def _add_slash_command(
         self, guild_id: int, payload: dict, command_internal_id: int
@@ -2022,14 +2077,14 @@ class CommandHandler:
         return {"global": globalAdmin, "server": serverAdmin, "channel": channelAdmin}
 
     async def on_interaction(self, ctx: discord.Interaction):
-        logger.debug(str(ctx))
+        logger.debug(str(ctx.data))
         if ctx.application_id != self.user.id:
             return
-        # if ctx.type != 2: # APPLICATION_COMMAND
-        #     return
+        if not ctx.is_command():
+            return
         logger.debug(f"Interaction {ctx.data['id']} in {ctx.guild_id}")
         for command in filter(
-            lambda command: command.get("slash_command", False), self.commands
+            lambda command: command.get("slash_command", command.get("message_command", False)), self.commands
         ):
             if (
                 command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
@@ -2546,7 +2601,8 @@ class Hotword:
                 try:
                     response_message = await messagefuncs.sendWrappedMessage(
                         f"Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
-                        client.get_user(owner.id), current_user_id=owner.id
+                        client.get_user(owner.id),
+                        current_user_id=owner.id,
                     )
                     await messagefuncs.preview_messagelink_function(
                         response_message, client, None
@@ -3016,3 +3072,6 @@ async def run_web_api(config, ch):
         logger.debug(e)
         pass
     ch.site = site
+
+async def reaction_list_function(message, client, args, ctx):
+    return await ctx.response.send_message("message")

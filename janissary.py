@@ -14,6 +14,7 @@ import messagefuncs
 import netcode
 import psycopg2
 import random
+import traceback
 import text_manipulators
 import ujson
 
@@ -1930,6 +1931,7 @@ async def self_service_channel_function(
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
+        logger.debug(traceback.format_exc())
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("SSCF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
