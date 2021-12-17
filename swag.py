@@ -4637,7 +4637,7 @@ def autoload(ch):
     glowfic_search_databases = [
         {
             "function": partial(glowfic_search_call, exact=True),
-            "name": "Constellation",
+            "name": "Constellation (https://glowfic.com/posts/search)",
             "type": "native",
         },
         {
