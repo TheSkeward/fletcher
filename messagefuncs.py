@@ -281,7 +281,9 @@ async def teleport_function(message, client, args):
             return
         except ValueError:
             pass
+        consume = 1
         if toChannel is None and len(message.channel_mentions):
+            consume = 0
             toChannel = next(
                 filter(lambda c: c.id != message.channel.id, message.channel_mentions),
                 None,
@@ -347,7 +349,7 @@ async def teleport_function(message, client, args):
             inPortalColor = ["blue", discord.Colour.from_rgb(62, 189, 236)]
         behest = localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
-            description=f"[{embedTitle}](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[1:])}",
+            description=f"[{embedTitle}](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[consume:])}",
             color=inPortalColor[1],
         ).set_footer(
             icon_url=f"https://dorito.space/fletcher/{inPortalColor[0]}-portal.png",
@@ -360,14 +362,14 @@ async def teleport_function(message, client, args):
             )
         else:
             tmp = await fromMessage.edit(
-                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
+                content=f"**{embedTitle}** for {behest} {' '.join(args[consume:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
             )
         embedTitle = f"Portal opened from #{fromChannel.name}"
         behest = localizeName(message.author, toGuild)
         if toGuild != fromGuild:
             embedTitle = f"{embedTitle} ({fromGuild.name})"
         embedPortal = discord.Embed(
-            description=f"[{embedTitle}](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}) {' '.join(args[1:])}",
+            description=f"[{embedTitle}](https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}) {' '.join(args[consume:])}",
             color=discord.Colour.from_rgb(194, 64, 11),
         ).set_footer(
             icon_url="https://dorito.space/fletcher/orange-portal.png",
@@ -380,7 +382,7 @@ async def teleport_function(message, client, args):
             )
         else:
             tmp = await toMessage.edit(
-                content=f"**{embedTitle}** for {behest} {' '.join(args[1:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
+                content=f"**{embedTitle}** for {behest} {' '.join(args[consume:])}\n<https://discordapp.com/channels/{fromGuild.id}/{fromChannel.id}/{fromMessage.id}>"
             )
         try:
             if "snappy" in config["discord"] and config["discord"]["snappy"]:
@@ -388,7 +390,7 @@ async def teleport_function(message, client, args):
             return
         except discord.Forbidden:
             raise Exception("Couldn't delete portal request message")
-        return f"Portal opened for {message.author} to {args[0]}"
+        return f"Portal opened for {message.author} to {toChannel.name}"
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.debug(traceback.format_exc())
