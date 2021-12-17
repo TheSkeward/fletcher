@@ -284,10 +284,20 @@ async def teleport_function(message, client, args):
         consume = 1
         if toChannel is None and len(message.channel_mentions):
             consume = 0
-            toChannel = next(
-                filter(lambda c: c.id != message.channel.id, message.channel_mentions),
-                None,
-            )
+            mentions_filtered = list(filter(lambda c: c.id != message.channel.id, message.channel_mentions))
+            if len(mentions_filtered) > 1:
+                await message.add_reaction("🚫")
+                await sendWrappedMessage(
+                    f"Too many channels specified. Please specify at most one channel.",
+                    fromChannel,
+                    delete_after=60,
+                )
+                return
+            try: 
+                toChannel = mentions_filtered.pop()
+            except IndexError:
+                # Leave as None
+                pass
         if toChannel is None:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
