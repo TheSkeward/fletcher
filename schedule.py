@@ -43,7 +43,7 @@ class ScheduleFunctions:
             try:
                 cur = conn.cursor()
                 target = (
-                    f"NOW() + '{every[0]} {every[1]}'::interval - '1 minute'::interval"
+                    f"NOW() + '{every[0]} {every[1]}'::interval - '1 seconds'::interval"
                 )
                 cur.execute(
                     f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'reminder');",
