@@ -1806,7 +1806,7 @@ async def self_service_channel_function(
                             message.author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention}) by your own request (reacted to {message.jump_url}).",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention}) by your own request (reacted to <{message.jump_url}>).",
                             args[1],
                         )
                     else:
@@ -1830,7 +1830,7 @@ async def self_service_channel_function(
                                 message.author,
                             )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__ by your own request (reacted to {message.jump_url})",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__ by your own request (reacted to <{message.jump_url}>)",
                             args[1],
                         )
                 except discord.Forbidden as e:
