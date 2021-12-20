@@ -1873,7 +1873,7 @@ class CommandHandler:
                 else:
                     if command.get("long_run") == "author":
                         await user.trigger_typing()
-                    elif command.get("long_run"):
+                    elif command.get("long_run") and message and message.channel:
                         await message.channel.trigger_typing()
                     logger.debug(f"[CH] Triggered {command}")
                     if user.id in cast(
