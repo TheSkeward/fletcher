@@ -638,13 +638,19 @@ async def lockout_user_function(message, client, args):
         logger.error(f"LUF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
-async def part_channel_function(message, client, args):
+async def part_channel_function(message, client, args, ctx=None):
     try:
         if len(message.channel_mentions) > 0:
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
+            error = "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)"
+            if ctx:
+                return ctx.response.send_message(
+                        error,
+                        ephemeral=True
+                )
             return await messagefuncs.sendWrappedMessage(
-                "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)",
+                error,
                 message.author,
             )
         elif len(args) == 0:
@@ -2177,6 +2183,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": ["#channel"],
             "description": "Leave a channel. Cannot be reversed except by admin.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!part"],
+            "function": part_channel_function,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["#channel"],
+            "description": "Leave a channel. Cannot be reversed except by admin.",
+            "whitelist_guild": [634249282488107028, 345045447745732608],
         }
     )
     ch.add_command(
