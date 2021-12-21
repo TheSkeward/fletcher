@@ -765,7 +765,7 @@ async def snooze_channel_function(message, client, args):
             if channel:
                 channels = [channel]
             else:
-                channel = []
+                channels = []
         if len(channels) > 0:
             channel = channels[0]
         else:
