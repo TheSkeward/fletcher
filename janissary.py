@@ -689,7 +689,7 @@ async def part_channel_function(message, client, args, ctx=None):
             guild = channel.guild
         if not len(channels):
             error_msg = "Failed to locate channel, please check spelling."
-            if args:
+            if len(args):
                 error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, args[0]))[0].name}`?"
             if ctx:
                 return await ctx.response.send_message(error_msg, ephemeral=True)
