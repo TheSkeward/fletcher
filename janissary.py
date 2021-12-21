@@ -681,7 +681,7 @@ async def part_channel_function(message, client, args, ctx=None):
             channel = channels[0]
         else:
             channel = None
-        if message.guild is not None:
+        if message and message.guild is not None:
             guild = message.guild
         elif hasattr(channel, "guild"):
             assert isinstance(channel, discord.TextChannel)
