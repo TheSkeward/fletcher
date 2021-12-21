@@ -2399,7 +2399,7 @@ class CommandHandler:
             def query_filter(c):
                 return (
                     any(target_trigger in trigger for trigger in c["trigger"])
-                    and min_args <= c.get("args_num", 0) <= max_args
+                    and min_args <= c.get("args_min", c.get("args_num", 0)) <= max_args
                 )
 
         if mode == "keyword_trie":
@@ -2407,7 +2407,7 @@ class CommandHandler:
             def query_filter(c):
                 return (
                     target_trigger.startswith(c["trigger"])
-                    and min_args <= c.get("args_num", 0) <= max_args
+                    and min_args <= c.get("args_min", c.get("args_num", 0)) <= max_args
                 )
 
         elif mode == "description":
@@ -2416,7 +2416,7 @@ class CommandHandler:
                 return (
                     any(target_trigger in trigger for trigger in c["trigger"])
                     or target_trigger in c.get("description", "").lower()
-                    and min_args <= c.get("args_num", 0) <= max_args
+                    and min_args <= c.get("args_min", c.get("args_num", 0)) <= max_args
                 )
 
         else:  # if mode == "exact":
@@ -2424,7 +2424,7 @@ class CommandHandler:
             def query_filter(c):
                 return (
                     target_trigger in c["trigger"]
-                    and min_args <= c.get("args_num", 0) <= max_args
+                    and min_args <= c.get("args_min", c.get("args_num", 0)) <= max_args
                 )
 
         try:
