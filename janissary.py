@@ -679,14 +679,19 @@ async def part_channel_function(message, client, args, ctx=None):
             channel = None
         if message and message.guild is not None:
             guild = message.guild
+        if ctx and ctx.guild is not None:
+            guild = ctx.guild
         elif hasattr(channel, "guild"):
             assert isinstance(channel, discord.TextChannel)
             guild = channel.guild
-        else:
+        if not channels:
+            error_msg = "Failed to locate channel, please check spelling."
+            if args:
+                error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, args[0]))[0].name}`?"
+            if ctx:
+                return await ctx.response.send_message(error_msg, ephemeral=True)
             await message.add_reaction("🚫")
-            return await messagefuncs.sendWrappedMessage(
-                "Failed to locate channel, please check spelling.", message.channel
-            )
+            return await messagefuncs.sendWrappedMessage(error_msg, message.channel)
         channel_names = ""
         for channel in channels:
             await channel.set_permissions(
