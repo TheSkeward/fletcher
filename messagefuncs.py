@@ -150,11 +150,16 @@ async def sendWrappedMessage(
                         str(msg)[3:-3], 1994, replace_whitespace=False
                     )
                 ]
+            elif ">>> " in str(msg):
+                msg_chunks = textwrap.wrap(str(msg), 1996, replace_whitespace=False)
+                for chunk in range(len(msg_chunks) - 1):
+                    if ">>> " in msg_chunks[chunk]:
+                        msg_chunks[chunk+1] = f">>> {msg_chunks[chunk+1]}"
             elif "> " in str(msg):
                 msg_chunks = textwrap.wrap(str(msg), 1998, replace_whitespace=False)
                 for chunk in range(len(msg_chunks) - 1):
                     if not msg_chunks[chunk].endswith("\n") and msg_chunks[chunk].split("\n")[-1].startswith("> "):
-                        msg_chunks[chunk+1] = f"> {msg_chunks}"
+                        msg_chunks[chunk+1] = f"> {msg_chunks[chunk+1]}"
             else:
                 msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
