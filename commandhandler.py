@@ -68,6 +68,7 @@ class Command:
         hidden=None,
         admin=False,
         args_num=0,
+        args_min=None,
         args_name=[],
         description=None,
         exclusive=False,
@@ -80,7 +81,7 @@ class Command:
         self.sync = sync
         self.hidden = hidden
         self.admin = admin
-        self.arguments = {"min_count": args_num, "names": args_name}
+        self.arguments = {"min_count": args_min if args_min else args_num, "names": args_name}
         self.description = description
         self.exclusive = exclusive
         self.scope = scope
@@ -242,10 +243,10 @@ class CommandHandler:
                             "description": command.get("description", ""),
                             "options": [
                                 {
-                                    "name": command.get("args_name", [])[i]
+                                    "name": command.get("args_name", [])[i].split(";")[0]
                                     if i < len(command.get("args_name", []))
                                     else f"{i}",
-                                    "description": "Nil",
+                                    "description": command.get("args_name", [])[i].split(";")[-1] or "Nil",
                                     "type": 3,
                                     "required": i
                                     < command.get(
@@ -254,7 +255,7 @@ class CommandHandler:
                                     "choices": [],
                                     "autocomplete": False,
                                 }
-                                for i in range(command.get("args_num", 0))
+                                for i in range(max(command.get("args_num", 0), len(command.get("args_name",[]))))
                             ],
                             "default_permission": True,
                         },
