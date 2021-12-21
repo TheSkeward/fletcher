@@ -44,7 +44,7 @@ def expand_guild_name(
     )
     new_guild = guild
     for k, v in acro_mapping.items():
-        regex = re.compile(f"^{prefix}{k}{suffix}|^{k}$", re.IGNORECASE)
+        regex = re.compile(f"^{prefix}{k}{suffix}|^{k}$", 0 if case_sensitive else re.IGNORECASE)
         new_guild = regex.sub(prefix + v + suffix, new_guild)
         if not global_replace and new_guild != guild:
             logger.debug(f"Replacement found {k} -> {v}")
@@ -284,7 +284,9 @@ async def teleport_function(message, client, args):
         consume = 1
         if toChannel is None and len(message.channel_mentions):
             consume = 0
-            mentions_filtered = list(filter(lambda c: c.id != message.channel.id, message.channel_mentions))
+            mentions_filtered = list(
+                filter(lambda c: c.id != message.channel.id, message.channel_mentions)
+            )
             if len(mentions_filtered) > 1:
                 await message.add_reaction("🚫")
                 await sendWrappedMessage(
@@ -293,7 +295,7 @@ async def teleport_function(message, client, args):
                     delete_after=60,
                 )
                 return
-            try: 
+            try:
                 toChannel = mentions_filtered.pop()
             except IndexError:
                 # Leave as None
@@ -409,7 +411,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/pdf/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
+        r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
     re.IGNORECASE,
 )
 
