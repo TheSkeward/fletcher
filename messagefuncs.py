@@ -1,4 +1,5 @@
 from sys import exc_info
+from html import unescape
 import commandhandler
 import asyncio
 import aiohttp
@@ -149,6 +150,11 @@ async def sendWrappedMessage(
                         str(msg)[3:-3], 1994, replace_whitespace=False
                     )
                 ]
+            elif "> " in str(msg):
+                msg_chunks = textwrap.wrap(str(msg), 1998, replace_whitespace=False)
+                for chunk in range(len(msg_chunks) - 1):
+                    if not msg_chunks[chunk].endswith("\n") and msg_chunks[chunk].split("\n")[-1].startswith("> "):
+                        msg_chunks[chunk+1] = f"> {msg_chunks}"
             else:
                 msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
@@ -606,7 +612,7 @@ async def preview_messagelink_function(message, client, args):
 __{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
 {"; ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
 <{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>
->>> {re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip()}
+>>> {unescape(re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip())}
 """
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
