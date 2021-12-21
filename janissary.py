@@ -640,12 +640,12 @@ async def lockout_user_function(message, client, args):
 
 async def part_channel_function(message, client, args, ctx=None):
     try:
-        if len(message.channel_mentions) > 0:
+        if message and len(message.channel_mentions) > 0:
             channels = message.channel_mentions
         elif len(args) == 0 and message.guild is None:
             error = "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)"
             if ctx:
-                return ctx.response.send_message(
+                return await ctx.response.send_message(
                         error,
                         ephemeral=True
                 )
@@ -666,12 +666,14 @@ async def part_channel_function(message, client, args, ctx=None):
         else:
             try:
                 channel_name, args = consume_channel_token(args)
-                channel = messagefuncs.xchannel(channel_name, message.guild)
+                channel = messagefuncs.xchannel(channel_name, message.guild if message else ctx.channel.guild)
             except (exceptions.DirectMessageException, AttributeError):
                 return await messagefuncs.sendWrappedMessage(
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
                     message.author,
                 )
+            if channel is None and ctx:
+                channel = ctx.channel
             if channel is None:
                 channel = message.channel
             channels = [channel]
@@ -682,6 +684,7 @@ async def part_channel_function(message, client, args, ctx=None):
         if message.guild is not None:
             guild = message.guild
         elif hasattr(channel, "guild"):
+            assert isinstance(channel, discord.TextChannel)
             guild = channel.guild
         else:
             await message.add_reaction("🚫")
@@ -698,6 +701,9 @@ async def part_channel_function(message, client, args, ctx=None):
                 reason=f"User requested part {message.author.name}",
             )
             channel_names += f"{channel.guild.name}:{channel.name}, "
+        if ctx:
+            return await ctx.response.send_message(
+            f"Parted from {channel_names[0:-2]}")
         await message.add_reaction("✅")
         await messagefuncs.sendWrappedMessage(
             f"Parted from {channel_names[0:-2]}", message.author
