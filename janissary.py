@@ -780,7 +780,7 @@ async def snooze_channel_function(message, client, args):
                 error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, old_args[0]))[0].name}`?"
             await message.add_reaction("🚫")
             return await messagefuncs.sendWrappedMessage(
-                "Failed to locate channel, please check spelling.", message.author
+                error_msg, message.author
             )
         if (
             channel
