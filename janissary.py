@@ -753,6 +753,7 @@ async def snooze_channel_function(message, client, args):
             channels = guild.text_channels
         else:
             try:
+                old_args = [*args]
                 channel_name, args = consume_channel_token(args)
                 channel = messagefuncs.xchannel(channel_name, message.guild)
             except exceptions.DirectMessageException:
@@ -760,10 +761,11 @@ async def snooze_channel_function(message, client, args):
                     "Snoozing a channel via DM requires server to be specified (e.g. `!snooze server:channel [hours]`)",
                     message.author,
                 )
-            if channel is None:
-                channel = message.channel
         if channels is None:
-            channels = [channel]
+            if channel:
+                channels = [channel]
+            else:
+                channel = []
         if len(channels) > 0:
             channel = channels[0]
         else:
@@ -772,7 +774,10 @@ async def snooze_channel_function(message, client, args):
             guild = channel.guild
         elif message.guild is not None:
             guild = message.guild
-        else:
+        if not len(channels):
+            error_msg = "Failed to locate channel, please check spelling."
+            if len(old_args):
+                error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, old_args[0]))[0].name}`?"
             await message.add_reaction("🚫")
             return await messagefuncs.sendWrappedMessage(
                 "Failed to locate channel, please check spelling.", message.author
