@@ -654,7 +654,7 @@ async def part_channel_function(message, client, args, ctx=None):
                 message.author,
             )
         elif len(args) == 0:
-            channels = [message.channel]
+            channels = [ctx.channel if ctx else message.channel]
         elif args[0].strip()[-2:] == ":*":
             guild = discord.utils.get(
                 client.guilds,
@@ -672,10 +672,6 @@ async def part_channel_function(message, client, args, ctx=None):
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
                     message.author,
                 )
-            if channel is None and ctx:
-                channel = ctx.channel
-            if channel is None:
-                channel = message.channel
             channels = [channel]
         if len(channels) > 0:
             channel = channels[0]
@@ -2198,7 +2194,7 @@ def autoload(ch):
             "async": True,
             "args_num": 1,
             "args_min": 0,
-            "args_name": ["channel"],
+            "args_name": ["channel;Channel Name"],
             "description": "Leave a channel. Cannot be reversed except by admin.",
             "slash_command": True,
             "whitelist_guild": [634249282488107028, 345045447745732608],
