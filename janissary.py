@@ -672,7 +672,10 @@ async def part_channel_function(message, client, args, ctx=None):
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
                     message.author,
                 )
-            channels = [channel]
+            if channel:
+                channels = [channel]
+            else:
+                channels = []
         if len(channels) > 0:
             channel = channels[0]
         else:
@@ -684,7 +687,7 @@ async def part_channel_function(message, client, args, ctx=None):
         elif hasattr(channel, "guild"):
             assert isinstance(channel, discord.TextChannel)
             guild = channel.guild
-        if not channels:
+        if not len(channels):
             error_msg = "Failed to locate channel, please check spelling."
             if args:
                 error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, args[0]))[0].name}`?"
