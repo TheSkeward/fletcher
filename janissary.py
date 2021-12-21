@@ -694,16 +694,16 @@ async def part_channel_function(message, client, args, ctx=None):
         channel_names = ""
         for channel in channels:
             await channel.set_permissions(
-                message.author,
+                message.author if message else ctx.user,
                 read_messages=False,
                 read_message_history=False,
                 send_messages=False,
-                reason=f"User requested part {message.author.name}",
+                reason=f"User requested part {(message.author if message else ctx.user).name}",
             )
             channel_names += f"{channel.guild.name}:{channel.name}, "
         if ctx:
             return await ctx.response.send_message(
-            f"Parted from {channel_names[0:-2]}")
+            f"Parted from {channel_names[0:-2]}", ephemeral=True)
         await message.add_reaction("✅")
         await messagefuncs.sendWrappedMessage(
             f"Parted from {channel_names[0:-2]}", message.author
