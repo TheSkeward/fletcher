@@ -665,6 +665,7 @@ async def part_channel_function(message, client, args, ctx=None):
             channels = [*guild.text_channels, *guild.voice_channels]
         else:
             try:
+                old_args = [*args]
                 channel_name, args = consume_channel_token(args)
                 channel = messagefuncs.xchannel(channel_name, message.guild if message else ctx.channel.guild)
             except (exceptions.DirectMessageException, AttributeError):
@@ -689,8 +690,8 @@ async def part_channel_function(message, client, args, ctx=None):
             guild = channel.guild
         if not len(channels):
             error_msg = "Failed to locate channel, please check spelling."
-            if len(args):
-                error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, args[0]))[0].name}`?"
+            if len(old_args):
+                error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, old_args[0]))[0].name}`?"
             if ctx:
                 return await ctx.response.send_message(error_msg, ephemeral=True)
             await message.add_reaction("🚫")
