@@ -604,7 +604,7 @@ async def preview_messagelink_function(message, client, args):
                     text = await resp.text()
                     content = f"""
 __{re.search(r'name="citation_title" content="([^"]*?)"', text).group(1)}__
-{", ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
+{"; ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
 <{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>
 >>> {re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip()}
 """
