@@ -3585,14 +3585,21 @@ def fiche_function(content, message_id):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
-def add_watchword_function(message, client, args):
+def watchword_function(message, client, args):
     hotwords = ujson.loads(ch.user_config(message.author.id, message.guild, "hotwords", allow_global_substitute=True))
     watchword = " ".join(args)
+    if not watchword:
+        return f"Your current watchwords are {', '.join(watchword.keys())}"
     if not hotwords.get(watchword):
         hotwords[watchword] = {"dm_me": 1, "regex": f"\\b{watchword}\\b", "insensitive": "true"}
-    ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
-    ch.load_hotwords(force_reload=True)
-    return f"Added {watchword} to your hot words."
+        ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
+        ch.load_hotwords(force_reload=True)
+        return f"Added {watchword} to your hot words."
+    else:
+        del hotwords[watchword]
+        ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
+        ch.load_hotwords(force_reload=True)
+        return f"Removed {watchword} from your hot words."
 
 def autoload(ch):
     ch.add_command(
@@ -3780,11 +3787,11 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!watchword"],
-            "function": add_watchword_function,
+            "function": watchword_function,
             "async": False,
-            "args_num": 1,
+            "args_num": 0,
             "args_name": ["word"],
-            "description": "Add word to watch out for and notify when seen. Note that setting a server-specific preference here will disable global watchwords on that server.",
+            "description": "Toggle word to watch out for and notify when seen. With no arguments, list current watchwords. Note that setting a server-specific preference here will disable global watchwords on that server.",
         }
     )
 
