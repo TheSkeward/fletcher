@@ -474,6 +474,8 @@ async def preview_messagelink_function(message, client, args):
                 ).read_message_history
             ):
                 return
+            if not config.get(key="preview-allowed", default=True, guild=guild, channel=channel):
+                return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
             sent_at = f"<t:{int(target_message.created_at.replace(tzinfo=pytz.UTC).astimezone(pytz.utc).timestamp())}:R>"
