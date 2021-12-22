@@ -3591,6 +3591,7 @@ def add_watchword_function(message, client, args):
     if not hotwords.get(watchword):
         hotwords[watchword] = {"dm_me": 1, "regex": f"\\b{watchword}\\b", "insensitive": "true"}
     ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
+    ch.load_hotwords(force_reload=True)
     return "Added {watchword} to your hot words."
 
 def autoload(ch):
