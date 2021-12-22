@@ -3585,6 +3585,13 @@ def fiche_function(content, message_id):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+def add_watchword_function(message, client, args):
+    hotwords = ujson.loads(ch.user_config(message.author.id, message.guild, "hotwords", allow_global_substitute=True))
+    watchword = " ".join(args)
+    if not hotwords.get(watchword):
+        hotwords[watchword] = {"dm_me": 1, "regex": f"\\b{watchword}\\b", "insensitive": "true"}
+    ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
+    return "Added {watchword} to your hot words."
 
 def autoload(ch):
     ch.add_command(
@@ -3769,6 +3776,16 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["!watchword"],
+            "function": add_watchword_function,
+            "async": False,
+            "args_num": 1,
+            "args_name": ["word"],
+            "description": "Add word to watch out for and notify when seen. Note that setting a server-specific preference here will disable global watchwords on that server.",
+        }
+    )
 
 async def autounload(ch):
     pass
