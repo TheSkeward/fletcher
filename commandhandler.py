@@ -2432,6 +2432,91 @@ class CommandHandler:
         except IndexError:
             return []
 
+    def load_hotwords(self, force_reload=False):
+        global regex_cache
+        global config
+        ch = self
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'hotwords';"
+            )
+            hottuple = cur.fetchone()
+            while hottuple:
+                [user_id, guild_id, hotword_json] = hottuple
+                if guild_id == 0 or guild_id is None:
+                    if not ch.client.get_user(user_id):
+                        hottuple = cur.fetchone()
+                        continue
+                    guilds = ch.client.get_user(user_id).mutual_guilds
+                    try:
+                        ujson.loads(hotword_json)
+                    except ValueError:
+                        ch.client.loop.create_task(
+                            messagefuncs.sendWrappedMessage(
+                                f"Error loading your global hotwords: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
+                                ch.client.get_user(user_id),
+                            )
+                        )
+                        hottuple = cur.fetchone()
+                        continue
+                else:
+                    guilds = [ch.client.get_guild(guild_id)]
+                for guild in guilds:
+                    if guild is None:
+                        continue
+                    logger.debug(f"Loading {user_id} on {guild.id}: {hotword_json}")
+                    guild_config = ch.scope_config(guild=guild.id, mutable=True)
+                    try:
+                        hotwords = ujson.loads(hotword_json)
+                    except ValueError as e:
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                        if guild_id == 0 or guild_id is None:
+                            ch.client.loop.create_task(
+                                messagefuncs.sendWrappedMessage(
+                                    f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
+                                    ch.client.get_user(user_id),
+                                )
+                            )
+                        continue
+                    if not guild_config.get("hotwords_loaded") or force_reload:
+                        guild_config["hotwords_loaded"] = ""
+                    for word in hotwords.keys():
+                        try:
+                            hotword = Hotword(
+                                ch,
+                                word,
+                                hotwords[word],
+                                guild.get_member(user_id),
+                            )
+                        except (ValueError, KeyError) as e:
+                            logger.error(f"Parsing {word} for {user_id} failed: {e}")
+                            continue
+                        except AttributeError as e:
+                            logger.debug(traceback.format_exc())
+                            logger.info(
+                                f"Parsing {word} for {user_id} failed: User is not on server {e}"
+                            )
+                            continue
+                        hotwords[word] = hotword
+                        guild_config["hotwords_loaded"] += ", " + word
+                        if not regex_cache.get(guild.id):
+                            regex_cache[guild.id] = []
+                    add_me = list(
+                        filter(lambda hw: type(hw) == Hotword, hotwords.values())
+                    )
+                    if not regex_cache.get(guild.id) or force_reload:
+                        regex_cache[guild.id] = []
+                    logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
+                    regex_cache[guild.id].extend(add_me)
+                hottuple = cur.fetchone()
+            conn.commit()
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 
 async def help_function(message, client, args):
     global ch
@@ -2741,93 +2826,10 @@ WHERE p.key = 'tupper';
             tuptuple = cur.fetchone()
         conn.commit()
 
-    def load_hotwords(ch):
-        global regex_cache
-        global config
-        try:
-            cur = conn.cursor()
-            cur.execute(
-                "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'hotwords';"
-            )
-            hottuple = cur.fetchone()
-            while hottuple:
-                [user_id, guild_id, hotword_json] = hottuple
-                if guild_id == 0 or guild_id is None:
-                    if not ch.client.get_user(user_id):
-                        hottuple = cur.fetchone()
-                        continue
-                    guilds = ch.client.get_user(user_id).mutual_guilds
-                    try:
-                        ujson.loads(hotword_json)
-                    except ValueError:
-                        ch.client.loop.create_task(
-                            messagefuncs.sendWrappedMessage(
-                                f"Error loading your global hotwords: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
-                                ch.client.get_user(user_id),
-                            )
-                        )
-                        hottuple = cur.fetchone()
-                        continue
-                else:
-                    guilds = [ch.client.get_guild(guild_id)]
-                for guild in guilds:
-                    if guild is None:
-                        continue
-                    logger.debug(f"Loading {user_id} on {guild.id}: {hotword_json}")
-                    guild_config = ch.scope_config(guild=guild.id, mutable=True)
-                    try:
-                        hotwords = ujson.loads(hotword_json)
-                    except ValueError as e:
-                        exc_type, exc_obj, exc_tb = exc_info()
-                        logger.info(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-                        if guild_id == 0 or guild_id is None:
-                            ch.client.loop.create_task(
-                                messagefuncs.sendWrappedMessage(
-                                    f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` is invalid JSON. Please either disable or fix this hotword.",
-                                    ch.client.get_user(user_id),
-                                )
-                            )
-                        continue
-                    if not guild_config.get("hotwords_loaded"):
-                        guild_config["hotwords_loaded"] = ""
-                    for word in hotwords.keys():
-                        try:
-                            hotword = Hotword(
-                                ch,
-                                word,
-                                hotwords[word],
-                                guild.get_member(user_id),
-                            )
-                        except (ValueError, KeyError) as e:
-                            logger.error(f"Parsing {word} for {user_id} failed: {e}")
-                            continue
-                        except AttributeError as e:
-                            logger.debug(traceback.format_exc())
-                            logger.info(
-                                f"Parsing {word} for {user_id} failed: User is not on server {e}"
-                            )
-                            continue
-                        hotwords[word] = hotword
-                        guild_config["hotwords_loaded"] += ", " + word
-                        if not regex_cache.get(guild.id):
-                            regex_cache[guild.id] = []
-                    add_me = list(
-                        filter(lambda hw: type(hw) == Hotword, hotwords.values())
-                    )
-                    if not regex_cache.get(guild.id):
-                        regex_cache[guild.id] = []
-                    logger.debug(f"Extending regex_cache[{guild.id}] with {add_me}")
-                    regex_cache[guild.id].extend(add_me)
-                hottuple = cur.fetchone()
-            conn.commit()
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = exc_info()
-            logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-
     logger.debug("LT")
     load_tuppers(ch)
     logger.debug("LUHW")
-    load_hotwords(ch)
+    ch.load_hotwords()
 
 
 def preference_function(message, client, args):
