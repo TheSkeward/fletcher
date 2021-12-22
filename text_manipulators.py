@@ -3596,7 +3596,7 @@ def watchword_function(message, client, args):
         ch.load_hotwords(force_reload=True)
         return f"Added {watchword} to your hot words."
     else:
-        del hotwords[watchword]
+        hotwords.pop(watchword, None)
         ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
         ch.load_hotwords(force_reload=True)
         return f"Removed {watchword} from your hot words."
