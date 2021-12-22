@@ -3590,6 +3590,7 @@ def watchword_function(message, client, args):
     watchword = " ".join(args)
     if not watchword:
         return f"Your current watchwords are {', '.join(watchword.keys())}"
+    ch.user_config.cache_clear()
     if not hotwords.get(watchword):
         hotwords[watchword] = {"dm_me": 1, "regex": f"\\b{watchword}\\b", "insensitive": "true"}
         ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
