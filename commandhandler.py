@@ -15,6 +15,7 @@ import inspect
 import janissary
 import random
 import re
+import pytz
 from sys import exc_info
 import traceback
 import ujson
@@ -2678,8 +2679,58 @@ class Hotword:
 
             async def dm_me(owner, message, client, args):
                 try:
+                    # created_at is naîve, but specified as UTC by Discord API docs
+                    sent_at = f"<t:{int(message.created_at.replace(tzinfo=pytz.UTC).astimezone(pytz.utc).timestamp())}:R>"
+                    content = message.content
+                    if message.author.bot and len(message.embeds):
+                        embed = message.embeds[0]
+                    if content == "":
+                        # content = "*No Text*"
+                        pass
+                    else:
+                        content = ">>> " + content
+                    content = "@__{}__ in **#{}** ({}) at {}:\n{}".format(
+                        message.author.name,
+                        message.channel.name,
+                        message.guild.name,
+                        sent_at,
+                        content,
+                    )
+                    content = messagefuncs.extract_links.sub(r"<\g<0>>", content)
+                    if len(message.attachments) > 0:
+                        plural = ""
+                        if len(message.attachments) > 1:
+                            plural = "s"
+                        if message.channel.is_nsfw() and (
+                            type(message.channel) is discord.DMChannel
+                            or not message.channel.is_nsfw()
+                        ):
+                            content = (
+                                content
+                                + "\n "
+                                + str(len(message.attachments))
+                                + " file"
+                                + plural
+                                + " attached"
+                            )
+                            content = content + " from an r18 channel."
+                            for attachment in message.attachments:
+                                content = content + "\n• <" + attachment.url + ">"
+                        else:
+                            content = (
+                                content
+                                + "\n "
+                                + str(len(message.attachments))
+                                + " file"
+                                + plural
+                                + " attached"
+                            )
+                            content = content + " from an r18 channel."
+                            for attachment in message.attachments:
+                                content = content + "\n• " + attachment.url
+                 
                     response_message = await messagefuncs.sendWrappedMessage(
-                        f"Hotword {word} triggered by https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}",
+                        f"Hotword {word} triggered by <https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}>\n{content}",
                         client.get_user(owner.id),
                         current_user_id=owner.id,
                     )
