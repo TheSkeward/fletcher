@@ -402,11 +402,21 @@ async def reminder_function(message, client, args):
                 await message.add_reaction("✅")
             except:
                 pass
-            return await messagefuncs.sendWrappedMessage(
-                f"Setting a reminder {target}\n> {content}",
-                message.channel,
-                delete_after=30,
-            )
+            if ch.config.normalize(
+                    str(
+                        ch.user_config(
+                            message.author.id,
+                            message.guild.id if message.guild else 0,
+                            key="verbose_reminders",
+                            default="True",
+                            allow_global_substitute=True,
+                            ))
+                        ):
+                return await messagefuncs.sendWrappedMessage(
+                        f"Setting a reminder {target}\n> {content}",
+                        message.channel,
+                        delete_after=30,
+                        )
         except psycopg2.Error:
             conn.rollback()
             return await messagefuncs.sendWrappedMessage(
