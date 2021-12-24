@@ -3129,7 +3129,7 @@ async def reaction_list_function(message, client, args, ctx):
     if message.guild and ch.webhook_sync_registry.get(
         f"{message.guild.name}:{message.channel.id}"
     ):
-        await asyncio.sleep(1)
+        logger.debug("Searching")
         cur = conn.cursor()
         query_params = [message.guild.id, message.channel.id, message.id]
         cur.execute(
@@ -3140,6 +3140,7 @@ async def reaction_list_function(message, client, args, ctx):
         conn.commit()
     else:
         metuples = []
+    logger.debug(f"Found {len(metuples)}")
     reactions = ""
     for metuple in metuples:
         guild_id, channel_id, message_id = metuple
@@ -3150,8 +3151,9 @@ async def reaction_list_function(message, client, args, ctx):
         toMessage = await toChannel.fetch_message(message_id)
         if len(toMessage.reactions):
             reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count} x {r.emoji}" for r in toMessage.reactions))
-        if not reactions:
-            reactions = "No reactions from bridged channel(s)."
+    if not reactions:
+        reactions = "No reactions from bridged channel(s)."
+    if len(metuples):
         return await ctx.response.send_message(reactions[:2000], ephemeral=True)
     else:
         return await ctx.response.pong()
