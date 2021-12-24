@@ -9,6 +9,7 @@ from psycopg2._psycopg import connection
 import discord
 import logging
 import messagefuncs
+import itertools
 import netcode
 import greeting
 import inspect
@@ -3164,9 +3165,12 @@ async def reaction_list_function(message, client, args, ctx):
         if len(toMessage.reactions):
             reactions += f"From #{toChannel.name} ({toGuild.name})\n"
             for r in toMessage.reactions:
-                users = (u for u in await r.users().flatten() if u.id != client.user.id) if r.count - (1 if r.me else 0) <= 3 else []
+                count = r.count - (1 if r.me else 0)
+                users = (u for u in await r.users().flatten() if u.id != client.user.id)
+                if count > 3:
+                    users = itertools.islice(users, 4)
                 users = (u.display_name for u in users)
-                reactions += f"{r.count - (1 if r.me else 0)} x {r.emoji}{'' if r.count - (1 if r.me else 0)> 3 else ' '+', '.join(users)}\n"
+                reactions += f"{count} x {r.emoji}{'' if count == 0 else ' '+', '.join(users)+('…' if count else '')}\n"
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
     return await ctx.response.send_message(reactions[:2000], ephemeral=True)
