@@ -3170,7 +3170,8 @@ async def reaction_list_function(message, client, args, ctx):
                 if count > 3:
                     users = itertools.islice(users, 4)
                 users = (u.display_name for u in users)
-                reactions += f"{count} x {r.emoji}{'' if count == 0 else ' '+', '.join(users)+('…' if count else '')}\n"
+                if count:
+                    reactions += f"{count} x {r.emoji}{'' if count == 0 else ' '+', '.join(users)+('…' if count > 3 else '')}\n"
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
     return await ctx.response.send_message(reactions[:2000], ephemeral=True)
