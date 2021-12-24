@@ -3123,7 +3123,7 @@ async def run_web_api(config, ch):
 
 async def reaction_list_function(message, client, args, ctx):
     if not message:
-        message = ctx.message
+        message = await ctx.original_message()
     bridge_key = f"{message.guild.name}:{message.channel.id}"
     bridge = ch.webhook_sync_registry.get(bridge_key)
     if message.guild and ch.webhook_sync_registry.get(
