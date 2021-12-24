@@ -3160,7 +3160,7 @@ async def reaction_list_function(message, client, args, ctx):
         assert toChannel is not None
         toMessage = await toChannel.fetch_message(message_id)
         if len(toMessage.reactions):
-            reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count - (1 if r.me else 0)} x {r.emoji}" for r in toMessage.reactions))
+            reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count - (1 if r.me else 0)} x {r.emoji}{'' if r.count > 3 else ' '+', '.join((u.display_name for u in r.users() if u.id != client.user.id))}" for r in toMessage.reactions))
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
     return await ctx.response.send_message(reactions[:2000], ephemeral=True)
