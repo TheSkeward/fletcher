@@ -3129,7 +3129,6 @@ async def reaction_list_function(message, client, args, ctx):
     if message.guild and ch.webhook_sync_registry.get(
         f"{message.guild.name}:{message.channel.id}"
     ):
-        logger.debug("Searching")
         cur = conn.cursor()
         query_params = [message.guild.id, message.channel.id, message.id]
         cur.execute(
@@ -3152,7 +3151,6 @@ async def reaction_list_function(message, client, args, ctx):
         conn.commit()
     else:
         return await ctx.response.send_message("No bridge found to list reactions from.", ephemeral=True)
-    logger.debug(f"Found {len(metuples)}")
     reactions = ""
     for metuple in metuples:
         guild_id, channel_id, message_id = metuple
@@ -3162,6 +3160,7 @@ async def reaction_list_function(message, client, args, ctx):
         assert toChannel is not None
         toMessage = await toChannel.fetch_message(message_id)
         if len(toMessage.reactions):
+            logger.debug(f"{toMessage.reactions}")
             reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count} x {r.emoji}" for r in toMessage.reactions))
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
