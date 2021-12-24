@@ -1431,6 +1431,8 @@ async def set_slowmode_function(message, client, args):
 async def unpin_message_function(message, client, args):
     global ch
     try:
+        if args[2] != "remove":
+            return
         if (
             ch.config.get(
                 guild=message.guild,
