@@ -3139,7 +3139,7 @@ async def reaction_list_function(message, client, args, ctx):
         metuples = cur.fetchall()
         conn.commit()
     else:
-        metuples = []
+        return await ctx.response.send_message("No bridge found to list reactions from.", ephemeral=True)
     logger.debug(f"Found {len(metuples)}")
     reactions = ""
     for metuple in metuples:
@@ -3153,7 +3153,4 @@ async def reaction_list_function(message, client, args, ctx):
             reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count} x {r.emoji}" for r in toMessage.reactions))
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
-    if len(metuples):
-        return await ctx.response.send_message(reactions[:2000], ephemeral=True)
-    else:
-        return await ctx.response.pong()
+    return await ctx.response.send_message(reactions[:2000], ephemeral=True)
