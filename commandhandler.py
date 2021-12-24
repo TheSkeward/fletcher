@@ -3160,7 +3160,7 @@ async def reaction_list_function(message, client, args, ctx):
         assert toChannel is not None
         toMessage = await toChannel.fetch_message(message_id)
         if len(toMessage.reactions):
-            reactions += f"From {toGuild.name}\n"
+            reactions += f"From #{toChannel.name} ({toGuild.name})\n"
             for r in toMessage.reactions:
                 users = (u for u in await r.users().flatten() if u.id != client.user.id) if r.count - (1 if r.me else 0) <= 3 else []
                 users = (u.display_name for u in users)
