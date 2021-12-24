@@ -642,7 +642,7 @@ async def part_channel_function(message, client, args, ctx=None):
     try:
         if message and len(message.channel_mentions) > 0:
             channels = message.channel_mentions
-        elif len(args) == 0 and message.guild is None:
+        elif len(args) == 0 and message and message.guild is None:
             error = "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)"
             if ctx:
                 return await ctx.response.send_message(
