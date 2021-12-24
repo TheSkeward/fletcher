@@ -268,10 +268,15 @@ class CommandHandler:
     async def _add_message_command(
         self, guild_id: int, payload: dict, command_internal_id: int
     ) -> Awaitable[None]:
+        if self.config.get(guild=guild_id, key="commands_disabled", default=False):
+            return
         payload["type"] = 3
-        response = await self.client.http.upsert_guild_command(
-            self.user.id, guild_id, payload
-        )
+        try:
+            response = await self.client.http.upsert_guild_command(
+                    self.user.id, guild_id, payload
+                    )
+        except discord.Forbidden:
+            logger.info(f"Disable guild commands on {guild_id} ({client.get_guild(guild_id).name})")
         logger.debug(f"Respayload {payload} {response}")
         logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
         self.commands[command_internal_id]["guild_command_ids"][
