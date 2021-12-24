@@ -3137,6 +3137,18 @@ async def reaction_list_function(message, client, args, ctx):
             query_params,
         )
         metuples = cur.fetchall()
+        if not len(metuples):
+            cur.execute(
+                "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s;",
+                query_params,
+            )
+            metuples = cur.fetchall()
+            query_params = metuples[0]
+            cur.execute(
+                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
+                query_params,
+            )
+            metuples.extend(cur.fetchall())
         conn.commit()
     else:
         return await ctx.response.send_message("No bridge found to list reactions from.", ephemeral=True)
