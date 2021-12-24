@@ -3159,8 +3159,8 @@ async def reaction_list_function(message, client, args, ctx):
         toChannel = toGuild.get_channel(channel_id)
         assert toChannel is not None
         toMessage = await toChannel.fetch_message(message_id)
+        logger.debug(f"{toMessage.reactions}")
         if len(toMessage.reactions):
-            logger.debug(f"{toMessage.reactions}")
             reactions += f"From {toGuild.name}\n"+"\n".join((f"{r.count} x {r.emoji}" for r in toMessage.reactions))
     if not reactions:
         reactions = "No reactions from bridged channel(s)."
