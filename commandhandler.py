@@ -3148,6 +3148,8 @@ async def reaction_list_function(message, client, args, ctx):
                 query_params,
             )
             metuples.extend(cur.fetchall())
+        else:
+            metuples = [[message.guild.id, message.channel.id, message.id], *metuples]
         conn.commit()
     else:
         return await ctx.response.send_message("No bridge found to list reactions from.", ephemeral=True)
