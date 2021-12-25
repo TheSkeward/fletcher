@@ -45,7 +45,9 @@ def expand_guild_name(
     )
     new_guild = guild
     for k, v in acro_mapping.items():
-        regex = re.compile(f"^{prefix}{k}{suffix}|^{k}$", 0 if case_sensitive else re.IGNORECASE)
+        regex = re.compile(
+            f"^{prefix}{k}{suffix}|^{k}$", 0 if case_sensitive else re.IGNORECASE
+        )
         new_guild = regex.sub(prefix + v + suffix, new_guild)
         if not global_replace and new_guild != guild:
             logger.debug(f"Replacement found {k} -> {v}")
@@ -154,12 +156,14 @@ async def sendWrappedMessage(
                 msg_chunks = textwrap.wrap(str(msg), 1996, replace_whitespace=False)
                 for chunk in range(len(msg_chunks) - 1):
                     if ">>> " in msg_chunks[chunk]:
-                        msg_chunks[chunk+1] = f">>> {msg_chunks[chunk+1]}"
+                        msg_chunks[chunk + 1] = f">>> {msg_chunks[chunk+1]}"
             elif "> " in str(msg):
                 msg_chunks = textwrap.wrap(str(msg), 1998, replace_whitespace=False)
                 for chunk in range(len(msg_chunks) - 1):
-                    if not msg_chunks[chunk].endswith("\n") and msg_chunks[chunk].split("\n")[-1].startswith("> "):
-                        msg_chunks[chunk+1] = f"> {msg_chunks[chunk+1]}"
+                    if not msg_chunks[chunk].endswith("\n") and msg_chunks[chunk].split(
+                        "\n"
+                    )[-1].startswith("> "):
+                        msg_chunks[chunk + 1] = f"> {msg_chunks[chunk+1]}"
             else:
                 msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
             last_chunk = msg_chunks.pop()
@@ -422,7 +426,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-        r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+)",
+    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+|https://static.wikia.nocookie.net/.*/images/d/dc/[^/]+.[^/]+/)",
     re.IGNORECASE,
 )
 
@@ -474,7 +478,9 @@ async def preview_messagelink_function(message, client, args):
                 ).read_message_history
             ):
                 return
-            if not config.get(key="preview-allowed", default=True, guild=guild, channel=channel):
+            if not config.get(
+                key="preview-allowed", default=True, guild=guild, channel=channel
+            ):
                 return
             target_message = await channel.fetch_message(message_id)
             # created_at is naîve, but specified as UTC by Discord API docs
@@ -559,6 +565,8 @@ async def preview_messagelink_function(message, client, args):
                 content = await swag.bash_preview(
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
                 )
+            elif "wikia" in previewable_parts[0]:
+                content = previewable_parts[0][:-1]
             elif "media.discordapp.net" in previewable_parts[0]:
                 content = previewable_parts[0].replace(
                     "media.discordapp.net", "cdn.discordapp.com"
@@ -619,7 +627,15 @@ async def preview_messagelink_function(message, client, args):
 __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1))}__
 {"; ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
 <{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>"""
-                    abstract = unescape(re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip())
+                    abstract = unescape(
+                        re.search(
+                            r'name="citation_abstract" content="([^"]*?)"',
+                            text,
+                            re.MULTILINE,
+                        )
+                        .group(1)
+                        .strip()
+                    )
                     # TODO one day fix the latex
                     content += f"\n>>> {abstract}"
             elif "instagram.com" in previewable_parts[0]:
