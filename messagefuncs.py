@@ -622,12 +622,21 @@ __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1
                     abstract = unescape(re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip())
                     if "\\" in abstract or "$" in abstract:
                         import mathemagical
-                        attachments=[
-                                discord.File(
-                                    mathemagical.renderLatex(abstract.replace("\n", " "), format="png"),
-                                    filename="fletcher-render.png",
-                                    )
-                                ]
+                        ol_abs = abstract.replace("\n", " ")
+                        try:
+                            attachments=[
+                                    discord.File(
+                                        mathemagical.renderLatex(ol_abs, format="png"),
+                                        filename="fletcher-render.png",
+                                        )
+                                    ]
+                        except:
+                            attachments=[
+                                    discord.File(
+                                        mathemagical.renderLatex(f'${ol_abs}$', format="png"),
+                                        filename="fletcher-render.png",
+                                        )
+                                    ]
                     else:
                         content += "\n>>> {abstract}"
             elif "instagram.com" in previewable_parts[0]:
