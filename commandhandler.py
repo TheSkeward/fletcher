@@ -2091,9 +2091,13 @@ class CommandHandler:
                 command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
                 == ctx.guild_id
             ):
+                if ctx.data.get('target_id'):
+                    message = await ctx.channel.fetch_message(ctx.data['target_id'])
+                else:
+                    message = ctx.channel.last_message
                 return await self.run_command(
                     command,
-                    ctx.message or self.client.get_channel(ctx.channel_id).last_message,
+                    message,
                     [
                         o.get("value")
                         for o in ctx.data.get("options", [])
@@ -3128,8 +3132,7 @@ async def run_web_api(config, ch):
 
 
 async def reaction_list_function(message, client, args, ctx):
-    if not message:
-        message = await ctx.channel.fetch_message(ctx.data['target_id'])
+    message = await ctx.channel.fetch_message(ctx.data['target_id'])
     bridge_key = f"{message.guild.name}:{message.channel.id}"
     bridge = ch.webhook_sync_registry.get(bridge_key)
     if message.guild and ch.webhook_sync_registry.get(
