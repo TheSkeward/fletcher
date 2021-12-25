@@ -624,7 +624,7 @@ __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1
                         import mathemagical
                         attachments=[
                                 discord.File(
-                                    mathemagical.renderLatex(abstract, format="png"),
+                                    mathemagical.renderLatex(abstract.replace("\n", " "), format="png"),
                                     filename="fletcher-render.png",
                                     )
                                 ]
