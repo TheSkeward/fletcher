@@ -566,7 +566,7 @@ async def preview_messagelink_function(message, client, args):
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
                 )
             elif "wikia" in previewable_parts[0]:
-                content = previewable_parts[0][:-1]
+                content = "Higher resolution link: " + previewable_parts[0][:-1]
             elif "media.discordapp.net" in previewable_parts[0]:
                 content = previewable_parts[0].replace(
                     "media.discordapp.net", "cdn.discordapp.com"
