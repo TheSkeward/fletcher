@@ -618,9 +618,18 @@ async def preview_messagelink_function(message, client, args):
                     content = f"""
 __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1))}__
 {"; ".join(re.findall(r'name="citation_author" content="([^"]*?)"', text))}
-<{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>
->>> {unescape(re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip())}
-"""
+<{re.search(r'name="citation_pdf_url" content="([^"]*?)"', text).group(1)}>"""
+                    abstract = unescape(re.search(r'name="citation_abstract" content="([^"]*?)"', text, re.MULTILINE).group(1).strip())
+                    if "\\" in abstract or "$" in abstract:
+                        import mathemagical
+                        attachments=[
+                                discord.File(
+                                    mathemagical.renderLatex(abstract, format="png"),
+                                    filename="fletcher-render.png",
+                                    )
+                                ]
+                    else:
+                        content += "\n>>> {abstract}"
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
                 async with session.get(
