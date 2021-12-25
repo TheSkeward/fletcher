@@ -2749,7 +2749,7 @@ async def eaf_function(message, client, args):
         await message.add_reaction("🚫")
 
 
-async def lw_function(message, client, args, ctx):
+async def lw_function(message, client, args, ctx=None):
     try:
         async with session.post(
             "https://z0gr6exqhd-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=Z0GR6EXQHD&x-algolia-api-key=0b1d20b957917dbb5e1c2f3ad1d04ee2",
