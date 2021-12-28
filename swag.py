@@ -30,7 +30,7 @@ import random
 import re
 import wikidata.client as wikidata
 from lxml import html, etree
-from html import unescape
+from html import unescape, escape
 from sys import exc_info
 from datetime import datetime, timedelta
 from markdownify import markdownify
@@ -3683,7 +3683,7 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
 async def oregon_generator(message, client, args):
     try:
         async with session.get(
-            f"https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{'%20'.join(args)}&generator=oregon"
+            f"https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{escape(message.clean_content.replace('!oregon ',''))}&generator=oregon"
         ) as resp:
             buffer = io.BytesIO(await resp.read())
             if resp.status != 200:
