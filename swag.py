@@ -3694,7 +3694,7 @@ async def oregon_generator(message, client, args):
                 )
             return await messagefuncs.sendWrappedMessage(
                 target=message.channel,
-                files=[discord.File(buffer, image.split("/")[-1])],
+                files=[discord.File(buffer, "tombstone.png")],
             )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
