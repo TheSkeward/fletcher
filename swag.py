@@ -3683,7 +3683,7 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
 async def oregon_generator(message, client, args):
     try:
         async with session.get(
-            f"https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{escape(message.clean_content.replace('!oregon ',''))}&generator=oregon"
+            f'https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{"&sourcetext=".join([escape(line) for line in message.clean_content.replace("!oregon ","").splitlines()])}&generator=oregon'
         ) as resp:
             buffer = io.BytesIO(await resp.read())
             if resp.status != 200:
