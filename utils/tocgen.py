@@ -42,8 +42,16 @@ async def on_ready():
                             "created": str(message.created_at),
                             "author": str(message.author),
                             "content": message.clean_content.replace(
-                                f"<#{message.raw_channel_mentions[0]}>",
-                                f"#{channel.name}",
+                                [
+                                    f"<#{mention[0]}>"
+                                    for mention in message.raw_channel_mentions
+                                ],
+                                [
+                                    f"#{discord.utils.get(channels, id=mention).name}"
+                                    if discord.utils.get(channels, id=mention)
+                                    else "(broken channel mention)"
+                                    for mention in message.raw_channel_mentions
+                                ],
                             ),
                             "jump_url": message.jump_url,
                         }
