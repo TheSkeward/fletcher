@@ -36,6 +36,16 @@ async def on_ready():
                     channels, id=message.raw_channel_mentions[0]
                 )
                 if channel:
+                    content = message.clean_content
+                    [
+                        content := content.replace(
+                            f"<#{mention}>",
+                            f"#{discord.utils.get(channels, id=mention).name}"
+                            if discord.utils.get(channels, id=mention)
+                            else "(broken channel mention)",
+                        )
+                        for mention in message.raw_channel_mentions
+                    ]
                     entries.append(
                         {
                             "name": channel.name,
