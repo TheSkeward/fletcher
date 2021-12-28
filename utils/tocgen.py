@@ -43,7 +43,7 @@ async def on_ready():
                             "author": str(message.author),
                             "content": message.clean_content.replace(
                                 [
-                                    f"<#{mention[0]}>"
+                                    f"<#{mention}>"
                                     for mention in message.raw_channel_mentions
                                 ],
                                 [
