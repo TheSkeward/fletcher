@@ -3680,6 +3680,28 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
         )
 
 
+async def oregon_generator(message, client, args):
+    try:
+        async with session.get(
+            f"https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{'%20'.join(args)}&generator=oregon"
+        ) as resp:
+            buffer = io.BytesIO(await resp.read())
+            if resp.status != 200:
+                raise Exception(
+                    "HttpProcessingError: "
+                    + str(resp.status)
+                    + " Retrieving image failed!"
+                )
+            return await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(buffer, image.split("/")[-1])],
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("OGF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def get_rotating_food(message, client, args):
     try:
         global rotating_food_lists
@@ -4573,6 +4595,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Movie Name"],
             "description": "Does the dog die in X piece of media?",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!oregon",
+            ],
+            "function": oregon_generator,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["Text"],
+            "description": "Generate an Oregon Trail tombstone",
         }
     )
     ch.add_command(
