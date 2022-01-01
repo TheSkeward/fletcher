@@ -959,7 +959,9 @@ async def role_message_function(message, client, args, remove=False):
             audit_channel = message.guild.get_channel(audit_channel)
         role_str = role
         if not role:
-            logger.debug("No matching role")
+            logger.debug(
+                f"No matching role for role-message-{reaction.emoji}-{message.id}"
+            )
             return
         if type(role) is int:
             role = message.guild.get_role(role)
