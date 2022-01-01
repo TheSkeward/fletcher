@@ -944,7 +944,7 @@ async def role_message_function(message, client, args, remove=False):
     try:
         reaction, user, mode = args
         reaction_name = (
-            reaction.emoji.name
+            reaction.emoji.name[1:-1]
             if isinstance(reaction.emoji, discord.Emoji)
             else str(reaction.emoji)
         )
