@@ -34,7 +34,10 @@ class FletcherConfig:
                     guild_config.optionxform = str  # type: ignore[attr-defined]
                     guild_config.read(f"{rc_path}/{file_name}")
                     for section_name in guild_config.keys():
-                        if section_name.lower() in ["default", "general"]:
+                        if (
+                            section_name.lower() in ["default", "general"]
+                            or not section_name.isnumeric()
+                        ):
                             section_key = f"Guild {file_name}"
                         else:
                             section_key = f"Guild {file_name} - {section_name}"
