@@ -943,14 +943,19 @@ async def sudo_function(message, client, args):
 async def role_message_function(message, client, args, remove=False):
     try:
         reaction, user, mode = args
+        reaction_name = (
+            reaction.emoji.name
+            if isinstance(reaction.emoji, discord.Emoji)
+            else str(reaction.emoji)
+        )
         role = ch.config.get(
-            key=f"role-message-{reaction.emoji}-{message.id}",
+            key=f"role-message-{reaction_name}-{message.id}",
             default=0,
             guild=message.guild,
         )
         if role == 0:
             role = ch.config.get(
-                key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
+                key=f"role-message-{reaction_name}", default=0, guild=message.guild
             )
         audit_channel = ch.config.get(
             key="audit-channel", default=0, guild=message.guild
@@ -958,17 +963,12 @@ async def role_message_function(message, client, args, remove=False):
         if audit_channel:
             audit_channel = message.guild.get_channel(audit_channel)
         role_str = role
-        if not role:
-            logger.debug(
-                f"No matching role for role-message-{reaction.emoji}-{message.id}"
-            )
-            return
         if type(role) is int:
             role = message.guild.get_role(role)
         else:
             role = discord.utils.get(message.guild.roles, name=role)
         if not role:
-            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction.emoji} to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
+            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction_name} to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
             error_message = f"Assigning role {role.mention} to {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
