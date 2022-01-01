@@ -645,10 +645,7 @@ async def part_channel_function(message, client, args, ctx=None):
         elif len(args) == 0 and message and message.guild is None:
             error = "Parting a channel requires server and channel to be specified (e.g. `!part server:channel`)"
             if ctx:
-                return await ctx.response.send_message(
-                        error,
-                        ephemeral=True
-                )
+                return await ctx.response.send_message(error, ephemeral=True)
             return await messagefuncs.sendWrappedMessage(
                 error,
                 message.author,
@@ -667,7 +664,9 @@ async def part_channel_function(message, client, args, ctx=None):
             try:
                 old_args = [*args]
                 channel_name, args = consume_channel_token(args)
-                channel = messagefuncs.xchannel(channel_name, message.guild if message else ctx.channel.guild)
+                channel = messagefuncs.xchannel(
+                    channel_name, message.guild if message else ctx.channel.guild
+                )
             except (exceptions.DirectMessageException, AttributeError):
                 return await messagefuncs.sendWrappedMessage(
                     "Parting a channel via DM requires server to be specified (e.g. `!part server:channel`)",
@@ -708,7 +707,8 @@ async def part_channel_function(message, client, args, ctx=None):
             channel_names += f"{channel.guild.name}:{channel.name}, "
         if ctx:
             return await ctx.response.send_message(
-            f"Parted from {channel_names[0:-2]}", ephemeral=True)
+                f"Parted from {channel_names[0:-2]}", ephemeral=True
+            )
         await message.add_reaction("✅")
         await messagefuncs.sendWrappedMessage(
             f"Parted from {channel_names[0:-2]}", message.author
@@ -779,9 +779,7 @@ async def snooze_channel_function(message, client, args):
             if len(old_args):
                 error_msg += f" Did you mean `{sorted([*guild.text_channels, *guild.voice_channels], key=lambda channel: Levenshtein.distance(channel.name, old_args[0]))[0].name}`?"
             await message.add_reaction("🚫")
-            return await messagefuncs.sendWrappedMessage(
-                error_msg, message.author
-            )
+            return await messagefuncs.sendWrappedMessage(error_msg, message.author)
         if (
             channel
             and not channel.permissions_for(
@@ -966,6 +964,31 @@ async def role_message_function(message, client, args, remove=False):
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
             error_message = f"Assigning role {role.mention} to {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
+            if (
+                ch.config.get(
+                    key="role-message-mode", default="open", guild=message.guild
+                )
+                == "confirm"
+            ):
+                confirmMessage = await messagefuncs.sendWrappedMessage(
+                    f"{user.mention} requests entry to role __#{role.mention}__. To confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required.",
+                    message.author,
+                )
+                await confirmMessage.add_reaction("✅")
+                try:
+                    reaction = await client.wait_for(
+                        "raw_reaction_add",
+                        timeout=60000.0 * 24,
+                        check=lambda reaction: reaction.message_id == confirmMessage.id
+                        and (str(reaction.emoji) == "✅")
+                        and (reaction.user_id == message.author.id),
+                    )
+                except asyncio.TimeoutError:
+                    await confirmMessage.edit(
+                        content=f"~~{confirmMessage.content}~~Request expired due to timeout."
+                    )
+                    await confirmMessage.remove_reaction("✅", client.user)
+                    return
             await message.guild.get_member(user.id).add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
             )
