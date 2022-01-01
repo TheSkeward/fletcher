@@ -944,8 +944,14 @@ async def role_message_function(message, client, args, remove=False):
     try:
         reaction, user, mode = args
         role = ch.config.get(
-            key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
+            key=f"role-message-{reaction.emoji}-{message.id}",
+            default=0,
+            guild=message.guild,
         )
+        if role == 0:
+            role = ch.config.get(
+                key=f"role-message-{reaction.emoji}", default=0, guild=message.guild
+            )
         audit_channel = ch.config.get(
             key="audit-channel", default=0, guild=message.guild
         )
