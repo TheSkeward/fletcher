@@ -3872,8 +3872,12 @@ async def weather_function(message, client, args):
                 allow_global_substitute=True,
             )
             if weather_pref:
-                args = weather_pref.split(",")
-        if len(args) != 2 or any((not a.isnumeric() for a in args)):
+                args = [w.trim() for w in weather_pref.split(",")]
+        try:
+            args = [float(a) for a in args]
+        except:
+            args = []
+        if len(args) != 2:
             return await messagefuncs.sendWrappedMessage(
                 "Invalid arguments - try setting `!preference weather lat,long` where lat and long are replaced with your coordinates",
                 message.channel,
