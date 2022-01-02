@@ -979,7 +979,7 @@ async def role_message_function(message, client, args, remove=False):
                 == "confirm"
             ):
                 confirmMessage = await messagefuncs.sendWrappedMessage(
-                    f"{user.mention} requests entry to role __@{role.name}__. To confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required.",
+                    f"{user.mention} ({user.display_name}) requests entry to role __@{role.name}__. To confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required.",
                     message.author,
                 )
                 await confirmMessage.add_reaction("✅")
