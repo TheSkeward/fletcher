@@ -3897,7 +3897,7 @@ async def weather_function(message, client, args):
                 f"https://forecast.weather.gov/{forecast}"
             )
             await messagefuncs.sendWrappedMessage(
-                f"Weather for {', '.join(args)}",
+                f"Weather for {', '.join((str(s) for s in args))}",
                 files=[discord.File(input_image_blob, "weather.png")],
                 target=message.channel,
                 reference=message,
