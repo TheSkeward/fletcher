@@ -3683,7 +3683,7 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
 async def oregon_generator(message, client, args):
     try:
         async with session.get(
-            f'https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{"&sourcetext=".join([escape(line) for line in message.clean_content.replace("!oregon","").splitlines()])}&generator=oregon'
+            f'https://novalinium.com/death_generator.py?sourcetext=%20%20%20%20{"&sourcetext=".join((escape(line) for line in message.clean_content.replace("!oregon","").splitlines()))}&generator=oregon'
         ) as resp:
             buffer = io.BytesIO(await resp.read())
             if resp.status != 200:
@@ -3858,6 +3858,50 @@ def callme_function(message, client, args):
         )
     else:
         return "Set a `callme-number` by DMing me with `!preference callme-number +15555555555"
+
+
+async def weather_function(message, client, args):
+    try:
+        if len(args) == 1:
+            args = args[0].split(",")
+        if len(args) != 2:
+            weather_pref = ch.user_config(
+                message.author.id,
+                message.guild.id if message.guild else None,
+                "weather",
+                allow_global_substitute=True,
+            )
+            if weather_pref:
+                args = weather_pref.split(",")
+        if len(args) != 2 or any((not a.isnumeric() for a in args)):
+            return await messagefuncs.sendWrappedMessage(
+                "Invalid arguments - try setting `!preference weather lat,long` where lat and long are replaced with your coordinates",
+                message.channel,
+                reference=message.to_reference(),
+            )
+        async with session.get(
+            f"https://forecast.weather.gov/MapClick.php?lat={args[0]}&lon={args[1]}&unit=0&lg=english&FcstType=graphical"
+        ) as resp:
+            if resp.status != 200:
+                raise Exception(
+                    f"HttpProcessingError: {resp.status} Retrieving page failed!"
+                )
+            forecast = re.search(
+                r"img src=\"(meteograms/Plotter\.php\?[^\"]*)", await resp.text()
+            ).group(1)
+            input_image_blob = await netcode.simple_get_image(
+                f"https://forecast.weather.gov/{forecast}"
+            )
+            await messagefuncs.sendWrappedMessage(
+                f"Weather for {', '.join(args)}",
+                files=[discord.File(input_image_blob, "weather.png")],
+                target=message.channel,
+                reference=message,
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("WEA[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
 
 
 async def sholo_room(message, client, args):
@@ -4737,5 +4781,17 @@ def autoload(ch):
             "description": "Searches LW for a query",
             "slash_command": True,
             "whitelist_guild": [634249282488107028],
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!weather",
+            ],
+            "function": weather_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": ["lat,long"],
+            "description": "Get weather.gov 48 hour outlook for a location",
         }
     )
