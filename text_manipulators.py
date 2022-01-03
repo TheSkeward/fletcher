@@ -3585,22 +3585,59 @@ def fiche_function(content, message_id):
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("FF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
+
 def watchword_function(message, client, args):
-    hotwords = ujson.loads(ch.user_config(message.author.id, message.guild, "hotwords", allow_global_substitute=True))
+    hotwords = ujson.loads(
+        ch.user_config(
+            message.author.id,
+            message.guild,
+            "hotwords",
+            default="{}",
+            allow_global_substitute=True,
+        )
+    )
     watchword = " ".join(args)
     if not watchword:
         return f"Your current watchwords are {', '.join(hotwords.keys())}"
-    ch.user_config.cache_clear()
-    if not hotwords.get(watchword):
-        hotwords[watchword] = {"dm_me": 1, "regex": f"\\b{watchword}\\b", "insensitive": "true"}
-        ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
-        ch.load_hotwords(force_reload=True)
-        return f"Added {watchword} to your hot words."
-    else:
-        hotwords.pop(watchword, None)
-        ch.user_config(message.author.id, message.guild, "hotwords", ujson.dumps(hotwords), allow_global_substitute=True)
-        ch.load_hotwords(force_reload=True)
-        return f"Removed {watchword} from your hot words."
+    for watchword in (w.trim() for w in watchword.split(",")):
+        ch.user_config.cache_clear()
+        hotwords = ujson.loads(
+            ch.user_config(
+                message.author.id,
+                message.guild,
+                "hotwords",
+                default="{}",
+                allow_global_substitute=True,
+            )
+        )
+        if not hotwords.get(watchword):
+            hotwords[watchword] = {
+                "dm_me": 1,
+                "regex": f"\\b{watchword}\\b",
+                "insensitive": "true",
+            }
+            ch.user_config(
+                message.author.id,
+                message.guild,
+                "hotwords",
+                ujson.dumps(hotwords),
+                allow_global_substitute=True,
+            )
+            ch.load_hotwords(force_reload=True)
+            ret += f"Added {watchword} to your hot words.\n"
+        else:
+            hotwords.pop(watchword, None)
+            ch.user_config(
+                message.author.id,
+                message.guild,
+                "hotwords",
+                ujson.dumps(hotwords),
+                allow_global_substitute=True,
+            )
+            ch.load_hotwords(force_reload=True)
+            ret += f"Removed {watchword} from your hot words.\n"
+    return ret
+
 
 def autoload(ch):
     ch.add_command(
@@ -3795,6 +3832,7 @@ def autoload(ch):
             "description": "Toggle word to watch out for and notify when seen. With no arguments, list current watchwords. Note that setting a server-specific preference here will disable global watchwords on that server.",
         }
     )
+
 
 async def autounload(ch):
     pass
