@@ -3872,7 +3872,7 @@ async def weather_function(message, client, args):
                 allow_global_substitute=True,
             )
             if weather_pref:
-                args = [w.trim() for w in weather_pref.split(",")]
+                args = [w.strip() for w in weather_pref.split(",")]
         try:
             args = [float(a) for a in args]
         except:

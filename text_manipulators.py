@@ -3600,7 +3600,7 @@ def watchword_function(message, client, args):
     if not watchword:
         return f"Your current watchwords are {', '.join(hotwords.keys())}"
     ret = ""
-    for watchword in [w.trim() for w in watchword.split(",")]:
+    for watchword in [w.strip() for w in watchword.split(",")]:
         ch.user_config.cache_clear()
         hotwords = ujson.loads(
             ch.user_config(
