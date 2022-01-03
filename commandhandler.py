@@ -83,7 +83,10 @@ class Command:
         self.sync = sync
         self.hidden = hidden
         self.admin = admin
-        self.arguments = {"min_count": args_min if args_min else args_num, "names": args_name}
+        self.arguments = {
+            "min_count": args_min if args_min else args_num,
+            "names": args_name,
+        }
         self.description = description
         self.exclusive = exclusive
         self.scope = scope
@@ -162,7 +165,11 @@ class CommandHandler:
         )
         for guild in bridge_guilds:
             self_member = guild.get_member(self.user.id)
-            assert self_member is not None
+            try:
+                assert self_member is not None
+            except:
+                logger.debug(f"LWH: Likely {guild} is down")
+                continue
             if not self_member.guild_permissions.manage_webhooks:
                 logger.warning(
                     f"LWH: Couldn't load webhooks for {guild.name} ({guild.id}), ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)"
@@ -245,10 +252,15 @@ class CommandHandler:
                             "description": command.get("description", ""),
                             "options": [
                                 {
-                                    "name": command.get("args_name", [])[i].split(";")[0]
+                                    "name": command.get("args_name", [])[i].split(";")[
+                                        0
+                                    ]
                                     if i < len(command.get("args_name", []))
                                     else f"{i}",
-                                    "description": command.get("args_name", [])[i].split(";")[-1] or "Nil",
+                                    "description": command.get("args_name", [])[
+                                        i
+                                    ].split(";")[-1]
+                                    or "Nil",
                                     "type": 3,
                                     "required": i
                                     < command.get(
@@ -257,7 +269,12 @@ class CommandHandler:
                                     "choices": [],
                                     "autocomplete": False,
                                 }
-                                for i in range(max(command.get("args_num", 0), len(command.get("args_name",[]))))
+                                for i in range(
+                                    max(
+                                        command.get("args_num", 0),
+                                        len(command.get("args_name", [])),
+                                    )
+                                )
                             ],
                             "default_permission": True,
                         },
@@ -273,10 +290,12 @@ class CommandHandler:
         payload["type"] = 3
         try:
             response = await self.client.http.upsert_guild_command(
-                    self.user.id, guild_id, payload
-                    )
+                self.user.id, guild_id, payload
+            )
         except discord.Forbidden:
-            logger.info(f"Disable guild commands on {guild_id} ({client.get_guild(guild_id).name})")
+            logger.info(
+                f"Disable guild commands on {guild_id} ({client.get_guild(guild_id).name})"
+            )
         logger.debug(f"Respayload {payload} {response}")
         logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
         self.commands[command_internal_id]["guild_command_ids"][
@@ -1982,6 +2001,8 @@ class CommandHandler:
     def user_config(
         self, user, guild, key, value=None, default=None, allow_global_substitute=False
     ):
+        if isinstance(guild, discord.Guild):
+            guild = guild.id
         cur = conn.cursor()
         if value == "null":
             value = ""
@@ -2035,7 +2056,7 @@ class CommandHandler:
                     )
             else:
                 cur.execute(
-                    "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s);",
+                    "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_prefs_idx DO UPDATE SET value = EXCLUDED.value;",
                     [user, guild, key, value],
                 )
         conn.commit()
@@ -2091,8 +2112,8 @@ class CommandHandler:
                 command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
                 == ctx.guild_id
             ):
-                if ctx.data.get('target_id'):
-                    message = await ctx.channel.fetch_message(ctx.data['target_id'])
+                if ctx.data.get("target_id"):
+                    message = await ctx.channel.fetch_message(ctx.data["target_id"])
                 else:
                     message = ctx.channel.last_message
                 return await self.run_command(
@@ -2321,6 +2342,28 @@ class CommandHandler:
             guild_id = message.guild.id
         else:
             guild_id = -1
+
+        stranger_role = -1
+        if (
+            user
+            and message.guild
+            and config.get("stranger_role", default=None, guild=guild_id)
+        ):
+            stranger_role = str(
+                config.get("stranger_role", default=None, guild=guild_id)
+            )
+            if stranger_role.isnumeric():
+                stranger_role = int(stranger_role)
+            else:
+                stranger_role = discord.utils.get(
+                    message.guild.roles, name=stranger_role
+                )
+                if isinstance(stranger_role, discord.Role):
+                    stranger_role = stranger_role.id
+                else:
+                    stranger_role = -1
+        if user and isinstance(user, discord.Member) and user.get_role(stranger_role):
+            return []
         admin[""] = True
         admin[None] = True
         admin[False] = True
@@ -2526,7 +2569,6 @@ class CommandHandler:
         except Exception as e:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-
 
 
 async def help_function(message, client, args):
@@ -2738,7 +2780,7 @@ class Hotword:
                             content = content + " from an r18 channel."
                             for attachment in message.attachments:
                                 content = content + "\n• " + attachment.url
-                 
+
                     response_message = await messagefuncs.sendWrappedMessage(
                         f"Hotword {word} triggered by <https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id}>\n{content}",
                         client.get_user(owner.id),
@@ -3160,7 +3202,9 @@ async def reaction_list_function(message, client, args, ctx):
             metuples = [[message.guild.id, message.channel.id, message.id], *metuples]
         conn.commit()
     else:
-        return await ctx.response.send_message("No bridge found to list reactions from.", ephemeral=True)
+        return await ctx.response.send_message(
+            "No bridge found to list reactions from.", ephemeral=True
+        )
     reactions = ""
     for metuple in metuples:
         guild_id, channel_id, message_id = metuple
