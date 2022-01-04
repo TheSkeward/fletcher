@@ -1171,6 +1171,9 @@ class CommandHandler:
                 except AttributeError:
                     # Skipping substitution
                     pass
+                content = content.replace(
+                    message.channel.mention, bridge.channels[i].mention
+                )
                 toMember = bridge.channels[i].guild.get_member(user.id)
                 fromMessageName = (
                     toMember.display_name if toMember else user.display_name
