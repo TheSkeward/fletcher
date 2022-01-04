@@ -2056,7 +2056,7 @@ class CommandHandler:
                     )
             else:
                 cur.execute(
-                    "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_prefs_idx DO UPDATE SET value = EXCLUDED.value;",
+                    "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_preferences_u_constraint DO UPDATE SET value = EXCLUDED.value;",
                     [user, guild, key, value],
                 )
         conn.commit()
