@@ -1190,6 +1190,7 @@ async def copy_emoji_function(message, client, args):
         elif len(args) == 1 and args[0].startswith("<") and args[0].endswith(">"):
             parts = args[0][2:-2].split(":")
             emoji_name = parts[0]
+            emoji = None
             url = f"https://cdn.discordapp.com/emojis/{parts[1]}.png"
         else:
             emoji_query = args.pop(0).strip(":")
