@@ -227,14 +227,17 @@ async def thread_keepalive_reload_function(guild, client, config):
             for channel in guild.text_channels
             if channel.permissions_for(member).read_message_history
         ):
-            async for thread in channel.archived_threads(
-                private=False, limit=50, joined=True
-            ):
-                if (
-                    not thread.locked
-                    and not thread.fetch_message(thread.last_message_id).archiver_id
+            try:
+                async for thread in channel.archived_threads(
+                    private=False, limit=50, joined=True
                 ):
-                    await thread.edit(archived=False)
+                    if (
+                        not thread.locked
+                        and not thread.fetch_message(thread.last_message_id).archiver_id
+                    ):
+                        await thread.edit(archived=False)
+            except ValueError as e:
+                logger.debug(f"TKRF {guild.name} {channel.name} {e}")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TKRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
