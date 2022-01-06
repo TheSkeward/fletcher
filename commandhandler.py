@@ -1337,6 +1337,7 @@ class CommandHandler:
                     message,
                     message.content.split(" "),
                     user,
+                    ignore_stranger_danger=True,
                 )
 
     async def typing_handler(self, channel, user):
@@ -1872,7 +1873,9 @@ class CommandHandler:
             if not continue_flag:
                 return
 
-    async def run_command(self, command, message, args, user, ctx=None):
+    async def run_command(
+        self, command, message, args, user, ctx=None, ignore_stranger_danger=False
+    ):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
@@ -1906,10 +1909,15 @@ class CommandHandler:
                     and isinstance(user, discord.Member)
                     and user.get_role(stranger_role)
                 ):
-                    logger.debug(
-                        f"[CH] Ignored {command} request, user is stranger danger"
-                    )
-                    return
+                    if ignore_stranger_danger:
+                        logger.debug(
+                            f"[CH] Would ignore request, but trusting in the kindness of strangers"
+                        )
+                    else:
+                        logger.debug(
+                            f"[CH] Ignored {command} request, user is stranger danger"
+                        )
+                        return
                 if hasattr(command, "function"):
                     if command.long_run == "author":
                         await user.trigger_typing()
