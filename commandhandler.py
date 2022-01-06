@@ -1878,6 +1878,38 @@ class CommandHandler:
                 scope.user = {"id": user.id, "username": str(user)}
                 if hasattr(user, "guild"):
                     scope.set_tag("guild", user.guild.name)
+                stranger_role = -1
+                if (
+                    user
+                    and message.guild
+                    and self.config.get(
+                        "stranger_role", default=None, guild=message.guild.id
+                    )
+                ):
+                    stranger_role = str(
+                        self.config.get(
+                            "stranger_role", default=None, guild=message.guild.id
+                        )
+                    )
+                    if stranger_role.isnumeric():
+                        stranger_role = int(stranger_role)
+                    else:
+                        stranger_role = discord.utils.get(
+                            message.guild.roles, name=stranger_role
+                        )
+                        if isinstance(stranger_role, discord.Role):
+                            stranger_role = stranger_role.id
+                        else:
+                            stranger_role = -1
+                if (
+                    user
+                    and isinstance(user, discord.Member)
+                    and user.get_role(stranger_role)
+                ):
+                    logger.debug(
+                        f"[CH] Ignored {command} request, user is stranger danger"
+                    )
+                    return
                 if hasattr(command, "function"):
                     if command.long_run == "author":
                         await user.trigger_typing()
