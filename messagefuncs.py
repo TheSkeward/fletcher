@@ -1110,29 +1110,33 @@ async def create_thread(message, client, args):
 async def toggle_role(message, client, args):
     if not hasattr(message, "guild"):
         return
-    role = ch.config.get(
-        "toggle_role", default=None, guild=message.guild.id, channel=message.channel.id
-    )
-    if not role:
-        return
-    if role.isnumeric():
-        role = int(role)
-        role = message.guild.get_role(role)
-    else:
-        role = discord.utils.get(message.guild.roles, name=role)
-        if not isinstance(role, discord.Role):
-            return
-    if isinstance(message.channel, discord.Thread) and not ch.config.get(
-        "bridge_threads",
-        default=True,
+    role_list = ch.config.get(
+        "toggle_role_list",
+        default=None,
         guild=message.guild.id,
-        channel=message.channel.parent_id,
-    ):
+        channel=message.channel.id,
+    )
+    if not role_list:
         return
-    if message.author.get_role(role.id):
-        await message.author.remove_roles(role, reason="Toggle role config")
-    else:
-        await message.author.add_roles(role, reason="Toggle role config")
+    for role in role_list:
+        if role.isnumeric():
+            role = int(role)
+            role = message.guild.get_role(role)
+        else:
+            role = discord.utils.get(message.guild.roles, name=role)
+            if not isinstance(role, discord.Role):
+                return
+        if isinstance(message.channel, discord.Thread) and not ch.config.get(
+            "bridge_threads",
+            default=True,
+            guild=message.guild.id,
+            channel=message.channel.parent_id,
+        ):
+            return
+        if message.author.get_role(role.id):
+            await message.author.remove_roles(role, reason="Toggle role config")
+        else:
+            await message.author.add_roles(role, reason="Toggle role config")
 
 
 async def emoji_image_function(message, client, args):
