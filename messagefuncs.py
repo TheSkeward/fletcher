@@ -607,6 +607,7 @@ async def preview_messagelink_function(message, client, args):
                 ]
                 content = "Vine Preview"
             elif "tiktok.com" in previewable_parts[0]:
+                return  # Temp disable
                 import swag
 
                 content = "TikTok Preview"
