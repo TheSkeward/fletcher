@@ -3302,7 +3302,37 @@ async def arxiv_search_call(subj_content, exact=False):
 
 
 @asynccached(TTLCache(1024, 600))
-async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
+async def glowfic_session(
+    username=None, password=None, member_id=0
+) -> aiohttp.ClientSession:
+    session = aiohttp.ClientSession(
+        headers={
+            "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+        }
+    )
+    if ch.user_config(
+        member_id,
+        None,
+        "glowfic-username",
+        allow_global_substitute=True,
+    ) and ch.user_config(
+        member_id,
+        None,
+        "glowfic-password",
+        allow_global_substitute=True,
+    ):
+        username = ch.user_config(
+            member_id,
+            None,
+            "glowfic-username",
+            allow_global_substitute=True,
+        )
+        password = ch.user_config(
+            member_id,
+            None,
+            "glowfic-password",
+            allow_global_substitute=True,
+        )
     if username and password:
         async with session.post(
             "https://glowfic.com/login",
@@ -3316,12 +3346,13 @@ async def glowfic_search_call(subj_content, exact=False, username=None, password
                 "password": password,
             },
         ) as resp:
-            request_body = (await resp.read()).decode("UTF-8")
-            # await messagefuncs.sendWrappedMessage(
-            #     request_body, client.get_user(382984420321263617)
-            # )
-    else:
-        session.cookie_jar.clear()
+            assert resp.status == 200
+    return session
+
+
+@asynccached(TTLCache(1024, 600))
+async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
+    session = await glowfic_session(username, password)
     params = {
         "utf8": "✓",
         "commit": "Search",
