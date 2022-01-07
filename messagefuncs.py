@@ -825,7 +825,7 @@ async def bookmark_function(message, client, args):
                         allow_global_substitute=True,
                     )
                     if trello_key and trello_uat:
-                        async with session.post(
+                        await session.post(
                             "https://api.trello.com/1/cards",
                             json={
                                 "idList": trello_bookmark_list,
@@ -835,8 +835,41 @@ async def bookmark_function(message, client, args):
                             headers={
                                 "Authorization": f'OAuth oauth_consumer_key="{trello_key}", oauth_token="{trello_uat}"'
                             },
-                        ) as resp:
-                            pass
+                        )
+                glowfic_session = None
+                for url in filter(lambda url: "glowfic.com/posts" in url, urls):
+                    if (
+                        ch.user_config(args[1].id, None, "glowfic-username")
+                        and ch.user_config(args[1].id, None, "glowfic-password")
+                        and not glowfic_session
+                    ):
+                        import swag
+
+                        glowfic_session = await swag.glowfic_session(
+                            member_id=args[1].id
+                        )
+                    try:
+                        post_id = re.search(r"posts/(\d+)", url).group(1)
+                    except:
+                        post_id = None
+                    if glowfic_session and post_id:
+                        authenticity_token = (
+                            (
+                                await (
+                                    await glowfic_session.get("https://glowfic.com")
+                                ).text()
+                            )
+                            .split("authenticity_token")[1]
+                            .split('"')[4]
+                        )
+                        if authenticity_token:
+                            params = aiohttp.FormData()
+                            params.add_field("authenticity_token", authenticity_token)
+                            await glowfic_session.post(
+                                f"https://www.glowfic.com/favorites?post_id={post_id}",
+                                data=params,
+                            )
+
                 ao3_session = None
                 for url in filter(lambda url: "archiveofourown.org/works" in url, urls):
                     if (
