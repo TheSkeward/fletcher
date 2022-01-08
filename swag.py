@@ -1782,7 +1782,7 @@ async def tiktok_function(message, _, args):
         input_image_blob = None
         file_name = None
         try:
-            with youtube_dl.YoutubeDL() as ydl:
+            with youtube_dl.YoutubeDL(params={"socket_timeout": 10}) as ydl:
                 media_info = ydl.extract_info(url, download=False)
                 assert isinstance(media_info, dict)
                 assert isinstance(session, aiohttp.ClientSession)
