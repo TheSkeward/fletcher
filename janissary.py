@@ -1852,7 +1852,8 @@ async def self_service_channel_function(
             )
             return
         if (
-            args[2] == "add"
+            len(args) == 3
+            and args[2] == "add"
             and args[1].id != message.author.id
             and get_warnlist(message.author.id, message.guild.id)[args[1].id]
         ):
