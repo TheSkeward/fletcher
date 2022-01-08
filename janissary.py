@@ -1824,6 +1824,7 @@ def get_warnlist(user, guild):
             )
         )
     warnlist = {warn.split("=")[0]: warn.split("=")[0] for warn in warnlist}
+    logger.debug(f"{warnlist}")
     return warnlist
 
 
