@@ -31,3 +31,5 @@ This command operates off of regular regex syntax, so you can set multiple hotwo
 
 ## Privacy etc.
   Setting the `preview-allowed` preference to `False` in the Fletcher interface, either server-wide or for a specific channel, will make links to those messages not be previewed by Fletcher when linked in another server. Note that `preview-allowed` is by default `True`.
+You can create exceptions to openchannels by setting `!preference warnlist userid=reason, userid2=reason2` etc, or, to delegate your warnlist to someone else, `!preference
+warnlist delegate:userid`. To opt out of warnlists, set `!preference warnlist 0=optout`.
