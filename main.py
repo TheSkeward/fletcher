@@ -408,6 +408,7 @@ async def on_raw_message_edit(payload):
         # This is tricky with self-modifying bot message synchronization, TODO
         message_id = payload.message_id
         message = payload.data
+        fromGuild = None
         if "guild_id" in message:
             fromGuild = client.get_guild(int(message["guild_id"]))
             fromChannel = fromGuild.get_channel(
@@ -415,6 +416,8 @@ async def on_raw_message_edit(payload):
             ) or fromGuild.get_thread(int(message["channel_id"]))
         else:
             fromChannel = client.get_channel(int(message["channel_id"]))
+        if isinstance(fromGuild, discord.Guild)and fromGuild.get_member(client.user.id).permissions_in(fromChannel).history:
+            return
         try:
             fromMessage = await fromChannel.fetch_message(message_id)
         except discord.NotFound as e:

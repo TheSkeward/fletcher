@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from sys import exc_info
+from functools import lru_cache
 import aiohttp
 import asyncio
 import commandhandler
@@ -1797,6 +1798,35 @@ async def self_service_role_function(message, client, args):
         logger.error("SSRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+@lru_cache(maxsize=256)
+def get_warnlist(user, guild):
+    if hasattr(user, "id"):
+        user = user.id
+    if hasattr(guild, "id"):
+        guild = guild.id
+    warnlist = ch.config.normalize_array(
+        ch.user_config(
+            user,
+            guild,
+            "warnlist",
+            default=ch.config.get("warnlist", default=[], guild=guild),
+            allow_global_substitute=True,
+        )
+    )
+    if len(warnlist) == 1 and warnlist[0].startswith("delegate:"):
+        warnlist = ch.config.normalize_array(
+            ch.user_config(
+                int(warnlist[0].split(":")[1]),
+                guild,
+                "warnlist",
+                default=ch.config.get("warnlist", default=[], guild=guild),
+                allow_global_substitute=True,
+            )
+        )
+    warnlist = {warn.split("=")[0]: warn.split("=")[0] for warn in warnlist}
+    return warnlist
+
+
 async def self_service_channel_function(
     message, client, args, autoclose=False, confirm=False
 ):
@@ -1820,12 +1850,22 @@ async def self_service_channel_function(
                 message.author,
             )
             return
+        if (
+            args[2] == "add"
+            and args[1].id != message.author.id
+            and get_warnlist(message.author.id, message.guild.id)[args[1].id]
+        ):
+            confirm = get_warnlist(message.author.id, message.guild.id)[args[1].id]
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add" and args[1].id != message.author.id:
                 try:
                     if confirm:
+                        confirmMessage = f"{args[1]} requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
+                        if isinstance(confirm, str):
+                            confirmMessage += "\n"
+                            confirmMessage += f"Heads up! Your warnlist has triggered a confirmation before adding this user with the message '{confirm}'"
                         confirmMessage = await messagefuncs.sendWrappedMessage(
-                            f"{args[1]} requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required.",
+                            confirmMessage,
                             message.author,
                         )
                         await confirmMessage.add_reaction("✅")
