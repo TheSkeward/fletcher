@@ -1855,8 +1855,9 @@ async def self_service_channel_function(
             len(args) == 3
             and args[2] == "add"
             and args[1].id != message.author.id
-            and get_warnlist(message.author.id, message.guild.id)[args[1].id]
+            and get_warnlist(message.author.id, message.guild.id).get(args[1].id)
         ):
+            logger.debug("Getting warnlist")
             confirm = get_warnlist(message.author.id, message.guild.id)[args[1].id]
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add" and args[1].id != message.author.id:
