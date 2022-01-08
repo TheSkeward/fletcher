@@ -1809,9 +1809,9 @@ def get_warnlist(user, guild):
             user,
             guild,
             "warnlist",
-            default=ch.config.get("warnlist", default=[], guild=guild),
             allow_global_substitute=True,
         )
+        or ch.config.get("warnlist", default=[], guild=guild)
     )
     if len(warnlist) == 1 and warnlist[0].startswith("delegate:"):
         warnlist = ch.config.normalize_array(
@@ -1819,11 +1819,11 @@ def get_warnlist(user, guild):
                 int(warnlist[0].split(":")[1]),
                 guild,
                 "warnlist",
-                default=ch.config.get("warnlist", default=[], guild=guild),
                 allow_global_substitute=True,
             )
+            or ch.config.get("warnlist", default=[], guild=guild)
         )
-    warnlist = {warn.split("=")[0]: warn.split("=")[0] for warn in warnlist}
+    warnlist = {int(warn.split("=")[0]): warn.split("=")[1] for warn in warnlist}
     logger.debug(f"{warnlist}")
     return warnlist
 
@@ -1854,13 +1854,11 @@ async def self_service_channel_function(
         if (
             len(args) == 3
             and args[2] == "add"
-            and args[1].id != message.author.id
             and get_warnlist(message.author.id, message.guild.id).get(args[1].id)
         ):
-            logger.debug("Getting warnlist")
             confirm = get_warnlist(message.author.id, message.guild.id)[args[1].id]
         if len(args) == 3 and type(args[1]) is discord.Member:
-            if args[2] == "add" and args[1].id != message.author.id:
+            if args[2] == "add":
                 try:
                     if confirm:
                         confirmMessage = f"{args[1]} requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
