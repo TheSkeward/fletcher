@@ -1059,10 +1059,17 @@ class CommandHandler:
                 )
                 for reload_action in reload_actions:
                     if reload_action in self.reload_handlers.keys():
+                        prev_task = discord.utils.get(
+                            asyncio.all_tasks(loop),
+                            name=f"{reload_action}-{guild.id}",
+                        )
+                        if prev_task:
+                            prev_task.cancel()
                         loop.create_task(
                             self.reload_handlers[reload_action](
                                 guild, self.client, self.scope_config(guild=guild)
-                            )
+                            ),
+                            name=f"{reload_action}-{guild.id}",
                         )
                         successful_events.append(f"{guild.name}: {reload_action}")
                     else:
