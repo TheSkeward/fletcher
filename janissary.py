@@ -2290,7 +2290,11 @@ def autoload(ch):
             "args_name": ["channel;Channel Name"],
             "description": "Leave a channel. Cannot be reversed except by admin.",
             "slash_command": True,
-            "whitelist_guild": [634249282488107028, 345045447745732608],
+            "whitelist_guild": [
+                634249282488107028,
+                345045447745732608,
+                630487117688078358,
+            ],
         }
     )
     ch.add_command(
