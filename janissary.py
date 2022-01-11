@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta, timezone
+from PIL import Image, ImageOps
+import io
 from functools import partial
 from sys import exc_info
 from functools import lru_cache
@@ -1224,6 +1226,34 @@ async def copy_emoji_function(message, client, args):
             else:
                 emoji_name = emoji.name
             url = emoji.url
+        if "!laetse" in message.content:
+            image_blob = await netcode.simple_get_image(url)
+            image_blob.seek(0)
+            image = Image.open(image_blob)
+            flip_image = ImageOps.mirror(ImageOps.flip(image))
+            output_image_blob = io.BytesIO()
+            flip_image.save(output_image_blob, format="PNG", optimize=True)
+            output_image_blob.seek(0)
+            emoteServer = client.get_guild(
+                ch.config.get(section="discord", key="emoteServer", default=0)
+            )
+            try:
+                processed_emoji = await emoteServer.create_custom_emoji(
+                    name=emoji.name[::-1],
+                    image=output_image_blob.read(),
+                    reason="xreact flip-o-matic",
+                )
+            except discord.Forbidden:
+                logger.error("discord.emoteServer misconfigured!")
+            except discord.HTTPException:
+                output_image_blob.seek(0)
+                await random.choice(emoteServer.emojis).delete()
+                processed_emoji = await emoteServer.create_custom_emoji(
+                    name=emoji.name[::-1],
+                    image=output_image_blob.read(),
+                    reason="xreact flip-o-matic",
+                )
+            url = processed_emoji.url
         if url:
             target = await messagefuncs.sendWrappedMessage(
                 f"Add reaction {emoji if emoji else emoji_name+' ('+url+')'}?",
@@ -2344,7 +2374,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!copy_emoji", "!esteal"],
+            "trigger": ["!copy_emoji", "!esteal", "!laestse"],
             "function": copy_emoji_function,
             "async": True,
             "args_num": 1,
