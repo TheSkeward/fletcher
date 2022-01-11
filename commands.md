@@ -428,3 +428,9 @@ Ex:
 
 ## SSC (`!ssc`)
  Generates a random SSC article if sent without text, or, if sent with keyword(s),searchs SSC for those keywords (case insensitive).
+
+## Weather (`!weather lat,long`)
+ Gives you the weather at a location. Set `!preference weather lat,long` to save a location.
+
+## Countdown (`!countdown seconds`)
+ Replace `seconds` with a number and Fletcher will count down for you.
