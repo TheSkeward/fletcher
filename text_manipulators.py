@@ -3545,6 +3545,28 @@ async def attribution_function(message, client, args):
         logger.error("ATTF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def countdown_function(message, client, args):
+    try:
+        if int(args[0]) > 1000 or int(args[0]) < 1:
+            await messagefuncs.sendWrappedMessage(
+                "Number of seconds must be between 1000 and 1", message.channel
+            )
+            return
+        await messagefuncs.sendWrappedMessage(
+            f"Counting down in {args[0]}", message.channel
+        )
+        args[0] -= 1
+        while args[0] > 0:
+            await asyncio.sleep(1)
+            await messagefuncs.sendWrappedMessage(args[0], message.channel)
+            args[0] -= 1
+        await asyncio.sleep(1)
+        await messagefuncs.sendWrappedMessage("Go!", message.channel)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("CDF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def zalgo_function(message, client, args):
     try:
         await messagefuncs.sendWrappedMessage(
@@ -3809,6 +3831,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Attribute a message",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!countdown"],
+            "function": countdown_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["Seconds"],
+            "description": "Count down to 0, 1/second",
         }
     )
     ch.add_command(
