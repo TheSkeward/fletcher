@@ -3552,6 +3552,7 @@ async def countdown_function(message, client, args):
                 "Number of seconds must be between 1000 and 1", message.channel
             )
             return
+        args[0] = int(args[0])
         await messagefuncs.sendWrappedMessage(
             f"Counting down in {args[0]}", message.channel
         )
