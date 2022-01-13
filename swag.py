@@ -1782,7 +1782,10 @@ async def tiktok_function(message, _, args):
         input_image_blob = None
         file_name = None
         try:
-            opts = {"socket_timeout": 1}
+            opts = {
+                "socket_timeout": 1,
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0",
+            }
             if config.get("proxy", section="youtube_dl"):
                 opts["proxy"] = config.get("proxy", section="youtube_dl")
             with youtube_dl.YoutubeDL(params=opts) as ydl:
