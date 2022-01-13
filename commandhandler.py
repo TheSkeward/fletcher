@@ -1102,6 +1102,8 @@ class CommandHandler:
                 return
         except AttributeError:
             return
+        while len(self.webhook_sync_registry.keys()) == 0:
+            await asyncio.sleep(1)
         bridge_key = f"{message.guild.name}:{message.channel.id}"
         bridge = self.webhook_sync_registry.get(bridge_key)
         user = message.author
@@ -1350,6 +1352,8 @@ class CommandHandler:
                 )
 
     async def typing_handler(self, channel, user):
+        while len(self.webhook_sync_registry.keys()) == 0:
+            await asyncio.sleep(1)
         if (
             user != self.client.user
             and type(channel) is discord.TextChannel
@@ -1464,6 +1468,8 @@ class CommandHandler:
                     plural = ""
                     if len(fromMessage.attachments) > 1:
                         plural = "s"
+                    while len(self.webhook_sync_registry.keys()) == 0:
+                        await asyncio.sleep(1)
                     if (
                         fromMessage.channel.is_nsfw()
                         and not self.webhook_sync_registry[
@@ -2309,6 +2315,8 @@ class CommandHandler:
                         await thread.add_user(user)
                 global conn
                 bridge_key = f"{thread.guild.name}:{thread.parent_id}"
+                while len(self.webhook_sync_registry.keys()) == 0:
+                    await asyncio.sleep(1)
                 bridge = self.webhook_sync_registry.get(bridge_key)
                 if bridge:
                     new_threads = []
