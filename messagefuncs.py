@@ -1100,6 +1100,8 @@ async def star_function(message, client, args):
             guild=message.guild.id,
             use_guild_as_channel_fallback=True,
         )
+        if threshold is None or channel is None:
+            return
         channel = (
             discord.utils.get(client.guilds, name=channel)
             if type(channel) is str
