@@ -89,6 +89,7 @@ class FletcherConfig:
             "teleports": "embed",
             "snappy": False,
             "automod-blacklist-category": [],
+            "max-preview-per-message": 1,
         }
         self.channel_defaults = {"synchronize": False}
 

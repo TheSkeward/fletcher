@@ -387,9 +387,9 @@ async def on_message(message):
             while 1:
                 try:
                     ch.config
+                    break
                 except AttributeError:
                     await asyncio.sleep(1)
-                break
             await ch.command_handler(message)
 
         except Exception as e:
@@ -445,20 +445,21 @@ async def on_raw_message_edit(payload):
         while 1:
             try:
                 ch.config
+                break
             except AttributeError:
                 await asyncio.sleep(1)
-            break
         with sentry_sdk.configure_scope() as scope:
             user = fromMessage.author
             scope.user = {"id": user.id, "username": str(user)}
             await ch.edit_handler(fromMessage)
 
     except discord.Forbidden as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error(
-            "Forbidden to edit synced message from "
-            + str(fromGuild.name)
-            + ":"
-            + str(fromChannel.name)
+            f"ORMU[{exc_tb.tb_lineno}]: {type(e).__name__} {e} Forbidden to edit synced message from {fromGuild.name}:{fromChannel.name}"
         )
     # except KeyError as e:
     #     # Eat keyerrors from non-synced channels
@@ -485,9 +486,9 @@ async def on_typing(channel, user, when):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.typing_handler(channel, user)
 
 
@@ -500,9 +501,9 @@ async def on_raw_message_delete(message):
         while 1:
             try:
                 ch.config
+                break
             except AttributeError:
                 await asyncio.sleep(1)
-            break
         fromGuild = client.get_guild(message.guild_id)
         fromChannel = fromGuild.get_channel(message.channel_id)
         if type(fromChannel) is discord.TextChannel:
@@ -612,9 +613,9 @@ async def on_raw_reaction_add(reaction):
         while 1:
             try:
                 ch.config
+                break
             except AttributeError:
                 await asyncio.sleep(1)
-            break
         await ch.reaction_handler(reaction)
 
     # generic python error
@@ -636,9 +637,9 @@ async def on_raw_reaction_remove(reaction):
         while 1:
             try:
                 ch.config
+                break
             except AttributeError:
                 await asyncio.sleep(1)
-            break
         await ch.reaction_remove_handler(reaction)
 
     # generic python error
@@ -651,10 +652,18 @@ async def on_raw_reaction_remove(reaction):
 @client.event
 async def on_voice_state_update(member, before, after):
     global canticum_message
-    # TODO refactor to CommandHandler
     logger.debug(
         f"Vox update in {member.guild}, {member} {before.channel} -> {after.channel}"
     )
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+            break
+        except AttributeError:
+            await asyncio.sleep(1)
+    await ch.on_voice_state_update(member, before, after)
     # Notify only if:
     # Doissetep
     # New joins only, no transfers
@@ -689,9 +698,9 @@ async def on_member_join(member):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.join_handler(member)
 
 
@@ -703,9 +712,9 @@ async def on_member_remove(member):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.remove_handler(member)
 
 
@@ -717,9 +726,9 @@ async def on_guild_channel_update(before, after):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.channel_update_handler(before, after)
 
 
@@ -763,9 +772,9 @@ async def on_invite_create(invite):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     if not ch.guild_invites.get(invite.guild.id):
         ch.guild_invites[invite.guild.id] = {}
     ch.guild_invites[invite.guild.id][invite.code] = invite
@@ -778,9 +787,9 @@ async def on_invite_delete(invite):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     if not ch.guild_invites.get(invite.guild.id):
         ch.guild_invites[invite.guild.id] = {}
     del ch.guild_invites[invite.guild.id][invite.code]
@@ -793,9 +802,9 @@ async def on_guild_join(guild):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.guild_add(guild)
 
 
@@ -806,9 +815,9 @@ async def on_thread_join(thread):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.thread_add(thread)
 
 
@@ -819,9 +828,9 @@ async def on_interaction(ctx):
     while 1:
         try:
             ch.config
+            break
         except AttributeError:
             await asyncio.sleep(1)
-        break
     await ch.on_interaction(ctx)
 
 

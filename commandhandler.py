@@ -2147,6 +2147,32 @@ class CommandHandler:
         )
         return {"global": globalAdmin, "server": serverAdmin, "channel": channelAdmin}
 
+    async def on_voice_state_update(
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
+    ):
+        if (
+            before.channel is None
+            and after.channel is not None
+            and len(after.channel.members) == 1
+        ):
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT user_id FROM user_preferences WHERE key = %s;",
+                [f"notifyme-{after.channel.id}"],
+            )
+            while metuple := cur.fetchone():
+                try:
+                    await messagefuncs.sendWrappedMessage(
+                        f"{member.display_name} is live in {after.channel.name}",
+                        after.channel.guild.get_member(metuple[0]),
+                    )
+                except:
+                    pass
+            conn.commit()
+
     async def on_interaction(self, ctx: discord.Interaction):
         logger.debug(str(ctx.data))
         if ctx.application_id != self.user.id:
