@@ -1782,7 +1782,10 @@ async def tiktok_function(message, _, args):
         input_image_blob = None
         file_name = None
         try:
-            with youtube_dl.YoutubeDL(params={"socket_timeout": 1}) as ydl:
+            opts = {"socket_timeout": 1}
+            if config.get("proxy", section="youtube_dl"):
+                opts["proxy"] = config.get("proxy", section="youtube_dl")
+            with youtube_dl.YoutubeDL(params=opts) as ydl:
                 media_info = ydl.extract_info(url, download=False)
                 assert isinstance(media_info, dict)
                 assert isinstance(session, aiohttp.ClientSession)
@@ -1797,7 +1800,7 @@ async def tiktok_function(message, _, args):
                     input_image_blob = io.BytesIO(await resp.read())
                 file_name = f'{media_info["id"]}.{media_info["formats"][0]["ext"]}'
         except youtube_dl.DownloadError:
-            with youtube_dl.YoutubeDL(params={"socket_timeout": 1}) as ydl:
+            with youtube_dl.YoutubeDL(params=opts) as ydl:
                 media_info = ydl.extract_info(url, download=False)
                 assert isinstance(media_info, dict)
                 assert isinstance(session, aiohttp.ClientSession)
