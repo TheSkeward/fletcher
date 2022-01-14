@@ -478,8 +478,11 @@ async def preview_messagelink_function(message, client, args):
                 ).read_message_history
             ):
                 return
-            if not config.get(
+            preview_allowed = config.get(
                 key="preview-allowed", default=True, guild=guild, channel=channel
+            )
+            if not preview_allowed or (
+                preview_allowed == "whitelist" and message.guild == guild
             ):
                 return
             target_message = await channel.fetch_message(message_id)
