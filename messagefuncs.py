@@ -482,7 +482,7 @@ async def preview_messagelink_function(message, client, args):
                 key="preview-allowed", default=True, guild=guild, channel=channel
             )
             if not preview_allowed or (
-                preview_allowed == "whitelist" and message.guild == guild
+                preview_allowed == "whitelist" and message.guild != guild
             ):
                 return
             target_message = await channel.fetch_message(message_id)
