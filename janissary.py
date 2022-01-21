@@ -1390,16 +1390,17 @@ async def names_sync_aware_function(message, client, args):
         }
         members = sorted(members.values())
         for member in members:
-            if len(member.split("*")) % 2:
-                member = member.split("*")
+            member = member.split("*")
+            if len(member) % 2 == 1:
                 member[-2] += "\\"
-                meber = "*".join(member)
+                member = "*".join(member)
             message_body += f"•{member}\n"
         message_body = message_body[:-1]
-        if len(members) > 100:
-            target = message.author
-        else:
-            target = channel
+        target = (
+            message.channel
+            if "channel" in args and len(members) < 100
+            else message.author
+        )
         await messagefuncs.sendWrappedMessage(message_body, target)
         await message.add_reaction("✅")
     except Exception as e:
