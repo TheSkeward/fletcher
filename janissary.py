@@ -1363,8 +1363,10 @@ async def add_inbound_sync_function(message, client, args):
 async def names_sync_aware_function(message, client, args):
     global ch
     try:
-        if type(message.channel) is discord.DMChannel and len(args) != 1:
+        if type(message.channel) is discord.DMChannel:
             channel_name, args = consume_channel_token(args)
+            if len(args):
+                return
             channel = messagefuncs.xchannel(channel_name, message.guild)
         else:
             channel = message.channel
