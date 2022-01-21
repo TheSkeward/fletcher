@@ -1390,6 +1390,10 @@ async def names_sync_aware_function(message, client, args):
         }
         members = sorted(members.values())
         for member in members:
+            if len(member.split("*")) % 2:
+                member = member.split("*")
+                member[-2] += "\\"
+                meber = "*".join(member)
             message_body += f"•{member}\n"
         message_body = message_body[:-1]
         if len(members) > 100:
