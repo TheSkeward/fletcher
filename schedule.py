@@ -25,7 +25,8 @@ schedule_extract_channelmention = re.compile("(?:<#)(\d+)")
 
 
 class ScheduleFunctions:
-    def is_my_ban(identity, target):
+    @staticmethod
+    def is_my_ban(identity: discord.User, target):
         try:
             permissions = target.overwrites_for(identity)
             return (
@@ -36,6 +37,7 @@ class ScheduleFunctions:
         except AttributeError:
             return False
 
+    @staticmethod
     async def reminder(
         target_message: Optional[discord.Message],
         user,
@@ -70,7 +72,7 @@ class ScheduleFunctions:
             return None
         link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}"
         if (
-            len(target_message.content.mentions)
+            len(target_message.mentions)
             and ("remindme" not in target_message.content)
             and ("remind me" not in target_message.content)
         ):
