@@ -1363,16 +1363,18 @@ async def add_inbound_sync_function(message, client, args):
 async def names_sync_aware_function(message, client, args):
     global ch
     try:
-        if type(message.channel) is discord.DMChannel:
+        if type(message.channel) is discord.DMChannel and len(args) != 1:
+            channel_name, args = consume_channel_token(args)
+            channel = messagefuncs.xchannel(channel_name, message.guild)
+        else:
+            channel = message.channel
+        if not channel or not discord.utils.get(channel.members, id=message.author.id):
             return
         message_body = "**Users currently in this channel**:\n"
-        members = message.channel.members
-        if (
-            message.guild.name + ":" + message.channel.name
-            in ch.webhook_sync_registry.keys()
-        ):
+        members = channel.members
+        if channel.guild.name + ":" + channel.name in ch.webhook_sync_registry.keys():
             toChannel = ch.webhook_sync_registry[
-                message.guild.name + ":" + message.channel.name
+                channel.guild.name + ":" + channel.name
             ]["toChannelObject"]
             for channel in toChannel:
                 members.extend(channel.members)
@@ -1384,7 +1386,7 @@ async def names_sync_aware_function(message, client, args):
         if len(members) > 100:
             target = message.author
         else:
-            target = message.channel
+            target = channel
         await messagefuncs.sendWrappedMessage(message_body, target)
         await message.add_reaction("✅")
     except Exception as e:
