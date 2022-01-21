@@ -11,6 +11,7 @@ import pytz
 import psycopg2
 from typing import Dict
 from sentry_sdk import configure_scope
+from typing import Optional
 import traceback
 import re
 from sys import exc_info
@@ -36,7 +37,12 @@ class ScheduleFunctions:
             return False
 
     async def reminder(
-        target_message, user, cached_content, mode_args, created_at, from_channel
+        target_message: Optional[discord.Message],
+        user,
+        cached_content,
+        mode_args,
+        created_at,
+        from_channel,
     ):
         if "every " in cached_content.lower() and target_message:
             every = chronos.parse_every.search(cached_content).groups(default=1)
@@ -56,14 +62,25 @@ class ScheduleFunctions:
                     ],
                 )
                 conn.commit()
+                cached_content = chronos.parse_every.replace("", cached_content).strip()
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
         if target_message is None:
             return None
         link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}"
+        if (
+            len(target_message.content.mentions)
+            and ("remindme" not in target_message.content)
+            and ("remind me" not in target_message.content)
+        ):
+            reminder_content = f"Reminder from {link}\n> {cached_content}"
+        else:
+            reminder_content = (
+                f"Reminder for {user.mention} from {link}\n> {cached_content}"
+            )
         return [
-            f"Reminder for {user.mention} {link}\n> {cached_content}",
+            reminder_content,
             from_channel,
         ]
 
@@ -381,7 +398,10 @@ async def reminder_function(message, client, args):
                 )[1]
             )
             target = f"NOW() + '{interval.group(0)}'::interval"
-            content = mcontent.split(" in ", 1)[1][interval.end(0) :].strip().strip('"') or content
+            content = (
+                mcontent.split(" in ", 1)[1][interval.end(0) :].strip().strip('"')
+                or content
+            )
         if not target or not interval:
             return
         try:
@@ -403,20 +423,22 @@ async def reminder_function(message, client, args):
             except:
                 pass
             if ch.config.normalize(
-                    str(
-                        ch.user_config(
-                            message.author.id,
-                            message.guild.id if message.guild else 0,
-                            key="verbose_reminders",
-                            default="True",
-                            allow_global_substitute=True,
-                            ))
-                        ):
+                str(
+                    ch.user_config(
+                        message.author.id,
+                        message.guild.id if message.guild else 0,
+                        key="verbose_reminders",
+                        default="True",
+                        allow_global_substitute=True,
+                    )
+                )
+            ):
                 return await messagefuncs.sendWrappedMessage(
-                        f"Setting a reminder {target}\n> {content}",
-                        message.channel,
-                        delete_after=30,
-                        )
+                    f"Setting a reminder {target}\n> {content}",
+                    message.channel,
+                    delete_after=30,
+                    allowed_mentions=None,
+                )
         except psycopg2.Error:
             conn.rollback()
             return await messagefuncs.sendWrappedMessage(
