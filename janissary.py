@@ -1374,11 +1374,10 @@ async def names_sync_aware_function(message, client, args):
             return
         message_body = "**Users currently in this channel**:\n"
         members = channel.members
-        if channel.guild.name + ":" + channel.name in ch.webhook_sync_registry.keys():
-            toChannel = ch.webhook_sync_registry[
-                channel.guild.name + ":" + channel.name
-            ]["toChannelObject"]
-            for channel in toChannel:
+        bridge_key = f"{channel.guild.name}:{channel.id}"
+        bridge = ch.webhook_sync_registry.get(bridge_key)
+        if bridge:
+            for channel in bridge.channels:
                 members.extend(channel.members)
         members = [member.display_name for member in members]
         members = sorted(set(members))
