@@ -1379,8 +1379,16 @@ async def names_sync_aware_function(message, client, args):
         if bridge:
             for channel in bridge.channels:
                 members.extend(channel.members)
-        members = [member.display_name for member in members]
-        members = sorted(set(members))
+        members = {
+            member.id: member.display_name
+            + (
+                f" ({member.name}#{member.discriminator})"
+                if member.name is not member.display_name
+                else ""
+            )
+            for member in members
+        }
+        members = sorted(members.values())
         for member in members:
             message_body += f"•{member}\n"
         message_body = message_body[:-1]
