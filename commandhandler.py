@@ -2109,10 +2109,24 @@ class CommandHandler:
                             [value, user, key],
                         )
                 else:
-                    cur.execute(
-                        "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_preferences_u_constraint DO UPDATE SET value = EXCLUDED.value;",
-                        [user, guild, key, value],
-                    )
+                    try:
+                        cur.execute(
+                            "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_preferences_u_constraint DO UPDATE SET value = EXCLUDED.value;",
+                            [user, guild, key, value],
+                        )
+                    except:
+                        conn.rollback()
+
+                        if guild:
+                            cur.execute(
+                                "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id = %s AND key = %s;",
+                                [value, user, guild, key],
+                            )
+                        else:
+                            cur.execute(
+                                "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
+                                [value, user, key],
+                            )
             conn.commit()
             if value is None:
                 value = default
