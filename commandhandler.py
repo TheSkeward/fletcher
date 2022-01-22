@@ -1240,7 +1240,7 @@ class CommandHandler:
                 try:
                     syncMessage = await messagefuncs.sendWrappedMessage(
                         target=bridge.webhooks[i],
-                        content=content,
+                        msg=content,
                         username=fromMessageName,
                         avatar_url=user.display_avatar,
                         embeds=list(filter(None, message.embeds + reply_embed))
@@ -1266,7 +1266,7 @@ class CommandHandler:
                             content += f"\n• <{attachment.url}>"
                         syncMessage = await messagefuncs.sendWrappedMessage(
                             target=bridge.webhooks[i],
-                            content=content,
+                            msg=content,
                             username=fromMessageName,
                             avatar_url=user.display_avatar,
                             embeds=list(filter(None, message.embeds + reply_embed))
