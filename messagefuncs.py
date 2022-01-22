@@ -171,7 +171,7 @@ async def sendWrappedMessage(
             last_chunk = msg_chunks.pop()
             for chunk in msg_chunks:
                 sent_message = await target.send(
-                    chunk,
+                    content=chunk,
                     delete_after=delete_after,
                     allowed_mentions=allowed_mentions,
                     **kwargs,
@@ -235,8 +235,8 @@ async def sendWrappedMessage(
                 embed.add_field(name="\u1160", value=hunk, inline=False)
         sent_message = await target.send(
             last_chunk,
-            files=files,
-            embed=embed,
+            **({"files": files} if files else {}),
+            **({"embed": embed} if embed else {}),
             delete_after=delete_after,
             allowed_mentions=allowed_mentions,
             **kwargs,
