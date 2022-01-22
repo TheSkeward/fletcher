@@ -2054,68 +2054,72 @@ class CommandHandler:
     def user_config(
         self, user, guild, key, value=None, default=None, allow_global_substitute=False
     ):
-        if isinstance(guild, discord.Guild):
-            guild = guild.id
-        cur = conn.cursor()
-        if value == "null":
-            value = ""
-        if value is None:
-            if guild:
-                if allow_global_substitute:
-                    cur.execute(
-                        "SELECT value FROM user_preferences WHERE user_id = %s AND (guild_id = %s OR guild_id IS NULL) AND key = %s ORDER BY guild_id LIMIT 1;",
-                        [user, guild, key],
-                    )
+        try:
+            if isinstance(guild, discord.Guild):
+                guild = guild.id
+            cur = conn.cursor()
+            if value == "null":
+                value = ""
+            if value is None:
+                if guild:
+                    if allow_global_substitute:
+                        cur.execute(
+                            "SELECT value FROM user_preferences WHERE user_id = %s AND (guild_id = %s OR guild_id IS NULL) AND key = %s ORDER BY guild_id LIMIT 1;",
+                            [user, guild, key],
+                        )
+                    else:
+                        cur.execute(
+                            "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
+                            [user, guild, key],
+                        )
                 else:
+                    cur.execute(
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
+                        [user, key],
+                    )
+                value = cur.fetchone()
+                if value:
+                    value = value[0]
+            else:
+                if key == "hotwords":
+                    try:
+                        ujson.loads(value)
+                    except:
+                        return 'Value for `hotwords` must be valid JSON. Example: ``````json\n{"dm-on-name":{"dm_me": 1, "regex": "myname", "insensitive": "true"}}\n'
+                if guild:
                     cur.execute(
                         "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
                         [user, guild, key],
                     )
-            else:
-                cur.execute(
-                    "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
-                    [user, key],
-                )
-            value = cur.fetchone()
-            if value:
-                value = value[0]
-        else:
-            if key == "hotwords":
-                try:
-                    ujson.loads(value)
-                except:
-                    return 'Value for `hotwords` must be valid JSON. Example: ``````json\n{"dm-on-name":{"dm_me": 1, "regex": "myname", "insensitive": "true"}}\n'
-            if guild:
-                cur.execute(
-                    "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id = %s AND key = %s LIMIT 1;",
-                    [user, guild, key],
-                )
-            else:
-                cur.execute(
-                    "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
-                    [user, key],
-                )
-            old_value = cur.fetchone()
-            if old_value:
-                if guild:
-                    cur.execute(
-                        "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id = %s AND key = %s;",
-                        [value, user, guild, key],
-                    )
                 else:
                     cur.execute(
-                        "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
-                        [value, user, key],
+                        "SELECT value FROM user_preferences WHERE user_id = %s AND guild_id IS NULL AND key = %s LIMIT 1;",
+                        [user, key],
                     )
-            else:
-                cur.execute(
-                    "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_preferences_u_constraint DO UPDATE SET value = EXCLUDED.value;",
-                    [user, guild, key, value],
-                )
-        conn.commit()
-        if value is None:
-            value = default
-        return value
+                old_value = cur.fetchone()
+                if old_value:
+                    if guild:
+                        cur.execute(
+                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id = %s AND key = %s;",
+                            [value, user, guild, key],
+                        )
+                    else:
+                        cur.execute(
+                            "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
+                            [value, user, key],
+                        )
+                else:
+                    cur.execute(
+                        "INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, %s, %s) ON CONFLICT ON CONSTRAINT user_preferences_u_constraint DO UPDATE SET value = EXCLUDED.value;",
+                        [user, guild, key, value],
+                    )
+            conn.commit()
+            if value is None:
+                value = default
+            return value
+        except psycopg2.errors.UniqueViolation:
+            conn.rollback()
+            return "Invalid duplicate key"
 
     def is_admin(self, message, user=None):
         global config
@@ -3257,9 +3261,7 @@ async def run_web_api(config, ch):
 async def reaction_list_function(message, client, args, ctx):
     bridge_key = f"{message.guild.name}:{message.channel.id}"
     bridge = ch.webhook_sync_registry.get(bridge_key)
-    if message.guild and ch.webhook_sync_registry.get(
-        f"{message.guild.name}:{message.channel.id}"
-    ):
+    if bridge:
         cur = conn.cursor()
         query_params = [message.guild.id, message.channel.id, message.id]
         cur.execute(
