@@ -3289,6 +3289,36 @@ async def reaction_request_function(message, client, args):
                 if len(args) >= 2 and args[1].isnumeric() and int(args[1]) < 1000000
                 else 0
             )
+        elif len(args) >= 1 and args[0].startswith("<") and args[0].endswith(">"):
+            parts = args[0][2:-1].split(":")
+            emoji_name = parts[0]
+            emoji = None
+            url = f"https://cdn.discordapp.com/emojis/{parts[1]}.png"
+            try:
+                image_blob = await netcode.simple_get_image(url)
+            except Exception as e:
+                logger.debug("404 Image Not Found")
+                await message.add_reaction("🚫")
+                return
+            emoteServer = client.get_guild(
+                config.get(section="discord", key="emoteServer", default=0)
+            )
+            try:
+                emoji = await emoteServer.create_custom_emoji(
+                    name=emoji_name,
+                    image=image_blob.read(),
+                    reason="xreact custom copier",
+                )
+            except discord.Forbidden:
+                logger.error("discord.emoteServer misconfigured!")
+            except discord.HTTPException:
+                image_blob.seek(0)
+                await random.choice(emoteServer.emojis).delete()
+                emoji = await emoteServer.create_custom_emoji(
+                    name=emoji_name,
+                    image=image_blob.read(),
+                    reason="xreact custom copier",
+                )
         else:
             emoji_query = emoji_query[0]
             try:
