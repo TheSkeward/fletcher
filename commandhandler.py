@@ -1238,7 +1238,8 @@ class CommandHandler:
                             )
                         ]
                 try:
-                    syncMessage = await bridge.webhooks[i].send(
+                    syncMessage = await messagefuncs.sendWrappedMessage(
+                        target=bridge.webhooks[i],
                         content=content,
                         username=fromMessageName,
                         avatar_url=user.display_avatar,
@@ -1263,7 +1264,8 @@ class CommandHandler:
                         content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
                         for attachment in message.attachments:
                             content += f"\n• <{attachment.url}>"
-                        syncMessage = await bridge.webhooks[i].send(
+                        syncMessage = await messagefuncs.sendWrappedMessage(
+                            target=bridge.webhooks[i],
                             content=content,
                             username=fromMessageName,
                             avatar_url=user.display_avatar,
