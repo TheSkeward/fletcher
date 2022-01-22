@@ -168,7 +168,10 @@ async def sendWrappedMessage(
                         msg_chunks[chunk + 1] = f"> {msg_chunks[chunk+1]}"
             else:
                 msg_chunks = textwrap.wrap(str(msg), 2000, replace_whitespace=False)
-            last_chunk = msg_chunks.pop()
+            try:
+                last_chunk = msg_chunks.pop()
+            except:
+                last_chunk = ""
             for chunk in msg_chunks:
                 sent_message = await target.send(
                     content=chunk,
