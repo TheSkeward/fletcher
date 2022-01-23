@@ -419,7 +419,7 @@ async def on_raw_message_edit(payload):
         if (
             isinstance(fromGuild, discord.Guild)
             and fromGuild is not None
-            and fromChannel.permissions_for(
+            and not fromChannel.permissions_for(
                 fromGuild.get_member(client.user.id)
             ).read_message_history
         ):
