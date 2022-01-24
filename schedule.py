@@ -11,7 +11,7 @@ import pytz
 import psycopg2
 from typing import Dict
 from sentry_sdk import configure_scope
-from typing import Optional
+from typing import Optional, Union
 import traceback
 import re
 from sys import exc_info
@@ -21,12 +21,14 @@ import ujson
 
 logger = logging.getLogger("fletcher")
 
-schedule_extract_channelmention = re.compile("(?:<#)(\d+)")
+schedule_extract_channelmention = re.compile(r"(?:<#)(\d+)")
 
 
 class ScheduleFunctions:
     @staticmethod
-    def is_my_ban(identity: discord.User, target):
+    def is_my_ban(
+        identity: Union[discord.User, discord.Member], target: discord.TextChannel
+    ):
         try:
             permissions = target.overwrites_for(identity)
             return (
@@ -40,11 +42,11 @@ class ScheduleFunctions:
     @staticmethod
     async def reminder(
         target_message: Optional[discord.Message],
-        user,
-        cached_content,
-        mode_args,
-        created_at,
-        from_channel,
+        user: Union[discord.User, discord.Member],
+        cached_content: str,
+        mode_args: str,
+        created_at: datetime,
+        from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
         if "every " in cached_content.lower() and target_message:
             every = chronos.parse_every.search(cached_content).groups(default=1)
@@ -296,6 +298,8 @@ async def table_exec_function():
                     processed_ctids += [ctid]
                     tabtuple = cur.fetchone()
                     continue
+                else:
+                    user = guild.get_member(user.id)
                 from_channel = client.get_channel(channel_id)
                 target_message = None
                 try:
@@ -484,7 +488,6 @@ async def table_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     "Tabling conversation in #{} ({}) https://discordapp.com/channels/{}/{}/{} via reaction to {} for {}".format(
                         message.channel.name,
-                        message.channel.guild.name,
                         message.guild.name if message.guild else "Direct Message",
                         message.guild.id if message.guild else "@me",
                         message.channel.id,
