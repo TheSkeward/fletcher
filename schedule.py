@@ -298,6 +298,8 @@ async def table_exec_function():
                     processed_ctids += [ctid]
                     tabtuple = cur.fetchone()
                     continue
+                elif guild_id == 0:
+                    pass
                 else:
                     user = guild.get_member(user.id)
                 from_channel = client.get_channel(channel_id)
