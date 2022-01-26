@@ -1682,7 +1682,7 @@ async def invite_function(message, client, args):
                 )
             except asyncio.TimeoutError:
                 await target.edit(
-                    message=f"{target.content}\nInvite expired due to timeout. You'll need to ask them for another invitation to join."
+                    content=f"{target.content}\nInvite expired due to timeout. You'll need to ask them for another invitation to join."
                 )
                 await message.remove_reaction("✅", client.user)
                 return
@@ -1700,7 +1700,7 @@ async def invite_function(message, client, args):
                 )
             except discord.Forbidden:
                 await target.edit(
-                    message=f"{target.content}\nFailed to add you to channel due to a permissions error. Your inviter has been notified."
+                    content=f"{target.content}\nFailed to add you to channel due to a permissions error. Your inviter has been notified."
                 )
                 return await messagefuncs.sendWrappedMessage(
                     f"Couldn't set channel override for accepted invite to {member}: discord.Forbidden",
