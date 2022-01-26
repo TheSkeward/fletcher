@@ -1459,6 +1459,17 @@ class CommandHandler:
                         logger.info(
                             f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that."
                         )
+                reply_embed = []
+                if fromMessage.reference:
+                    reference_message = await fromMessage.channel.fetch_message(
+                        fromMessage.message_id
+                    )
+                    if reference_message:
+                        reply_embed = [
+                            discord.Embed(
+                                description=f"Reply to [{reference_message.author}]({reference_message.jump_url})"
+                            )
+                        ]
                 content = fromMessage.clean_content
                 attachments: List[discord.File] = []
                 if len(fromMessage.attachments) > 0:
@@ -1495,7 +1506,7 @@ class CommandHandler:
                 assert webhook is not None
                 await webhook.edit_message(
                     content=content,
-                    embeds=fromMessage.embeds,
+                    embeds=list(filter(None, fromMessage.embeds + reply_embed)),
                     files=attachments,
                     allowed_mentions=discord.AllowedMentions(
                         users=False, roles=False, everyone=False
