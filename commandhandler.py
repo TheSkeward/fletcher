@@ -446,7 +446,7 @@ class CommandHandler:
                     f"{tupperreplace}-avatar",
                     user.display_avatar,
                 ),
-                embeds=[*fromMessage.embeds, *reply_embed],
+                embeds=[*message.embeds, *reply_embed],
                 tts=message.tts,
                 files=attachments,
                 allowed_mentions=discord.AllowedMentions(
