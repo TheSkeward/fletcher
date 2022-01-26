@@ -1896,14 +1896,14 @@ class CommandHandler:
                 stranger_role = -1
                 if (
                     user
-                    and message.guild
+                    and user.guild
                     and self.config.get(
-                        "stranger_role", default=None, guild=message.guild.id
+                        "stranger_role", default=None, guild=user.guild.id
                     )
                 ):
                     stranger_role = str(
                         self.config.get(
-                            "stranger_role", default=None, guild=message.guild.id
+                            "stranger_role", default=None, guild=user.guild.id
                         )
                     )
                     if stranger_role.isnumeric():
