@@ -1463,7 +1463,7 @@ class CommandHandler:
                 reply_embed = []
                 if fromMessage.reference:
                     reference_message = await fromMessage.channel.fetch_message(
-                        fromMessage.message_id
+                        fromMessage.reference.message_id
                     )
                     if reference_message:
                         reply_embed = [
