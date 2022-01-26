@@ -446,7 +446,7 @@ class CommandHandler:
                     f"{tupperreplace}-avatar",
                     user.display_avatar,
                 ),
-                embeds=message.embeds if len(message.embeds) else reply_embed,
+                embeds=[*fromMessage.embeds, *reply_embed],
                 tts=message.tts,
                 files=attachments,
                 allowed_mentions=discord.AllowedMentions(
@@ -1199,8 +1199,8 @@ class CommandHandler:
                     ]
                     metuple = None
                     if query_params[0] == query_params[3]:
-                        metuple = query_params[3:]
-                    if metuple is None:
+                        metuple = query_params[:3]
+                    if metuple is None or len(metuple) != 3:
                         cur = conn.cursor()
                         cur.execute(
                             "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
@@ -1208,7 +1208,7 @@ class CommandHandler:
                         )
                         metuple = cur.fetchone()
                         conn.commit()
-                    if metuple is None:
+                    if metuple is None or len(metuple) != 3:
                         cur = conn.cursor()
                         cur.execute(
                             "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
@@ -1226,7 +1226,7 @@ class CommandHandler:
                             )
                             metuple = cur.fetchone()
                             conn.commit()
-                    if metuple is not None:
+                    if metuple is not None and len(metuple) == 3:
                         toGuild = self.client.get_guild(metuple[0])
                         toChannel = toGuild.get_channel(
                             metuple[1]
@@ -1237,15 +1237,18 @@ class CommandHandler:
                                 description=f"Reply to [{reference_message.author}]({reference_message.jump_url})"
                             )
                         ]
+                if user.bot:
+                    embeds = list(filter(None, message.embeds + reply_embed))
+                else:
+                    embeds = reply_embed
+                logger.debug(embeds)
                 try:
                     syncMessage = await messagefuncs.sendWrappedMessage(
                         target=bridge.webhooks[i],
                         msg=content,
                         username=fromMessageName,
                         avatar_url=user.display_avatar,
-                        embeds=list(filter(None, message.embeds + reply_embed))
-                        if user.bot
-                        else reply_embed,
+                        embeds=embeds,
                         tts=message.tts,
                         files=[]
                         if len(message.attachments) > 0
@@ -1269,9 +1272,7 @@ class CommandHandler:
                             msg=content,
                             username=fromMessageName,
                             avatar_url=user.display_avatar,
-                            embeds=list(filter(None, message.embeds + reply_embed))
-                            if user.bot
-                            else reply_embed,
+                            embeds=embeds,
                             tts=message.tts,
                             files=[],
                             wait=True,
@@ -1506,7 +1507,7 @@ class CommandHandler:
                 assert webhook is not None
                 await webhook.edit_message(
                     content=content,
-                    embeds=list(filter(None, fromMessage.embeds + reply_embed)),
+                    embeds=[*fromMessage.embeds, *reply_embed],
                     files=attachments,
                     allowed_mentions=discord.AllowedMentions(
                         users=False, roles=False, everyone=False
