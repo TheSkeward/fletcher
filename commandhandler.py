@@ -1241,7 +1241,6 @@ class CommandHandler:
                     embeds = list(filter(None, message.embeds + reply_embed))
                 else:
                     embeds = reply_embed
-                logger.debug(embeds)
                 try:
                     syncMessage = await messagefuncs.sendWrappedMessage(
                         target=bridge.webhooks[i],
