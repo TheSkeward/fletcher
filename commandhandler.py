@@ -1902,26 +1902,25 @@ class CommandHandler:
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
-                if hasattr(user, "guild"):
-                    scope.set_tag("guild", user.guild.name)
+                guild = None
+                if ctx and ctx.guild_id:
+                    guild = self.client.get_guild(ctx.guild_id)
+                if message and message.guild:
+                    guild = message.guild
+                if guild:
+                    scope.set_tag("guild", guild.name)
                 stranger_role = -1
-                if (
-                    user
-                    and user.guild
-                    and self.config.get(
-                        "stranger_role", default=None, guild=user.guild.id
-                    )
+                if guild and self.config.get(
+                    "stranger_role", default=None, guild=guild.id
                 ):
                     stranger_role = str(
-                        self.config.get(
-                            "stranger_role", default=None, guild=user.guild.id
-                        )
+                        self.config.get("stranger_role", default=None, guild=guild.id)
                     )
                     if stranger_role.isnumeric():
                         stranger_role = int(stranger_role)
                     else:
                         stranger_role = discord.utils.get(
-                            message.guild.roles, name=stranger_role
+                            guild.roles, name=stranger_role
                         )
                         if isinstance(stranger_role, discord.Role):
                             stranger_role = stranger_role.id
