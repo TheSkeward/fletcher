@@ -4715,6 +4715,7 @@ def autoload(ch):
             "trigger": [
                 "<:glowfic_const_search_quote:796416363312185384>",
                 "<:glowsearch:799184607555747870>",
+                "<:glowsearch:936174745802661908>",
                 "<:glowsearch:905560679052898314>",
                 "<:glowsearch:799817787593457744>",
                 "<:glowsearch:811320496883892279>",
@@ -4727,6 +4728,7 @@ def autoload(ch):
             "async": True,
             "hidden": True,
             "whitelist_guild": [
+                936151692041400361,
                 419246748020506644,
                 294167563447828481,
                 401181628015050773,
