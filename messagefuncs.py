@@ -1167,6 +1167,8 @@ async def toggle_role(message, client, args):
     )
     if not role_list:
         return
+    if message.is_system():
+        return
     for role in role_list:
         if role.isnumeric():
             role = int(role)
