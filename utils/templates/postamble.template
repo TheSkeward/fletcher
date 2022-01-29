@@ -1,0 +1,9 @@
+</div>
+
+<div class="postamble">
+    <div class="postamble__entry">Exported {{ message_count }} message(s)</div>
+</div>
+
+</body>
+
+</html>
