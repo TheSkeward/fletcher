@@ -25,7 +25,7 @@ class StackScript:
         name: str
         label: str
         default: str
-        manyof: str  # comma separated
+        manyof: Optional[str] = None  # comma separated
 
     id: int
     label: str
