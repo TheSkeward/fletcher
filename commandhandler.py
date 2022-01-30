@@ -66,7 +66,7 @@ class Bridge:
     def __init__(self):
         self.channels: List[discord.TextChannel] = []
         self.webhooks: List[discord.Webhook] = []
-        self.thread_ids: List[Optional[discord.Snowflake]] = []
+        self.thread_ids: List[Optional[discord.abc.Snowflake]] = []
 
     def append(
         self,
