@@ -1,4 +1,5 @@
 from mcipc.rcon import Client
+import copy
 import discord
 import ujson
 import urllib.parse
@@ -18,21 +19,21 @@ sessions = {}
 class LinodeAPI:
     session: aiohttp.ClientSession
     base_url: str = "https://api.linode.com/v4"
+    headers: Dict[str, str]
 
     def __init__(self, token: str):
-        self.session = aiohttp.ClientSession(
-            headers={
-                "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
-                "Authorization": f"Bearer {token}",
-            }
-        )
+        self.session = aiohttp.ClientSession()
+        self.headers = {
+            "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+            "Authorization": f"Bearer {token}",
+        }
 
     @classmethod
     def url_generator(cls, path: str) -> str:
         return urllib.parse.urljoin(cls.base_url, path)
 
     async def list_stackscripts(self, mine: bool = True) -> List[Dict]:
-        headers = {}
+        headers = copy.deepcopy(self.headers)
         filter_body = {"+order_by": "deployments_total", "+order": "desc", "mine": mine}
         headers["X-Filter"] = ujson.dumps(filter_body)
         async with self.session.get(
