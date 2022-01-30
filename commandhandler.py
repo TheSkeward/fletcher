@@ -3073,6 +3073,9 @@ class Component:
     kind: int
     children: Optional[List] = None
 
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
 
 @dataclass(kw_only=True)
 class ActionRow(Component):
@@ -3088,7 +3091,13 @@ class Button(Component):
     kind: int = 2
 
 
-Components = List[Component]
+@dataclass(kw_only=True)
+class View:
+    components: List[Component] = []
+    __discord_ui_view__ = True
+
+    def to_components(self) -> List[Component]:
+        return self.components
 
 
 def no_unroll_notify_view(
@@ -3096,8 +3105,12 @@ def no_unroll_notify_view(
     client: discord.Client,
     args: List,
     ctx: Optional[discord.Interaction] = None,
-) -> Components:
-    return [ActionRow(children=[Button(label="Click", custom_id="no_unroll_button")])]
+) -> View:
+    return View(
+        components=[
+            ActionRow(children=[Button(label="Click", custom_id="no_unroll_button")])
+        ]
+    )
 
 
 async def user_config_menu_function(
@@ -3115,10 +3128,7 @@ async def user_config_menu_function(
     dispatch_target = menu_preferences.get(key, None)
     if dispatch_target:
         return await messagefuncs.sendWrappedMessage(
-            components=[
-                asdict(c)
-                for c in dispatch_target["function"](message, client, args, ctx)
-            ],
+            view=dispatch_target["function"](message, client, args, ctx),
             target=message.channel,
         )
 
