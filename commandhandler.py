@@ -72,7 +72,7 @@ class Bridge:
         self,
         channel: discord.TextChannel,
         webhook: discord.Webhook,
-        thread_id: Optional[discord.Snowflake] = None,
+        thread_id: Optional[discord.abc.Snowflake] = None,
     ):
         self.channels.append(channel)
         self.webhooks.append(webhook)
