@@ -3093,7 +3093,7 @@ class Button(Component):
 
 @dataclass(kw_only=True)
 class View:
-    components: List[Component] = []
+    components: List[Component] = field(default_factory=list)
     __discord_ui_view__ = True
 
     def to_components(self) -> List[Component]:
