@@ -5,6 +5,7 @@ from io import BytesIO
 from aiohttp import web, ClientSession
 from aiohttp.web import AppRunner, Application
 from psycopg2._psycopg import connection
+from dataclasses import asdict, dataclass, field
 
 import discord
 import logging
@@ -3067,7 +3068,66 @@ WHERE p.key = 'tupper';
     ch.load_hotwords()
 
 
-def preference_function(message, client, args):
+@dataclass(kw_only=True)
+class Component:
+    kind: int
+    children: Optional[List] = None
+
+
+@dataclass(kw_only=True)
+class ActionRow(Component):
+    kind: int = 1
+    children: List = field(default_factory=list)
+
+
+@dataclass(kw_only=True)
+class Button(Component):
+    label: str
+    custom_id: str
+    style: int = 1
+    kind: int = 2
+
+
+Components = List[Component]
+
+
+def no_unroll_notify_view(
+    message: Optional[discord.Message],
+    client: discord.Client,
+    args: List,
+    ctx: Optional[discord.Interaction] = None,
+) -> Components:
+    return [ActionRow(children=[Button(label="Click", custom_id="no_unroll_button")])]
+
+
+async def user_config_menu_function(
+    message: Optional[discord.Message],
+    client: discord.Client,
+    args: List,
+    ctx: Optional[discord.Interaction] = None,
+):
+    assert len(args) > 0
+    assert message
+    key = args.pop()
+    menu_preferences: Dict[str, Dict] = {
+        "no_unroll_notify": {"function": no_unroll_notify_view}
+    }
+    dispatch_target = menu_preferences.get(key, None)
+    if dispatch_target:
+        return await messagefuncs.sendWrappedMessage(
+            components=[
+                asdict(c)
+                for c in dispatch_target["function"](message, client, args, ctx)
+            ],
+            target=message.channel,
+        )
+
+
+def preference_function(
+    message: Optional[discord.Message],
+    client: discord.Client,
+    args: List,
+):
     global ch
     if len(args) > 1:
         value = " ".join(args[1:])
@@ -3231,6 +3291,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Output current config",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!user_config_menu"],
+            "function": user_config_menu_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "args_name": ["key"],
+            "description": "Set or get user preference for this guild",
         }
     )
     ch.add_command(
