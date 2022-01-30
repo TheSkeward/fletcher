@@ -9,7 +9,7 @@ import socket
 from dataclasses import dataclass
 from dacite import from_dict
 from sys import exc_info
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import logging
 
