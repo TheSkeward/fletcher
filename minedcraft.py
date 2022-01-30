@@ -30,7 +30,9 @@ class LinodeAPI:
 
     @classmethod
     def url_generator(cls, path: str) -> str:
-        return urllib.parse.urljoin(cls.base_url, path)
+        if not path.startswith("/"):
+            path = f"/{path}"
+        return cls.base_url + path
 
     async def list_stackscripts(self, mine: bool = True) -> List[Dict]:
         headers = copy.deepcopy(self.headers)
