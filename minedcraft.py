@@ -39,7 +39,7 @@ __{self.label} ({self.id})__
 *{self.description}*
 Parameters: {", ".join((udf.name for udf in self.user_defined_fields))}
 ```bash
-{script}
+{self.script}
 ```
 """
 
