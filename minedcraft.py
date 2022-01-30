@@ -55,7 +55,7 @@ async def linode_list_ss(message: discord.Message, client, args: List[str]):
     try:
         ss_list = await linode_api.list_stackscripts()
         await messagefuncs.sendWrappedMessage(
-            f"""__StackScripts Available__\n{", ".join([ss["name"] for ss in ss_list])}""",
+            f"""__StackScripts Available__\n{", ".join([f'{ss["id"]}: {ss["label"]}' for ss in ss_list])}""",
             target=message.channel,
         )
     except Exception as e:
