@@ -6,6 +6,8 @@ import urllib.parse
 import aiohttp
 import messagefuncs
 import socket
+from dataclasses import dataclass
+from dacite import from_dict
 from sys import exc_info
 from typing import List, Dict
 
@@ -14,6 +16,32 @@ import logging
 logger = logging.getLogger("fletcher")
 
 sessions = {}
+
+
+@dataclass(kw_only=True)
+class StackScript:
+    @dataclass(kw_only=True)
+    class UDF:
+        name: str
+        label: str
+        default: str
+        manyof: str  # comma separated
+
+    id: int
+    label: str
+    description: str
+    script: str
+    user_defined_fields: List[UDF]
+
+    def __str__(self):
+        return f"""
+__{self.label} ({self.id})__
+*{self.description}*
+Parameters: {", ".join((udf.name for udf in self.user_defined_fields))}
+```bash
+{script}
+```
+"""
 
 
 class LinodeAPI:
@@ -34,7 +62,7 @@ class LinodeAPI:
             path = f"/{path}"
         return cls.base_url + path
 
-    async def list_stackscripts(self, mine: bool = True) -> List[Dict]:
+    async def list_stackscripts(self, mine: bool = True) -> List[StackScript]:
         headers = copy.deepcopy(self.headers)
         filter_body = {"+order_by": "deployments_total", "+order": "desc", "mine": mine}
         headers["X-Filter"] = ujson.dumps(filter_body)
@@ -44,7 +72,7 @@ class LinodeAPI:
             headers=headers,
         ) as resp:
             body = await resp.json()
-            return body["data"]
+            return [from_dict(data_class=StackScript, data=ss) for ss in body["data"]]
 
 
 linode_api: LinodeAPI
@@ -54,8 +82,9 @@ async def linode_list_ss(message: discord.Message, client, args: List[str]):
     global linode_api
     try:
         ss_list = await linode_api.list_stackscripts()
+        ss_list_str = "\n".join([str(ss) for ss in ss_list])
         await messagefuncs.sendWrappedMessage(
-            f"""__StackScripts Available__\n{", ".join([f'{ss["id"]}: {ss["label"]}' for ss in ss_list])}""",
+            f"""__StackScripts Available__\n{ss_list_str}""",
             target=message.channel,
         )
     except Exception as e:
