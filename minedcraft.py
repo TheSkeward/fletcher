@@ -47,9 +47,7 @@ class LinodeAPI:
 linode_api: LinodeAPI
 
 
-async def linode_list_ss(
-    message: discord.Message, client: discord.ClientSession, args: List[str]
-):
+async def linode_list_ss(message: discord.Message, client, args: List[str]):
     global linode_api
     try:
         ss_list = await linode_api.list_stackscripts()
