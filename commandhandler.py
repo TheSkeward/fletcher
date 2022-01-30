@@ -6,7 +6,6 @@ from aiohttp import web, ClientSession
 from aiohttp.web import AppRunner, Application
 from psycopg2._psycopg import connection
 from dataclasses import asdict, dataclass, field
-from dataclasses_json import DataClassJsonMixin
 
 import discord
 import logging
@@ -3070,7 +3069,7 @@ WHERE p.key = 'tupper';
 
 
 @dataclass(kw_only=True)
-class Component(DataClassJsonMixin):
+class Component:
     kind: int
     children: Optional[List] = None
 
@@ -3093,7 +3092,7 @@ class Button(Component):
 
 
 @dataclass(kw_only=True)
-class View(DataClassJsonMixin):
+class View:
     components: List[Component] = field(default_factory=list)
     __discord_ui_view__ = True
 
