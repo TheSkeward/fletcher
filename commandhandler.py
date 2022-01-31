@@ -3134,6 +3134,9 @@ class View:
     def _start_listening_from_store(self, _) -> None:
         pass
 
+    def is_finished(self):
+        return False
+
     def to_components(self) -> List[Component]:
         return self.components
 
