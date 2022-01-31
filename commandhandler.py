@@ -3203,7 +3203,7 @@ async def user_config_menu_function(
             try:
                 cur = conn.cursor()
                 cur.execute(
-                    "INSERT INTO message_interaction_functions (message_id, user_id, function, state, message_id) VALUES (%s, %s, %s, %s) ON CONFLICT (message_id) DO UPDATE SET function = EXCLUDED.function, state = EXCLUDED.state;",
+                    "INSERT INTO message_interaction_functions (message_id, user_id, function, state) VALUES (%s, %s, %s, %s) ON CONFLICT (message_id) DO UPDATE SET function = EXCLUDED.function, state = EXCLUDED.state;",
                     [
                         messageWithView.id,
                         user.id,
