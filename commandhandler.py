@@ -3127,6 +3127,7 @@ async def user_config_menu_function(
         view = dispatch_target["function"](message, client, args, ctx)
         logger.debug(view)
         return await messagefuncs.sendWrappedMessage(
+            content="User configuration",
             view=view,
             target=message.channel,
         )
