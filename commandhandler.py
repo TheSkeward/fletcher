@@ -2244,15 +2244,21 @@ class CommandHandler:
                 conn.commit()
                 if metuple:
                     logger.debug(metuple)
-                    return await self.run_command(
-                        discord.utils.get(
-                            self.commands, name=metuple[0], type="component"
+                    command = next(
+                        filter(
+                            lambda c: metuple[0] in c["name"] and c.get("component"),
+                            self.commands,
                         ),
-                        message,
-                        [metuple[1]],
-                        ctx.user,
-                        ctx,
+                        None,
                     )
+                    if command:
+                        return await self.run_command(
+                            command,
+                            message,
+                            [metuple[1]],
+                            ctx.user,
+                            ctx,
+                        )
             except Exception as e:
                 conn.rollback()
                 logger.error(e)
@@ -3161,7 +3167,7 @@ async def user_config_menu_function(
         user = message.author
         guild = message.guild
     elif ctx:
-        key = ctx.data["custom_id"]
+        key = args[0]["key"]
         user = ctx.user
         guild = client.get_guild(ctx.guild_id)
     else:
@@ -3207,8 +3213,8 @@ async def user_config_menu_function(
                     [
                         messageWithView.id,
                         user.id,
-                        key,
-                        ujson.dumps({"current_state": toggle_config}),
+                        "user_config_menu_function",
+                        ujson.dumps({"key": key, "current_state": toggle_config}),
                     ],
                 )
                 conn.commit()
@@ -3393,6 +3399,18 @@ def autoload(ch):
             "function": user_config_menu_function,
             "async": True,
             "hidden": True,
+            "args_num": 1,
+            "args_name": ["key"],
+            "description": "Set or get user preference for this guild",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["user_config_menu"],
+            "function": user_config_menu_function,
+            "async": True,
+            "hidden": True,
+            "component": True,
             "args_num": 1,
             "args_name": ["key"],
             "description": "Set or get user preference for this guild",
