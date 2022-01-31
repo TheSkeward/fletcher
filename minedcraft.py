@@ -11,7 +11,7 @@ import socket
 from dataclasses import dataclass
 from dacite import from_dict
 from sys import exc_info
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 
 import logging
 
@@ -119,7 +119,7 @@ class LinodeAPI:
             )
         assert ss.is_valid_udf_input(ss_data)
         headers = copy.deepcopy(self.headers)
-        request_body: Dict = {
+        request_body: Dict[str, Union[str, int, List[str], Dict[str, str]]] = {
             "image": ss.images[0],
             "root_pass": type(self).generate_password(),
             "authorized_users": authorized_users,
@@ -133,7 +133,6 @@ class LinodeAPI:
             "stackscript_id": ss.id,
             "type": ss.description,
         }
-        logger.debug(ujson.dumps(request_body))
         async with self.session.post(
             type(self).url_generator("instances"),
             json=request_body,
@@ -189,8 +188,6 @@ class LinodeAPI:
 
     async def list_linodes(self, tag: str = "created-with-fletcher") -> List[Instance]:
         headers = copy.deepcopy(self.headers)
-        filter_body = {"tag": tag}
-        headers["X-Filter"] = ujson.dumps(filter_body)
         async with self.session.get(
             type(self).url_generator("instances"),
             raise_for_status=True,
@@ -288,7 +285,7 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             conn.rollback()
             logger.debug(e)
             logger.debug(instance_creation_data)
-        while instance.status != "running":
+        while instance.status not in ["running", "offline"]:
             await asyncio.sleep(1)
             updated_instance = await linode_api.get_linode(instance.id)
             assert updated_instance
@@ -297,6 +294,13 @@ async def linode_create(message: discord.Message, client, args: List[str]):
                     content=f"{ss.label} {instance.status} -> {updated_instance.status} at {instance.ipv4[0]} <a:hourglass_animated:937514119991541770>"
                 )
                 instance = updated_instance
+        if instance.status == "offline":
+            await messagefuncs.sendWrappedMessage(
+                "Error initializing server - terminating. Try again in 10 minutes.",
+                target=message.channel,
+            )
+            await linode_api.really_delete_linode(instance)
+            return
         await statusMessage.edit(
             content=f"{ss.label} {instance.status} at {instance.ipv4[0]} ✅"
         )
