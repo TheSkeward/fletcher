@@ -3070,13 +3070,13 @@ WHERE p.key = 'tupper';
 
 @dataclass(kw_only=True)
 class Component:
-    kind: int
+    type: int
     components: Optional[List] = None
 
 
 @dataclass(kw_only=True)
 class ActionRow(Component):
-    kind: int = 1
+    type: int = 1
     components: List = field(default_factory=list)
 
 
@@ -3085,7 +3085,7 @@ class Button(Component):
     label: str
     custom_id: str
     style: int = 1
-    kind: int = 2
+    type: int = 2
 
 
 @dataclass(kw_only=True)
