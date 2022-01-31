@@ -18,12 +18,15 @@ import logging
 logger = logging.getLogger("fletcher")
 
 sessions = {}
+MAX_LINODES_PER_USER = 11
 
 
 @dataclass(kw_only=True)
 class Instance:
     id: int
     tags: List[str]
+    status: str
+    ipv4: List[str]
 
 
 @dataclass(kw_only=True)
@@ -86,15 +89,28 @@ class LinodeAPI:
         return "".join(secrets.choice(alphabet) for _ in range(length))
 
     async def create_instance_from_stackscript(
-        self, ss: StackScript, ss_data: Dict[str, str], authorized_users: List[str] = []
+        self,
+        ss: StackScript,
+        ss_data: Dict[str, str],
+        authorized_users: List[str] = [],
+        created_by: int = 0,
     ):
+        if created_by:
+            assert (
+                len(self.list_linodes(f"created-by-{created_by}"))
+                < MAX_LINODES_PER_USER
+            )
         assert ss.is_valid_udf_input(ss_data)
         headers = copy.deepcopy(self.headers)
         request_body: Dict = {
             "image": ss.images[0],
             "root_pass": type(self).generate_password(),
             "authorized_users": authorized_users,
-            "tags": ["created-with-fletcher", f"stackscript-{ss.label}"],
+            "tags": [
+                "created-with-fletcher",
+                f"stackscript-{ss.label}",
+                *([f"created-by-{created_by}"] if created_by else []),
+            ],
             "region": "us-east",
             "stackscript_data": ss_data,
             "stackscript_id": ss.id,
@@ -107,11 +123,14 @@ class LinodeAPI:
             headers=headers,
         ) as resp:
             response_body = await resp.json()
-            return {"request": request_body, "response": response_body}
+            return {
+                "request": request_body,
+                "response": from_dict(data_class=Instance, data=response_body),
+            }
 
     async def delete_linode(self, instance: Instance):
         headers = copy.deepcopy(self.headers)
-        assert instance.id in [i.id for i in await slef.list_linodes()]
+        assert instance.id in [i.id for i in await self.list_linodes()]
         async with self.session.post(
             type(self).url_generator(f"instances/{instance.id}/shutdown"),
             raise_for_status=True,
@@ -164,6 +183,16 @@ class LinodeAPI:
                 if tag in i["tags"]
             ]
 
+    async def get_linode(self, id: int) -> Optional[Instance]:
+        headers = copy.deepcopy(self.headers)
+        async with self.session.get(
+            type(self).url_generator(f"instances/{id}"),
+            raise_for_status=True,
+            headers=headers,
+        ) as resp:
+            body = await resp.json()
+            return from_dict(data_class=Instance, data=body)
+
     async def list_stackscripts(self, mine: bool = True) -> List[StackScript]:
         headers = copy.deepcopy(self.headers)
         filter_body = {"+order_by": "deployments_total", "+order": "desc", "mine": mine}
@@ -204,7 +233,19 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             udf.name: args[idx + 1] for idx, udf in enumerate(ss.user_defined_fields)
         }
         instance_creation_data = await linode_api.create_instance_from_stackscript(
-            ss, ss_data, ["l1n"]
+            ss, ss_data, ["l1n"], created_by=message.author.id
+        )
+        instance = instance_creation_data["response"]
+        assert isinstance(instance, Instance)
+        targetedMessage: discord.Message
+        for target in [message.author, client.get_user(382984420321263617)]:
+            targetedMessage = await messagefuncs.sendWrappedMessage(
+                f"Root password for instance id {instance.id} at {instance.ipv4[0]} is ||{instance_creation_data['request']['root_pass']}||",
+                target=target,
+            )
+        statusMessage = await messagefuncs.sendWrappedMessage(
+            f"{ss.label} {instance.status} at {instance.ipv4[0]}",
+            target=message.channel,
         )
         try:
             cur = conn.cursor()
@@ -215,8 +256,8 @@ async def linode_create(message: discord.Message, client, args: List[str]):
                     382984420321263617,
                     0,
                     382984420321263617,
-                    0,
-                    f"Consider deleting linode {instance_creation_data['response']['id']}",
+                    targetedMessage.id,
+                    f"Consider deleting linode {instance.id}",
                 ],
             )
             conn.commit()
@@ -224,15 +265,14 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             conn.rollback()
             logger.debug(e)
             logger.debug(instance_creation_data)
-        for target in [message.author, client.get_user(382984420321263617)]:
-            await messagefuncs.sendWrappedMessage(
-                f"Root password for instance id {instance_creation_data['response']['id']} at {instance_creation_data['response']['ipv4'][0]} is ||{instance_creation_data['request']['root_pass']}||",
-                target=target,
-            )
-        await messagefuncs.sendWrappedMessage(
-            f"{ss.label} deployed at {instance_creation_data['response']['ipv4'][0]}",
-            target=message.channel,
-        )
+        while instance.status != "running":
+            await asyncio.sleep(1)
+            updated_instance = await linode_api.get_linode(instance.id)
+            assert updated_instance
+            if instance.status != updated_instance.status:
+                await statusMessage.edit(
+                    content=f"{ss.label} {instance.status} at {instance.ipv4[0]}"
+                )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"LCR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
