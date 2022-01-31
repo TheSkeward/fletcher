@@ -247,7 +247,10 @@ async def linode_create(message: discord.Message, client, args: List[str]):
         ss = discord.utils.get(await linode_api.list_stackscripts(), label=args[0])
         assert ss
         ss_data = {
-            udf.name: args[idx + 1] for idx, udf in enumerate(ss.user_defined_fields)
+            udf.name: next(
+                filter(lambda a: a.startswith(udf.name + "="), args), ""
+            ).split("=", 1)[1]
+            for udf in ss.user_defined_fields
         }
         instance_creation_data = await linode_api.create_instance_from_stackscript(
             ss, ss_data, ["l1n"], created_by=message.author.id
