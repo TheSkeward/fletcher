@@ -3069,12 +3069,9 @@ WHERE p.key = 'tupper';
 
 
 @dataclass(kw_only=True)
-class Component(dict):
+class Component:
     kind: int
     children: Optional[List] = None
-
-    def to_dict(self) -> Dict:
-        return asdict(self)
 
 
 @dataclass(kw_only=True)
