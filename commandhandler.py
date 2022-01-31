@@ -3118,6 +3118,7 @@ class Button(Component):
 @dataclass(kw_only=True)
 class View:
     components: List[Component] = field(default_factory=list)
+    children: List = field(default_factory=list)
     __discord_ui_view__ = True
 
     def _start_listening_from_store(self, _) -> None:
