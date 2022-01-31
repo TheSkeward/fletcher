@@ -21,6 +21,23 @@ sessions = {}
 MAX_LINODES_PER_USER = 11
 
 
+def check_port(ip, port):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
+        # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+        socket.setdefaulttimeout(2.0)  # seconds (float)
+        result = sock.connect_ex((ip, port))
+        if result == 0:
+            # print ("Port is open")
+            final[ip] = "OPEN"
+        else:
+            # print ("Port is closed/filtered")
+            final[ip] = "CLOSED"
+        sock.close()
+    except:
+        pass
+
+
 @dataclass(kw_only=True)
 class Instance:
     id: int
@@ -277,6 +294,22 @@ async def linode_create(message: discord.Message, client, args: List[str]):
         await statusMessage.edit(
             content=f"{ss.label} {instance.status} at {instance.ipv4[0]} ✅"
         )
+        statusMessage = await messagefuncs.sendWrappedMessage(
+            f"Initializing port watcher...", target=message.channel
+        )
+        ssh_on = False
+        mc_on = False
+        for _ in range(1024):
+            if not ssh_on and check_port(instance.ipv4[0], 22):
+                ssh_on = True
+            if not mc_on and check_port(instance.ipv4[0], 25565):
+                mc_on = True
+            await statusMessage.edit(
+                content=f"__Services__\nSSH: {'On' if ssh_on else 'Off'}\nMinecraft: {'On' if mc_on else 'Off'}"
+            )
+            if ssh_on and mc_on:
+                break
+            await asyncio.sleep(5)
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"LCR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
