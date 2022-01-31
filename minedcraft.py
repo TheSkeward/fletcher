@@ -337,7 +337,7 @@ def autoload(ch):
             "trigger": ["!create_minecraft_server"],
             "function": linode_create,
             "async": True,
-            "admin": True,
+            "admin": "server",
             "hidden": False,
             "args_num": 4,
             "args_name": [
