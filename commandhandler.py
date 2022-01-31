@@ -3069,7 +3069,7 @@ WHERE p.key = 'tupper';
 
 
 @dataclass(kw_only=True)
-class Component:
+class Component(dict):
     kind: int
     children: Optional[List] = None
 
@@ -3127,8 +3127,10 @@ async def user_config_menu_function(
     }
     dispatch_target = menu_preferences.get(key, None)
     if dispatch_target:
+        view = dispatch_target["function"](message, client, args, ctx)
+        logger.debug(view)
         return await messagefuncs.sendWrappedMessage(
-            view=dispatch_target["function"](message, client, args, ctx),
+            view=view,
             target=message.channel,
         )
 
