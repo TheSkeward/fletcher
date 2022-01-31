@@ -3071,13 +3071,13 @@ WHERE p.key = 'tupper';
 @dataclass(kw_only=True)
 class Component:
     kind: int
-    children: Optional[List] = None
+    components: Optional[List] = None
 
 
 @dataclass(kw_only=True)
 class ActionRow(Component):
     kind: int = 1
-    children: List = field(default_factory=list)
+    components: List = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
