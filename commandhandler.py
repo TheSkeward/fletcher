@@ -2229,6 +2229,8 @@ class CommandHandler:
             return
         if ctx.data.get("target_id"):
             message = await ctx.channel.fetch_message(ctx.data["target_id"])
+        elif ctx.data.get("message"):
+            message = ctx.message
         else:
             message = ctx.channel.last_message
         if ctx.is_component():
