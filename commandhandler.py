@@ -2246,7 +2246,7 @@ class CommandHandler:
                     logger.debug(metuple)
                     command = next(
                         filter(
-                            lambda c: metuple[0] in c.get("triggers", [])
+                            lambda c: metuple[0] in c.get("trigger", [])
                             and c.get("component"),
                             self.commands,
                         ),
