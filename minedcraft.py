@@ -271,8 +271,12 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             assert updated_instance
             if instance.status != updated_instance.status:
                 await statusMessage.edit(
-                    content=f"{ss.label} {instance.status} at {instance.ipv4[0]}"
+                    content=f"{ss.label} {instance.status} -> {updated_instance.status} at {instance.ipv4[0]}"
                 )
+                instance = updated_instance
+        await statusMessage.edit(
+            content=f"{ss.label} {instance.status} at {instance.ipv4[0]}"
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"LCR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
@@ -386,6 +390,7 @@ def autoload(ch):
                 "0628947c-6067-4409-b24a-36678fb364e8",
                 "FabricMC/fabric",
             ],
+            "long_run": "channel",
             "description": "Create Minecraft Server.",
             "whitelist_guild": [634249282488107028, 843952851050430475],
         }
