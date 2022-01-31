@@ -3105,7 +3105,7 @@ def no_unroll_notify_view(
 ) -> View:
     return View(
         components=[
-            ActionRow(children=[Button(label="Click", custom_id="no_unroll_button")])
+            ActionRow(components=[Button(label="Click", custom_id="no_unroll_button")])
         ]
     )
 
