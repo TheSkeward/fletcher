@@ -310,6 +310,9 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             if ssh_on and mc_on:
                 break
             await asyncio.sleep(5)
+        await messagefuncs.sendWrappedMessage(
+            f"Minecraft is ready {message.author.mention}", target=message.channel
+        )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"LCR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
