@@ -2246,7 +2246,8 @@ class CommandHandler:
                     logger.debug(metuple)
                     command = next(
                         filter(
-                            lambda c: metuple[0] in c["name"] and c.get("component"),
+                            lambda c: metuple[0] in c["triggers"]
+                            and c.get("component"),
                             self.commands,
                         ),
                         None,
@@ -3406,7 +3407,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["user_config_menu"],
+            "trigger": ["user_config_menu_function"],
             "function": user_config_menu_function,
             "async": True,
             "hidden": True,
