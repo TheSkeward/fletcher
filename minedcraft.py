@@ -5,14 +5,13 @@ import string
 import discord
 import asyncio
 import ujson
-import urllib.parse
 import aiohttp
 import messagefuncs
 import socket
 from dataclasses import dataclass
 from dacite import from_dict
 from sys import exc_info
-from typing import List, Dict, Optional, Bool
+from typing import List, Dict, Optional
 
 import logging
 
@@ -43,7 +42,7 @@ class StackScript:
     script: str
     user_defined_fields: List[UDF]
 
-    def is_valid_udf_input(self, ss_data: Dict[str, str]) -> Bool:
+    def is_valid_udf_input(self, ss_data: Dict[str, str]) -> bool:
         return all(
             isinstance(ss_data.get(udf.name), str) for udf in self.user_defined_fields
         ) and all(
