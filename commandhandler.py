@@ -2228,6 +2228,7 @@ class CommandHandler:
         if ctx.application_id != self.user.id:
             return
         if not ctx.is_command():
+            logger.debug(f"Discarding non-command interaction from {ctx.user}")
             return
         logger.debug(f"Interaction {ctx.data['id']} in {ctx.guild_id}")
         for command in filter(
@@ -3092,6 +3093,9 @@ class Button(Component):
 class View:
     components: List[Component] = field(default_factory=list)
     __discord_ui_view__ = True
+
+    def _start_listening_from_store(self) -> None:
+        pass
 
     def to_components(self) -> List[Component]:
         return self.components
