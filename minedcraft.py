@@ -244,7 +244,7 @@ async def linode_create(message: discord.Message, client, args: List[str]):
                 target=target,
             )
         statusMessage = await messagefuncs.sendWrappedMessage(
-            f"{ss.label} {instance.status} at {instance.ipv4[0]}",
+            f"{ss.label} {instance.status} at {instance.ipv4[0]} <a:hourglass_animated:937514119991541770>",
             target=message.channel,
         )
         try:
@@ -271,11 +271,11 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             assert updated_instance
             if instance.status != updated_instance.status:
                 await statusMessage.edit(
-                    content=f"{ss.label} {instance.status} -> {updated_instance.status} at {instance.ipv4[0]}"
+                    content=f"{ss.label} {instance.status} -> {updated_instance.status} at {instance.ipv4[0]} <a:hourglass_animated:937514119991541770>"
                 )
                 instance = updated_instance
         await statusMessage.edit(
-            content=f"{ss.label} {instance.status} at {instance.ipv4[0]}"
+            content=f"{ss.label} {instance.status} at {instance.ipv4[0]} ✅"
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
