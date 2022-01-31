@@ -3207,8 +3207,8 @@ async def user_config_menu_function(
                     [
                         messageWithView.id,
                         user.id,
-                        ujson.dumps({"current_state": toggle_config}),
                         key,
+                        ujson.dumps({"current_state": toggle_config}),
                     ],
                 )
                 conn.commit()
