@@ -1996,7 +1996,10 @@ class CommandHandler:
                         raise Exception(f"Blacklisted command attempt by user {user}")
                     if command["async"]:
                         if command.get(
-                            "slash_command", command.get("message_command", False)
+                            "slash_command",
+                            command.get(
+                                "message_command", command.get("component", False)
+                            ),
                         ):
                             await command["function"](message, self.client, args, ctx)
                         else:
