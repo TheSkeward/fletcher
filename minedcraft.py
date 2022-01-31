@@ -97,7 +97,7 @@ class LinodeAPI:
     ):
         if created_by:
             assert (
-                len(self.list_linodes(f"created-by-{created_by}"))
+                len(await self.list_linodes(f"created-by-{created_by}"))
                 < MAX_LINODES_PER_USER
             )
         assert ss.is_valid_udf_input(ss_data)
