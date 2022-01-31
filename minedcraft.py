@@ -133,6 +133,7 @@ class LinodeAPI:
             "stackscript_id": ss.id,
             "type": ss.description,
         }
+        logger.debug(ujson.dumps(request_body))
         async with self.session.post(
             type(self).url_generator("instances"),
             json=request_body,
@@ -159,7 +160,7 @@ class LinodeAPI:
         headers = copy.deepcopy(self.headers)
         assert instance.id in [i.id for i in await self.list_linodes()]
         if "created-with-fletcher" not in tags:
-            tags = tags.append("created-with-fletcher")
+            tags.append("created-with-fletcher")
         async with self.session.put(
             type(self).url_generator(f"instances/{instance.id}"),
             raise_for_status=True,
@@ -188,6 +189,8 @@ class LinodeAPI:
 
     async def list_linodes(self, tag: str = "created-with-fletcher") -> List[Instance]:
         headers = copy.deepcopy(self.headers)
+        filter_body = {"tag": tag}
+        headers["X-Filter"] = ujson.dumps(filter_body)
         async with self.session.get(
             type(self).url_generator("instances"),
             raise_for_status=True,
@@ -298,18 +301,23 @@ async def linode_create(message: discord.Message, client, args: List[str]):
             content=f"{ss.label} {instance.status} at {instance.ipv4[0]} ✅"
         )
         statusMessage = await messagefuncs.sendWrappedMessage(
-            f"Initializing port watcher...", target=message.channel
+            f"Initializing port watcher <a:hourglass_animated:937514119991541770>",
+            target=message.channel,
         )
+        await asyncio.sleep(60)
         ssh_on = False
         mc_on = False
-        for _ in range(1024):
+        for _ in range(60):
             if not ssh_on and check_port(instance.ipv4[0], 22):
                 ssh_on = True
+                await statusMessage.edit(
+                    content=f"__Services__\nSSH: On\nMinecraft: {'On' if mc_on else 'Off'}"
+                )
             if not mc_on and check_port(instance.ipv4[0], 25565):
                 mc_on = True
-            await statusMessage.edit(
-                content=f"__Services__\nSSH: {'On' if ssh_on else 'Off'}\nMinecraft: {'On' if mc_on else 'Off'}"
-            )
+                await statusMessage.edit(
+                    content=f"__Services__\nSSH: {'On' if ssh_on else 'Off'}\nMinecraft: On"
+                )
             if ssh_on and mc_on:
                 break
             await asyncio.sleep(5)
