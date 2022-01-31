@@ -2243,6 +2243,7 @@ class CommandHandler:
                 metuple = cur.fetchone()
                 conn.commit()
                 if metuple:
+                    logger.debug(metuple)
                     return await self.run_command(
                         discord.utils.get(
                             self.commands, name=metuple[0], type="component"
