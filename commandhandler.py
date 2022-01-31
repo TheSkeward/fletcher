@@ -3134,6 +3134,12 @@ class View:
     def _start_listening_from_store(self, _) -> None:
         pass
 
+    def refresh(self, _):
+        pass
+
+    def stop(self) -> None:
+        pass
+
     def is_finished(self):
         return False
 
