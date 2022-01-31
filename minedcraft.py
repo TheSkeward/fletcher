@@ -27,13 +27,13 @@ def check_port(ip, port):
         # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
         socket.setdefaulttimeout(2.0)  # seconds (float)
         result = sock.connect_ex((ip, port))
+        sock.close()
         if result == 0:
             # print ("Port is open")
-            final[ip] = "OPEN"
+            return True
         else:
             # print ("Port is closed/filtered")
-            final[ip] = "CLOSED"
-        sock.close()
+            return False
     except:
         pass
 
