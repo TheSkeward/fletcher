@@ -3141,7 +3141,7 @@ class View:
         pass
 
     def is_finished(self):
-        return False
+        return True
 
     def to_components(self) -> List[Component]:
         return self.components
