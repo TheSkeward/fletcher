@@ -3152,7 +3152,7 @@ async def user_config_menu_function(
 ):
     assert len(args) > 0
     assert message
-    if isinstance(args, str):
+    if isinstance(args[0], str):
         key = args.pop()
         user = message.author
         guild = message.guild
