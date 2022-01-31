@@ -2227,6 +2227,33 @@ class CommandHandler:
         logger.debug(str(ctx.data))
         if ctx.application_id != self.user.id:
             return
+        if ctx.data.get("target_id"):
+            message = await ctx.channel.fetch_message(ctx.data["target_id"])
+        else:
+            message = ctx.channel.last_message
+        if ctx.is_component():
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT function, state FROM message_interaction_functions WHERE message_id = %s AND user_id = %s LIMIT 1;",
+                    [message.id, ctx.user.id],
+                )
+                metuple = cur.fetchone()
+                conn.commit()
+                if metuple:
+                    return await self.run_command(
+                        discord.utils.get(
+                            self.commands, name=metuple[0], type="component"
+                        ),
+                        message,
+                        [metuple[1]],
+                        ctx.user,
+                        ctx,
+                    )
+            except Exception as e:
+                conn.rollback()
+                logger.error(e)
+
         if not ctx.is_command():
             logger.debug(f"Discarding non-command interaction from {ctx.user}")
             return
@@ -2241,10 +2268,6 @@ class CommandHandler:
                 command.get("guild_command_ids", {}).get(ctx.data["id"], 0)
                 == ctx.guild_id
             ):
-                if ctx.data.get("target_id"):
-                    message = await ctx.channel.fetch_message(ctx.data["target_id"])
-                else:
-                    message = ctx.channel.last_message
                 return await self.run_command(
                     command,
                     message,
@@ -2345,8 +2368,8 @@ class CommandHandler:
                                 user.id,
                                 thread.guild.id,
                                 key="use_threads",
-                                default="False",
-                                allow_global_substitute=True,
+                                default="false",
+                                allow_global_substitute=true,
                             )
                         )
                     )
@@ -3094,7 +3117,7 @@ class View:
     components: List[Component] = field(default_factory=list)
     __discord_ui_view__ = True
 
-    def _start_listening_from_store(self) -> None:
+    def _start_listening_from_store(self, _) -> None:
         pass
 
     def to_components(self) -> List[Component]:
@@ -3109,7 +3132,14 @@ def no_unroll_notify_view(
 ) -> View:
     return View(
         components=[
-            ActionRow(components=[Button(label="Click", custom_id="no_unroll_button")])
+            ActionRow(
+                components=[
+                    Button(
+                        label=f"Currently {args[0]}, click to toggle",
+                        custom_id="no_unroll_button_toggle",
+                    )
+                ]
+            )
         ]
     )
 
@@ -3122,19 +3152,65 @@ async def user_config_menu_function(
 ):
     assert len(args) > 0
     assert message
-    key = args.pop()
+    if isinstance(args, str):
+        key = args.pop()
+        user = message.author
+        guild = message.guild
+    elif ctx:
+        key = ctx.data["custom_id"]
+        user = ctx.user
+        guild = client.get_guild(ctx.guild_id)
+    else:
+        return
     menu_preferences: Dict[str, Dict] = {
         "no_unroll_notify": {"function": no_unroll_notify_view}
     }
     dispatch_target = menu_preferences.get(key, None)
     if dispatch_target:
-        view = dispatch_target["function"](message, client, args, ctx)
-        logger.debug(view)
-        return await messagefuncs.sendWrappedMessage(
-            "User configuration",
-            view=view,
-            target=message.channel,
+        toggle_config = ch.config.normalize_booleans(
+            ch.user_config(
+                user.id,
+                guild.id if guild else 0,
+                key=key,
+                default="False",
+                allow_global_substitute=True,
+            )
         )
+        if len(message.components):
+            toggle_config = not args[0]["current_state"]
+            ch.user_config(
+                user.id,
+                guild.id if guild else 0,
+                key=key,
+                value=str(not toggle_config),
+                default="False",
+                allow_global_substitute=True,
+            )
+        view = dispatch_target["function"](message, client, [toggle_config, *args], ctx)
+        if len(message.components):
+            messageWithView = message
+            await message.edit(content=message.content, view=view)
+        else:
+            messageWithView = await messagefuncs.sendWrappedMessage(
+                "User configuration",
+                view=view,
+                target=message.channel,
+            )
+            try:
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO message_interaction_functions (message_id, user_id, function, state, message_id) VALUES (%s, %s, %s, %s) = %s AND user_id = %s ON CONFLICT (message_id) DO UPDATE SET function = EXCLUDED.function, state = EXCLUDED.state;",
+                    [
+                        messageWithView.id,
+                        user.id,
+                        {"current_state": toggle_config},
+                        key,
+                    ],
+                )
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                logger.error(e)
 
 
 def preference_function(
