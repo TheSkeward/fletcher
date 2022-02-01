@@ -3848,6 +3848,7 @@ def autoload(ch):
             "trigger": ["!xreact", "!tcaerx"],
             "function": reaction_request_function,
             "async": True,
+            "long_run": "author",
             "args_num": 1,
             "args_name": ["Reaction name", "offset if ambiguous (optional)"],
             "description": "Request reaction (x-server)",
