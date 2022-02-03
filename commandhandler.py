@@ -369,14 +369,14 @@ class CommandHandler:
         tupperId = 431544605209788416
         sync = cast(dict, config.get(section="sync"))
         user = message.author
-        thread_id: Optional[int]
+        thread: Optional[discord.Thread]
         channel: discord.Channel
         if isinstance(message.channel, discord.TextChannel):
             channel = message.channel
-            thread_id = None
+            thread = None
         elif isinstance(message.channel, discord.Thread):
             channel = message.channel.parent
-            thread_id = message.channel.id
+            thread = message.channel
         else:
             return
         if not (
@@ -489,7 +489,7 @@ class CommandHandler:
                     everyone=False, users=False, roles=False
                 ),
                 wait=True,
-                thread=thread_id,
+                thread=thread,
             )
             cur = conn.cursor()
             cur.execute(
