@@ -173,6 +173,7 @@ async def sendWrappedMessage(
             except:
                 last_chunk = ""
             for chunk in msg_chunks:
+                # TODO(nova): send to multiple targets ;)
                 sent_message = await target.send(
                     content=chunk,
                     delete_after=delete_after,
@@ -1304,7 +1305,13 @@ def autoload(ch):
             "trigger": ["!pfp", "!avatar"],
             "function": lambda message, client, args: str(
                 (
-                    message.mentions[0] if len(message.mentions) else message.author
+                    message.reference.resolved.author
+                    if message.reference
+                    else (
+                        message.mentions[-1]
+                        if len(message.mentions)
+                        else message.author
+                    )
                 ).display_avatar
             ).replace(".webp?", ".png?"),
             "async": False,
