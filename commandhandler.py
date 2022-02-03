@@ -2391,7 +2391,7 @@ class CommandHandler:
                                 thread.guild.id,
                                 key="use_threads",
                                 default="false",
-                                allow_global_substitute=true,
+                                allow_global_substitute=True,
                             )
                         )
                     )
