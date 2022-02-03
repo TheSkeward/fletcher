@@ -489,7 +489,7 @@ class CommandHandler:
                     everyone=False, users=False, roles=False
                 ),
                 wait=True,
-                thread=thread,
+                **({"thread": thread} if thread else {}),
             )
             cur = conn.cursor()
             cur.execute(
