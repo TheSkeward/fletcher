@@ -363,13 +363,21 @@ class CommandHandler:
         for message_id in message_ids:
             self.message_reaction_handlers[message_id] = func
 
-    async def tupper_proc(self, message):
+    async def tupper_proc(self, message: discord.abc.Messageable):
         global config
         global webhooks_cache
         tupperId = 431544605209788416
         sync = cast(dict, config.get(section="sync"))
         user = message.author
-        if type(message.channel) is not discord.TextChannel:
+        thread_id: Optional[int]
+        channel: discord.Channel
+        if isinstance(message.channel, discord.TextChannel):
+            channel = message.channel
+            thread_id = None
+        elif isinstance(message.channel, discord.Thread):
+            channel = message.channel.parent
+            thread_id = message.channel.id
+        else:
             return
         if not (
             message.guild
@@ -377,7 +385,7 @@ class CommandHandler:
             or sync.get(f"tupper-ignore-m{user.id}")
         ):
             return
-        tupper = discord.utils.get(message.channel.members, id=tupperId)
+        tupper = discord.utils.get(channel.members, id=tupperId)
         if tupper is not None:
             tupper_status = tupper.status
         else:
@@ -446,13 +454,13 @@ class CommandHandler:
                     ]
                 except:
                     pass
-            webhook = webhooks_cache.get(f"{message.guild.id}:{message.channel.id}")
+            webhook = webhooks_cache.get(f"{message.guild.id}:{channel.id}")
             if not webhook:
                 try:
-                    webhooks = await message.channel.webhooks()
+                    webhooks = await channel.webhooks()
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.",
+                        f"Unable to list webhooks to fulfill your nickmask in {channel}! I need the manage webhooks permission to do that.",
                         user,
                     )
                     continue
@@ -461,11 +469,11 @@ class CommandHandler:
                         webhooks, name=config.get(section="discord", key="botNavel")
                     )
                 if not webhook:
-                    webhook = await message.channel.create_webhook(
+                    webhook = await channel.create_webhook(
                         name=config.get(section="discord", key="botNavel"),
                         reason="Autocreating for nickmask",
                     )
-                webhooks_cache[f"{message.guild.id}:{message.channel.id}"] = webhook
+                webhooks_cache[f"{message.guild.id}:{channel.id}"] = webhook
 
             sent_message = await webhook.send(
                 content=content,
@@ -481,6 +489,7 @@ class CommandHandler:
                     everyone=False, users=False, roles=False
                 ),
                 wait=True,
+                thread=thread_id,
             )
             cur = conn.cursor()
             cur.execute(
@@ -504,7 +513,7 @@ class CommandHandler:
                 return
             except discord.Forbidden:
                 return await messagefuncs.sendWrappedMessage(
-                    f"Unable to remove original message for nickmask in {message.channel}! I need the manage messages permission to do that.",
+                    f"Unable to remove original message for nickmask in {channel}! I need the Manage Messages permission to do that.",
                     user,
                 )
 
