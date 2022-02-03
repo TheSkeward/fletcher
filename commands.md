@@ -216,6 +216,7 @@ Ex:
 [12:08] #general <Fletcher> Setting a reminder at NOW() + '3 days 2 hours 5 minutes'::interval
 | check messages
 ```
+To cancel a reminder, delete the original `!remindme` message.
 
 ## MD5 (`!md5`):
  Provides an MD5 (https://en.wikipedia.org/wiki/MD5) hash of the message content.
