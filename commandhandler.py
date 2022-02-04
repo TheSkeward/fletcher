@@ -1920,7 +1920,7 @@ class CommandHandler:
                     query_param,
                 )
                 subtuple = cur.fetchone()
-                if subtuple[0] == hotword.owner.id:
+                if subtuple and subtuple[0] == hotword.owner.id:
                     continue
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
