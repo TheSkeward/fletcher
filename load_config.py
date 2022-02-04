@@ -90,6 +90,7 @@ class FletcherConfig:
             "snappy": False,
             "automod-blacklist-category": [],
             "max-preview-per-message": 1,
+            "not-allowed-react": "🙅‍♀️",
         }
         self.channel_defaults = {"synchronize": False}
 
@@ -398,7 +399,7 @@ def expand_target_list(targets, guild):
                 try:
                     targets.add(guild.get_member(int(target)))
                 except ValueError:
-                    logger.info("Misconfiguration: could not expand {target}")
+                    logger.info(f"Misconfiguration: could not expand {target}")
         else:
             # ID asssumed to be targets
             targets.add(guild.get_member(int(target)))
