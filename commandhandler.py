@@ -1914,6 +1914,7 @@ class CommandHandler:
                 query_param = [message.id, message.channel.id]
                 if type(message.channel) is not discord.DMChannel:
                     query_param.append(message.guild.id)
+                cur = conn.cursor()
                 cur.execute(
                     f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
                     query_param,
