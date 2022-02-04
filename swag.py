@@ -3144,16 +3144,25 @@ async def saucenao_function(message, client, args):
             return
         async with AIOSauceNao(
             ch.config.get(section="saucenao", key="client_key"),
-            hide=(Hide.NONE if message.channel.nsfw else Hide.ALL),
+            hide=(
+                Hide.NONE
+                if (
+                    message.channel.nsfw
+                    if not isinstance(message.channel, discord.Thread)
+                    else message.channel.parent.nsfw
+                )
+                else Hide.ALL
+            ),
         ) as aio:
             assert aio is not None
             results = await aio.from_url(url)
             assert results is not None
             if results:
                 await messagefuncs.sendWrappedMessage(
-                    f"{results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
+                    f"{args[0].mention}: {results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
                     message.channel,
                     reference=message.to_reference(),
+                    allowed_mentions=[args[0]],
                 )
     except Exception as e:
         _, _, exc_tb = exc_info()
