@@ -1911,6 +1911,16 @@ class CommandHandler:
                 or (user.id in hw.user_restriction),
                 regex_cache.get(message.guild.id, []),
             ):
+                query_param = [message.id, message.channel.id]
+                if type(message.channel) is not discord.DMChannel:
+                    query_param.append(message.guild.id)
+                cur.execute(
+                    f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
+                    query_param,
+                )
+                subtuple = cur.fetchone()
+                if subtuple[0] == hotword.owner.id:
+                    continue
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
                         await command(message, self.client, args)
