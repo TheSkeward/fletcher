@@ -1313,6 +1313,7 @@ async def add_inbound_sync_function(message, client, args):
     try:
         fromChannelName = " ".join(args).strip()
         fromChannel = messagefuncs.xchannel(fromChannelName, message.guild)
+        assert isinstance(fromChannel, discord.TextChannel)
         toChannel = message.channel
 
         logger.debug(f"Checking permissions for {message.author} on {fromChannel}")
@@ -1321,7 +1322,9 @@ async def add_inbound_sync_function(message, client, args):
         )
         logger.debug(fromAdmin)
         if not fromAdmin["channel"]:
-            await message.add_reaction("🙅‍♀️")
+            await message.add_reaction(
+                ch.config.get(guild=fromChannel.guild, key="not-allowed-react")
+            )
             await messagefuncs.sendWrappedMessage(
                 "You aren't an admin (Manage Webhooks permission) on the target channel, refusing.",
                 message.author,
@@ -1749,7 +1752,7 @@ async def self_service_role_function(message, client, args):
             or message.author.guild_permissions.manage_roles
         ):
             await messagefuncs.sendWrappedMessage(
-                "You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
+                f"You don't have permission to use a self-service channel role function because you don't have manage roles permissions.",
                 message.author,
             )
             return
@@ -1887,13 +1890,13 @@ async def self_service_channel_function(
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
-                "You don't have permission to set up a self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
+                f"You don't have permission to set up a self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
                 message.author,
             )
             return
         if not ch.is_admin(message.channel, message.author)["channel"] and autoclose:
             await messagefuncs.sendWrappedMessage(
-                "You don't have permission to set up an autoclosing self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
+                f"You don't have permission to set up an autoclosing self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
                 message.author,
             )
             return
@@ -2117,6 +2120,11 @@ async def login_function(message, client, args):
     elif args[0] == "trello":
         return await messagefuncs.sendWrappedMessage(
             f"https://trello.com/1/authorize?return_url={ch.config.get(section='trello', key='redirect_uri')}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='trello', key='client_key')}",
+            message.channel,
+        )
+    elif args[0] == "glowfic":
+        return await messagefuncs.sendWrappedMessage(
+            f"http://gabriel.noblejury.com:3002/oauth/authorize?response_type=code&client_id={ch.config.get(section='glowfic', key='client_key')}&redirect_uri={ch.config.get(section='glowfic', key='redirect_uri')}&state={message.author.id}",
             message.channel,
         )
     else:
