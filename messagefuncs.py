@@ -432,7 +432,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+|https://static.wikia.nocookie.net/.*?/images/d/dc/[^/]+\.[^/]+/)",
+    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/@[^ ]*/video/\d*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https://media.discordapp.net/attachments/.*?.mp4|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+|https://static.wikia.nocookie.net/.*?/images/d/dc/[^/]+\.[^/]+/|https://sci-hub.*)",
     re.IGNORECASE,
 )
 
@@ -580,6 +580,10 @@ async def preview_messagelink_function(message, client, args):
                 content = previewable_parts[0].replace(
                     "media.discordapp.net", "cdn.discordapp.com"
                 )
+            elif "/sci-hub" in previewable_parts[0]:
+                async with session.get(previewable_parts[0]) as resp:
+                    data = await resp.text()
+                    content = data.split("</title>")[0].split("<title>")[1]
             elif "//www.oyez.org" in previewable_parts[0]:
                 async with session.get(
                     f"https://api.oyes.org/{previewable_parts[0].split('org/')[1]}?labels=true",
