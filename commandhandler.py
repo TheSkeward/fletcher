@@ -747,9 +747,19 @@ class CommandHandler:
                             metuple = cur.fetchone()
                             while metuple is not None:
                                 fromGuild = self.client.get_guild(metuple[0])
-                                assert fromGuild is not None
+                                try:
+                                    assert fromGuild is not None
+                                except AssertionError:
+                                    logger.error(f"RXH: {metuple} fromGuild not found")
+                                    continue
                                 fromChannel = fromGuild.get_channel(metuple[1])
-                                assert isinstance(fromChannel, discord.TextChannel)
+                                try:
+                                    assert isinstance(fromChannel, discord.TextChannel)
+                                except AssertionError:
+                                    logger.error(
+                                        f"RXH: {metuple} tried to bridge {type(fromChannel)}"
+                                    )
+                                    continue
                                 fromMessage = await fromChannel.fetch_message(
                                     metuple[2]
                                 )
@@ -3227,14 +3237,13 @@ async def user_config_menu_function(
                 user.id,
                 guild.id if guild else 0,
                 key=key,
-                value=str(not toggle_config),
+                value=str(toggle_config),
                 default="False",
                 allow_global_substitute=True,
             )
         view = dispatch_target["function"](message, client, [toggle_config, *args], ctx)
-        if len(message.components):
-            messageWithView = message
-            await message.edit(content=message.content, view=view)
+        if len(message.components) and ctx and ctx.response:
+            await ctx.response.edit_message(content=message.content, view=view)
         else:
             messageWithView = await messagefuncs.sendWrappedMessage(
                 "User configuration",
