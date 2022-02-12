@@ -1533,4 +1533,6 @@ def autoload(ch):
 
 
 async def autounload(ch):
-    pass
+    global session
+    if session:
+        await session.close()
