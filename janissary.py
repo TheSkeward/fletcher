@@ -1280,6 +1280,13 @@ async def copy_emoji_function(message, client, args):
                 reason=f"Synced{' from '+str(emoji.guild) if emoji else ' '+emoji_name} for {message.author.name}",
             )
             await messagefuncs.sendWrappedMessage(custom_emoji, message.channel)
+    except discord.InvalidArgument as e:
+        await messagefuncs.sendWrappedMessage(
+            f"There was an invalid argument error ({e}) when executing this command, please check that you are uploading the correct file type and try again!",
+            message.author,
+        )
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.info(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
     except discord.Forbidden as e:
         await messagefuncs.sendWrappedMessage(
             f"There was a permissions error ({e}) when executing this command, please grant me the Manage Emojis permission and try again!",
