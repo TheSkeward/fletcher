@@ -659,6 +659,7 @@ __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1
                     content += f"\n>>> {abstract}"
             elif "instagram.com" in previewable_parts[0]:
                 content = "Instagram Preview"
+                return  # Disabled for now
                 async with session.get(
                     "https://graph.facebook.com/v10.0/instagram_oembed",
                     params={
