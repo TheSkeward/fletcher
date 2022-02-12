@@ -2768,6 +2768,7 @@ async def metaforecast_function(message, client, args, ctx=None):
                     {
                         "indexName": "metaforecast",
                         "params": "hitsPerPage=1&query=" + quote(" ".join(args)),
+                        "filters": "( qualityindicators.stars >= 2 )",
                     }
                 ]
             },
