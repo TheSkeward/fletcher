@@ -2165,8 +2165,8 @@ def join_rank_function(message, client, args):
             member = args[0]
             try:
                 member = int(member)
-            except ValueError:
-                pass
+            except (ValueError, TypeError):
+                member = message.author
         else:
             member = message.author
         if not message.guild:
