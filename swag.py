@@ -2781,7 +2781,7 @@ async def metaforecast_function(message, client, args, ctx=None):
             if len(body.get("options", [])):
                 message_body += "\n" + "\n".join(
                     [
-                        f"{o['probability']/100:2.2d}%: {o['name']}"
+                        f"{o['probability']/100:2.2f}%: {o['name']}"
                         for o in body["options"][:5]
                     ]
                 )
