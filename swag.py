@@ -2772,8 +2772,20 @@ async def metaforecast_function(message, client, args, ctx=None):
                 ]
             },
         ) as resp:
-            body = (await resp.json())["results"][0]["hits"][0]
+            hits = (await resp.json())["results"][0]["hits"]
+            if len(hits):
+                body = hits[0]
+            else:
+                return
             message_body = f'__{body["title"]} ({body["platform"]})__\n{body["description"]}\n{body["url"]}'
+            if len(body.get("options", [])):
+                message_body += "\n" + "\n".join(
+                    [f"{o['probability']}: {o['name']}" for o in body["options"][:5]]
+                )
+                if len(body["options"]) > 5:
+                    message_body += (
+                        "\nSome options truncated, click through for a full list."
+                    )
             if ctx:
                 return await ctx.response.send_message(message_body)
             else:
