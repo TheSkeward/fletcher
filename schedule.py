@@ -371,7 +371,7 @@ async def reminder_function(message, client, args):
         if args[0].lower() == "at":
             try:
                 tz = chronos.get_tz(message=message)
-            except pytz.UnknownTimeZoneError as e:
+            except Exception as e:
                 await message.add_reaction("🚫")
                 return await messagefuncs.sendWrappedMessage(
                     "UnknownTimeZoneError {e}",
