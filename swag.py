@@ -2759,6 +2759,34 @@ async def eaf_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def metaforecast_function(message, client, args, ctx=None):
+    try:
+        async with session.post(
+            "https://96ud3ntq7l-dsn.algolia.net/1/indexes/*/queries?x-algolia-application-id=96UD3NTQ7L&x-algolia-api-key=618dbd0092971388cfd43aac1ae5f1f5",
+            json={
+                "requests": [
+                    {
+                        "indexName": "metaforecast",
+                        "params": "hitsPerPage=1&query=" + quote(" ".join(args)),
+                    }
+                ]
+            },
+        ) as resp:
+            body = (await resp.json())["results"][0]["hits"][0]
+            message_body = f'__{body["title"]} ({body["platform"]})__\n{body["description"]}\n{body["url"]}'
+            if ctx:
+                return await ctx.response.send_message(message_body)
+            else:
+                return await messagefuncs.sendWrappedMessage(
+                    message_body,
+                    target=message.channel,
+                )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("MFF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def lw_function(message, client, args, ctx=None):
     try:
         async with session.post(
@@ -4061,6 +4089,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["query"],
             "description": "Searches the EA Forum for a query",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!metaforecast"],
+            "function": metaforecast_function,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["query"],
+            "description": "Searches Metaforecast for a query",
         }
     )
     ch.add_command(
