@@ -1149,7 +1149,10 @@ class CommandHandler:
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
-            webhook = await self.fetch_webhook_cached(message.webhook_id)
+            try:
+                webhook = await self.fetch_webhook_cached(message.webhook_id)
+            except discord.NotFound:
+                return
             if webhook.name not in cast(
                 Iterable, self.config.get(section="sync", key="whitelist-webhooks")
             ):
