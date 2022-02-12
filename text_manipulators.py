@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from PIL import Image, ImageOps
 from sys import exc_info
+import traceback
 import asyncio
 import codecs
 import discord
@@ -3428,6 +3429,7 @@ async def reaction_request_function(message, client, args):
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.info(traceback.format_exc())
         logger.error("XRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
