@@ -70,7 +70,7 @@ class ScheduleFunctions:
         except Exception as e:
             logger.error(e)
             conn.rollback()
-            return None
+            raise e
         since_last = ch.user_config(
             target_message.author.id,
             target_message.guild.id,
@@ -88,7 +88,6 @@ class ScheduleFunctions:
             allow_global_substitute=False,
         )
         if since_last < threshold:
-            logger.error(f"{since_last} {threshold}")
             return None
         await messagefuncs.sendWrappedMessage(
             f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
