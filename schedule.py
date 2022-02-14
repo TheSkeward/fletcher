@@ -75,6 +75,7 @@ class ScheduleFunctions:
             if target_message:
                 raise e
         since_last = ch.user_config.__wrapped__(
+            ch,
             target_message.author.id,
             target_message.guild.id,
             "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
@@ -95,6 +96,7 @@ class ScheduleFunctions:
             target_message.channel,
         )
         ch.user_config.__wrapped__(
+            ch,
             target_message.author.id,
             target_message.guild.id,
             "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
