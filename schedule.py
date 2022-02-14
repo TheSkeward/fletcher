@@ -74,7 +74,7 @@ class ScheduleFunctions:
             conn.rollback()
             if target_message:
                 raise e
-        since_last = ch.user_config(
+        since_last = ch.user_config.__wrapped__(
             target_message.author.id,
             target_message.guild.id,
             key="glowfic-subscribe-"
@@ -96,7 +96,7 @@ class ScheduleFunctions:
             f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
             target_message.channel,
         )
-        ch.user_config(
+        ch.user_config.__wrapped__(
             target_message.author.id,
             target_message.guild.id,
             "glowfic-subscribe-" + thread_id + "-counter_since_last_nofication",
@@ -104,7 +104,6 @@ class ScheduleFunctions:
             default="0",
             allow_global_substitute=False,
         )
-        ch.user_config.cache_clear()
         return None
 
     @staticmethod
