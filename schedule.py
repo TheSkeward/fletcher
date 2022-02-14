@@ -92,7 +92,7 @@ class ScheduleFunctions:
         if since_last < threshold:
             return None
         await messagefuncs.sendWrappedMessage(
-            f"{since_last} tags since last notification, top of new tags at {ch.user_config.__wrapped__(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
+            f"{since_last} tags since last notification, top of new tags at {ch.user_config.__wrapped__(ch, user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
             target_message.channel,
         )
         ch.user_config.__wrapped__(
