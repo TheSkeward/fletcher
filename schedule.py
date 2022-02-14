@@ -77,16 +77,14 @@ class ScheduleFunctions:
         since_last = ch.user_config.__wrapped__(
             target_message.author.id,
             target_message.guild.id,
-            key="glowfic-subscribe-"
-            + str(thread_id)
-            + "-counter_since_last_nofication",
+            "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
             default="0",
             allow_global_substitute=False,
         )
         threshold = ch.user_config(
             target_message.author.id,
             target_message.guild.id,
-            key="glowfic-subscribe" + str(thread_id) + "-threshold",
+            "glowfic-subscribe" + str(thread_id) + "-threshold",
             default="1",
             allow_global_substitute=False,
         )
@@ -99,7 +97,7 @@ class ScheduleFunctions:
         ch.user_config.__wrapped__(
             target_message.author.id,
             target_message.guild.id,
-            "glowfic-subscribe-" + thread_id + "-counter_since_last_nofication",
+            "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
             "0",
             default="0",
             allow_global_substitute=False,
