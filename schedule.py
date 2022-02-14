@@ -102,6 +102,7 @@ class ScheduleFunctions:
             default="0",
             allow_global_substitute=False,
         )
+        ch.user_config.cache_clear()
         return None
 
     @staticmethod
