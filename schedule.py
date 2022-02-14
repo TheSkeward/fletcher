@@ -49,6 +49,8 @@ class ScheduleFunctions:
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
         thread_id = 0
+        if not target_message:
+            return None
         try:
             args = target_message.content.split(" ", 2)
             thread_id = args[1]
