@@ -70,7 +70,8 @@ class ScheduleFunctions:
         except Exception as e:
             logger.error(e)
             conn.rollback()
-            raise e
+            if target_message:
+                raise e
         since_last = ch.user_config(
             target_message.author.id,
             target_message.guild.id,
