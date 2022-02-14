@@ -52,13 +52,14 @@ class ScheduleFunctions:
         try:
             args = target_message.content.split(" ", 2)
             thread_id = args[1]
-            interval = int(args[2]) if len(args) == 3 else 1
+            interval = args[2] if len(args) == 3 else 1
             cur = conn.cursor()
             target = f"NOW() + '{interval} hour'::interval - '1 seconds'::interval"
+            sql = f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'glowfic-tag-batch-notify');"
             cur.execute(
-                f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'glowfic-tag-batch-notify');",
+                sql,
                 [
-                    target_message.author.id,
+                    user.id,
                     target_message.guild.id if target_message.guild else 0,
                     target_message.channel.id,
                     target_message.id,
@@ -67,25 +68,27 @@ class ScheduleFunctions:
             )
             conn.commit()
         except Exception as e:
-            logger.debug(e)
+            logger.error(e)
             conn.rollback()
-        if target_message is None:
             return None
         since_last = ch.user_config(
-            user.id,
+            target_message.author.id,
             target_message.guild.id,
-            key="glowfic-subscribe" + str(thread_id) + "-counter_since_last_nofication",
+            key="glowfic-subscribe-"
+            + str(thread_id)
+            + "-counter_since_last_nofication",
             default="0",
             allow_global_substitute=False,
         )
         threshold = ch.user_config(
-            user.id,
+            target_message.author.id,
             target_message.guild.id,
             key="glowfic-subscribe" + str(thread_id) + "-threshold",
             default="1",
             allow_global_substitute=False,
         )
         if since_last < threshold:
+            logger.error(f"{since_last} {threshold}")
             return None
         webhooks = await target_message.channel.webhooks()
         if len(webhooks) > 0:
@@ -95,17 +98,18 @@ class ScheduleFunctions:
                 name=ch.config.get(section="discord", key="botNavel"),
                 reason="Autocreating for counter",
             )
-            await webhook.send(
-                f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}"
-            )
-            ch.user_config(
-                target_message.author.id,
-                target_message.guild.id,
-                key="glowfic-subscribe" + thread_id + "-counter_since_last_nofication",
-                default="0",
-                value="0",
-                allow_global_substitute=False,
-            )
+        await messagefuncs.sendWrappedMessage(
+            f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
+            webhook,
+        )
+        ch.user_config(
+            target_message.author.id,
+            target_message.guild.id,
+            "glowfic-subscribe-" + thread_id + "-counter_since_last_nofication",
+            "0",
+            default="0",
+            allow_global_substitute=False,
+        )
         return None
 
     @staticmethod
@@ -362,6 +366,7 @@ async def table_exec_function():
                     mode = mode_params[0]
                     mode_args = mode_params[1]
                 mode_desc = modes[mode].description
+                logger.debug(f"TXF: {mode} ({mode_desc})")
                 guild = client.get_guild(guild_id)
                 if guild is None and guild_id:
                     logger.info(f"TXF: Fletcher is not in guild {guild_id}")
