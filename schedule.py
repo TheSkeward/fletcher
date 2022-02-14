@@ -40,6 +40,78 @@ class ScheduleFunctions:
             return False
 
     @staticmethod
+    async def glowfic_tag_batch_notify(
+        target_message: Optional[discord.Message],
+        user: Union[discord.User, discord.Member],
+        cached_content: str,
+        mode_args: str,
+        created_at: datetime,
+        from_channel: Union[discord.DMChannel, discord.TextChannel],
+    ):
+        thread_id = 0
+        try:
+            args = target_message.content.split(" ", 2)
+            thread_id = args[1]
+            interval = int(args[2]) if len(args) == 3 else 1
+            cur = conn.cursor()
+            target = f"NOW() + '{interval} hour'::interval - '1 seconds'::interval"
+            cur.execute(
+                f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'glowfic-tag-batch-notify');",
+                [
+                    target_message.author.id,
+                    target_message.guild.id if target_message.guild else 0,
+                    target_message.channel.id,
+                    target_message.id,
+                    cached_content,
+                ],
+            )
+            conn.commit()
+        except Exception as e:
+            logger.debug(e)
+            conn.rollback()
+        if target_message is None:
+            return None
+        since_last = ch.user_config(
+            user.id,
+            target_message.guild.id,
+            key="glowfic-subscribe" + thread_id + "-counter_since_last_nofication",
+            default="0",
+            allow_global_substitute=False,
+        )
+        threshold = ch.user_config(
+            user.id,
+            target_message.guild.id,
+            key="glowfic-subscribe" + thread_id + "-threshold",
+            default="1",
+            allow_global_substitute=False,
+        )
+        if since_last < threshold:
+            return []
+        webhooks = await target_message.channel.webhooks()
+        if len(webhooks) > 0:
+            webhook = webhooks[0]
+        else:
+            webhook = await target_message.channel.create_webhook(
+                name=ch.config.get(section="discord", key="botNavel"),
+                reason="Autocreating for counter",
+            )
+            await webhook.send(
+                f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+thread_id+'-next_tag', default='0', allow_global_substitute=False)}"
+            )
+            ch.user_config(
+                target_message.author.id,
+                target_message.guild.id,
+                key="glowfic-subscribe" + thread_id + "-counter_since_last_nofication",
+                default="0",
+                value="0",
+                allow_global_substitute=False,
+            )
+        return [
+            cached_content,
+            from_channel,
+        ]
+
+    @staticmethod
     async def reminder(
         target_message: Optional[discord.Message],
         user: Union[discord.User, discord.Member],
@@ -232,6 +304,11 @@ class ScheduleFunctions:
 
 
 modes: Dict[str, commandhandler.Command] = {
+    "glowfic-tag-batch-notify": commandhandler.Command(
+        description="set a glowfic tag batch notification for this channel",
+        function=ScheduleFunctions.glowfic_tag_batch_notify,
+        sync=False,
+    ),
     "reminder": commandhandler.Command(
         description="set a reminder", function=ScheduleFunctions.reminder, sync=False
     ),
@@ -471,6 +548,35 @@ async def reminder_function(message, client, args):
         logger.error("RDRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def glowfic_tag_batch_notify_function(message, client, args):
+    try:
+        global conn
+        cur = conn.cursor()
+        interval = "1 second"
+        cur.execute(
+            "INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, NOW() + INTERVAL '"
+            + interval
+            + "', 'glowfic-tag-batch-notify');",
+            [
+                message.author.id,
+                message.guild.id if message.guild else 0,
+                message.channel.id,
+                message.id,
+                message.content,
+            ],
+        )
+        conn.commit()
+        return await messagefuncs.sendWrappedMessage(
+            "Glowfic Batch Notifications added for this channel.",
+            message.channel,
+        )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("GTBNF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def table_function(message, client, args):
     try:
         if len(args) == 3 and type(args[1]) is discord.Member:
@@ -526,6 +632,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Table a discussion for later.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!glowfic_tag_batch_notify"],
+            "function": glowfic_tag_batch_notify_function,
+            "async": True,
+            "admin": "channel",
+            "args_num": 1,
+            "hidden": True,
+            "args_name": ["post ID"],
+            "description": "Notify every hour on new tags",
         }
     )
     ch.add_command(
