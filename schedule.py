@@ -90,17 +90,9 @@ class ScheduleFunctions:
         if since_last < threshold:
             logger.error(f"{since_last} {threshold}")
             return None
-        webhooks = await target_message.channel.webhooks()
-        if len(webhooks) > 0:
-            webhook = webhooks[0]
-        else:
-            webhook = await target_message.channel.create_webhook(
-                name=ch.config.get(section="discord", key="botNavel"),
-                reason="Autocreating for counter",
-            )
         await messagefuncs.sendWrappedMessage(
             f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}",
-            webhook,
+            target_message.channel,
         )
         ch.user_config(
             target_message.author.id,
