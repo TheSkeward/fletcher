@@ -74,19 +74,19 @@ class ScheduleFunctions:
         since_last = ch.user_config(
             user.id,
             target_message.guild.id,
-            key="glowfic-subscribe" + thread_id + "-counter_since_last_nofication",
+            key="glowfic-subscribe" + str(thread_id) + "-counter_since_last_nofication",
             default="0",
             allow_global_substitute=False,
         )
         threshold = ch.user_config(
             user.id,
             target_message.guild.id,
-            key="glowfic-subscribe" + thread_id + "-threshold",
+            key="glowfic-subscribe" + str(thread_id) + "-threshold",
             default="1",
             allow_global_substitute=False,
         )
         if since_last < threshold:
-            return []
+            return None
         webhooks = await target_message.channel.webhooks()
         if len(webhooks) > 0:
             webhook = webhooks[0]
@@ -96,7 +96,7 @@ class ScheduleFunctions:
                 reason="Autocreating for counter",
             )
             await webhook.send(
-                f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+thread_id+'-next_tag', default='0', allow_global_substitute=False)}"
+                f"{since_last} tags since last notification, top of new tags at {ch.user_config(user.id, target_message.guild.id, key='glowfic-subscribe'+str(thread_id)+'-next_tag', default='0', allow_global_substitute=False)}"
             )
             ch.user_config(
                 target_message.author.id,
@@ -106,10 +106,7 @@ class ScheduleFunctions:
                 value="0",
                 allow_global_substitute=False,
             )
-        return [
-            cached_content,
-            from_channel,
-        ]
+        return None
 
     @staticmethod
     async def reminder(
