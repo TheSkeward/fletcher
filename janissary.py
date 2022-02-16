@@ -1917,7 +1917,7 @@ async def self_service_channel_function(
             if args[2] == "add":
                 try:
                     if confirm:
-                        confirmMessage = f"{args[1]} requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
+                        confirmMessage = f"{args[1]} ({str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
                         if isinstance(confirm, str):
                             confirmMessage += "\n"
                             confirmMessage += f"Heads up! Your warnlist has triggered a confirmation before adding this user with the message '{confirm}'"
@@ -1959,11 +1959,11 @@ async def self_service_channel_function(
                         )
                     if not autoclose:
                         await messagefuncs.sendWrappedMessage(
-                            f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__",
+                            f"Added {args[1]} ({str(args[0].emoji)}) to channel __#{message.channel_mentions[0].name}__",
                             message.author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention}) by your own request (reacted to <{message.jump_url}>).",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention}) by your own request (reacted with {str(args[0].emoji)} to <{message.jump_url}>).",
                             args[1],
                         )
                     else:
