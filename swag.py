@@ -3774,6 +3774,29 @@ async def get_archive_gallery(base, filter_function=lambda link: link.endswith("
         )
 
 
+async def valentine_function(message, client, args):
+    try:
+        if not message.guild or not len(message.mentions):
+            return
+        import os
+
+        val = os.listdir("/pub/lin/valentines")
+        with open(
+            "/pub/lin/valentines/"
+            + val[(message.author.id + message.mentions[0].id * 10) % len(val)],
+            "rb",
+        ) as resp:
+            return await messagefuncs.sendWrappedMessage(
+                target=message.channel,
+                files=[discord.File(resp, "valentine.png")],
+                reference=message.to_reference(),
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("VF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def oregon_generator(message, client, args):
     try:
         async with session.get(
@@ -4748,6 +4771,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Movie Name"],
             "description": "Does the dog die in X piece of media?",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!valentine",
+            ],
+            "function": valentine_function,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["user mention"],
+            "description": "Get a GAN-generated Valentine for your sweetie!",
         }
     )
     ch.add_command(
