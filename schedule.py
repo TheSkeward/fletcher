@@ -85,14 +85,22 @@ class ScheduleFunctions:
         threshold = ch.user_config(
             target_message.author.id,
             target_message.guild.id,
-            "glowfic-subscribe" + str(thread_id) + "-threshold",
+            "glowfic-subscribe-" + str(thread_id) + "-threshold",
             default="1",
             allow_global_substitute=False,
         )
         if int(since_last) < int(threshold):
             return None
+        tag_url = ch.user_config.__wrapped__(
+            ch,
+            user.id,
+            target_message.guild.id,
+            key="glowfic-subscribe-" + str(thread_id) + "-next_tag",
+            default="Missing tag URL",
+            allow_global_substitute=False,
+        )
         await messagefuncs.sendWrappedMessage(
-            f"{since_last} tags since last notification, top of new tags at {ch.user_config.__wrapped__(ch, user.id, target_message.guild.id, key='glowfic-subscribe-'+str(thread_id)+'-next_tag', default='Missing tag URL', allow_global_substitute=False)}",
+            f"{since_last} tags since last notification, top of new tags at {tag_url}",
             target_message.channel,
         )
         ch.user_config.__wrapped__(
@@ -133,7 +141,7 @@ class ScheduleFunctions:
                     ],
                 )
                 conn.commit()
-                cached_content = chronos.parse_every.replace("", cached_content).strip()
+                cached_content = chronos.parse_every.sub("", cached_content).strip()
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
