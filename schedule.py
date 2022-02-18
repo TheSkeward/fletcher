@@ -141,7 +141,11 @@ class ScheduleFunctions:
                     ],
                 )
                 conn.commit()
-                cached_content = chronos.parse_every.sub("", cached_content).strip()
+                cached_content = (
+                    chronos.parse_every.sub("", cached_content)
+                    .strip()
+                    .replace("every ", "", 1)
+                )
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
