@@ -4436,7 +4436,7 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!thank you", "!ty"],
+            "trigger": ["!thank you", "!ty", "!love you", "!ilu", "!i love you"],
             "function": lambda message, client, args: messagefuncs.add_reaction(
                 message, random.choice(uwu_responses["reaction"])
             ),
