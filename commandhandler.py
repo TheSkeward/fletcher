@@ -35,6 +35,7 @@ from typing import (
     Union,
     Callable,
     Awaitable,
+    Literal,
     Coroutine,
     Optional,
 )
@@ -49,12 +50,17 @@ config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
 
 
-def list_append(lst, item):
+def list_append(lst: List, item) -> List:
     lst.append(item)
     return item
 
 
-def str_to_arr(string, delim=",", strip=True, filter_function=None.__ne__):
+def str_to_arr(
+    string: str,
+    delim: str = ",",
+    strip: bool = True,
+    filter_function: Callable = None.__ne__,
+) -> Iterable:
     array = string.split(delim)
     if strip:
         array = map(str.strip, array)
@@ -79,7 +85,7 @@ class Bridge:
         self.webhooks.append(webhook)
         self.thread_ids.append(thread_id)
 
-    async def send(self, **kwargs):
+    async def send(self, **kwargs) -> Awaitable:
         tasks: List[Coroutine] = []
         for webhook, thread_id in zip(self.webhooks, self.thread_ids):
             tasks.append(
@@ -95,17 +101,17 @@ class Command:
         self,
         trigger=[""],
         function: Union[Callable, Awaitable] = lambda message: message.content,
-        sync=True,
-        hidden=None,
-        admin=False,
-        args_num=0,
-        args_min=None,
-        args_name=[],
-        description=None,
-        exclusive=False,
-        scope=discord.Message,
-        remove=False,
-        long_run=False,
+        sync: bool = True,
+        hidden: bool = None,
+        admin: Union[bool, Literal["channel", "server", "global"]] = False,
+        args_num: int = 0,
+        args_min: Optional[int] = None,
+        args_name: List[str] = [],
+        description: str = None,
+        exclusive: bool = False,
+        scope: type = discord.Message,
+        remove: bool = False,
+        long_run: bool = False,
     ):
         self.trigger = trigger
         self.function = function
@@ -2331,7 +2337,12 @@ class CommandHandler:
 
     async def bridge_registry(self):
         while self.webhooks_pending:
+            logger.debug("Webhooks are pending, sleeping...")
             await asyncio.sleep(0.3)
+            if not self.webhooks_pending:
+                logger.debug(
+                    "Detected {len(self.webhook_sync_registry)} webhooks, continuing"
+                )
         return self.webhook_sync_registry
 
     def allowCommand(self, command, message, user=None):
