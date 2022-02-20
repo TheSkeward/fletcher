@@ -59,7 +59,7 @@ class ScheduleFunctions:
             thread_id = args[1]
             interval = args[2] if len(args) == 3 else 1
             cur = conn.cursor()
-            target = f"NOW() + '{interval} hour'::interval - '2 seconds'::interval"
+            target = f"DATE_TRUNC('hour', NOW()) + '{interval} hour'::interval"
             sql = f"INSERT INTO reminders (userid, guild, channel, message, content, scheduled, trigger_type) VALUES (%s, %s, %s, %s, %s, {target}, 'glowfic-tag-batch-notify');"
             cur.execute(
                 sql,
