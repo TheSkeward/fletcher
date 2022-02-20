@@ -495,10 +495,10 @@ async def table_exec_function():
                             )
                 except asyncio.TimeoutError:
                     logger.debug("Timed out retrieving @{username}, skipping")
-                hottuple = cur.fetchone()
             except Exception as e:
                 logger.error(f"{e}")
                 pass
+            hottuple = cur.fetchone()
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
         raise
