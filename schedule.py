@@ -449,6 +449,7 @@ async def table_exec_function():
         hottuple = cur.fetchone()
         while hottuple:
             channel, username = hottuple[2].split(":")
+            username = username.strip("@")
             logger.debug(f"Twitter fetch: {username}")
             try:
                 channel = client.get_channel(int(channel[2:-1]))
@@ -471,12 +472,13 @@ async def table_exec_function():
                         await messagefuncs.sendWrappedMessage(
                             item.links[0].href, channel, current_user_id=hottuple[0]
                         )
-                ch.user_config(
-                    hottuple[0],
-                    hottuple[1],
-                    f"twubscribe-{username}-last",
-                    feed.entries[0].links[0].href,
-                )
+                if len(feed.entries):
+                    ch.user_config(
+                        hottuple[0],
+                        hottuple[1],
+                        f"twubscribe-{username}-last",
+                        feed.entries[0].links[0].href,
+                    )
             except asyncio.TimeoutError:
                 logger.debug("Timed out retrieving @{username}, skipping")
     except asyncio.CancelledError:
