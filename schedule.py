@@ -469,9 +469,16 @@ async def table_exec_function():
                             hottuple[0], hottuple[1], f"twubscribe-{username}-last"
                         ):
                             break
-                        await messagefuncs.sendWrappedMessage(
-                            item.links[0].href, channel, current_user_id=hottuple[0]
-                        )
+                        try:
+                            await messagefuncs.sendWrappedMessage(
+                                item.links[0].href, channel, current_user_id=hottuple[0]
+                            )
+                        except discord.Forbidden as e:
+                            await messagefuncs.sendWrappedMessage(
+                                f"Tried to send a message to {channel.mention} with the content {item.links[0].href} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                                client.get_user(int(hottuple[0])),
+                                current_user_id=int(hottuple[0]),
+                            )
                 if len(feed.entries):
                     ch.user_config(
                         hottuple[0],
