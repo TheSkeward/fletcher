@@ -471,7 +471,7 @@ async def table_exec_function():
                             hottuple[1],
                             f"twubscribe-{username}-last",
                         )
-                        for item in reversed(feed.entries):
+                        for item in feed.entries:
                             if item.links[0].href == last:
                                 break
                             try:
