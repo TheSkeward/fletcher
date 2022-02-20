@@ -484,8 +484,9 @@ async def table_exec_function():
                         hottuple[0],
                         hottuple[1],
                         f"twubscribe-{username}-last",
-                        feed.entries[0].links[0].href,
+                        value=feed.entries[0].links[0].href,
                     )
+                hottuple = cur.fetchone()
             except asyncio.TimeoutError:
                 logger.debug("Timed out retrieving @{username}, skipping")
     except asyncio.CancelledError:
