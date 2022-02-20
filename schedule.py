@@ -448,50 +448,57 @@ async def table_exec_function():
         )
         hottuple = cur.fetchone()
         while hottuple:
-            channel, username = hottuple[2].split(":")
-            username = username.strip("@")
-            logger.debug(f"Twitter fetch: {username}")
             try:
-                channel = client.get_channel(int(channel[2:-1]))
-            except ValueError:
-                channel = discord.utils.get(
-                    client.get_guild(hottuple[1]).text_channels, name=channel.strip("#")
-                )
-            try:
-                async with session.get(
-                    f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
-                    timeout=5,
-                ) as resp:
-                    data = await resp.read()
-                    feed = atoma.parse_atom_bytes(data)
-                    for item in reversed(feed.entries):
-                        if item.links[0].href == ch.user_config(
-                            hottuple[0], hottuple[1], f"twubscribe-{username}-last"
-                        ):
-                            break
-                        try:
-                            await messagefuncs.sendWrappedMessage(
-                                item.links[0].href, channel, current_user_id=hottuple[0]
+                channel, username = hottuple[2].split(":")
+                username = username.strip("@")
+                logger.debug(f"Twitter fetch: {username}")
+                try:
+                    channel = client.get_channel(int(channel[2:-1]))
+                except ValueError:
+                    channel = discord.utils.get(
+                        client.get_guild(hottuple[1]).text_channels,
+                        name=channel.strip("#"),
+                    )
+                try:
+                    async with session.get(
+                        f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
+                        timeout=5,
+                    ) as resp:
+                        data = await resp.read()
+                        feed = atoma.parse_atom_bytes(data)
+                        for item in reversed(feed.entries):
+                            if item.links[0].href == ch.user_config(
+                                hottuple[0], hottuple[1], f"twubscribe-{username}-last"
+                            ):
+                                break
+                            try:
+                                await messagefuncs.sendWrappedMessage(
+                                    item.links[0].href,
+                                    channel,
+                                    current_user_id=hottuple[0],
+                                )
+                            except discord.Forbidden as e:
+                                await messagefuncs.sendWrappedMessage(
+                                    f"Tried to send a message to {channel.mention} with the content {item.links[0].href} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                                    client.get_user(int(hottuple[0])),
+                                    current_user_id=int(hottuple[0]),
+                                )
+                        if len(feed.entries):
+                            logger.debug(
+                                f"Setting twubscribe-{username}-last to {feed.entries[0].links[0].href}"
                             )
-                        except discord.Forbidden as e:
-                            await messagefuncs.sendWrappedMessage(
-                                f"Tried to send a message to {channel.mention} with the content {item.links[0].href} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
-                                client.get_user(int(hottuple[0])),
-                                current_user_id=int(hottuple[0]),
+                            ch.user_config.__wrapped__(
+                                hottuple[0],
+                                hottuple[1],
+                                f"twubscribe-{username}-last",
+                                value=feed.entries[0].links[0].href,
                             )
-                    if len(feed.entries):
-                        logger.debug(
-                            f"Setting twubscribe-{username}-last to {feed.entries[0].links[0].href}"
-                        )
-                        ch.user_config.__wrapped__(
-                            hottuple[0],
-                            hottuple[1],
-                            f"twubscribe-{username}-last",
-                            value=feed.entries[0].links[0].href,
-                        )
+                except asyncio.TimeoutError:
+                    logger.debug("Timed out retrieving @{username}, skipping")
                 hottuple = cur.fetchone()
-            except asyncio.TimeoutError:
-                logger.debug("Timed out retrieving @{username}, skipping")
+            except Exception as e:
+                logger.error(f"{e}")
+                pass
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
         raise
