@@ -479,13 +479,13 @@ async def table_exec_function():
                                 client.get_user(int(hottuple[0])),
                                 current_user_id=int(hottuple[0]),
                             )
-                if len(feed.entries):
-                    ch.user_config(
-                        hottuple[0],
-                        hottuple[1],
-                        f"twubscribe-{username}-last",
-                        value=feed.entries[0].links[0].href,
-                    )
+                    if len(feed.entries):
+                        ch.user_config.__wrapped__(
+                            hottuple[0],
+                            hottuple[1],
+                            f"twubscribe-{username}-last",
+                            value=feed.entries[0].links[0].href,
+                        )
                 hottuple = cur.fetchone()
             except asyncio.TimeoutError:
                 logger.debug("Timed out retrieving @{username}, skipping")
