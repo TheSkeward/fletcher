@@ -487,9 +487,10 @@ async def table_exec_function():
                                 f"Setting twubscribe-{username}-last to {feed.entries[0].links[0].href}"
                             )
                             ch.user_config.__wrapped__(
+                                ch,
                                 hottuple[0],
                                 hottuple[1],
-                                key=f"twubscribe-{username}-last",
+                                f"twubscribe-{username}-last",
                                 value=feed.entries[0].links[0].href,
                             )
                 except asyncio.TimeoutError:
