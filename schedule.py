@@ -1,6 +1,8 @@
 import asyncio
+import aiohttp
 import chronos
 import commandhandler
+import atoma
 import discord
 import logging
 import messagefuncs
@@ -22,6 +24,7 @@ import ujson
 logger = logging.getLogger("fletcher")
 
 schedule_extract_channelmention = re.compile(r"(?:<#)(\d+)")
+last_ran_fetch = None
 
 
 class ScheduleFunctions:
@@ -422,6 +425,54 @@ async def table_exec_function():
         global reminder_timerhandle
         await asyncio.sleep(16)
         reminder_timerhandle = asyncio.create_task(table_exec_function())
+        global last_ran_fetch
+        if (
+            not last_ran_fetch
+            or last_ran_fetch
+            <= datetime.datetime.utcnow() - datetime.timedelta(hours=0, minutes=1)
+        ):
+            return
+        last_ran_fetch = datetime.datetime.utcnow()
+        global session
+        try:
+            session
+        except NameError:
+            session = aiohttp.ClientSession(
+                headers={
+                    "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+                }
+            )
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'twubscribe' AND guild_id != 0;"
+        )
+        hottuple = cur.fetchone()
+        while hottuple:
+            channel, username = hottuple[2].split(":")
+            channel = client.get_channel(int(channel[2:-1]))
+            try:
+                async with session.get(
+                    f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
+                    timeout=5,
+                ) as resp:
+                    data = await resp.text()
+                    feed = atoma.parse_atom_bytes(data)
+                    for item in reversed(feed.entries):
+                        if item.links[0].href == ch.user_config(
+                            hottuple[0], hottuple[1], f"twubscribe-{username}-last"
+                        ):
+                            break
+                        await messagefuncs.sendWrappedMessage(
+                            item.links[0].href, channel, current_user_id=hottuple[0]
+                        )
+                ch.user_config(
+                    hottuple[0],
+                    hottuple[1],
+                    f"twubscribe-{username}-last",
+                    feed.entries[0].links[0].href,
+                )
+            except asyncio.TimeoutError:
+                logger.debug("Timed out retrieving @{username}, skipping")
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
         raise
