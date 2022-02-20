@@ -44,6 +44,7 @@ logger = logging.getLogger("fletcher")
 
 regex_cache = {}
 webhooks_cache = {}
+webhooks_pending: bool = True
 remote_command_runner = None
 Ans = None
 config = cast(load_config.FletcherConfig, None)
@@ -160,7 +161,6 @@ class CommandHandler:
             cast(int, config.get(section="discord", key="globalAdmin", default=0))
         )
 
-        self.webhooks_pending: bool = True
         self.webhook_sync_registry: Dict[str, Bridge]  # = {
         # "FromGuildId:FromChannelId": Bridge()
         # }
@@ -241,7 +241,7 @@ class CommandHandler:
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
         self.webhook_sync_registry = webhook_sync_registry
-        self.webhooks_pending = False
+        webhooks_pending = False
         logger.debug("Webhooks loaded:")
         logger.debug(
             "\n".join(
@@ -2336,10 +2336,10 @@ class CommandHandler:
         await ctx.response.send_message("Not Implemented")
 
     async def bridge_registry(self):
-        while self.webhooks_pending:
+        while webhooks_pending:
             logger.debug("Webhooks are pending, sleeping...")
             await asyncio.sleep(0.3)
-            if not self.webhooks_pending:
+            if not webhooks_pending:
                 logger.debug(
                     "Detected {len(self.webhook_sync_registry)} webhooks, continuing"
                 )
