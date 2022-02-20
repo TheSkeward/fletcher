@@ -446,8 +446,7 @@ async def table_exec_function():
         cur.execute(
             "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'twubscribe' AND guild_id != 0;"
         )
-        hottuple = cur.fetchone()
-        while hottuple:
+        for hottuple in cur:
             try:
                 channel, username = hottuple[2].split(":")
                 username = username.strip("@")
@@ -498,7 +497,6 @@ async def table_exec_function():
             except Exception as e:
                 logger.error(f"{e}")
                 pass
-            hottuple = cur.fetchone()
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
         raise
