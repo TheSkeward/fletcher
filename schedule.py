@@ -461,7 +461,7 @@ async def table_exec_function():
                     f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
                     timeout=5,
                 ) as resp:
-                    data = await resp.text()
+                    data = await resp.read()
                     feed = atoma.parse_atom_bytes(data)
                     for item in reversed(feed.entries):
                         if item.links[0].href == ch.user_config(
