@@ -427,8 +427,8 @@ async def table_exec_function():
         reminder_timerhandle = asyncio.create_task(table_exec_function())
         global last_ran_fetch
         if (
-            not last_ran_fetch
-            or last_ran_fetch
+            last_ran_fetch
+            and last_ran_fetch
             <= datetime.datetime.utcnow() - datetime.timedelta(hours=0, minutes=1)
         ):
             return
