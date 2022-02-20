@@ -2343,7 +2343,7 @@ class CommandHandler:
             await asyncio.sleep(0.3)
             if not webhooks_pending:
                 logger.debug(
-                    "Detected {len(self.webhook_sync_registry)} webhooks, continuing"
+                    f"Detected {len(self.webhook_sync_registry)} webhooks, continuing"
                 )
         return self.webhook_sync_registry
 
