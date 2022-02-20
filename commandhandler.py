@@ -241,6 +241,7 @@ class CommandHandler:
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
         self.webhook_sync_registry = webhook_sync_registry
+        global webhooks_pending
         webhooks_pending = False
         logger.debug("Webhooks loaded:")
         logger.debug(
@@ -2336,6 +2337,7 @@ class CommandHandler:
         await ctx.response.send_message("Not Implemented")
 
     async def bridge_registry(self):
+        global webhooks_pending
         while webhooks_pending:
             logger.debug("Webhooks are pending, sleeping...")
             await asyncio.sleep(0.3)
