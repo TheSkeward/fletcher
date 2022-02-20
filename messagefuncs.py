@@ -1534,5 +1534,8 @@ def autoload(ch):
 
 async def autounload(ch):
     global session
-    if session:
-        await session.close()
+    try:
+        if session:
+            await session.close()
+    except NameError:
+        pass
