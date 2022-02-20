@@ -465,10 +465,14 @@ async def table_exec_function():
                     ) as resp:
                         data = await resp.read()
                         feed = atoma.parse_atom_bytes(data)
+                        last = ch.user_config.__wrapped__(
+                            ch,
+                            hottuple[0],
+                            hottuple[1],
+                            f"twubscribe-{username}-last",
+                        )
                         for item in reversed(feed.entries):
-                            if item.links[0].href == ch.user_config(
-                                hottuple[0], hottuple[1], f"twubscribe-{username}-last"
-                            ):
+                            if item.links[0].href == last:
                                 break
                             try:
                                 await messagefuncs.sendWrappedMessage(
