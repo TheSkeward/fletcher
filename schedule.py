@@ -449,6 +449,7 @@ async def table_exec_function():
         hottuple = cur.fetchone()
         while hottuple:
             channel, username = hottuple[2].split(":")
+            logger.debug(f"Twitter fetch: {username}")
             channel = client.get_channel(int(channel[2:-1]))
             try:
                 async with session.get(
