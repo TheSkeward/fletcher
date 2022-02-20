@@ -450,7 +450,12 @@ async def table_exec_function():
         while hottuple:
             channel, username = hottuple[2].split(":")
             logger.debug(f"Twitter fetch: {username}")
-            channel = client.get_channel(int(channel[2:-1]))
+            try:
+                channel = client.get_channel(int(channel[2:-1]))
+            except ValueError:
+                channel = discord.utils.get(
+                    client.get_guild(hottuple[1]).text_channels, name=channel.strip("#")
+                )
             try:
                 async with session.get(
                     f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
