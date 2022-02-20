@@ -480,6 +480,9 @@ async def table_exec_function():
                                 current_user_id=int(hottuple[0]),
                             )
                     if len(feed.entries):
+                        logger.debug(
+                            f"Setting twubscribe-{username}-last to {feed.entries[0].links[0].href}"
+                        )
                         ch.user_config.__wrapped__(
                             hottuple[0],
                             hottuple[1],
