@@ -471,18 +471,21 @@ async def table_exec_function():
                             hottuple[1],
                             f"twubscribe-{username}-last",
                         )
+                        links = []
                         for item in feed.entries:
                             if item.links[0].href == last:
                                 break
+                            links.insert(0, item.links[0].href)
+                        for link in links:
                             try:
                                 await messagefuncs.sendWrappedMessage(
-                                    item.links[0].href,
+                                    link,
                                     channel,
                                     current_user_id=hottuple[0],
                                 )
                             except discord.Forbidden as e:
                                 await messagefuncs.sendWrappedMessage(
-                                    f"Tried to send a message to {channel.mention} with the content {item.links[0].href} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                                    f"Tried to send a message to {channel.mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
                                     client.get_user(int(hottuple[0])),
                                     current_user_id=int(hottuple[0]),
                                 )
