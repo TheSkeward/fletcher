@@ -2203,7 +2203,7 @@ class CommandHandler:
                                 "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
                                 [value, user, key],
                             )
-                if key == "twunsubscribe":
+                if key.startswith("twunsubscribe"):
                     import schedule
 
                     schedule.last_ran_fetch = None
