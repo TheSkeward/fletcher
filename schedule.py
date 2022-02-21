@@ -451,7 +451,10 @@ async def table_exec_function():
                 if hottuple[3] == "twubscribe":
                     channel, username = hottuple[2].split(":")
                 else:
-                    _, channel, username = hottuple[3].split(":", 2)
+                    try:
+                        _, channel, username = hottuple[3].split(":", 2)
+                    except:
+                        _, channel, username = hottuple[3].split("-", 2)
                     if not ch.config.normalize_booleans(hottuple[2]):
                         next
                 username = username.strip("@")
