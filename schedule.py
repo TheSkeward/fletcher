@@ -429,7 +429,7 @@ async def table_exec_function():
         if (
             last_ran_fetch
             and last_ran_fetch
-            >= datetime.datetime.utcnow() - datetime.timedelta(hours=0, minutes=10)
+            >= datetime.datetime.utcnow() - datetime.timedelta(hours=0, minutes=2)
         ):
             return
         last_ran_fetch = datetime.datetime.utcnow()
