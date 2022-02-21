@@ -2203,6 +2203,10 @@ class CommandHandler:
                                 "UPDATE user_preferences SET value = %s WHERE user_id = %s AND guild_id IS NULL AND key = %s;",
                                 [value, user, key],
                             )
+                if key == "twunsubscribe":
+                    import schedule
+
+                    schedule.last_ran_fetch = None
             conn.commit()
             if value is None:
                 value = default
