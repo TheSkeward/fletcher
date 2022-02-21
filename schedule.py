@@ -444,7 +444,7 @@ async def table_exec_function():
             )
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, guild_id, value, key FROM user_preferences WHERE key LIKE 'twubscribe%' AND guild_id != 0;"
+            "SELECT user_id, guild_id, value, key FROM user_preferences WHERE (key LIKE 'twubscribe%' AND NOT key LIKE 'twubscribe-%-last') AND guild_id != 0;"
         )
         for hottuple in cur:
             try:
