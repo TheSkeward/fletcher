@@ -444,11 +444,16 @@ async def table_exec_function():
             )
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, guild_id, value FROM user_preferences WHERE key = 'twubscribe' AND guild_id != 0;"
+            "SELECT user_id, guild_id, value, key FROM user_preferences WHERE key LIKE 'twubscribe%' AND guild_id != 0;"
         )
         for hottuple in cur:
             try:
-                channel, username = hottuple[2].split(":")
+                if hottuple[3] == "twubscribe":
+                    channel, username = hottuple[2].split(":")
+                else:
+                    _, channel, username = hottuple[3].split(":", 2)
+                    if not ch.config.normalize_booleans(hottuple[2]):
+                        next
                 username = username.strip("@")
                 logger.debug(f"Twitter fetch: {username}")
                 try:
@@ -489,9 +494,9 @@ async def table_exec_function():
                                     client.get_user(int(hottuple[0])),
                                     current_user_id=int(hottuple[0]),
                                 )
-                        if len(feed.entries):
+                        if len(links):
                             logger.debug(
-                                f"Setting twubscribe-{username}-last to {feed.entries[0].links[0].href}"
+                                f"Setting twubscribe-{username}-last to {links[-1]}"
                             )
                             ch.user_config.__wrapped__(
                                 ch,
