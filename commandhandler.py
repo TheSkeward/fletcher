@@ -2343,7 +2343,6 @@ class CommandHandler:
     async def bridge_registry(self):
         global webhooks_pending
         while webhooks_pending:
-            logger.debug("Webhooks are pending, sleeping...")
             await asyncio.sleep(0.3)
             if not webhooks_pending:
                 logger.debug(
