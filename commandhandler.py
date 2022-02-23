@@ -3325,80 +3325,6 @@ async def dumptasks_function(message, client, args):
     await messagefuncs.sendWrappedMessage(tasks, message.author)
 
 
-async def edit_tup_function(message, client, args):
-    try:
-        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
-            cur = conn.cursor()
-            query_param = [message.id, message.channel.id]
-            if type(message.channel) is not discord.DMChannel:
-                query_param.append(message.guild.id)
-            cur.execute(
-                f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
-                query_param,
-            )
-            subtuple = cur.fetchone()
-            if subtuple and int(subtuple[0]) == args[1].id:
-                conn.commit()
-                try:
-                    await message.remove_reaction("📝", args[1])
-                except:
-                    pass
-                preview_message = await messagefuncs.sendWrappedMessage(
-                    f"Reply to edit message at {message.jump_url}", args[1]
-                )
-                await messagefuncs.preview_messagelink_function(
-                    preview_message, client, None
-                )
-                try:
-
-                    def check(m):
-                        return (
-                            m.channel == preview_message.channel and m.author == args[1]
-                        )
-
-                    msg = await client.wait_for("message", check=check, timeout=6000)
-                except asyncio.TimeoutError:
-                    return await preview_message.edit(content="Message edit timed out.")
-                else:
-                    global webhooks_cache
-                    webhook = webhooks_cache.get(
-                        f"{message.guild.id}:{message.channel.id}"
-                    )
-                    if not webhook:
-                        try:
-                            webhooks = await message.channel.webhooks()
-                        except discord.Forbidden:
-                            return await messagefuncs.sendWrappedMessage(
-                                f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.",
-                                user,
-                            )
-                        if len(webhooks) > 0:
-                            webhook = discord.utils.get(
-                                webhooks,
-                                name=config.get(section="discord", key="botNavel"),
-                            )
-                        if not webhook:
-                            webhook = await message.channel.create_webhook(
-                                name=config.get(section="discord", key="botNavel"),
-                                reason="Autocreating for nickmask",
-                            )
-                        webhooks_cache[
-                            f"{message.guild.id}:{message.channel.id}"
-                        ] = webhook
-                    editMessage = await webhook.edit_message(
-                        message.id,
-                        content=msg.content,
-                        allowed_mentions=discord.AllowedMentions(
-                            users=False, roles=False, everyone=False
-                        ),
-                    )
-                    return await msg.add_reaction("✅")
-            conn.commit()
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = exc_info()
-        logger.error(f"ETF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
-
-
 async def autounload(ch):
     try:
         logger.debug("Shutting down site")
@@ -3507,16 +3433,6 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "List commands and arguments",
-        }
-    )
-    ch.add_command(
-        {
-            "trigger": ["📝"],
-            "function": edit_tup_function,
-            "async": True,
-            "args_num": 0,
-            "args_name": [],
-            "description": "Allows you to edit a nickmasked message",
         }
     )
     ch.user_config.cache_clear()

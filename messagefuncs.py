@@ -6,6 +6,7 @@ import aiohttp
 import netcode
 import discord
 import exceptions
+import shortuuid
 import io
 import logging
 import re
@@ -14,6 +15,7 @@ import traceback
 from sentry_sdk import configure_scope
 import pytz
 import AO3
+from etherpad_lite import EtherpadLiteClient
 
 logger = logging.getLogger("fletcher")
 
@@ -1283,6 +1285,114 @@ async def getalong_filter(message, client, args):
         conn.commit()
 
 
+async def edit_message_function(message, client, args):
+    try:
+        if len(args) == 3 and type(args[1]) in [discord.Member, discord.User]:
+            cur = conn.cursor()
+            query_param = [message.id, message.channel.id]
+            if type(message.channel) is not discord.DMChannel:
+                query_param.append(message.guild.id)
+            cur.execute(
+                f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
+                query_param,
+            )
+            subtuple = cur.fetchone()
+            if subtuple and int(subtuple[0]) == args[1].id:
+                conn.commit()
+                try:
+                    await message.remove_reaction("📝", args[1])
+                except:
+                    pass
+                preview_message = await messagefuncs.sendWrappedMessage(
+                    f"Reply to edit message at {message.jump_url}", args[1]
+                )
+                await messagefuncs.preview_messagelink_function(
+                    preview_message, client, None
+                )
+                try:
+
+                    def check(m):
+                        return (
+                            m.channel == preview_message.channel and m.author == args[1]
+                        )
+
+                    msg = await client.wait_for("message", check=check, timeout=6000)
+                except asyncio.TimeoutError:
+                    return await preview_message.edit(content="Message edit timed out.")
+                else:
+                    global webhooks_cache
+                    webhook = webhooks_cache.get(
+                        f"{message.guild.id}:{message.channel.id}"
+                    )
+                    if not webhook:
+                        try:
+                            webhooks = await message.channel.webhooks()
+                        except discord.Forbidden:
+                            return await messagefuncs.sendWrappedMessage(
+                                f"Unable to list webhooks to fulfill your nickmask in {message.channel}! I need the manage webhooks permission to do that.",
+                                args[1],
+                            )
+                        if len(webhooks) > 0:
+                            webhook = discord.utils.get(
+                                webhooks,
+                                name=config.get(section="discord", key="botNavel"),
+                            )
+                        if not webhook:
+                            webhook = await message.channel.create_webhook(
+                                name=config.get(section="discord", key="botNavel"),
+                                reason="Autocreating for nickmask",
+                            )
+                        webhooks_cache[
+                            f"{message.guild.id}:{message.channel.id}"
+                        ] = webhook
+                    editMessage = await webhook.edit_message(
+                        message.id,
+                        content=msg.content,
+                        allowed_mentions=discord.AllowedMentions(
+                            users=False, roles=False, everyone=False
+                        ),
+                    )
+                    return await msg.add_reaction("✅")
+            else:
+                confirm = await sendWrappedMessage(
+                    f"Would you ({args[1].mention}) like to send this message to an etherpad for collaboration?",
+                    message.channel,
+                    reference=message.to_reference(),
+                    allowed_mentions=discord.AllowedMentions(
+                        everyone=False, users=[args[1]], roles=False
+                    ),
+                )
+                assert isinstance(confirm, discord.Message)
+                try:
+                    await client.wait_for(
+                        "raw_reaction_add",
+                        timeout=60000.0 * 24,
+                        check=lambda reaction: reaction.message_id == confirm.id
+                        and (str(reaction.emoji) == "✅")
+                        and (reaction.user_id == args[1].id),
+                    )
+
+                except asyncio.TimeoutError:
+                    return await confirm.edit(
+                        content="Etherpad confirmation timed out."
+                    )
+                c = EtherpadLiteClient(
+                    base_params={
+                        "apikey": ch.config.get("api_key", section="etherpad")
+                    },
+                    base_url=f"{ch.config.get('base_url', section='etherpad')}/api",
+                )
+                padID = shortuuid.uuid(name=str(confirm.id))
+                c.createPad(padID, message.clean_content)
+                await sendWrappedMessage(
+                    f"Etherpad created: {ch.config.get('base_url', section='etherpad')}/p/{padID}"
+                )
+            conn.commit()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"ETF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
 # Register this module's commands
 def autoload(ch):
     ch.add_command(
@@ -1467,6 +1577,17 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["Getalong"],
             "description": "Getalong",
+        }
+    )
+
+    ch.add_command(
+        {
+            "trigger": ["📝"],
+            "function": edit_message_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Allows you to edit a message in etherpad. If a tup message, then this instead lets you edit a message in your DMs with Fletcher.",
         }
     )
 
