@@ -1361,6 +1361,7 @@ async def edit_message_function(message, client, args):
                     ),
                 )
                 assert isinstance(confirm, discord.Message)
+                await confirm.add_reaction("✅")
                 try:
                     await client.wait_for(
                         "raw_reaction_add",
