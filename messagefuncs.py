@@ -1381,7 +1381,7 @@ async def edit_message_function(message, client, args):
                     base_url=f"{ch.config.get('base_url', section='etherpad')}/api",
                 )
                 padID = shortuuid.uuid(name=str(confirm.id))
-                c.createPad([padID, message.clean_content])
+                c.createPad(padID=padID, text=message.clean_content)
                 await sendWrappedMessage(
                     f"Etherpad created: {ch.config.get('base_url', section='etherpad')}/p/{padID}"
                 )
