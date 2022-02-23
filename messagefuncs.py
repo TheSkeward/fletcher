@@ -1383,7 +1383,8 @@ async def edit_message_function(message, client, args):
                 padID = shortuuid.uuid(name=str(confirm.id))
                 c.createPad(padID=padID, text=message.clean_content)
                 await sendWrappedMessage(
-                    f"Etherpad created: {ch.config.get('base_url', section='etherpad')}/p/{padID}"
+                    f"Etherpad created: {ch.config.get('base_url', section='etherpad')}/p/{padID}",
+                    message.channel,
                 )
             conn.commit()
     except Exception as e:
