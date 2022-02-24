@@ -2778,7 +2778,9 @@ async def metaforecast_function(message, client, args, ctx=None):
                 body = hits[0]
             else:
                 return
-            message_body = f'__{body["title"]} ({body["platform"]})__\n{re.sub("<[^<]+?>", "", body["description"])}\n{body["url"]}'
+            description = re.sub(r"<[^<]+?>", "", body["description"])
+            description = re.sub(r"Related Questions.*---\n[^\n]*\n", "", description)
+            message_body = f'__{body["title"]} ({body["platform"]})__\n{description}\n{body["url"]}'
             if len(body.get("options", [])):
                 message_body += "\n" + "\n".join(
                     [
