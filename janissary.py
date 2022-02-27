@@ -1897,13 +1897,13 @@ async def self_service_channel_function(
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
-                f"You don't have permission to set up a self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
+                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions.",
                 message.author,
             )
             return
         if not ch.is_admin(message.channel, message.author)["channel"] and autoclose:
             await messagefuncs.sendWrappedMessage(
-                f"You don't have permission to set up an autoclosing self-service channel reaction function via {message.jump_link} because you don't have channel admin permissions.",
+                f"You don't have permission to set up an autoclosing self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions.",
                 message.author,
             )
             return
