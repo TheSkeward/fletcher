@@ -290,6 +290,10 @@ class ScheduleFunctions:
                     ]
                 else:
                     overwrite_params = overwrites
+                try:
+                    del overwrite_params["manage_members"]
+                except:
+                    pass
                 overwrite = discord.PermissionOverwrite(**dict(overwrite_params))
                 try:
                     await channel.set_permissions(
