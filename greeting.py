@@ -22,6 +22,7 @@ async def restorerole_function(member, client, config):
             [member.id, member.guild.id],
         )
         roles = cur.fetchone()
+        name = None
         if roles is not None:
             name = roles[0]
             roles = roles[1]
@@ -48,9 +49,24 @@ async def restorerole_function(member, client, config):
         await member.edit(nick=name, roles=roles, reason="Restoring Previous Roles")
     except discord.Forbidden as e:
         await messagefuncs.sendWrappedMessage(
-            f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}',
+            f'Error Restoring roles {",".join([str(role) for role in roles])} and nick {name} for {member.name} ({member.id}): {e}, attempting to restore all roles individually',
             member.guild.owner,
         )
+        try:
+            await member.edit(nick=name, reason="Restoring Previous Nickname")
+        except discord.Forbidden as e:
+            await messagefuncs.sendWrappedMessage(
+                f"Error Restoring nick {name} for {member.name} ({member.id}): {e}",
+                member.guild.owner,
+            )
+        for role in roles:
+            try:
+                await member.add_roles([role], reason="Restoring Previous Role")
+            except discord.Forbidden as e:
+                await messagefuncs.sendWrappedMessage(
+                    f"Error Restoring role {role} for {member.name} ({member.id}): {e}",
+                    member.guild.owner,
+                )
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
