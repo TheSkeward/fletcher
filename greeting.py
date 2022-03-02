@@ -36,7 +36,12 @@ async def restorerole_function(member, client, config):
         elif roles is None:
             return
         # Silently drop deleted roles
-        roles = list(filter(None, [member.guild.get_role(role) for role in roles]))
+        roles = list(
+            filter(
+                None,
+                [member.guild.get_role(role) for role in roles if role.is_assignable()],
+            )
+        )
         logger.info(
             f'RPR: Restoring roles {",".join([str(role) for role in roles])} for {member.id} in {member.guild.id}'
         )
