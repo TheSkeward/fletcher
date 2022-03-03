@@ -2402,13 +2402,12 @@ class CommandHandler:
             logger.debug(f"Adding myself to new thread {thread.name} ({thread.id})")
             await thread.add_user(thread.guild.get_member(self.user.id))
         else:
+            if thread.is_private():
+                logger.debug("Private thread, you know what you're doing.")
+                return
             if thread.guild:
-                if (
-                    thread.category_id
-                    not in self.config.get(
-                        key="automod-blacklist-category", guild=thread.guild.id
-                    )
-                    and not thread.is_private()
+                if thread.category_id not in self.config.get(
+                    key="automod-blacklist-category", guild=thread.guild.id
                 ):
                     for user in list(
                         filter(
