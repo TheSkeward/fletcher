@@ -1924,7 +1924,14 @@ class CommandHandler:
                 and (
                     (
                         type(hw.owner) is discord.Member
-                        and message.channel.permissions_for(hw.owner).read_messages
+                        and (
+                            not isinstance(message.channel, discord.Thread)
+                            and message.channel.permissions_for(hw.owner).read_messages
+                        )
+                        or (
+                            isinstance(message.channel, discord.Thread)
+                            and hw.owner in message.channel.members
+                        )
                         and message.author != hw.owner
                     )
                     or (type(hw.owner) is str and hw.owner == "guild")
@@ -2396,8 +2403,12 @@ class CommandHandler:
             await thread.add_user(thread.guild.get_member(self.user.id))
         else:
             if thread.guild:
-                if thread.category_id not in self.config.get(
-                    key="automod-blacklist-category", guild=thread.guild.id
+                if (
+                    thread.category_id
+                    not in self.config.get(
+                        key="automod-blacklist-category", guild=thread.guild.id
+                    )
+                    and not thread.is_private()
                 ):
                     for user in list(
                         filter(
