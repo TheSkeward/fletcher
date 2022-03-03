@@ -1554,8 +1554,9 @@ class CommandHandler:
                     channel__id=toChannel.id,
                 )
                 assert webhook is not None
+                # TODO(nova) support multi-message sends :(
                 await webhook.edit_message(
-                    content=content,
+                    content=content[:2000],
                     embeds=[*fromMessage.embeds, *reply_embed],
                     files=attachments,
                     allowed_mentions=discord.AllowedMentions(
