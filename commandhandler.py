@@ -1924,14 +1924,7 @@ class CommandHandler:
                 and (
                     (
                         type(hw.owner) is discord.Member
-                        and (
-                            not isinstance(message.channel, discord.Thread)
-                            and message.channel.permissions_for(hw.owner).read_messages
-                        )
-                        or (
-                            isinstance(message.channel, discord.Thread)
-                            and hw.owner in message.channel.members
-                        )
+                        and hw.owner in message.channel.members
                         and message.author != hw.owner
                     )
                     or (type(hw.owner) is str and hw.owner == "guild")
