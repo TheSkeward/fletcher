@@ -1923,9 +1923,9 @@ class CommandHandler:
                 lambda hw: (type(hw) is Hotword)
                 and (
                     (
-                        type(hw.owner) is discord.Member
-                        and hw.owner in message.channel.members
-                        and message.author != hw.owner
+                        isinstance(hw.owner, discord.Member)
+                        and discord.utils.get(message.channel.members, id=hw.owner.id)
+                        and message.author.id != hw.owner.id
                     )
                     or (type(hw.owner) is str and hw.owner == "guild")
                 )
