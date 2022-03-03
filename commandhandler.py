@@ -1648,7 +1648,7 @@ class CommandHandler:
             blacklist_category = guild_config.get("automod-blacklist-category", [])
             blacklist_channel = guild_config.get("automod-blacklist-channel", [])
             if (
-                type(message.channel) is discord.TextChannel
+                isinstance(message.channel, (discord.TextChannel, discord.Thread))
                 and message.channel.category_id not in blacklist_category
                 and message.channel.id not in blacklist_channel
             ):
@@ -1689,7 +1689,7 @@ class CommandHandler:
                         ).split(" "),
                     )
             else:
-                if type(message.channel) is discord.TextChannel:
+                if isinstance(message.channel, (discord.TextChannel, discord.Thread)):
                     logger.info(
                         f"{message.id} #{message.guild.name}:{message.channel.name} <{user.name}:{user.id}> [Nil] {message.system_content}",
                         extra={
@@ -1716,7 +1716,7 @@ class CommandHandler:
                     # Group Channels don't support bots so neither will we
                     pass
         except AttributeError as e:
-            if type(message.channel) is discord.TextChannel:
+            if isinstance(message.channel, (discord.TextChannel, discord.Thread)):
                 logger.info(
                     f"{message.id} #{message.guild.name}:{message.channel.name} <{user.name}:{user.id}> [Nil] {message.system_content}",
                     extra={
