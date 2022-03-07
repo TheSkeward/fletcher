@@ -39,8 +39,8 @@ async def restorerole_function(member, client, config):
         # Silently drop deleted roles
         roles = list(
             filter(
-                None,
-                [member.guild.get_role(role) for role in roles if role.is_assignable()],
+                lambda r: r and r.is_assignable(),
+                [member.guild.get_role(role) for role in roles],
             )
         )
         logger.info(
