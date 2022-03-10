@@ -126,7 +126,11 @@ class ScheduleFunctions:
         created_at: datetime,
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
-        if "every " in cached_content.lower() and target_message:
+        if (
+            "every " in cached_content.lower()
+            and target_message
+            and chronos.parse_every.search(cached_content)
+        ):
             every = chronos.parse_every.search(cached_content).groups(default=1)
             try:
                 cur = conn.cursor()
