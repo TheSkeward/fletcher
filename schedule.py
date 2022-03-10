@@ -126,6 +126,8 @@ class ScheduleFunctions:
         created_at: datetime,
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
+        if target_message and target_message.content:
+            cached_content = target_message.content
         if (
             "every " in cached_content.lower()
             and target_message
