@@ -5,6 +5,7 @@ import string
 import discord
 import asyncio
 import ujson
+import traceback
 import aiohttp
 import messagefuncs
 import socket
@@ -330,6 +331,7 @@ async def linode_create(message: discord.Message, client, args: List[str]):
         )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error(f"LCR[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await message.add_reaction("🚫")
 
