@@ -127,7 +127,17 @@ class ScheduleFunctions:
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
         if target_message and target_message.content:
-            cached_content = target_message.content
+            interval = chronos.parse_interval.search(
+                target_message.content.lower().split(
+                    " in " if target_message.content.lower() == "in" else "!remindme", 1
+                )[1]
+            )
+            cached_content = (
+                target_message.content.split(" in ", 1)[1][interval.end(0) :]
+                .strip()
+                .strip('"')
+                or target_message.content
+            )
         if (
             "every " in cached_content.lower()
             and target_message
