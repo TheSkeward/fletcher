@@ -1744,6 +1744,63 @@ async def invite_function(message, client, args):
         logger.error(f"ICF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def self_service_thread_function(message, client, args):
+    global ch
+    try:
+        if not len(message.role_mentions):
+            return
+        if message.author.permissions_in(message.channel).create_private_threads:
+            await messagefuncs.sendWrappedMessage(
+                f"You don't have permission to use a self-service thread function because you don't have create private threads permissions.",
+                message.author,
+            )
+            return
+        if len(args) == 3 and type(args[1]) is discord.Member:
+            if args[2] == "add":
+                try:
+                    now = datetime.now(timezone.utc)
+                    thread = await message.channel.create_thread(
+                        str(now), type=discord.ChannelType.private_thread
+                    )
+                    members_to_add = [args[1]]
+                    for r in message.role_mentions:
+                        members_to_add.extend(r.members)
+                    members_to_add.extend(message.mentions)
+                    for m in list(set(members_to_add)):
+                        await thread.add_membe(m)
+                except discord.Forbidden:
+                    await messagefuncs.sendWrappedMessage(
+                        f"I don't have permission to create thread for __@{message.jump_url}__, and {args[1]} requested an add.",
+                        message.author,
+                    )
+        else:
+            cur = conn.cursor()
+            cur.execute(
+                f"INSERT INTO user_preferences (user_id, guild_id, key, value) VALUES (%s, %s, 'threadselfmanage-{message.id}', %s) ON CONFLICT DO NOTHING;",
+                [message.author.id, message.guild.id, str(message.id)],
+            )
+            conn.commit()
+            ch.add_message_reaction_handler(
+                [message.id],
+                commandhandler.Command(
+                    function=self_service_thread_function,
+                    exclusive=True,
+                    sync=False,
+                    description="add user to created thread",
+                ),
+            )
+            await message.add_reaction("🚪")
+            await messagefuncs.sendWrappedMessage(
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to thread creation",
+                message.author,
+            )
+    except Exception as e:
+        if "cur" in locals() and "conn" in locals():
+            conn.rollback()
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("SSTF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+
+
 async def self_service_role_function(message, client, args):
     global ch
     try:
@@ -2583,6 +2640,18 @@ def autoload(ch):
 
     ch.add_command(
         {
+            "trigger": ["!threadhub"],
+            "function": self_service_thread_function,
+            "async": True,
+            "hidden": False,
+            "args_num": 0,
+            "args_name": ["@mentions"],
+            "description": "Create message that will automatically create private threads with the reactor and users mentioned in the message",
+        }
+    )
+
+    ch.add_command(
+        {
             "trigger": ["!togglemutechannel"],
             "function": toggle_mute_channel_function,
             "async": True,
@@ -2672,6 +2741,25 @@ def autoload(ch):
         }
     )
 
+    def load_self_service_threads(ch):
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key LIKE 'threadselfmanage%';"
+        )
+        subtuple = cur.fetchone()
+        while subtuple:
+            message_id = int(subtuple[3])
+            logger.debug(f"adding thread management message handler {subtuple}")
+            ch.add_message_reaction_handler(
+                [message_id],
+                commandhandler.Command(
+                    function=self_service_thread_function,
+                    exclusive=True,
+                    sync=False,
+                    description="add user to created thread",
+                ),
+            )
+
     def load_self_service_roles(ch):
         cur = conn.cursor()
         cur.execute(
@@ -2735,6 +2823,7 @@ def autoload(ch):
 
     load_self_service_channels(ch)
     load_self_service_roles(ch)
+    load_self_service_threads(ch)
 
 
 async def autounload(ch):
