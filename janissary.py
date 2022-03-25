@@ -1758,9 +1758,16 @@ async def self_service_thread_function(message, client, args):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add":
                 try:
-                    now = datetime.now(timezone.utc)
-                    thread = await message.channel.create_thread(name=str(now))
-                    members_to_add = [args[1]]
+                    thread_name = f"{args[1].name}#{args[1].discriminator} "
+                    i = 1
+                    while discord.utils.find(
+                        message.channel.threads, name=thread_name + str(i)
+                    ):
+                        i += 1
+                    thread = await message.channel.create_thread(
+                        name=thread_name + str(i)
+                    )
+                    members_to_add = [client.user, args[1]]
                     for r in message.role_mentions:
                         members_to_add.extend(r.members)
                     members_to_add.extend(message.mentions)
