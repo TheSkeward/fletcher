@@ -1226,6 +1226,8 @@ async def copy_emoji_function(message, client, args):
             else:
                 emoji_name = emoji.name
             url = emoji.url
+        if ".webp" in url:
+            url = url.replace(".webp", ".png", 1)
         if "!laetse" in message.content:
             image_blob = await netcode.simple_get_image(url)
             image_blob.seek(0)
