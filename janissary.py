@@ -1761,9 +1761,7 @@ async def self_service_thread_function(message, client, args):
             if args[2] == "add":
                 try:
                     now = datetime.now(timezone.utc)
-                    thread = await message.channel.create_thread(
-                        str(now), type=discord.ChannelType.private_thread
-                    )
+                    thread = await message.channel.create_thread(str(now))
                     members_to_add = [args[1]]
                     for r in message.role_mentions:
                         members_to_add.extend(r.members)
