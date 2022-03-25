@@ -1749,8 +1749,6 @@ async def invite_function(message, client, args):
 async def self_service_thread_function(message, client, args):
     global ch
     try:
-        if not len(message.role_mentions):
-            return
         if not message.channel.permissions_for(message.author).create_private_threads:
             await messagefuncs.sendWrappedMessage(
                 f"You don't have permission to use a self-service thread function because you don't have create private threads permissions.",
@@ -1761,7 +1759,7 @@ async def self_service_thread_function(message, client, args):
             if args[2] == "add":
                 try:
                     now = datetime.now(timezone.utc)
-                    thread = await message.channel.create_thread(str(now))
+                    thread = await message.channel.create_thread(name=str(now))
                     members_to_add = [args[1]]
                     for r in message.role_mentions:
                         members_to_add.extend(r.members)
