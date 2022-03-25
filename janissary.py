@@ -2759,6 +2759,8 @@ def autoload(ch):
                     description="add user to created thread",
                 ),
             )
+            subtuple = cur.fetchone()
+        conn.commit()
 
     def load_self_service_roles(ch):
         cur = conn.cursor()
