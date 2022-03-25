@@ -1758,7 +1758,7 @@ async def self_service_thread_function(message, client, args):
         if len(args) == 3 and type(args[1]) is discord.Member:
             if args[2] == "add":
                 try:
-                    thread_name = f"{args[1].name}#{args[1].discriminator} "
+                    thread_name = f"{args[1].name}{args[1].discriminator} "
                     i = 1
                     while discord.utils.get(
                         message.channel.threads, name=thread_name + str(i)
