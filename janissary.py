@@ -1751,7 +1751,7 @@ async def self_service_thread_function(message, client, args):
     try:
         if not len(message.role_mentions):
             return
-        if message.author.permissions_in(message.channel).create_private_threads:
+        if message.channel.permissions_for(message.author).create_private_threads:
             await messagefuncs.sendWrappedMessage(
                 f"You don't have permission to use a self-service thread function because you don't have create private threads permissions.",
                 message.author,
