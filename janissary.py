@@ -1765,7 +1765,7 @@ async def self_service_thread_function(message, client, args):
                         members_to_add.extend(r.members)
                     members_to_add.extend(message.mentions)
                     for m in list(set(members_to_add)):
-                        await thread.add_membe(m)
+                        await thread.add_member(m)
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
                         f"I don't have permission to create thread for __@{message.jump_url}__, and {args[1]} requested an add.",
