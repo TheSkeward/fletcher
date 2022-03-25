@@ -1760,7 +1760,7 @@ async def self_service_thread_function(message, client, args):
                 try:
                     thread_name = f"{args[1].name}#{args[1].discriminator} "
                     i = 1
-                    while discord.utils.find(
+                    while discord.utils.get(
                         message.channel.threads, name=thread_name + str(i)
                     ):
                         i += 1
