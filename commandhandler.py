@@ -2610,6 +2610,7 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
+                        and (channel_id not in c.get("blacklist_channel", []))
                         or config.get(
                             section="discord",
                             key="globalAdminIgnoresBlacklists",
