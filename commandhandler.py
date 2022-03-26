@@ -2086,7 +2086,7 @@ class CommandHandler:
                 f"Couldn't find {command_name} for whitelisting on guild {guild_id}"
             )
 
-    def blacklist_command(self, command_name, guild_id):
+    def blacklist_command(self, command_name, guild_id, channel_id):
         if command_name == "all":
             commands = self.commands
         else:
@@ -2095,10 +2095,16 @@ class CommandHandler:
                 commands = self.get_command(command_name)
         if len(commands):
             for command in commands:
-                if not command.get("blacklist_guild"):
-                    command["blacklist_guild"] = []
-                command["blacklist_guild"].append(guild_id)
-                logger.debug(f"Blacklisting {command} on guild {guild_id}")
+                if channel_id:
+                    if not command.get("blacklist_channel"):
+                        command["blacklist_channel"] = []
+                    command["blacklist_channel"].append(channel_id)
+                    logger.debug(f"Blacklisting {command} on channel {channel_id}")
+                else:
+                    if not command.get("blacklist_guild"):
+                        command["blacklist_guild"] = []
+                    command["blacklist_guild"].append(guild_id)
+                    logger.debug(f"Blacklisting {command} on guild {guild_id}")
         else:
             logger.error(
                 f"Couldn't find {command_name} for blacklisting on guild {guild_id}"
@@ -2392,6 +2398,9 @@ class CommandHandler:
             return False
 
     async def thread_add(self, thread):
+        if thread.message_count > 1:
+            logger.debug("Not adding myself to a thread with a message_count > 1")
+            return
         if not thread.me:
             logger.debug(f"Adding myself to new thread {thread.name} ({thread.id})")
             await thread.add_user(thread.guild.get_member(self.user.id))
@@ -2567,6 +2576,7 @@ class CommandHandler:
             guild_id = message.guild.id
         else:
             guild_id = -1
+        channel_id = message.channel.id
 
         stranger_role = -1
         if (
@@ -2616,9 +2626,10 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
+                        and (channel_id not in c.get("blacklist_channel", []))
                         or config.get(
                             section="discord",
-                            key="serverlAdminIgnoresBlacklists",
+                            key="serverAdminIgnoresBlacklists",
                             default=False,
                         )
                     )
@@ -2632,6 +2643,7 @@ class CommandHandler:
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (
                         (guild_id not in c.get("blacklist_guild", []))
+                        and (channel_id not in c.get("blacklist_channel", []))
                         or config.get(
                             section="discord",
                             key="channelAdminIgnoresBlacklists",
@@ -2647,6 +2659,7 @@ class CommandHandler:
                     admin[c.get("admin")]
                     and (guild_id in c.get("whitelist_guild", [guild_id]))
                     and (guild_id not in c.get("blacklist_guild", []))
+                    and (channel_id not in c.get("blacklist_channel", []))
                 )
 
         try:
@@ -3085,6 +3098,10 @@ def load_guild_config(ch):
             guild_config = ch.scope_config(guild=guild)
             for command_name in guild_config.get("blacklist-commands", []):
                 ch.blacklist_command(command_name, guild.id)
+            for channel in guild.text_channels:
+                channel_config = ch.scope_config(guild=guild, channel=channel)
+                for command_name in channel_config.get("blacklist-commands", []):
+                    ch.blacklist_command(command_name, guild.id, channel.id)
         for guild in ch.client.guilds:
             guild_config = ch.scope_config(guild=guild)
             for command_name in guild_config.get("whitelist-commands", []):
