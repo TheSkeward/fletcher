@@ -2086,7 +2086,7 @@ class CommandHandler:
                 f"Couldn't find {command_name} for whitelisting on guild {guild_id}"
             )
 
-    def blacklist_command(self, command_name, guild_id, channel_id):
+    def blacklist_command(self, command_name, guild_id, channel_id=None):
         if command_name == "all":
             commands = self.commands
         else:
