@@ -1979,7 +1979,7 @@ async def self_service_channel_function(
             if args[2] == "add":
                 try:
                     if confirm:
-                        confirmMessage = f"{args[1].mention} ({str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
+                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
                         if isinstance(confirm, str):
                             confirmMessage += "\n"
                             confirmMessage += f"Heads up! Your warnlist has triggered a confirmation before adding this user with the message '{confirm}'"
