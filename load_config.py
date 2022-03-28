@@ -32,7 +32,10 @@ class FletcherConfig:
                 if file_name.isdigit():
                     guild_config = configparser.ConfigParser()
                     guild_config.optionxform = str  # type: ignore[attr-defined]
-                    guild_config.read(f"{rc_path}/{file_name}")
+                    try:
+                        guild_config.read(f"{rc_path}/{file_name}")
+                    except Exception:
+                        logger.error(f"Error loading %s", file_name, exc_info=True)
                     for section_name in guild_config.keys():
                         if (
                             section_name.lower() in ["default", "general"]
