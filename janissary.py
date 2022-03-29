@@ -1749,6 +1749,8 @@ async def invite_function(message, client, args):
 async def self_service_thread_function(message, client, args):
     global ch
     try:
+        if not isinstance(message.channel, discord.TextChannel):
+            return
         if not message.channel.permissions_for(message.author).create_private_threads:
             await messagefuncs.sendWrappedMessage(
                 f"You don't have permission to use a self-service thread function because you don't have create private threads permissions.",
