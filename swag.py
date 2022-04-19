@@ -3204,7 +3204,7 @@ async def saucenao_function(message, client, args):
                     message.channel,
                     reference=message.to_reference(),
                     allowed_mentions=discord.AllowedMentions(
-                        everyone=False, users=[args[0]]
+                        everyone=False, users=[args[0].member]
                     ),
                 )
     except Exception as e:
