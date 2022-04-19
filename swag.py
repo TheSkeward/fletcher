@@ -3203,7 +3203,9 @@ async def saucenao_function(message, client, args):
                     f"{args[0].member.mention}: {results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
                     message.channel,
                     reference=message.to_reference(),
-                    allowed_mentions=[args[0]],
+                    allowed_mentions=discord.AllowedMentions(
+                        everyone=False, users=[args[0]]
+                    ),
                 )
     except Exception as e:
         _, _, exc_tb = exc_info()
