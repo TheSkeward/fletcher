@@ -3200,7 +3200,7 @@ async def saucenao_function(message, client, args):
             assert results is not None
             if results:
                 await messagefuncs.sendWrappedMessage(
-                    f"{args[0].user.mention}: {results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
+                    f"{args[0].member.mention}: {results[0].title} at <{results[0].urls[0]}>\n{results.long_remaining} requests left today",
                     message.channel,
                     reference=message.to_reference(),
                     allowed_mentions=[args[0]],
