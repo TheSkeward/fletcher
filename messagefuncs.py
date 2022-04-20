@@ -1353,7 +1353,7 @@ async def edit_message_function(message, client, args):
                     return await msg.add_reaction("✅")
             else:
                 if not ch.user_config(
-                    args[1].user.id,
+                    args[1].id,
                     message.guild.id if message.guild else None,
                     "etherpad",
                     False,
