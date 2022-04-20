@@ -1352,6 +1352,13 @@ async def edit_message_function(message, client, args):
                     )
                     return await msg.add_reaction("✅")
             else:
+                if not ch.user_config(
+                    args[1].user.id,
+                    message.guild.id if message.guild else None,
+                    "etherpad",
+                    False,
+                ):
+                    return
                 confirm = await sendWrappedMessage(
                     f"Would you ({args[1].mention}) like to send this message to an etherpad for collaboration?",
                     message.channel,
