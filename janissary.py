@@ -1444,12 +1444,13 @@ async def voice_opt_out(message, client, args):
         else:
             guild = message.guild
         logger.debug(f"Leaving voice channels in {guild}")
+        member = message.guild.get_member(message.author.id)
         for voice_channel in filter(
             lambda channel: isinstance(channel, discord.VoiceChannel), guild.channels
         ):
             if voice_channel.permissions_for(message.author).connect:
                 await voice_channel.set_permissions(
-                    message.author, connect=False, read_messages=False
+                    member, connect=False, read_messages=False
                 )
                 logger.debug(f"Removed {message.author} from {voice_channel}")
         await message.add_reaction("✅")
