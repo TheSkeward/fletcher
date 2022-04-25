@@ -4982,6 +4982,8 @@ def autoload(ch):
             ],
             "function": pexels_search,
             "async": True,
+            "admin": "global",
+            "hidden": True,
             "args_num": 1,
             "args_name": ["search query"],
             "long_run": "channel",
