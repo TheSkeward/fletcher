@@ -3843,6 +3843,7 @@ async def pexels_search(message, client, args):
                 break
             # Search next page
             api.search_next_page()
+        await message.add_reaction("✅")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error("PSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
@@ -4981,6 +4982,7 @@ def autoload(ch):
             "async": True,
             "args_num": 1,
             "args_name": ["search query"],
+            "long_run": "channel",
             "description": "Query (start with user:username to filter on username) Pexels for images",
         }
     )
