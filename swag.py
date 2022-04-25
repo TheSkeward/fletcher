@@ -3829,6 +3829,7 @@ async def pexels_search(message, client, args):
             photographer = None
         api = pexels_api.API(config.get(section="pexels", key="api-key"))
         api.search(query, results_per_page=5)
+        i = 0
         while True:
             photos = [
                 photo.url
@@ -3839,8 +3840,9 @@ async def pexels_search(message, client, args):
                 await messagefuncs.sendWrappedMessage(
                     "\n".join(photos), message.channel
                 )
-            if not api.has_next_page:
+            if not api.has_next_page or i == 50:
                 break
+            i += 1
             # Search next page
             api.search_next_page()
         await message.add_reaction("✅")
