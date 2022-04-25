@@ -3,6 +3,7 @@ import pydoc
 import traceback
 import aiohttp
 import ujson
+import pexels_api
 from asyncache import cached as asynccached
 from saucenao_api import AIOSauceNao
 from saucenao_api.params import Hide
@@ -3818,6 +3819,36 @@ async def oregon_generator(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def pexels_search(message, client, args):
+    try:
+        query = message.content.split(" ", 1)[1]
+        if query.startswith("user:"):
+            photographer = query.split(":", 1)[1].split(" ", 1)[0]
+            query = query.split(" ", 1)[1]
+        else:
+            photographer = None
+        api = pexels_api.API(config.get(section="pexels", key="api-keys"))
+        api.search(query, results_per_page=5)
+        while True:
+            photos = [
+                photo.url
+                for photo in api.get_entries()
+                if photographer is None or photo.photographer == photographer
+            ]
+            if len(photos):
+                await messagefuncs.sendWrappedMessage(
+                    "\n".join(photos), message.channel
+                )
+            if not api.has_next_page:
+                break
+            # Search next page
+            api.search_next_page()
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("PSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def get_rotating_food(message, client, args):
     try:
         global rotating_food_lists
@@ -4939,5 +4970,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": ["lat,long"],
             "description": "Get weather.gov 48 hour outlook for a location",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!pexels",
+            ],
+            "function": pexels_search,
+            "async": True,
+            "args_num": 1,
+            "args_name": ["search query"],
+            "description": "Query (start with user:username to filter on username) Pexels for images",
         }
     )
