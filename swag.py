@@ -3827,7 +3827,7 @@ async def pexels_search(message, client, args):
             query = query.split(" ", 1)[1]
         else:
             photographer = None
-        api = pexels_api.API(config.get(section="pexels", key="api-keys"))
+        api = pexels_api.API(config.get(section="pexels", key="api-key"))
         api.search(query, results_per_page=5)
         while True:
             photos = [
