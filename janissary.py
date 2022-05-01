@@ -971,7 +971,7 @@ async def role_message_function(message, client, args, remove=False):
         else:
             role = discord.utils.get(message.guild.roles, name=role)
         if not role:
-            error_message = f"Matching role {role_str} not found for reaction role-message-{reaction_name} to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
+            error_message = f"Matching role {role_str} not found for reaction `role-message-{reaction_name}` to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             raise exceptions.MisconfigurationException(error_message)
         if not remove:
             error_message = f"Assigning role {role.mention} to {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
