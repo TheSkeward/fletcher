@@ -838,7 +838,7 @@ async def rss_checker():
             )
             titles = []
             links = []
-            for item in feed.entries:
+            for item in feed.items:
                 if item.links[0].href == last:
                     break
                 titles.insert(0, item.title)
