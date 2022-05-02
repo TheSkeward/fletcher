@@ -845,14 +845,16 @@ async def rss_checker():
                 links.insert(0, item.link)
             for link, title in zip(links, titles):
                 try:
+                    channel = ch.client.get_channel(int(hottuple[3]))
+                    logger.debug(f"[RC] {channel.name}")
                     await messagefuncs.sendWrappedMessage(
                         f"**{title}**\n{link}",
-                        ch.client.get_channel(hottuple[3]),
+                        channel,
                         current_user_id=int(hottuple[0]),
                     )
                 except discord.Forbidden as e:
                     await messagefuncs.sendWrappedMessage(
-                        f"Tried to send a message to {ch.client.get_channel(hottuple[3]).mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                        f"Tried to send a message to {channel.mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
                         ch.client.get_user(int(hottuple[0])),
                         current_user_id=int(hottuple[0]),
                     )
