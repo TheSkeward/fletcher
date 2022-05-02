@@ -734,6 +734,20 @@ async def table_function(message, client, args):
         logger.error("TF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def eightyk_jobs_subscribe(message, client, args):
+    ch.user_config(
+        message.author.id,
+        message.guild.id if message.guild else 0,
+        key="subscribe-80k-jobs",
+        value=str(message.channel.id),
+    )
+    return await messagefuncs.sendWrappedMessage(
+        f"80k Job Bot Added",
+        message.channel,
+        allowed_mentions=None,
+    )
+
+
 # Register this module's commands
 def autoload(ch):
     ch.add_command(
@@ -766,6 +780,16 @@ def autoload(ch):
             "args_num": 2,
             "args_name": ["in x months x weeks x weeks x days x hours x minutes"],
             "description": "Set a reminder.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!80kjobs"],
+            "function": eightyk_jobs_subscribe,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Subscribe to the 80k jobs board.",
         }
     )
     global reminder_timerhandle
@@ -818,6 +842,15 @@ def autoload(ch):
 
 async def rss_checker():
     try:
+        global session
+        try:
+            session
+        except NameError:
+            session = aiohttp.ClientSession(
+                headers={
+                    "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
+                }
+            )
         async with session.get(
             f"https://huginn.nova.anticlack.com/users/1/web_requests/190/80k-jobs.xml",
             timeout=10,
@@ -839,14 +872,13 @@ async def rss_checker():
             titles = []
             links = []
             for item in feed.items:
-                if item.link == last:
+                if not last or item.link == last:
                     break
                 titles.insert(0, item.title)
                 links.insert(0, item.link)
             for link, title in zip(links, titles):
                 try:
                     channel = ch.client.get_channel(int(hottuple[3]))
-                    logger.debug(f"[RC] {channel.name}")
                     await messagefuncs.sendWrappedMessage(
                         f"**{title}**\n{link}",
                         channel,
