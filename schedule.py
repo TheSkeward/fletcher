@@ -522,7 +522,7 @@ async def table_exec_function():
                                 feed.entries[0].links[0].href,
                             )
                 except asyncio.TimeoutError:
-                    logger.debug("Timed out retrieving @{username}, skipping")
+                    logger.debug(f"Timed out retrieving @{username}, skipping")
             except Exception as e:
                 logger.error(f"{e}")
                 pass
@@ -774,6 +774,7 @@ def autoload(ch):
     except NameError:
         pass
     reminder_timerhandle = asyncio.create_task(table_exec_function())
+    asyncio.create_task(rss_checker())
     cur = conn.cursor()
     cur.execute(
         "SELECT m1.user1 AS user1, m1.user2 AS user2, array_intersect(string_to_array(m1.description, ','), string_to_array(m2.description, ',')) AS categories FROM matches m1 LEFT JOIN matches m2 ON m1.user1 = m2.user2 AND m1.user2 = m2.user1 WHERE m1.notification_sent = 'f' AND string_to_array(m1.description, ',') && string_to_array(m2.description, ',') AND (m1.description <> '') IS TRUE AND (m2.description <> '') IS TRUE;",
@@ -813,6 +814,59 @@ def autoload(ch):
     for to, send in toSend.items():
         asyncio.create_task(messagefuncs.sendWrappedMessage(send[1], send[0]))
     cur.execute(f"{todo}'f';", [])
+
+
+async def rss_checker():
+    try:
+        async with session.get(
+            f"https://huginn.nova.anticlack.com/users/1/web_requests/190/80k-jobs.xml",
+            timeout=10,
+        ) as resp:
+            data = await resp.read()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'subscribe-80k-jobs;",
+            [],
+        )
+        for hottuple in cur:
+            feed = atoma.parse_rss_bytes(data)
+            last = ch.user_config.__wrapped__(
+                ch,
+                hottuple[0],
+                hottuple[1],
+                f"subscribe-80k-jobs-last",
+            )
+            titles = []
+            links = []
+            for item in feed.entries:
+                if item.links[0].href == last:
+                    break
+                titles.insert(0, item.title)
+                links.insert(0, item.links[0].href)
+            for link, title in zip(links, titles):
+                try:
+                    await messagefuncs.sendWrappedMessage(
+                        f"**{title}**\n{link}",
+                        ch.client.get_channel(hottuple[3]),
+                        current_user_id=int(hottuple[0]),
+                    )
+                except discord.Forbidden as e:
+                    await messagefuncs.sendWrappedMessage(
+                        f"Tried to send a message to {ch.client.get_channel(hottuple[3]).mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                        ch.client.get_user(int(hottuple[0])),
+                        current_user_id=int(hottuple[0]),
+                    )
+            if len(links):
+                logger.debug(f"Setting subscribe-80k-jobs-last to {links[-1]}")
+                ch.user_config.__wrapped__(
+                    ch,
+                    hottuple[0],
+                    hottuple[1],
+                    f"subscribe-80k-jobs-last",
+                    feed.entries[0].links[0].href,
+                )
+    except asyncio.TimeoutError:
+        logger.debug("Timed out retrieving 80k jobs, skipping")
 
 
 async def autounload(ch):
