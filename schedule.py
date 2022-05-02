@@ -842,7 +842,7 @@ async def rss_checker():
                 if item.links[0].href == last:
                     break
                 titles.insert(0, item.title)
-                links.insert(0, item.links[0].href)
+                links.insert(0, item.link)
             for link, title in zip(links, titles):
                 try:
                     await messagefuncs.sendWrappedMessage(
