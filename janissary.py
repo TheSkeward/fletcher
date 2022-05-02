@@ -1494,6 +1494,11 @@ async def delete_my_message_function(message, client, args):
                 subtuple = cur.fetchone()
                 if subtuple and int(subtuple[0]) == args[1].id:
                     await message.delete()
+                else:
+                    await messagefuncs.sendWrappedMessage(
+                        "Sorry, you can't use the delete X to remove this message as you were not responsible for it. Only the person who caused the message or people with message deletion permissions in Discord can delete this. P.S. if you'd like your message links to not unroll, surround them with `<>` - just like any other link.",
+                        args[1],
+                    )
                 conn.commit()
             except discord.Forbidden as e:
                 logger.warning("DMMF: Forbidden to delete self-message")
