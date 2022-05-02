@@ -825,7 +825,7 @@ async def rss_checker():
             data = await resp.read()
         cur = conn.cursor()
         cur.execute(
-            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'subscribe-80k-jobs;",
+            "SELECT user_id, guild_id, key, value FROM user_preferences WHERE key = 'subscribe-80k-jobs';",
             [],
         )
         for hottuple in cur:
