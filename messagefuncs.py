@@ -730,7 +730,7 @@ __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1
                     pass
             await asyncio.sleep(60)
             try:
-                outMessage.remove_reaction(reaction, client.user)
+                await outMessage.remove_reaction(reaction, client.user)
             except:
                 pass
             return outMessage
