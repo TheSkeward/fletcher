@@ -435,3 +435,5 @@ Ex:
 
 ## Countdown (`!countdown seconds`)
  Replace `seconds` with a number and Fletcher will count down for you.
+## Weather (`!weather`)
+ Get the weather for your location after setting `!preference weather lat,long` where `lat` and `long` are replaced by your coordinates.
