@@ -579,8 +579,11 @@ async def preview_messagelink_function(message, client, args):
             elif "wikia" in previewable_parts[0]:
                 content = "Higher resolution link: " + previewable_parts[0][:-1]
             elif "media.discordapp.net" in previewable_parts[0]:
-                content = previewable_parts[0].replace(
-                    "media.discordapp.net", "cdn.discordapp.com"
+                content = (
+                    previewable_parts[0].replace(
+                        "media.discordapp.net", "cdn.discordapp.com"
+                    )
+                    + " (media.discordapp.net links to videos do not play on other people's clients)"
                 )
             elif "/sci-hub" in previewable_parts[0]:
                 async with session.get(previewable_parts[0]) as resp:
