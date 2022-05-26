@@ -4885,6 +4885,19 @@ def autoload(ch):
             "description": "Search for quotes in this message to return the relevant Glowfic site reply",
         }
     )
+    ch.add_command(
+        {
+            "trigger": [
+                "🎲",
+            ],
+            "function": lambda message, client, args: str(message.id),
+            "async": False,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Dubs",
+            "whitelist_guild": [345045447745732608],
+        }
+    )
     if not wikiClient:
         wikiClient = wikidata.Client()
     if not cseClient and ch.config.get(section="google", key="cse_key"):
