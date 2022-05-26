@@ -642,6 +642,10 @@ async def preview_messagelink_function(message, client, args):
                         ]
                     except asyncio.TimeoutError:
                         return
+                    try:
+                        await message.edit(suppress=True)
+                    except:
+                        pass
             elif "arxiv.org" in previewable_parts[0]:
                 async with session.get(
                     previewable_parts[0].replace("pdf", "abs", 1).strip(".pdf")
