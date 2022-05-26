@@ -1782,6 +1782,10 @@ async def tiktok_function(message, _, args):
         url = args[0]
         input_image_blob = None
         file_name = None
+        assert isinstance(session, aiohttp.ClientSession)
+        if "/t/" in url:
+            async with session.get(url, allow_redirects=False) as response:
+                url = str(response).split("Location': '")[1].split("'")[0]
         try:
             opts = {
                 "socket_timeout": 3,
@@ -1794,7 +1798,6 @@ async def tiktok_function(message, _, args):
             with yt_dlp.YoutubeDL(params=opts) as ydl:
                 media_info = ydl.extract_info(url, download=False)
                 assert isinstance(media_info, dict)
-                assert isinstance(session, aiohttp.ClientSession)
                 async with session.get(
                     media_info["formats"][0]["url"],
                     headers=media_info["formats"][0]["http_headers"],
@@ -1809,7 +1812,6 @@ async def tiktok_function(message, _, args):
             with yt_dlp.YoutubeDL(params=opts) as ydl:
                 media_info = ydl.extract_info(url, download=False)
                 assert isinstance(media_info, dict)
-                assert isinstance(session, aiohttp.ClientSession)
                 async with session.get(
                     media_info["formats"][0]["url"],
                     headers=media_info["formats"][0]["http_headers"],
