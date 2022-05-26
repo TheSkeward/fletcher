@@ -1785,6 +1785,9 @@ async def tiktok_function(message, _, args):
         try:
             opts = {
                 "socket_timeout": 3,
+                "http_headers": {
+                    "User-Agent": "Mozilla/5.0",
+                },
             }
             if config.get("proxy", section="youtube_dl"):
                 opts["proxy"] = config.get("proxy", section="youtube_dl")
