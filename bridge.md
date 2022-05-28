@@ -1,6 +1,6 @@
 # Bridging Channels
 
-Three things are required to set up synchronization: Fletcher must be granted permission to use Discord features on both servers, configured to synchronize both servers, and webhooks must be created such that Fletcher can detect the channels. Note that this can be used for unidirectional sync, and both the input and output server could be the same.
+Bridging two channels means that Fletcher sends any message sent in one to the other, and vice versa (unless the bridge is unidirectional). To bridge channels, Fletcher must have the correct permissions (most relevantly, `Send Messages` and `Manage Webhooks`).
 
 ## Bridge Configuration
  To bridge a channel, send `!bridge servername:channelname`, in the channels you want bridged to each other.
@@ -33,7 +33,7 @@ Discord-Discord sync requires the *Read Messages*, *Read Message History*, and *
 For a full discussion of the permissions that Fletcher requires, see [Permissions granted via the OAuth screen](permissions.md).
 
 ## Fletcher Configuration
-In the each server configuration file, set the `synchronize` preference to `on`. Fletcher must be reloaded or restarted for these changes to take effect.
+In each server configuration file, set the `synchronize` preference to `on`. Fletcher must be reloaded or restarted for these changes to take effect (this happens automatically every 15 minutes).
 
 Configuration example: this is a fletcherrc configuration entry for a server that has synchronization scanning on.
 
@@ -41,17 +41,6 @@ Configuration example: this is a fletcherrc configuration entry for a server tha
 [Guild 000000000000000001]
 synchronize = on
 ```
- 
-You must also set the `botNavel` key in the main configuration file. If your Fletcher administrator has not provided you with this key, it is probably ƒ.
+## Expected behavior
+In a bridged channel, message edits will be respected and transferred, and replies will be bridged (viewable as embeds of the message link from the other side of the bridge). However, message deletions currently are not bridged.
 
-Configuration example: this is a fletcherrc configuration entry of setting the botNavel.
-
-```
-[discord]
-botNavel = ƒ
-```
- 
-## Channel Configuration
-In this configuration, we will refer to #aleph and #beta on server Guild.
-
-In the settings for #aleph, navigate to Webhooks. Create a webhook with the name `botNavel (ServerName:TargetChannelName)` (i.e. `ƒ (Guild:beta)`). Repeat this for the corresponding channel for the reverse sync. Reload the server, and test that the sync now works.

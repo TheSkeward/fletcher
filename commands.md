@@ -437,3 +437,5 @@ Ex:
  Replace `seconds` with a number and Fletcher will count down for you.
 ## Weather (`!weather`)
  Get the weather for your location after setting `!preference weather lat,long` where `lat` and `long` are replaced by your coordinates.
+## Dubs (`:die:`)
+ Based off the <a href=https://en.wiktionary.org/wiki/dubs>imageboard joke</a>, prefacing a message with :die: or sending the emoji by itself will prompt Fletcher to send the message ID of your message.
