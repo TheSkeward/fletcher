@@ -371,21 +371,25 @@ async def minecraft_get_time_function(message, client, args):
 async def minecraft_send_say_function(message, client, args):
     try:
         message_text = " ".join(args)
-        with Client(
-            host=config.get(
+        host = config.get(
+            guild=message.guild.id,
+            channel=message.channel.id,
+            key="minecraft_host",
+            default="34.224.93.95",
+        )
+        port = int(
+            config.get(
                 guild=message.guild.id,
                 channel=message.channel.id,
-                key="minecraft_host",
-                default="34.224.93.95",
-            ),
-            port=int(
-                config.get(
-                    guild=message.guild.id,
-                    channel=message.channel.id,
-                    key="minecraft_rcon-port",
-                    default=25575,
-                )
-            ),
+                key="minecraft_rcon-port",
+                default=25575,
+            )
+        )
+        if not check_port(host, port):
+            return
+        with Client(
+            host=host,
+            port=port,
             passwd=config.get(
                 guild=message.guild.id,
                 channel=message.channel.id,
