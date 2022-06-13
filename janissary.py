@@ -1612,10 +1612,19 @@ async def pin_message_function(message, client, args):
             try:
                 await message.pin()
             except discord.HTTPException:
-                await messagefuncs.sendWrappedMessage(
-                    "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
-                    args[1],
-                )
+                if ch.config.get(
+                    guild=message.guild,
+                    channel=message.channel,
+                    key="cycle_pins",
+                    default=False,
+                ):
+                    await (await message.channel.pins())[0].unpin()
+                    await message.pin()
+                else:
+                    await messagefuncs.sendWrappedMessage(
+                        "Channel presumably has more than 50 pins, please ask a moderator to remove pins to add new ones and try again.",
+                        args[1],
+                    )
             except discord.Forbidden:
                 await messagefuncs.sendWrappedMessage(
                     "I don't have permission to pin messages in this channel, presumably due to misconfiguration. Please ask an admin to grant me the Manage Messages permission and try again.",
@@ -1967,7 +1976,7 @@ async def self_service_channel_function(
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
-                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions.",
+                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions (debugging info: ||fletcher thinks you have {ch.is_admin(message.channel_mentions[0], message.author)} on {message.author}||).",
                 message.author,
             )
             return
