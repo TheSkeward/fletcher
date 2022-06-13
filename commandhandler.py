@@ -910,6 +910,8 @@ class CommandHandler:
                     user = None
                     if channel is None:
                         user = self.client.get_user(reaction.user_id)
+                        if not user:
+                            user = await self.client.fetch_user(reaction.user_id)
                         assert user is not None
                         channel = user.create_dm()
                     if channel is None:
@@ -927,6 +929,8 @@ class CommandHandler:
                     )
                     if isinstance(channel, (discord.TextChannel, discord.Thread)):
                         user = channel.guild.get_member(reaction.user_id)
+                        if not user:
+                            user = await channel.guild.fetch_member(reaction.user_id)
                         scope.set_tag("guild", channel.guild.name)
                     scope.user = {"id": user.id if user else 0, "username": str(user)}
                     message = await channel.fetch_message(reaction.message_id)
