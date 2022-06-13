@@ -14,9 +14,7 @@ logger = logging.getLogger("fletcher")
 def renderLatex(formula, fontsize=12, dpi=300, format="svg", file=None, preamble=""):
     """Renders LaTeX formula into image or prints to file."""
     plt.rc("text", usetex=True)
-    plt.rcParams.update({
-        "pgf.texsystem": "pdflatex"
-    })
+    plt.rcParams.update({"pgf.texsystem": "pdflatex"})
     plt.rc("text.latex", preamble=preamble)
     plt.rc("font", family="serif")
     fig = plt.figure(figsize=(0.01, 0.01), frameon=True)
