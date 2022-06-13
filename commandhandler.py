@@ -637,9 +637,13 @@ class CommandHandler:
                         return
                     if message.guild:
                         user = message.guild.get_member(reaction.user_id)
+                        if not user:
+                            user = await message.guild.fetch_member(reaction.user_id)
                         scope.set_tag("guild", message.guild.name)
                     else:
                         user = self.client.get_user(reaction.user_id)
+                        if not user:
+                            user = await self.client.fetch_user(reaction.user_id)
                     scope.user = {"id": reaction.user_id, "username": str(user)}
                     admin = self.is_admin(message, user)
                     args = [reaction, user, "add"]
@@ -2099,12 +2103,14 @@ class CommandHandler:
                     if not command.get("blacklist_channel"):
                         command["blacklist_channel"] = []
                     command["blacklist_channel"].append(channel_id)
-                    logger.debug(f"Blacklisting {command} on channel {channel_id}")
+                    if self.config.get(section="debug", key="blacklist", default=False):
+                        logger.debug(f"Blacklisting {command} on channel {channel_id}")
                 else:
                     if not command.get("blacklist_guild"):
                         command["blacklist_guild"] = []
                     command["blacklist_guild"].append(guild_id)
-                    logger.debug(f"Blacklisting {command} on guild {guild_id}")
+                    if self.config.get(section="debug", key="blacklist", default=False):
+                        logger.debug(f"Blacklisting {command} on guild {guild_id}")
         else:
             logger.error(
                 f"Couldn't find {command_name} for blacklisting on guild {guild_id}"
@@ -2280,7 +2286,8 @@ class CommandHandler:
             conn.commit()
 
     async def on_interaction(self, ctx: discord.Interaction):
-        logger.debug(str(ctx.data))
+        if self.config.get(section="debug", key="interaction", default=False):
+            logger.debug(f"{ctx.data=}")
         if ctx.application_id != self.user.id:
             return
         if ctx.data.get("target_id"):
@@ -2299,7 +2306,10 @@ class CommandHandler:
                 metuple = cur.fetchone()
                 conn.commit()
                 if metuple:
-                    logger.debug(metuple)
+                    if self.config.get(
+                        section="debug", key="interaction", default=False
+                    ):
+                        logger.debug(f"{metuple=}")
                     command = next(
                         filter(
                             lambda c: metuple[0] in c.get("trigger", [])
