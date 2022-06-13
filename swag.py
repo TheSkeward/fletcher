@@ -3540,6 +3540,35 @@ async def glowfic_search_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def o_scott(message, client, args):
+    try:
+        link = cse_search_call(
+            exactTerms=" ".join(args), cx="6e327be4ba653f142", phrase=True
+        )
+        if len(link.get("items", [])):
+            link = link["items"][0]["link"]
+        else:
+            link = cse_search_call(
+                exactTerms=" ".join(args), cx="6e327be4ba653f142", phrase=False
+            )
+            if len(link.get("items", [])):
+                link = link["items"][0]["link"]
+            else:
+                link = None
+        if link:
+            await messagefuncs.sendWrappedMessage(
+                f"Quote attributed to {link}", message.channel
+            )
+        else:
+            await messagefuncs.sendWrappedMessage(
+                "Could not find quote.", message.channel
+            )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("OSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 def amulet_function(message, client, args):
     c = (
         message.content[8:]
@@ -4979,6 +5008,18 @@ def autoload(ch):
             "description": "Searches LW for a query",
             "slash_command": True,
             "whitelist_guild": [634249282488107028],
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!o scott"],
+            "function": o_scott,
+            "long_run": "channel",
+            "async": True,
+            "args_num": 1,
+            "args_name": ["query"],
+            "description": "Searches SSC and rationalist blogs for a query",
+            "whitelist_guild": [289207224075812864],
         }
     )
     ch.add_command(
