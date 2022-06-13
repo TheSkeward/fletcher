@@ -63,7 +63,9 @@ client_secret = {credentials.client_secret}
 scopes = {credentials.scopes}
 ```"""
     logger.warning(freeze)
-    gphotos = build("photoslibrary", "v1", credentials=credentials, static_discovery=False)
+    gphotos = build(
+        "photoslibrary", "v1", credentials=credentials, static_discovery=False
+    )
     return freeze
 
 
@@ -243,7 +245,7 @@ def autoload(ch):
                 client_id=config["google-photos"]["client_id"],
                 client_secret=config["google-photos"]["client_secret"],
             ),
-            static_discovery=False
+            static_discovery=False,
         )
     try:
         logger.debug("GPAL: length(lesbaru_list)=" + str(len(twilestia_list)))
