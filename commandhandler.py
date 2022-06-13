@@ -930,7 +930,9 @@ class CommandHandler:
                         scope.set_tag("guild", channel.guild.name)
                     scope.user = {"id": user.id if user else 0, "username": str(user)}
                     message = await channel.fetch_message(reaction.message_id)
-                    assert isinstance(user, (discord.User, discord.Member))
+                    assert isinstance(
+                        user, (discord.User, discord.Member)
+                    ), f"user is messed up, <{type(user)}> {user=}"
                     if isinstance(channel, (discord.TextChannel, discord.Thread)):
                         logger.info(
                             f"{message.id} #{channel.guild.name}:{channel.name} <{user.name}:{user.id}> unreacting with {messageContent}",
