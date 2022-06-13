@@ -1976,7 +1976,7 @@ async def self_service_channel_function(
             return
         if not ch.is_admin(message.channel_mentions[0], message.author)["channel"]:
             await messagefuncs.sendWrappedMessage(
-                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions (debugging info: ||fletcher thinks you have {ch.is_admin(message.channel_mentions[0], message.author)} on {message.author}||).",
+                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions (debugging info: ||fletcher thinks you have admin {ch.is_admin(message.channel_mentions[0], message.author)} on {message.channel_mentions[0]} for {message.author} from permission set {dict(message.channel_mentions[0].permissions_for(message.author))}||).",
                 message.author,
             )
             return
