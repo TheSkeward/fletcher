@@ -644,6 +644,12 @@ class CommandHandler:
                         user = self.client.get_user(reaction.user_id)
                         if not user:
                             user = await self.client.fetch_user(reaction.user_id)
+                    if channel and hasattr(channel, "guild"):
+                        member = channel.guild.get_member(user.id)
+                        if not member:
+                            member = await channel.guild.fetch_member(user.id)
+                        if member:
+                            user = member
                     assert isinstance(
                         user, (discord.User, discord.Member)
                     ), f"Dropping reaction, user {user=} ({type(user)=} not found"
@@ -913,6 +919,12 @@ class CommandHandler:
                     user = self.client.get_user(reaction.user_id)
                     if not user:
                         user = await self.client.fetch_user(reaction.user_id)
+                    if channel and hasattr(channel, "guild"):
+                        member = channel.guild.get_member(user.id)
+                        if not member:
+                            member = await channel.guild.fetch_member(user.id)
+                        if member:
+                            user = member
                     assert user is not None
                     if channel is None:
                         channel = user.create_dm()
