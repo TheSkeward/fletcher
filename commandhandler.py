@@ -644,6 +644,9 @@ class CommandHandler:
                         user = self.client.get_user(reaction.user_id)
                         if not user:
                             user = await self.client.fetch_user(reaction.user_id)
+                    assert isinstance(
+                        user, (discord.User, discord.Member)
+                    ), f"Dropping reaction, user {user=} ({type(user)=} not found"
                     scope.user = {"id": reaction.user_id, "username": str(user)}
                     admin = self.is_admin(message, user)
                     args = [reaction, user, "add"]
@@ -907,11 +910,11 @@ class CommandHandler:
                     messageContent = str(reaction.emoji)
                     channel = self.client.get_channel(reaction.channel_id)
                     user = None
+                    user = self.client.get_user(reaction.user_id)
+                    if not user:
+                        user = await self.client.fetch_user(reaction.user_id)
+                    assert user is not None
                     if channel is None:
-                        user = self.client.get_user(reaction.user_id)
-                        if not user:
-                            user = await self.client.fetch_user(reaction.user_id)
-                        assert user is not None
                         channel = user.create_dm()
                     if channel is None:
                         logger.info("Channel does not exist")
@@ -930,10 +933,14 @@ class CommandHandler:
                         else "DM",
                     )
                     if isinstance(channel, (discord.TextChannel, discord.Thread)):
-                        user = channel.guild.get_member(reaction.user_id)
+                        if not user:
+                            user = channel.guild.get_member(reaction.user_id)
                         if not user:
                             user = await channel.guild.fetch_member(reaction.user_id)
                         scope.set_tag("guild", channel.guild.name)
+                    assert isinstance(
+                        user, (discord.User, discord.Member)
+                    ), f"Dropping reaction, user {user=} ({type(user)=} not found"
                     scope.user = {"id": user.id if user else 0, "username": str(user)}
                     message = await channel.fetch_message(reaction.message_id)
                     assert isinstance(
