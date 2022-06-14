@@ -685,10 +685,9 @@ class CommandHandler:
                     else:
                         # Group Channels don't support bots so neither will we
                         pass
-                    if not isinstance(user, (discord.User, discord.Member)):
-                        logger.debug("Dropping reaction, user not found")
-                        return
-                    assert isinstance(user, (discord.User, discord.Member))
+                    assert isinstance(
+                        user, (discord.User, discord.Member)
+                    ), f"Dropping reaction, user {user=} ({type(user)=} not found"
                     if (
                         channel_config.get("blacklist-emoji")
                         and not admin["channel"]
@@ -917,6 +916,9 @@ class CommandHandler:
                     if channel is None:
                         logger.info("Channel does not exist")
                         return
+                    assert isinstance(
+                        user, (discord.User, discord.Member)
+                    ), f"Dropping reaction, user {user=} ({type(user)=} not found"
                     assert isinstance(
                         channel,
                         (discord.TextChannel, discord.Thread, discord.DMChannel),

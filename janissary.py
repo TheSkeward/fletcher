@@ -348,13 +348,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -531,7 +534,9 @@ async def kick_user_function(message, client, args):
         if len(message.mentions) >= 1:
             member = message.mentions[0]
         else:
-            member = message.guild.get_member(int(args[0]))
+            member = message.guild.get_member(
+                int(args[0])
+            ) or await message.guild.fetch_member(int(args[0]))
         logMessage = " ".join(args[1:]).strip()
         if not len(logMessage):
             logMessage = "A message was not provided."
@@ -997,7 +1002,7 @@ async def role_message_function(message, client, args, remove=False):
                     )
                     await confirmMessage.remove_reaction("✅", client.user)
                     return
-            await message.guild.get_member(user.id).add_roles(
+            await user.add_roles(
                 role, reason="Self-assigned via reaction to role-message", atomic=False
             )
             if args[0].emoji in ch.config.get(
@@ -1008,7 +1013,7 @@ async def role_message_function(message, client, args, remove=False):
                 await messagefuncs.sendWrappedMessage(error_message, audit_channel)
         else:
             error_message = f"Removing role {role.mention} from {user.mention} via {reaction.emoji} on https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
-            await message.guild.get_member(user.id).remove_roles(
+            await user.remove_roles(
                 role, reason="Self-removed via reaction to role-message", atomic=False
             )
             if audit_channel:
@@ -1324,7 +1329,9 @@ async def add_inbound_sync_function(message, client, args):
 
         logger.debug(f"Checking permissions for {message.author} on {fromChannel}")
         fromAdmin = ch.is_admin(
-            fromChannel, fromChannel.guild.get_member(message.author.id)
+            fromChannel,
+            fromChannel.guild.get_member(message.author.id)
+            or await fromChannel.guild.fetch_member(message.author.id),
         )
         logger.debug(fromAdmin)
         if not fromAdmin["channel"]:
@@ -1441,13 +1448,12 @@ async def voice_opt_out(message, client, args):
         else:
             guild = message.guild
         logger.debug(f"Leaving voice channels in {guild}")
-        member = message.guild.get_member(message.author.id)
         for voice_channel in filter(
             lambda channel: isinstance(channel, discord.VoiceChannel), guild.channels
         ):
             if voice_channel.permissions_for(message.author).connect:
                 await voice_channel.set_permissions(
-                    member, connect=False, read_messages=False
+                    message.author, connect=False, read_messages=False
                 )
                 logger.debug(f"Removed {message.author} from {voice_channel}")
         await message.add_reaction("✅")
@@ -1653,7 +1659,9 @@ async def invite_function(message, client, args):
             )
         if type(channel) == discord.DMChannel or not channel:
             raise discord.InvalidArgument("Channel appears to not exist or is DM")
-        localizedUser = channel.guild.get_member(message.author.id)
+        localizedUser = channel.guild.get_member(
+            message.author.id
+        ) or await channel.guild.fetch_member(message.author.id)
         if not (localizedUser and ch.is_admin(channel, localizedUser))["channel"]:
             return await messagefuncs.sendWrappedMessage(
                 f"You do not have permission to invite users to {channel}.",
