@@ -2348,7 +2348,9 @@ class sliding_puzzle:
         try:
             if type(message.channel) != discord.DMChannel:
                 await message.remove_reaction(
-                    response.emoji, message.guild.get_member(response.user_id)
+                    response.emoji,
+                    message.guild.get_member(response.user_id)
+                    or await message.guild.fetch_member(response.user_id),
                 )
         except discord.Forbidden:
             pass

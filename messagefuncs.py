@@ -344,6 +344,7 @@ async def teleport_function(message, client, args):
             await toGuild.chunk()
         if not toChannel.permissions_for(
             toGuild.get_member(message.author.id)
+            or await toGuild.fetch_member(message.author.id)
         ).send_messages:
             await message.add_reaction("🚫")
             await sendWrappedMessage(
@@ -382,7 +383,7 @@ async def teleport_function(message, client, args):
             inPortalColor = ["red", discord.Colour.from_rgb(194, 0, 11)]
         else:
             inPortalColor = ["blue", discord.Colour.from_rgb(62, 189, 236)]
-        behest = localizeName(message.author, fromGuild)
+        behest = await localizeName(message.author, fromGuild)
         embedPortal = discord.Embed(
             description=f"[{embedTitle}](https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}) {' '.join(args[consume:])}",
             color=inPortalColor[1],
@@ -400,7 +401,7 @@ async def teleport_function(message, client, args):
                 content=f"**{embedTitle}** for {behest} {' '.join(args[consume:])}\n<https://discordapp.com/channels/{toGuild.id}/{toChannel.id}/{toMessage.id}>"
             )
         embedTitle = f"Portal opened from #{fromChannel.name}"
-        behest = localizeName(message.author, toGuild)
+        behest = await localizeName(message.author, toGuild)
         if toGuild != fromGuild:
             embedTitle = f"{embedTitle} ({fromGuild.name})"
         embedPortal = discord.Embed(
@@ -479,12 +480,10 @@ async def preview_messagelink_function(message, client, args):
                     )
                 return
             channel = guild.get_channel(channel_id) or guild.get_thread(channel_id)
-            if not (
-                guild.get_member(message.author.id)
-                and channel.permissions_for(
-                    guild.get_member(message.author.id)
-                ).read_message_history
-            ):
+            member = guild.get_member(message.author.id) or await guild.fetch_member(
+                message.author.id
+            )
+            if not (member and channel.permissions_for(member).read_message_history):
                 return
             preview_allowed = config.get(
                 key="preview-allowed", default=True, guild=guild, channel=channel
@@ -1064,6 +1063,7 @@ async def subscribe_send_function(message, client, args):
             None,
             [
                 message.guild.get_member(user_id)
+                or await message.guild.fetch_member(user_id)
                 for user_id in guild_config.get("subscribe", {}).get(message.id)
             ],
         ):
@@ -1078,8 +1078,8 @@ async def subscribe_send_function(message, client, args):
         logger.error("SSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
-def localizeName(user, guild):
-    localized = guild.get_member(user.id)
+async def localizeName(user, guild):
+    localized = guild.get_member(user.id) or await guild.fetch_member(user.id)
     if localized is None:
         localizeName = user.name
     else:
