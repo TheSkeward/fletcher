@@ -348,13 +348,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -408,7 +411,7 @@ async def modreport_function(message, client, args):
             users = scoped_config["mod-userslist"]
         else:
             users = scoped_config.get("manual-mod-userslist", [message.guild.owner.id])
-        users = list(load_config.expand_target_list(users, message.guild))
+        users = list(await load_config.expand_target_list(users, message.guild))
         for target in users:
             modmail = await messagefuncs.sendWrappedMessage(report_content, target)
             if message.channel.is_nsfw():
@@ -1470,7 +1473,7 @@ async def error_report_function(error_str, guild, client):
         scoped_config.get(scoped_config.get("errorCC", "mod-userslist"))
         or guild.owner.id
     )
-    users = list(load_config.expand_target_list(users, guild))
+    users = list(await load_config.expand_target_list(users, guild))
     for target in users:
         modmail = await messagefuncs.sendWrappedMessage(
             error_str, target, current_user_id=target.id

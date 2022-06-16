@@ -377,7 +377,7 @@ class FletcherConfig:
         return key in self.config_dict or key in self.defaults
 
 
-def expand_target_list(targets, guild):
+async def expand_target_list(targets, guild):
     try:
         inputs = list(targets)
     except TypeError:
@@ -400,11 +400,16 @@ def expand_target_list(targets, guild):
                 targets.add(channel)
             else:
                 try:
-                    targets.add(guild.get_member(int(target)))
+                    targets.add(
+                        guild.get_member(int(target))
+                        or await guild.fetch_member(int(target))
+                    )
                 except ValueError:
                     logger.info(f"Misconfiguration: could not expand {target}")
         else:
             # ID asssumed to be targets
-            targets.add(guild.get_member(int(target)))
+            targets.add(
+                guild.get_member(int(target)) or await guild.fetch_member(int(target))
+            )
     targets.discard(None)
     return targets

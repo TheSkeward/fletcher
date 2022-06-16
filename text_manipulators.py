@@ -3792,7 +3792,7 @@ async def attribution_function(message, client, args):
                 conn.commit()
                 if subtuple:
                     attrib = await messagefuncs.sendWrappedMessage(
-                        f"Message {message.jump_url} sent by {message.guild.get_member(int(subtuple[0])).mention}",
+                        f"Message {message.jump_url} sent by {(message.guild.get_member(int(subtuple[0])) or await message.guild.fetch_member(int(subtuple[0]))).mention}",
                         args[1],
                     )
                     await messagefuncs.preview_messagelink_function(

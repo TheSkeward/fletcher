@@ -2452,7 +2452,7 @@ class CommandHandler:
                     for user in list(
                         filter(
                             lambda user: user in thread.parent.members,
-                            load_config.expand_target_list(
+                            await load_config.expand_target_list(
                                 self.config.get(
                                     key="manual-mod-userslist",
                                     default=[thread.guild.owner.id],
