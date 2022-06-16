@@ -396,8 +396,10 @@ async def table_exec_function():
                     continue
                 elif guild_id == 0:
                     pass
-                elif guild.get_member(user.id):
-                    user = guild.get_member(user.id)
+                else:
+                    user = guild.get_member(user.id) or await guild.fetch_member(
+                        user.id
+                    )
                 from_channel = client.get_channel(channel_id)
                 target_message = None
                 try:
