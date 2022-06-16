@@ -421,6 +421,7 @@ async def on_raw_message_edit(payload):
             and fromGuild is not None
             and not fromChannel.permissions_for(
                 fromGuild.get_member(client.user.id)
+                or await fromGuild.fetch_member(client.user.id)
             ).read_message_history
         ):
             return

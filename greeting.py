@@ -242,7 +242,9 @@ async def chanban_join_function(member, client, config):
 
 async def thread_keepalive_reload_function(guild, client, config):
     try:
-        member = guild.get_member(client.user.id)
+        member = guild.get_member(client.user.id) or await guild.fetch_member(
+            client.user.id
+        )
         for channel in (
             channel
             for channel in guild.text_channels
