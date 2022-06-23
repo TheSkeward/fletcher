@@ -2166,7 +2166,7 @@ class CommandHandler:
         except TypeError:
             return {}
 
-    @lru_cache(maxsize=256)
+    # @lru_cache(maxsize=256)
     def user_config(
         self, user, guild, key, value=None, default=None, allow_global_substitute=False
     ):
@@ -3368,8 +3368,6 @@ def preference_function(
         key = ":".join(key)
     if guild is None:
         guild = message.guild.id if message.guild else None
-    if value:
-        ch.user_config.cache_clear()
     value = ch.user_config(
         message.author.id,
         guild,
@@ -3496,7 +3494,6 @@ def autoload(ch):
             "description": "List commands and arguments",
         }
     )
-    ch.user_config.cache_clear()
     if config and ch.client:
         load_user_config(ch)
         if len(ch.commands) > 5:

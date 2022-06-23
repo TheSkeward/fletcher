@@ -77,8 +77,7 @@ class ScheduleFunctions:
             conn.rollback()
             if target_message:
                 raise e
-        since_last = ch.user_config.__wrapped__(
-            ch,
+        since_last = ch.user_config(
             target_message.author.id,
             target_message.guild.id,
             "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
@@ -94,8 +93,7 @@ class ScheduleFunctions:
         )
         if int(since_last) < int(threshold):
             return None
-        tag_url = ch.user_config.__wrapped__(
-            ch,
+        tag_url = ch.user_config(
             user.id,
             target_message.guild.id,
             key="glowfic-subscribe-" + str(thread_id) + "-next_tag",
@@ -106,8 +104,7 @@ class ScheduleFunctions:
             f"{since_last} tags since last notification, top of new tags at {tag_url}",
             target_message.channel,
         )
-        ch.user_config.__wrapped__(
-            ch,
+        ch.user_config(
             target_message.author.id,
             target_message.guild.id,
             "glowfic-subscribe-" + str(thread_id) + "-counter_since_last_nofication",
@@ -488,8 +485,7 @@ async def table_exec_function():
                     ) as resp:
                         data = await resp.read()
                         feed = atoma.parse_atom_bytes(data)
-                        last = ch.user_config.__wrapped__(
-                            ch,
+                        last = ch.user_config(
                             hottuple[0],
                             hottuple[1],
                             f"twubscribe-{username}-last",
@@ -516,8 +512,7 @@ async def table_exec_function():
                             logger.debug(
                                 f"Setting twubscribe-{username}-last to {links[-1]}"
                             )
-                            ch.user_config.__wrapped__(
-                                ch,
+                            ch.user_config(
                                 hottuple[0],
                                 hottuple[1],
                                 f"twubscribe-{username}-last",
@@ -865,8 +860,7 @@ async def rss_checker():
         )
         for hottuple in cur:
             feed = atoma.parse_rss_bytes(data)
-            last = ch.user_config.__wrapped__(
-                ch,
+            last = ch.user_config(
                 hottuple[0],
                 hottuple[1],
                 f"subscribe-80k-jobs-last",
@@ -894,8 +888,7 @@ async def rss_checker():
                     )
             if len(links):
                 logger.debug(f"Setting subscribe-80k-jobs-last to {links[-1]}")
-                ch.user_config.__wrapped__(
-                    ch,
+                ch.user_config(
                     hottuple[0],
                     hottuple[1],
                     f"subscribe-80k-jobs-last",

@@ -1363,7 +1363,7 @@ async def edit_message_function(message, client, args):
                     args[1].id,
                     message.guild.id if message.guild else None,
                     "etherpad",
-                    False,
+                    default=False,
                 ):
                     return
                 confirm = await sendWrappedMessage(
@@ -1413,7 +1413,7 @@ async def ear_emoji_function(message, client, args):
             message.author.id,
             message.guild if message.guild else None,
             "ear_notify",
-            False,
+            default=False,
             allow_global_substitute=True,
         )
     ):
