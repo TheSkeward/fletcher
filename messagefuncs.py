@@ -1407,6 +1407,16 @@ async def edit_message_function(message, client, args):
         logger.error(f"ETF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def ear_emoji_function(message, client, args):
+    if ch.user_config(
+        message.author.id, message.guild if message.guild else None, "ear_notify", False
+    ):
+        await sendWrappedMessage(
+            f"{args[1].mention} reacted with a {args[0].emoji} to your message at {message.jump_url}",
+            message.author,
+        )
+
+
 # Register this module's commands
 def autoload(ch):
     ch.add_command(
@@ -1534,6 +1544,16 @@ def autoload(ch):
         }
     )
 
+    ch.add_command(
+        {
+            "trigger": ["👂"],
+            "function": ear_emoji_function,
+            "async": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "notify on ear reacts to your posts, opt-in",
+        }
+    )
     ch.add_command(
         {
             "trigger": ["⭐"],
