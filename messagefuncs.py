@@ -1408,8 +1408,14 @@ async def edit_message_function(message, client, args):
 
 
 async def ear_emoji_function(message, client, args):
-    if ch.user_config(
-        message.author.id, message.guild if message.guild else None, "ear_notify", False
+    if ch.config.normalize_booleans(
+        ch.user_config(
+            message.author.id,
+            message.guild if message.guild else None,
+            "ear_notify",
+            False,
+            allow_global_substitute=True,
+        )
     ):
         await sendWrappedMessage(
             f"{args[1].mention} reacted with a {args[0].emoji} to your message at {message.jump_url}",
