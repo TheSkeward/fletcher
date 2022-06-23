@@ -2455,7 +2455,9 @@ class CommandHandler:
                             await load_config.expand_target_list(
                                 self.config.get(
                                     key="manual-mod-userslist",
-                                    default=[thread.guild.owner.id],
+                                    default=[thread.guild.owner.id]
+                                    if thread.guild.owner
+                                    else [],
                                     guild=thread.guild.id,
                                 ),
                                 thread.guild,
