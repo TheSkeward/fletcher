@@ -7,4 +7,4 @@ Fletcher documentation is currently a work in progress. Please refer to the sour
 - [Customization](hotwords.md)
 - [User Preferences](preferences.md)
 - [Fletcher proxying](nickmask.md)
-
+- [Moderation](moderation.md)
