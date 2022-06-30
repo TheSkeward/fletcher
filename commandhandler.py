@@ -1789,7 +1789,11 @@ class CommandHandler:
             ):
                 return
         if message.webhook_id:
-            webhook = await self.fetch_webhook_cached(message.webhook_id)
+            webhook = None
+            try:
+                webhook = await self.fetch_webhook_cached(message.webhook_id)
+            except discord.errors.NotFound:
+                return
             if webhook.name not in self.config.get(
                 key="whitelist-webhooks", section="sync", default=[]
             ):
