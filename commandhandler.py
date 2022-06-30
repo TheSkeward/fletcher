@@ -2439,8 +2439,8 @@ class CommandHandler:
             return False
 
     async def thread_add(self, thread):
-        if thread.message_count > 1:
-            logger.debug("Not adding myself to a thread with a message_count > 1")
+        if thread.message_count > 2:
+            logger.debug("Not adding myself to a thread with a message_count > 2")
             return
         if not thread.me:
             logger.debug(f"Adding myself to new thread {thread.name} ({thread.id})")
