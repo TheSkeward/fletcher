@@ -1631,7 +1631,9 @@ class CommandHandler:
                                 continue
                             else:
                                 self.pinged_users[message.id].append(hotword.owner.id)
-                            await command(message, self.client, args)
+                            await command(
+                                message, self.client, message.content.split(" ")
+                            )
             channel_config = cast(
                 dict, self.scope_config(channel=fromChannel, guild=fromGuild)
             )
