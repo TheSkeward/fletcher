@@ -177,7 +177,7 @@ class CommandHandler:
             )
             assert isinstance(emote_server, discord.Guild)
             self.emote_server = emote_server
-        self.pinged_users: defaultdict[int, list[int]] = defaultdict(default_factory=[])
+        self.pinged_users: defaultdict[int, list[int]] = defaultdict(list)
 
     async def load_webhooks(self):
         webhook_sync_registry: Dict[str, Bridge] = {}
