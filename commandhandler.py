@@ -25,6 +25,7 @@ from functools import lru_cache, partial
 import sentry_sdk
 from asyncache import cached
 from cachetools import TTLCache
+from collections import defaultdict
 import load_config
 from typing import (
     cast,
@@ -176,6 +177,7 @@ class CommandHandler:
             )
             assert isinstance(emote_server, discord.Guild)
             self.emote_server = emote_server
+        self.pinged_users: defaultdict[int, list[int]] = defaultdict(default_factory=[])
 
     async def load_webhooks(self):
         webhook_sync_registry: Dict[str, Bridge] = {}
@@ -1595,6 +1597,41 @@ class CommandHandler:
                     ),
                     message_id=toMessage.id,
                 )
+            if message.guild:
+                for hotword in filter(
+                    lambda hw: (type(hw) is Hotword)
+                    and (
+                        (
+                            isinstance(hw.owner, discord.Member)
+                            and discord.utils.get(
+                                message.channel.members, id=hw.owner.id
+                            )
+                            and message.author.id != hw.owner.id
+                        )
+                        or (type(hw.owner) is str and hw.owner == "guild")
+                    )
+                    and (len(hw.user_restriction) == 0)
+                    or (user.id in hw.user_restriction),
+                    regex_cache.get(message.guild.id, []),
+                ):
+                    query_param = [message.id, message.channel.id]
+                    if type(message.channel) is not discord.DMChannel:
+                        query_param.append(message.guild.id)
+                    cur = conn.cursor()
+                    cur.execute(
+                        f"SELECT author_id FROM attributions WHERE message = %s AND channel = %s AND guild {'= %s' if type(message.channel) is not discord.DMChannel else 'IS NULL'}",
+                        query_param,
+                    )
+                    subtuple = cur.fetchone()
+                    if subtuple and subtuple[0] == hotword.owner.id:
+                        continue
+                    if hotword.compiled_regex.search(message.content):
+                        for command in hotword.target:
+                            if hotword.owner.id in self.pinged_users[message.id]:
+                                continue
+                            else:
+                                self.pinged_users[message.id].append(hotword.owner.id)
+                            await command(message, self.client, args)
             channel_config = cast(
                 dict, self.scope_config(channel=fromChannel, guild=fromGuild)
             )
@@ -1982,6 +2019,10 @@ class CommandHandler:
                     continue
                 if hotword.compiled_regex.search(message.content):
                     for command in hotword.target:
+                        if hotword.owner.id in self.pinged_users[message.id]:
+                            continue
+                        else:
+                            self.pinged_users[message.id].append(hotword.owner.id)
                         await command(message, self.client, args)
         if channel_config.get("regex", None) == "post-command" and not (
             channel_config.get("regex-tyranny", False)
