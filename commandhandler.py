@@ -1611,7 +1611,7 @@ class CommandHandler:
                         or (type(hw.owner) is str and hw.owner == "guild")
                     )
                     and (len(hw.user_restriction) == 0)
-                    or (user.id in hw.user_restriction),
+                    or (message.author.id in hw.user_restriction),
                     regex_cache.get(message.guild.id, []),
                 ):
                     query_param = [message.id, message.channel.id]
