@@ -348,13 +348,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -2034,6 +2037,33 @@ async def self_service_channel_function(
                             )
                             await confirmMessage.remove_reaction("✅", client.user)
                             return
+                    if (
+                        not message.channel_mentions[0]
+                        .permissions_for(message.guild.get_member(client.user.id))
+                        .manage_permissions
+                    ):
+                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, but I don't think I have permission to add them. When you've granted me Manage Permissions on the channel, react with a checkmark to proceed. If you do not wish to grant entry, no further action is required."
+                        confirmMessage = await messagefuncs.sendWrappedMessage(
+                            confirmMessage,
+                            author,
+                        )
+                        await confirmMessage.add_reaction("✅")
+                        try:
+                            reaction = await client.wait_for(
+                                "raw_reaction_add",
+                                timeout=60000.0 * 24,
+                                check=lambda reaction: reaction.message_id
+                                == confirmMessage.id
+                                and (str(reaction.emoji) == "✅")
+                                and (reaction.user_id == author.id),
+                            )
+                        except asyncio.TimeoutError:
+                            await confirmMessage.edit(
+                                content=f"~~{confirmMessage.content}~~Request expired due to timeout."
+                            )
+                            await confirmMessage.remove_reaction("✅", client.user)
+                            return
+
                     await message.channel_mentions[0].set_permissions(
                         args[1],
                         read_messages=True,
