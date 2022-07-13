@@ -2037,7 +2037,7 @@ async def self_service_channel_function(
                             )
                             await confirmMessage.remove_reaction("✅", client.user)
                             return
-                    if (
+                    while (
                         not message.channel_mentions[0]
                         .permissions_for(message.guild.get_member(client.user.id))
                         .manage_permissions
@@ -2049,7 +2049,7 @@ async def self_service_channel_function(
                         )
                         await confirmMessage.add_reaction("✅")
                         try:
-                            reaction = await client.wait_for(
+                            await client.wait_for(
                                 "raw_reaction_add",
                                 timeout=60000.0 * 24,
                                 check=lambda reaction: reaction.message_id
