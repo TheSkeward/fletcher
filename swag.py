@@ -4516,6 +4516,16 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!smbc"],
+            "function": lambda message, client, args: f"https://www.smbc-comics.com/comic/{'-'.join(args)}",
+            "async": False,
+            "args_num": 0,
+            "args_name": ["Comic name"],
+            "description": "Show today's SMBC (or by name)",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!xkcd"],
             "function": lambda message, client, args: f"https://xkcd.com/{'_'.join(args)}",
             "async": False,
