@@ -1198,7 +1198,11 @@ async def roll_function(message, client, args):
             if not (-10e6 < offset < 10e6):
                 raise ValueError("That offset seems like a bit much, don't you think?")
             if len(args) == 1:
-                if args[0].startswith("D&D"):
+                if (
+                    args[0].lower().startswith("D&D")
+                    or args[0].lower().startswith("dnd")
+                    or args[0].lower().startswith("daandd")
+                ):
                     result = sorted(
                         [
                             sum(drop_lowest([random.randint(1, 6) for i in range(4)]))
@@ -1221,7 +1225,11 @@ async def roll_function(message, client, args):
                 else:
                     args = [[0, 0]]
             elif len(args) == 2:
-                if args[0].startswith("D&D"):
+                if (
+                    args[0].lower().startswith("D&D")
+                    or args[0].lower().startswith("dnd")
+                    or args[0].lower().startswith("daandd")
+                ):
                     if args[1].startswith("7drop1"):
                         result = drop_lowest(
                             [
@@ -4271,7 +4279,7 @@ def autoload(ch):
             "async": True,
             "args_num": 0,
             "args_name": [],
-            "description": "Roll dice in #d# format",
+            "description": "Roll dice in #d# format, !roll D&D for stats instead",
         }
     )
     ch.add_command(
