@@ -1822,6 +1822,7 @@ class CommandHandler:
             isinstance(message.channel, discord.Thread)
             and not message.channel.me
             and not message.channel.is_private()
+            and message.channel.message_count < 4
         ):
             await self.thread_add(message.channel)
         if not message.webhook_id and message.author.bot:
