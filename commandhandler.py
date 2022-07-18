@@ -2502,123 +2502,118 @@ class CommandHandler:
         if not thread.me:
             logger.debug(f"Adding myself to new thread {thread.name} ({thread.id})")
             await thread.add_user(thread.guild.get_member(self.user.id))
-        else:
-            if thread.is_private():
-                logger.debug("Private thread, you know what you're doing.")
-                return
-            if thread.guild:
-                if thread.category_id not in self.config.get(
-                    key="automod-blacklist-category", guild=thread.guild.id
-                ):
-                    for user in list(
-                        filter(
-                            lambda user: user in thread.parent.members,
-                            await load_config.expand_target_list(
-                                self.config.get(
-                                    key="manual-mod-userslist",
-                                    default=[thread.guild.owner.id]
-                                    if thread.guild.owner
-                                    else [],
-                                    guild=thread.guild.id,
-                                ),
-                                thread.guild,
+        if thread.is_private():
+            logger.debug("Private thread, you know what you're doing.")
+            return
+        if thread.guild:
+            if thread.category_id not in self.config.get(
+                key="automod-blacklist-category", guild=thread.guild.id
+            ):
+                for user in list(
+                    filter(
+                        lambda user: user in thread.parent.members,
+                        await load_config.expand_target_list(
+                            self.config.get(
+                                key="manual-mod-userslist",
+                                default=[thread.guild.owner.id]
+                                if thread.guild.owner
+                                else [],
+                                guild=thread.guild.id,
                             ),
-                        )
-                    ):
-                        if self.config.normalize_booleans(
-                            self.user_config(
-                                user.id,
-                                thread.guild.id,
-                                key="use_threads",
-                                default="True",
-                                allow_global_substitute=True,
-                            )
-                        ):
-                            logger.debug(
-                                f"Adding mod {user} to thread {thread.name} ({thread.id})"
-                            )
-                            await thread.add_user(user)
-                for user in thread.parent.members:
-                    use_threads = self.config.normalize(
-                        str(
-                            self.user_config(
-                                user.id,
-                                thread.guild.id,
-                                key="use_threads",
-                                default="false",
-                                allow_global_substitute=True,
-                            )
-                        )
+                            thread.guild,
+                        ),
                     )
-                    if (isinstance(use_threads, bool) and use_threads) or (
-                        isinstance(use_threads, str)
-                        and thread.id
-                        in tuple(
-                            self.config.normalize(
-                                self.config.normalize_array(use_threads)
-                            )
+                ):
+                    if self.config.normalize_booleans(
+                        self.user_config(
+                            user.id,
+                            thread.guild.id,
+                            key="use_threads",
+                            default="True",
+                            allow_global_substitute=True,
                         )
                     ):
                         logger.debug(
-                            f"Adding {user} to thread {thread.name} ({thread.id})"
+                            f"Adding mod {user} to thread {thread.name} ({thread.id})"
                         )
                         await thread.add_user(user)
-                global conn
-                bridge_key = f"{thread.guild.name}:{thread.parent_id}"
-                bridge = (await self.bridge_registry()).get(bridge_key)
-                if bridge:
-                    new_threads = []
-                    await asyncio.sleep(1)
-                    for bridge_channel in bridge["toChannelObject"]:
-                        query_params = [
+            for user in thread.parent.members:
+                use_threads = self.config.normalize(
+                    str(
+                        self.user_config(
+                            user.id,
                             thread.guild.id,
-                            thread.parent_id,
-                            thread.id,
-                            bridge_channel.guild.id,
-                        ]
-                        metuple = None
-                        if metuple is None:
+                            key="use_threads",
+                            default="false",
+                            allow_global_substitute=True,
+                        )
+                    )
+                )
+                if (isinstance(use_threads, bool) and use_threads) or (
+                    isinstance(use_threads, str)
+                    and thread.id
+                    in tuple(
+                        self.config.normalize(self.config.normalize_array(use_threads))
+                    )
+                ):
+                    logger.debug(f"Adding {user} to thread {thread.name} ({thread.id})")
+                    await thread.add_user(user)
+            global conn
+            bridge_key = f"{thread.guild.name}:{thread.parent_id}"
+            bridge = (await self.bridge_registry()).get(bridge_key)
+            if bridge:
+                new_threads = []
+                await asyncio.sleep(1)
+                for bridge_channel in bridge["toChannelObject"]:
+                    query_params = [
+                        thread.guild.id,
+                        thread.parent_id,
+                        thread.id,
+                        bridge_channel.guild.id,
+                    ]
+                    metuple = None
+                    if metuple is None:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                            query_params,
+                        )
+                        metuple = cur.fetchone()
+                        conn.commit()
+                    if metuple is None:
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                            query_params[:3],
+                        )
+                        metuple = cur.fetchone()
+                        conn.commit()
+                        if metuple[0] != bridge_channel.guild.id:
                             cur = conn.cursor()
                             cur.execute(
                                 "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                                query_params,
+                                [*metuple, bridge_channel.guild.id],
                             )
                             metuple = cur.fetchone()
                             conn.commit()
-                        if metuple is None:
-                            cur = conn.cursor()
-                            cur.execute(
-                                "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
-                                query_params[:3],
-                            )
-                            metuple = cur.fetchone()
-                            conn.commit()
-                            if metuple[0] != bridge_channel.guild.id:
-                                cur = conn.cursor()
-                                cur.execute(
-                                    "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                                    [*metuple, bridge_channel.guild.id],
+                    if metuple[1] != thread.parent_id and metuple:
+                        new_threads.append(
+                            await (
+                                await self.client.get_channel(metuple[1]).fetch_message(
+                                    int(metuple[2])
                                 )
-                                metuple = cur.fetchone()
-                                conn.commit()
-                        if metuple[1] != thread.parent_id and metuple:
-                            new_threads.append(
-                                await (
-                                    await self.client.get_channel(
-                                        metuple[1]
-                                    ).fetch_message(int(metuple[2]))
-                                ).create_thread(name=thread.name)
-                            )
-                    try:
-                        cur = conn.cursor()
-                        cur.execute(
-                            "INSERT INTO threads (source, target) VALUES (%s, %s);",
-                            [thread.id, [thread.id for thread in new_threads]],
+                            ).create_thread(name=thread.name)
                         )
-                        conn.commit()
-                    except Exception as e:
-                        if "cur" in locals() and "conn" in locals():
-                            conn.rollback()
+                try:
+                    cur = conn.cursor()
+                    cur.execute(
+                        "INSERT INTO threads (source, target) VALUES (%s, %s);",
+                        [thread.id, [thread.id for thread in new_threads]],
+                    )
+                    conn.commit()
+                except Exception as e:
+                    if "cur" in locals() and "conn" in locals():
+                        conn.rollback()
 
     async def guild_add(self, guild):
         await guild.chunk()
