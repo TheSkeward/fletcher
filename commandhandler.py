@@ -1933,7 +1933,7 @@ class CommandHandler:
                 refChannel = refGuild.get_channel(
                     message.reference.channel_id
                 ) or refGuild.get_thread(message.reference.channel_id)
-            if refChannel:
+            if refChannel and message.reference.message_id:
                 try:
                     refMessage = await refChannel.fetch_message(
                         message.reference.message_id
