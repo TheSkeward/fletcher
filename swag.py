@@ -1199,7 +1199,7 @@ async def roll_function(message, client, args):
                 raise ValueError("That offset seems like a bit much, don't you think?")
             if len(args) == 1:
                 if (
-                    args[0].lower().startswith("D&D")
+                    args[0].lower().startswith("d&d")
                     or args[0].lower().startswith("dnd")
                     or args[0].lower().startswith("daandd")
                 ):
@@ -1226,7 +1226,7 @@ async def roll_function(message, client, args):
                     args = [[0, 0]]
             elif len(args) == 2:
                 if (
-                    args[0].lower().startswith("D&D")
+                    args[0].lower().startswith("d&d")
                     or args[0].lower().startswith("dnd")
                     or args[0].lower().startswith("daandd")
                 ):
