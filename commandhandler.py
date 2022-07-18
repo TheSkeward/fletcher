@@ -1818,6 +1818,12 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
+        if (
+            isinstance(message.channel, discord.Thread)
+            and not message.channel.me
+            and not message.channel.is_private()
+        ):
+            await self.thread_add(message.channel)
         if not message.webhook_id and message.author.bot:
             if message.author.id not in self.config.get(
                 key="whitelist-bots", section="sync", default=[]
