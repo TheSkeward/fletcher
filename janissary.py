@@ -348,13 +348,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -2039,7 +2042,7 @@ async def self_service_channel_function(
                         .permissions_for(message.guild.get_member(client.user.id))
                         .manage_permissions
                     ):
-                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, but I don't think I have permission to add them. When you've granted me Manage Permissions on the channel, react with a checkmark to proceed. If you do not wish to grant entry, no further action is required."
+                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, but I don't think I have permission to add them. When you've granted me View Channel and Manage Permissions on the channel, react with a checkmark to proceed. If you do not wish to grant entry, no further action is required."
                         confirmMessage = await messagefuncs.sendWrappedMessage(
                             confirmMessage,
                             author,
@@ -2269,6 +2272,36 @@ async def toggle_mute_channel_function(message, client, args):
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+
+
+async def mute_function(message, client, args):
+    try:
+        if len(args) == 0:
+            target = [
+                m
+                for m in message.channel.members
+                if m.id not in (ch.user_id, message.author.id)
+            ]
+            delay = timedelta(hours=1)
+        if len(args) >= 1:
+            if message.user_mentions:
+                target = message.user_mentions
+            elif args[0] == "thanos":
+                target = [
+                    m
+                    for m in message.channel.members
+                    if m.id not in (ch.user_id, message.author.id)
+                ]
+                target = random.sample(target, int(len(target) / 2))
+            else:
+                target = await load_config.expand_target_list(args[0], message.guild)
+            delay = timedelta(hours=1)
+        if len(args) >= 2:
+            delay = timedelta(hours=int(args[-1]))
+        await asyncio.sleep(delay.seconds)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error(f"MUF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def toggle_mute_role_function(message, client, args):
@@ -2588,6 +2621,18 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Delete a Fletcher message if you're responsible for it",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!mute"],
+            "function": mute_function,
+            "async": True,
+            "hidden": False,
+            "admin": "channel",
+            "args_num": 0,
+            "args_name": ["target", "time"],
+            "description": "Mute target for time",
         }
     )
     ch.add_command(
