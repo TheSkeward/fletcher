@@ -1186,7 +1186,7 @@ class CommandHandler:
         except AttributeError:
             return
         bridge_key = f"{message.guild.name}:{message.channel.id}"
-        bridge = (await self.bridge_registry()).get(bridge_key)
+        bridge = await self.bridge_registry(bridge_key)
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
@@ -1442,14 +1442,14 @@ class CommandHandler:
             user != self.client.user
             and type(channel) is discord.TextChannel
             and channel.guild
-            and (await self.bridge_registry()).get(f"{channel.guild.name}:{channel.id}")
+            and await self.bridge_registry(f"{channel.guild.name}:{channel.id}")
         ):
             await asyncio.gather(
                 *[
                     channel.trigger_typing()
-                    for channel in (await self.bridge_registry())[
-                        f"{channel.guild.name}:{channel.id}"
-                    ].channels
+                    for channel in (
+                        await self.bridge_registry(f"{channel.guild.name}:{channel.id}")
+                    ).channels
                 ]
             )
 
@@ -1496,7 +1496,7 @@ class CommandHandler:
             else:
                 # Currently, we don't log empty or image-only messages
                 pass
-            if fromGuild and (await self.bridge_registry()).get(
+            if fromGuild and await self.bridge_registry(
                 f"{fromGuild.name}:{fromChannel.id}"
             ):
                 await asyncio.sleep(1)
@@ -1565,8 +1565,11 @@ class CommandHandler:
                         plural = "s"
                     if (
                         fromMessage.channel.is_nsfw()
-                        and not (await self.bridge_registry())
-                        .get(f"{fromMessage.guild.name}:{fromMessage.channel.id}")
+                        and not (
+                            await self.bridge_registry(
+                                f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                            )
+                        )
                         .channels[0]
                         .is_nsfw()
                     ):
@@ -1582,9 +1585,11 @@ class CommandHandler:
                                 discord.File(attachment_blob, attachment.filename)
                             )
                 webhook = discord.utils.get(
-                    (await self.bridge_registry())[
-                        f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                    ].webhooks,
+                    (
+                        await self.bridge_registry(
+                            f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                        )
+                    ).webhooks,
                     channel__id=toChannel.id,
                 )
                 assert webhook is not None
@@ -1667,7 +1672,7 @@ class CommandHandler:
             isinstance(message.channel, discord.DMChannel)
             and self.client.get_channel(message.channel.id) is None
         ):
-            await message.author.create_dm()
+            await user.create_dm()
         if (
             user.id == 382984420321263617
             and type(message.channel) is discord.DMChannel
@@ -2447,15 +2452,17 @@ class CommandHandler:
                 )
         await ctx.response.send_message("Not Implemented")
 
-    async def bridge_registry(self):
+    async def bridge_registry(self, key: Optional[str] = None):
         global webhooks_pending
         while webhooks_pending:
             await asyncio.sleep(0.3)
-            if not webhooks_pending:
+            if not webhooks_pending or (key and self.webhook_sync_registry.get(key)):
                 logger.debug(
                     f"Detected {len(self.webhook_sync_registry)} webhooks, continuing"
                 )
-        return self.webhook_sync_registry
+        return (
+            self.webhook_sync_registry.get(key) if key else self.webhook_sync_registry
+        )
 
     def allowCommand(self, command, message, user=None):
         global config
@@ -2562,7 +2569,7 @@ class CommandHandler:
                     await thread.add_user(user)
             global conn
             bridge_key = f"{thread.guild.name}:{thread.parent_id}"
-            bridge = (await self.bridge_registry()).get(bridge_key)
+            bridge = await self.bridge_registry(bridge_key)
             if bridge:
                 new_threads = []
                 await asyncio.sleep(1)
@@ -3585,7 +3592,7 @@ async def run_web_api(config, ch):
 
 async def reaction_list_function(message, client, args, ctx):
     bridge_key = f"{message.guild.name}:{message.channel.id}"
-    bridge = (await ch.bridge_registry()).get(bridge_key)
+    bridge = await ch.bridge_registry(bridge_key)
     if bridge:
         cur = conn.cursor()
         query_params = [message.guild.id, message.channel.id, message.id]
