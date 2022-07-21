@@ -391,7 +391,7 @@ async def on_message(message):
             while 1:
                 try:
                     ch.config
-                    if commandhandler.webhooks_pending or false:
+                    if commandhandler.webhooks_pending or False:
                         continue
                     break
                 except AttributeError:
@@ -452,7 +452,7 @@ async def on_raw_message_edit(payload):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or false:
+                if commandhandler.webhooks_pending or False:
                     continue
                 break
             except AttributeError:
@@ -495,7 +495,7 @@ async def on_typing(channel, user, when):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -512,7 +512,7 @@ async def on_raw_message_delete(message):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or false:
+                if commandhandler.webhooks_pending or False:
                     continue
                 break
             except AttributeError:
@@ -625,7 +625,7 @@ async def on_raw_reaction_add(reaction):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or false:
+                if commandhandler.webhooks_pending or False:
                     continue
                 break
             except AttributeError:
@@ -651,7 +651,7 @@ async def on_raw_reaction_remove(reaction):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or false:
+                if commandhandler.webhooks_pending or False:
                     continue
                 break
             except AttributeError:
@@ -676,7 +676,7 @@ async def on_voice_state_update(member, before, after):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -709,7 +709,7 @@ async def on_member_join(member):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -725,7 +725,7 @@ async def on_member_remove(member):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -741,7 +741,7 @@ async def on_guild_channel_update(before, after):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -789,7 +789,7 @@ async def on_invite_create(invite):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -806,7 +806,7 @@ async def on_invite_delete(invite):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -823,7 +823,7 @@ async def on_guild_join(guild):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -838,7 +838,7 @@ async def on_thread_join(thread):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
@@ -853,7 +853,7 @@ async def on_interaction(ctx):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or false:
+            if commandhandler.webhooks_pending or False:
                 continue
             break
         except AttributeError:
