@@ -391,6 +391,8 @@ async def on_message(message):
             while 1:
                 try:
                     ch.config
+                    if ch.webhooks_pending:
+                        continue
                     break
                 except AttributeError:
                     await asyncio.sleep(1)
@@ -450,6 +452,8 @@ async def on_raw_message_edit(payload):
         while 1:
             try:
                 ch.config
+                if ch.webhooks_pending:
+                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -491,6 +495,8 @@ async def on_typing(channel, user, when):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -506,6 +512,8 @@ async def on_raw_message_delete(message):
         while 1:
             try:
                 ch.config
+                if ch.webhooks_pending:
+                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -617,6 +625,8 @@ async def on_raw_reaction_add(reaction):
         while 1:
             try:
                 ch.config
+                if ch.webhooks_pending:
+                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -641,6 +651,8 @@ async def on_raw_reaction_remove(reaction):
         while 1:
             try:
                 ch.config
+                if ch.webhooks_pending:
+                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -664,6 +676,8 @@ async def on_voice_state_update(member, before, after):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -683,14 +697,7 @@ async def on_voice_state_update(member, before, after):
         if canticum_message is not None:
             await canticum_message.delete()
         canticum_message = await canticum.send(
-            "<@&"
-            + str(config["audio"]["notificationrole"])
-            + ">: "
-            + str(member.name)
-            + " is in voice ("
-            + str(after.channel.name)
-            + ") in "
-            + str(member.guild.name)
+            f"<@&{config['audio']['notificationrole']}>: {member.name} is in voice ({after.channel.name}) in member.guild.name"
         )
 
 
@@ -702,6 +709,8 @@ async def on_member_join(member):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -716,6 +725,8 @@ async def on_member_remove(member):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -730,6 +741,8 @@ async def on_guild_channel_update(before, after):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -776,11 +789,13 @@ async def on_invite_create(invite):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
     if not ch.guild_invites.get(invite.guild.id):
-        ch.guild_invites[invite.guild.id] = {}
+        ch.guild_invites[invite.guild.id] = {invite.code: invite}
     ch.guild_invites[invite.guild.id][invite.code] = invite
 
 
@@ -791,11 +806,13 @@ async def on_invite_delete(invite):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
     if not ch.guild_invites.get(invite.guild.id):
-        ch.guild_invites[invite.guild.id] = {}
+        ch.guild_invites[invite.guild.id] = {invite.code: invite}
     del ch.guild_invites[invite.guild.id][invite.code]
 
 
@@ -806,6 +823,8 @@ async def on_guild_join(guild):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -819,6 +838,8 @@ async def on_thread_join(thread):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
@@ -832,6 +853,8 @@ async def on_interaction(ctx):
     while 1:
         try:
             ch.config
+            if ch.webhooks_pending:
+                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
