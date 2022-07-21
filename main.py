@@ -392,6 +392,7 @@ async def on_message(message):
                 try:
                     ch.config
                     if commandhandler.webhooks_pending or False:
+                        await asyncio.sleep(1)
                         continue
                     break
                 except AttributeError:
@@ -453,6 +454,7 @@ async def on_raw_message_edit(payload):
             try:
                 ch.config
                 if commandhandler.webhooks_pending or False:
+                    await asyncio.sleep(1)
                     continue
                 break
             except AttributeError:
@@ -494,8 +496,11 @@ async def on_typing(channel, user, when):
         await asyncio.sleep(1)
     while 1:
         try:
+            if not ch.enable_typing_handler:
+                return
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -513,6 +518,7 @@ async def on_raw_message_delete(message):
             try:
                 ch.config
                 if commandhandler.webhooks_pending or False:
+                    await asyncio.sleep(1)
                     continue
                 break
             except AttributeError:
@@ -626,6 +632,7 @@ async def on_raw_reaction_add(reaction):
             try:
                 ch.config
                 if commandhandler.webhooks_pending or False:
+                    await asyncio.sleep(1)
                     continue
                 break
             except AttributeError:
@@ -652,6 +659,7 @@ async def on_raw_reaction_remove(reaction):
             try:
                 ch.config
                 if commandhandler.webhooks_pending or False:
+                    await asyncio.sleep(1)
                     continue
                 break
             except AttributeError:
@@ -677,6 +685,7 @@ async def on_voice_state_update(member, before, after):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -710,6 +719,7 @@ async def on_member_join(member):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -726,6 +736,7 @@ async def on_member_remove(member):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -742,6 +753,7 @@ async def on_guild_channel_update(before, after):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -790,6 +802,7 @@ async def on_invite_create(invite):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -807,6 +820,7 @@ async def on_invite_delete(invite):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -824,6 +838,7 @@ async def on_guild_join(guild):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -839,6 +854,7 @@ async def on_thread_join(thread):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
@@ -854,6 +870,7 @@ async def on_interaction(ctx):
         try:
             ch.config
             if commandhandler.webhooks_pending or False:
+                await asyncio.sleep(1)
                 continue
             break
         except AttributeError:
