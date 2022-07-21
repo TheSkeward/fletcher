@@ -180,7 +180,10 @@ class CommandHandler:
         self.pinged_users: defaultdict[int, list[int]] = defaultdict(list)
 
     async def load_webhooks(self):
-        webhook_sync_registry: Dict[str, Bridge] = {}
+        global webhooks_pending
+        webhooks_pending = True
+        self.webhook_sync_registry: Dict[str, Bridge] = {}
+        webhook_sync_registry = self.webhook_sync_registry
         navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
         bridge_guilds = list(
             filter(
@@ -242,8 +245,6 @@ class CommandHandler:
                     webhook_sync_registry[fromChannelName] = Bridge()
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
-        self.webhook_sync_registry = webhook_sync_registry
-        global webhooks_pending
         webhooks_pending = False
         logger.debug("Webhooks loaded:")
         logger.debug(
