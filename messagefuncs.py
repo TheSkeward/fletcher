@@ -5,6 +5,7 @@ import asyncio
 import aiohttp
 import netcode
 import discord
+from tenacity import retry
 import exceptions
 import shortuuid
 import io
@@ -116,6 +117,7 @@ def xchannel(targetChannel, currentGuild):
     return toChannel
 
 
+@retry
 async def sendWrappedMessage(
     msg=None,
     target=None,

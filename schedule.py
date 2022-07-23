@@ -481,7 +481,7 @@ async def table_exec_function():
                 try:
                     async with session.get(
                         f"https://bridge.rss.noblejury.com/?action=display&bridge=Twitter&context=By+username&u={username}&norep=on&noretweet=on&nopinned=on&noimgscaling=on&format=Atom",
-                        timeout=5,
+                        timeout=10,
                     ) as resp:
                         data = await resp.read()
                         feed = atoma.parse_atom_bytes(data)

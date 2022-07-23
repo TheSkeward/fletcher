@@ -1832,6 +1832,11 @@ async def self_service_role_function(message, client, args):
     global ch
     try:
         if not len(message.role_mentions):
+            logger.debug(f"No role_mentions for {message.jump_url}")
+            await messagefuncs.sendWrappedMessage(
+                f"I no longer see role mentions at {message.jump_url}, and {args[1]} clicked.",
+                message.author,
+            )
             return
         if not (
             message.author.id
