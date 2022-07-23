@@ -723,9 +723,11 @@ class CommandHandler:
                     ):
                         scoped_command = channel_handler
                     try:
-                        if isinstance(channel, discord.TextChannel) and (
-                            await self.bridge_registry()
-                        ).get(f"{channel.guild.name}:{channel.id}"):
+                        if isinstance(
+                            channel, discord.TextChannel
+                        ) and await self.bridge_registry(
+                            f"{channel.guild.name}:{channel.id}"
+                        ):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
                                     reaction.emoji.id
@@ -1442,15 +1444,14 @@ class CommandHandler:
             user != self.client.user
             and type(channel) is discord.TextChannel
             and channel.guild
-            and await self.bridge_registry(f"{channel.guild.name}:{channel.id}")
+            and (
+                bridge := self.webhook_sync_registry.get(
+                    f"{channel.guild.name}:{channel.id}"
+                )
+            )
         ):
             await asyncio.gather(
-                *[
-                    channel.trigger_typing()
-                    for channel in (
-                        await self.bridge_registry(f"{channel.guild.name}:{channel.id}")
-                    ).channels
-                ]
+                *[channel.trigger_typing() for channel in bridge.channels]
             )
 
     async def edit_handler(self, message):
