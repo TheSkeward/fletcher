@@ -64,12 +64,18 @@ def channel_config_endpoint(
     guild: discord.Guild,
     channel: discord.TextChannel,
 ):
-    return config.get(
+    endpoint = config.get(
         guild=guild.id,
         channel=channel.id,
         key="logging-endpoint",
         use_guild_as_channel_fallback=True,
+        use_category_as_channel_fallback=True,
     )
+    if not endpoint and channel.category:
+        endpoint = config.get(
+            guild=guild.id, channel=channel.category.id, key="logging-endpoint"
+        )
+    return endpoint
 
 
 preamble = Template(open(current_dir + "/templates/preamble.template", "r").read())
@@ -99,6 +105,7 @@ async def on_ready():
                     "after": midnight,
                 }
                 log_today = preamble.render(**context)
+                print(f"#{channel.name} {midnight}-{midnight_2}")
                 async for message in channel.history(
                     after=midnight, before=midnight_2, limit=None
                 ):
@@ -142,9 +149,7 @@ async def on_ready():
                     f'fletcher-logs/{guild.id}/{channel.id}/{midnight.strftime("%d-%m-%y")}.html { context["message_count"] }'
                 )
                 s3.Object(
-                    config.get(
-                        guild=guild.id, channel=channel.id, key="logging-endpoint"
-                    ),
+                    channel_config_endpoint(config, guild, channel),
                     f'fletcher-logs/{guild.id}/{channel.id}/{midnight.strftime("%d-%m-%y")}.html',
                 ).put(
                     Body=log_today,

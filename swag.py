@@ -904,6 +904,12 @@ uwu_responses = {
         "Thanksss~",
         "uwu to you too <3",
     ],
+    "488171583626805259": [
+        "i love you, hang in there",
+        "if you need a sign, this is it",
+        "be not afraid",
+        "remember your affirmations",
+    ],
     "reaction": [
         "❤",
         "💛",
@@ -949,7 +955,10 @@ async def uwu_function(message, client, args, responses=uwu_responses):
                 await messagefuncs.add_reaction(message, reaction)
             else:
                 return await messagefuncs.sendWrappedMessage(
-                    random.choice(responses["public"]), message.channel
+                    random.choice(
+                        responses.get(str(message.author.id), responses["public"])
+                    ),
+                    message.channel,
                 )
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()

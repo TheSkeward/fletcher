@@ -519,6 +519,7 @@ async def table_exec_function():
                                 feed.entries[0].links[0].href,
                             )
                 except asyncio.TimeoutError:
+                    traceback.format_exc()
                     logger.debug(f"Timed out retrieving @{username}, skipping")
             except Exception as e:
                 logger.error(f"{e}")
