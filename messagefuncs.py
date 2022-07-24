@@ -478,9 +478,12 @@ async def preview_messagelink_function(message, client, args):
                     )
                 return
             channel = guild.get_channel(channel_id) or guild.get_thread(channel_id)
-            member = guild.get_member(message.author.id) or await guild.fetch_member(
-                message.author.id
-            )
+            try:
+                member = guild.get_member(
+                    message.author.id
+                ) or await guild.fetch_member(message.author.id)
+            except discord.errors.NotFound:
+                return
             if not (member and channel.permissions_for(member).read_message_history):
                 return
             preview_allowed = config.get(
