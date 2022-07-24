@@ -8,6 +8,7 @@ from psycopg2._psycopg import connection
 from dataclasses import asdict, dataclass, field
 
 import discord
+from aiolimiter import AsyncLimiter
 import logging
 import messagefuncs
 import itertools
@@ -76,6 +77,21 @@ class Bridge:
         self.channels: List[discord.TextChannel] = []
         self.webhooks: List[discord.Webhook] = []
         self.thread_ids: List[Optional[discord.abc.Snowflake]] = []
+        self.rate_limit = AsyncLimiter(1, 10)
+
+    async def typing(self, except_for: Optional[discord.TextChannel] = None):
+        if self.rate_limit.has_capacity():
+            async with self.rate_limit:
+                if len(self.channels) == 1:
+                    await self.channels[0].trigger_typing()
+                else:
+                    await asyncio.gather(
+                        *[
+                            channel.trigger_typing()
+                            for channel in self.channels
+                            if not except_for or channel.id != except_for.id
+                        ]
+                    )
 
     def append(
         self,
@@ -249,6 +265,7 @@ class CommandHandler:
                     webhook_sync_registry[fromChannelName] = Bridge()
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
+                await asyncio.sleep(0)
             self.loaded_guilds.append(guild)
         webhooks_pending = False
         logger.debug("Webhooks loaded:")
@@ -1455,9 +1472,7 @@ class CommandHandler:
                 )
             )
         ):
-            await asyncio.gather(
-                *[channel.trigger_typing() for channel in bridge.channels]
-            )
+            await bridge.typing(except_for=channel)
 
     async def edit_handler(self, message):
         try:
