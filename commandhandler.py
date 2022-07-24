@@ -2022,7 +2022,7 @@ class CommandHandler:
                 and (
                     (
                         isinstance(hw.owner, discord.Member)
-                        and discord.utils.get(message.channel.members, id=hw.owner.id)
+                        and message.channel.permissions_for(hw.owner).read_messages
                         and message.author.id != hw.owner.id
                     )
                     or (type(hw.owner) is str and hw.owner == "guild")
