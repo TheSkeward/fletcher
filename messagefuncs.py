@@ -130,6 +130,7 @@ async def sendWrappedMessage(
     **kwargs,
 ):
     with configure_scope() as scope:
+        cur = conn.cursor()
         current_user_id = current_user_id or scope._user["id"]
         # current_message_id = scope._tags.get('message_id')
         # current_channel_id = scope._tags.get('channel_id')
@@ -184,7 +185,6 @@ async def sendWrappedMessage(
                     allowed_mentions=allowed_mentions,
                     **kwargs,
                 )
-                cur = conn.cursor()
                 cur.execute(
                     "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     [
@@ -199,7 +199,6 @@ async def sendWrappedMessage(
                         else None,
                     ],
                 )
-                conn.commit()
         else:
             last_chunk = None
         if wrap_as_embed:
@@ -207,7 +206,7 @@ async def sendWrappedMessage(
             last_chunk = embed_chunks.pop()
             for msg in embed_chunks:
                 embed = discord.Embed().set_footer(
-                    icon_url=client.user.avatar_url, text=client.user.name
+                    icon_url=ch.client.user.avatar_url, text=ch.client.user.name
                 )
                 msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
                 for hunk in msg_chunks:
@@ -219,7 +218,6 @@ async def sendWrappedMessage(
                     allowed_mentions=allowed_mentions,
                     **kwargs,
                 )
-                cur = conn.cursor()
                 cur.execute(
                     "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     [
@@ -234,9 +232,8 @@ async def sendWrappedMessage(
                         else None,
                     ],
                 )
-                conn.commit()
             embed = discord.Embed().set_footer(
-                icon_url=client.user.display_avatar, text=client.user.name
+                icon_url=ch.client.user.display_avatar, text=ch.client.user.name
             )
             msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
             for hunk in msg_chunks:
@@ -249,7 +246,6 @@ async def sendWrappedMessage(
             allowed_mentions=allowed_mentions,
             **kwargs,
         )
-        cur = conn.cursor()
         cur.execute(
             "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
             [
