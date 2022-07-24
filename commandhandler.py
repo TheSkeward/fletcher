@@ -194,6 +194,11 @@ class CommandHandler:
             )
             assert isinstance(emote_server, discord.Guild)
             self.emote_server = emote_server
+            self.ch_enable_typing_handler = (
+                self.config.get(
+                    section="discord", key="enable_typing_handler", default=False
+                ),
+            )
         self.pinged_users: defaultdict[int, list[int]] = defaultdict(list)
 
     async def load_webhooks(self):
