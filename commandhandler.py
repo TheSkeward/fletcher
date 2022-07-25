@@ -2044,6 +2044,7 @@ class CommandHandler:
                         isinstance(hw.owner, discord.Member)
                         and message.channel.permissions_for(hw.owner).read_messages
                         and message.author.id != hw.owner.id
+                        and not message.author.bot
                     )
                     or (type(hw.owner) is str and hw.owner == "guild")
                 )
