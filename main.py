@@ -496,6 +496,7 @@ async def on_raw_message_edit(payload):
 
 @client.event
 async def on_typing(channel, user, when):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
@@ -503,10 +504,9 @@ async def on_typing(channel, user, when):
             if not ch.enable_typing_handler:
                 return
             ch.config
-            break
+            return await ch.typing_handler(channel, user)
         except AttributeError:
             await asyncio.sleep(1)
-    await ch.typing_handler(channel, user)
 
 
 # on message deletion (for webhooks only for now)
