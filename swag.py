@@ -4133,6 +4133,11 @@ async def sholo_room(message, client, args):
     await message.add_reaction("🍄")
 
 
+async def ping_function(message: discord.Message, client, args):
+    times = f"Message was sent at {message.created_at}, reply sent at {datetime.now()} (Pong)"
+    await messagefuncs.sendWrappedMessage(times, message.channel)
+
+
 async def pongo(message, client, args, ctx):
     logger.debug(f"Pongo time {args}")
     await ctx.response.send_message("Pong!", ephemeral=True)
@@ -4419,8 +4424,8 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": ["!ping"],
-            "function": lambda message, client, args: f"Pong!",
-            "async": False,
+            "function": ping_function,
+            "async": True,
             "args_num": 0,
             "long_run": False,
             "args_name": [],
