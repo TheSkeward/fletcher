@@ -1205,13 +1205,13 @@ class CommandHandler:
         try:
             if not message.guild:
                 return
+            bridge_key = f"{message.guild.name}:{message.channel.id}"
+            if self.config.get(guild=message.guild, key="synchronize"):
+                bridge = await self.bridge_registry(bridge_key)
+            else:
+                return
         except AttributeError:
             return
-        bridge_key = f"{message.guild.name}:{message.channel.id}"
-        if message.guild and self.config.get(guild=message.guild, key="synchronize"):
-            bridge = await self.bridge_registry(bridge_key)
-        else:
-            bridge = None
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
@@ -2487,32 +2487,19 @@ class CommandHandler:
                 )
         await ctx.response.send_message("Not Implemented")
 
-    async def bridge_registry(self, key: Optional[str] = None):
+    async def bridge_registry(self, key: str):
         global webhooks_pending
-        if key:
-            synchronize = self.config.get(
-                "synchronize",
-                guild=discord.utils.get(self.client.guilds, name=key.split(":")[0]),
-                default=False,
-            )
-        else:
-            synchronize = False
+        synchronize = self.config.get(
+            "synchronize",
+            guild=discord.utils.get(self.client.guilds, name=key.split(":")[0]),
+            default=False,
+        )
         while 1:
             if not webhooks_pending:
-                return (
-                    self.webhook_sync_registry.get(key)
-                    if key
-                    else self.webhook_sync_registry
-                )
+                return self.webhook_sync_registry.get(key)
             if not synchronize:
-                return (
-                    self.webhook_sync_registry.get(key)
-                    if key
-                    else self.webhook_sync_registry
-                )
-            if isinstance(key, str) and isinstance(
-                bridge := self.webhook_sync_registry.get(key), Bridge
-            ):
+                return self.webhook_sync_registry.get(key)
+            if isinstance((bridge := self.webhook_sync_registry.get(key)), Bridge):
                 return bridge
             await asyncio.sleep(1)
 
