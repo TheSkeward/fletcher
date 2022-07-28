@@ -2087,14 +2087,16 @@ class CommandHandler:
 
     async def run_command(
         self,
-        command,
-        message,
-        args,
+        command: dict,
+        message: discord.Message,
+        args: list,
         user,
         ctx=None,
         ignore_stranger_danger=False,
         received_at: Optional[datetime] = None,
     ):
+        if message.startswith("!ping"):
+            args.append(received_at)
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
@@ -2137,8 +2139,6 @@ class CommandHandler:
                         )
                         return
                 if hasattr(command, "function"):
-                    if message.startswith("!ping"):
-                        args.append(received_at)
                     if command.long_run == "author":
                         await user.trigger_typing()
                     elif command.long_run:
