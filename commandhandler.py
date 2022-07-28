@@ -2496,17 +2496,24 @@ class CommandHandler:
             )
         else:
             synchronize = False
-        while not (
-            not webhooks_pending
-            or not synchronize
-            or isinstance(
-                self.webhook_sync_registry.get(key if not key else ""), Bridge
-            )
-        ):
-            await asyncio.sleep(0.5)
-        return (
-            self.webhook_sync_registry.get(key) if key else self.webhook_sync_registry
-        )
+        while 1:
+            if not webhooks_pending:
+                return (
+                    self.webhook_sync_registry.get(key)
+                    if key
+                    else self.webhook_sync_registry
+                )
+            if not synchronize:
+                return (
+                    self.webhook_sync_registry.get(key)
+                    if key
+                    else self.webhook_sync_registry
+                )
+            if isinstance(key, str) and isinstance(
+                bridge := self.webhook_sync_registry.get(key), Bridge
+            ):
+                return bridge
+            await asyncio.sleep(1)
 
     def allowCommand(self, command, message, user=None):
         global config
