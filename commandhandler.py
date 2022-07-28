@@ -2493,6 +2493,7 @@ class CommandHandler:
             synchronize = self.config.get(
                 "synchronize",
                 guild=discord.utils.get(self.client.guilds, name=key.split(":")[0]),
+                default=False,
             )
         else:
             synchronize = False
