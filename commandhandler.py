@@ -1689,6 +1689,7 @@ class CommandHandler:
             logger.debug(traceback.format_exc())
 
     async def command_handler(self, message):
+        received = datetime.now()
         global config
         global sid
 
@@ -2025,7 +2026,7 @@ class CommandHandler:
         for command in self.get_command(
             searchString, message, mode="keyword_trie", max_args=len(args)
         ):
-            await self.run_command(command, message, args, user)
+            await self.run_command(command, message, args, user, received_at=received)
             command_ran = True
             # Run at most one command
             break
@@ -2085,7 +2086,14 @@ class CommandHandler:
                 return
 
     async def run_command(
-        self, command, message, args, user, ctx=None, ignore_stranger_danger=False
+        self,
+        command,
+        message,
+        args,
+        user,
+        ctx=None,
+        ignore_stranger_danger=False,
+        received_at: Optional[datetime] = None,
     ):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
@@ -2129,6 +2137,8 @@ class CommandHandler:
                         )
                         return
                 if hasattr(command, "function"):
+                    if command["function"].__name__ == "ping_function":
+                        args.append(received_at)
                     if command.long_run == "author":
                         await user.trigger_typing()
                     elif command.long_run:
