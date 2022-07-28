@@ -4138,10 +4138,7 @@ async def ping_function(message: discord.Message, client, args):
     now = datetime.utcnow().replace(tzinfo=None)
     created_at = message.created_at.replace(tzinfo=None)
     args[-1] = args[-1].replace(tzinfo=None)
-    try:
-        times = f"Message was sent at {created_at}, received at {args[-1]} ({args[-1]-created_at}), reply sent at {now} ({now-args[-1]}). Pong!"
-    except TypeError:
-        times = f"Message was sent at {created_at}, received at {args[-1]}, reply sent at {now}. Pong!"
+    times = f"Message was sent at {created_at}, received at {args[-1]} ({(args[-1]-created_at).total_seconds() * 1000} ms), reply sent at {now} ({(now-args[-1]).total_seconds() * 1000} ms). Pong!"
     await messagefuncs.sendWrappedMessage(times, message.channel)
 
 
