@@ -361,7 +361,9 @@ async def on_ready():
         )
         loop = asyncio.get_running_loop()
         loop.remove_signal_handler(signal.SIGHUP)
+        loop.add_signal_handler(signal.SIGHUP, lambda: print("Ignoring excess SIGHUP"))
         await reload_function()
+        loop.remove_signal_handler(signal.SIGHUP)
         loop.add_signal_handler(
             signal.SIGHUP, lambda: asyncio.ensure_future(reload_function())
         )
@@ -458,9 +460,6 @@ async def on_raw_message_edit(payload):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or False:
-                    await asyncio.sleep(1)
-                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -522,9 +521,6 @@ async def on_raw_message_delete(message):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or False:
-                    await asyncio.sleep(1)
-                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -636,9 +632,6 @@ async def on_raw_reaction_add(reaction):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or False:
-                    await asyncio.sleep(1)
-                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -663,9 +656,6 @@ async def on_raw_reaction_remove(reaction):
         while 1:
             try:
                 ch.config
-                if commandhandler.webhooks_pending or False:
-                    await asyncio.sleep(1)
-                    continue
                 break
             except AttributeError:
                 await asyncio.sleep(1)
@@ -874,16 +864,11 @@ async def on_interaction(ctx):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
-                await asyncio.sleep(1)
-                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
     await ch.on_interaction(ctx)
 
 
-loop = asyncio.get_event_loop()
-
 # start bot
-loop.run_until_complete(client.start(token))
+asyncio.run_until_complete(client.start(token))
