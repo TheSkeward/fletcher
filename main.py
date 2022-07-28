@@ -871,4 +871,4 @@ async def on_interaction(ctx):
 
 
 # start bot
-asyncio.run_until_complete(client.start(token))
+asyncio.run(client.start(token))
