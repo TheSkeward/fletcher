@@ -1210,7 +1210,10 @@ class CommandHandler:
         except AttributeError:
             return
         bridge_key = f"{message.guild.name}:{message.channel.id}"
-        bridge = await self.bridge_registry(bridge_key)
+        if message.guild and self.config.get(guild=message.guild, key="synchronize"):
+            bridge = await self.bridge_registry(bridge_key)
+        else:
+            bridge = None
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
         if message.webhook_id:
@@ -1517,8 +1520,10 @@ class CommandHandler:
             else:
                 # Currently, we don't log empty or image-only messages
                 pass
-            if fromGuild and await self.bridge_registry(
-                f"{fromGuild.name}:{fromChannel.id}"
+            if (
+                fromGuild
+                and self.config.get(guild=fromGuild, key="synchronize")
+                and await self.bridge_registry(f"{fromGuild.name}:{fromChannel.id}")
             ):
                 await asyncio.sleep(1)
                 cur = conn.cursor()
@@ -2597,7 +2602,10 @@ class CommandHandler:
                     await thread.add_user(user)
             global conn
             bridge_key = f"{thread.guild.name}:{thread.parent_id}"
-            bridge = await self.bridge_registry(bridge_key)
+            if thread.guild and self.config.get(guild=message.guild, key="synchronize"):
+                bridge = await self.bridge_registry(bridge_key)
+            else:
+                bridge = None
             if bridge:
                 new_threads = []
                 await asyncio.sleep(1)
@@ -3620,7 +3628,10 @@ async def run_web_api(config, ch):
 
 async def reaction_list_function(message, client, args, ctx):
     bridge_key = f"{message.guild.name}:{message.channel.id}"
-    bridge = await ch.bridge_registry(bridge_key)
+    if message.guild and client.config.get(guild=message.guild, key="synchronize"):
+        bridge = await ch.bridge_registry(bridge_key)
+    else:
+        bridge = None
     if bridge:
         cur = conn.cursor()
         query_params = [message.guild.id, message.channel.id, message.id]
