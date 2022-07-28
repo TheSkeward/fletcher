@@ -2497,6 +2497,7 @@ class CommandHandler:
                 logger.debug(
                     f"Detected {len(self.webhook_sync_registry)} webhooks, continuing"
                 )
+                break
         return (
             self.webhook_sync_registry.get(key) if key else self.webhook_sync_registry
         )
