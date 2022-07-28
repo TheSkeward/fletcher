@@ -503,9 +503,6 @@ async def on_typing(channel, user, when):
             if not ch.enable_typing_handler:
                 return
             ch.config
-            if commandhandler.webhooks_pending or False:
-                await asyncio.sleep(1)
-                continue
             break
         except AttributeError:
             await asyncio.sleep(1)
