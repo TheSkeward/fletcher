@@ -2095,7 +2095,7 @@ class CommandHandler:
         ignore_stranger_danger=False,
         received_at: Optional[datetime] = None,
     ):
-        if message.startswith("!ping"):
+        if (message.content or "").startswith("!ping"):
             args.append(received_at)
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             with hub.configure_scope() as scope:  # type: ignore
