@@ -1689,7 +1689,7 @@ class CommandHandler:
             logger.debug(traceback.format_exc())
 
     async def command_handler(self, message):
-        received = datetime.now()
+        received = datetime.utcnow()
         global config
         global sid
 
