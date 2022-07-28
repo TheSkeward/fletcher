@@ -2613,7 +2613,7 @@ class CommandHandler:
                     await thread.add_user(user)
             global conn
             bridge_key = f"{thread.guild.name}:{thread.parent_id}"
-            if thread.guild and self.config.get(guild=message.guild, key="synchronize"):
+            if thread.guild and self.config.get(guild=thread.guild, key="synchronize"):
                 bridge = await self.bridge_registry(bridge_key)
             else:
                 bridge = None
