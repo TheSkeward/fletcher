@@ -2137,7 +2137,7 @@ class CommandHandler:
                         )
                         return
                 if hasattr(command, "function"):
-                    if command["function"].__name__ == "ping_function":
+                    if message.startswith("!ping"):
                         args.append(received_at)
                     if command.long_run == "author":
                         await user.trigger_typing()
