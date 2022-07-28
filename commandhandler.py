@@ -182,7 +182,6 @@ class CommandHandler:
         # "FromGuildId:FromChannelId": Bridge()
         # }
         self.guild_invites = {}
-        self.loaded_guilds: list[discord.Guild] = []
         self.config = config if config else cast(load_config.FletcherConfig, None)
         self.emote_server = self.client.guilds[0]
         if self.config:
@@ -211,9 +210,6 @@ class CommandHandler:
                 lambda guild: self.config.get(guild=guild, key="synchronize"),
                 self.client.guilds,
             )
-        )
-        self.loaded_guilds = list(
-            filter(lambda guild: guild not in bridge_guilds, self.client.guilds)
         )
         self.add_command(
             {
@@ -270,7 +266,6 @@ class CommandHandler:
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
                 await asyncio.sleep(0)
-            # self.loaded_guilds.append(guild)
         self.webhook_sync_registry = webhook_sync_registry
         webhooks_pending = False
         logger.debug("Webhooks loaded:")
@@ -2491,23 +2486,8 @@ class CommandHandler:
 
     async def bridge_registry(self, key: Optional[str] = None):
         global webhooks_pending
-        while webhooks_pending:
-            await asyncio.sleep(0.3)
-            if not webhooks_pending or (
-                key
-                and (
-                    self.webhook_sync_registry.get(key)
-                    or (
-                        discord.utils.get(
-                            self.loaded_guilds, name=key.split(":")[0].replace("_", " ")
-                        )
-                    )
-                )
-            ):
-                logger.debug(
-                    f"Detected {len(self.webhook_sync_registry)} webhooks, continuing"
-                )
-                break
+        while webhooks_pending or not (key and self.webhook_sync_registry.get(key)):
+            await asyncio.sleep(0.5)
         return (
             self.webhook_sync_registry.get(key) if key else self.webhook_sync_registry
         )
