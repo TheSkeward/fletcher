@@ -157,6 +157,9 @@ client = discord.Client(
 token = config.get(section="discord", key="botToken")
 
 # globals for database handle and CommandHandler
+global conn
+global ch
+global pr
 conn = None
 ch = None
 pr = None
@@ -498,6 +501,7 @@ async def on_raw_message_edit(payload):
 async def on_typing(channel, user, when):
     global ch
     while ch is None:
+        logger.debug("on_typing: sleeping")
         await asyncio.sleep(1)
     while 1:
         try:
@@ -506,6 +510,7 @@ async def on_typing(channel, user, when):
             ch.config
             return await ch.typing_handler(channel, user)
         except AttributeError:
+            logger.debug("on_typing: ch.config sleeping")
             await asyncio.sleep(1)
 
 
