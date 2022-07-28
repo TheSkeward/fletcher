@@ -204,8 +204,7 @@ class CommandHandler:
     async def load_webhooks(self):
         global webhooks_pending
         webhooks_pending = True
-        self.webhook_sync_registry: Dict[str, Bridge] = {}
-        webhook_sync_registry = self.webhook_sync_registry
+        webhook_sync_registry: Dict[str, Bridge] = {}
         navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
         bridge_guilds = list(
             filter(
@@ -271,7 +270,8 @@ class CommandHandler:
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
                 bridge.append(toChannel, webhook)
                 await asyncio.sleep(0)
-            self.loaded_guilds.append(guild)
+            # self.loaded_guilds.append(guild)
+        self.webhook_sync_registry = webhook_sync_registry
         webhooks_pending = False
         logger.debug("Webhooks loaded:")
         logger.debug(

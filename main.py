@@ -262,9 +262,17 @@ async def reload_function(message=None, client=client, args=[]):
         # Command Handler (loaded twice to bootstrap)
         await autoload(commandhandler, None, config)
         await animate_startup("⌨", message)
+        try:
+            wsr = ch.webhook_sync_registry
+        except:
+            pass
         ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
+        try:
+            ch.webhook_sync_registry = wsr
+        except:
+            pass
         await autoload(versionutils, ch)
         versioninfo = versionutils.VersionInfo()
         ch.add_command(
