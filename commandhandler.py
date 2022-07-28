@@ -2491,8 +2491,16 @@ class CommandHandler:
 
     async def bridge_registry(self, key: Optional[str] = None):
         global webhooks_pending
+        if key:
+            synchronize = self.config.get(
+                "synchronize",
+                guild=discord.utils.get(self.client.guilds, name=key.split(":")[0]),
+            )
+        else:
+            synchronize = False
         while not (
-            webhooks_pending == False
+            not webhooks_pending
+            or not synchronize
             or isinstance(
                 self.webhook_sync_registry.get(key if not key else ""), Bridge
             )
