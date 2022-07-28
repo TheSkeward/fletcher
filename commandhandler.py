@@ -2491,7 +2491,12 @@ class CommandHandler:
 
     async def bridge_registry(self, key: Optional[str] = None):
         global webhooks_pending
-        while webhooks_pending or not (key and self.webhook_sync_registry.get(key)):
+        while not (
+            webhooks_pending == False
+            or isinstance(
+                self.webhook_sync_registry.get(key if not key else ""), Bridge
+            )
+        ):
             await asyncio.sleep(0.5)
         return (
             self.webhook_sync_registry.get(key) if key else self.webhook_sync_registry
