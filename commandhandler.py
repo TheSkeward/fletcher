@@ -224,22 +224,20 @@ class CommandHandler:
                 "whitelist_guild": [guild.id for guild in bridge_guilds],
             }
         )
-        for guild in bridge_guilds:
-            self_member = guild.get_member(self.user.id)
-            try:
-                assert self_member is not None
-            except:
-                logger.debug(f"LWH: Likely {guild} is down")
-                continue
-            if not self_member.guild_permissions.manage_webhooks:
-                logger.warning(
-                    f"LWH: Couldn't load webhooks for {guild.name} ({guild.id}), ask an admin to grant additional permissions (https://novalinium.com/go/4/fletcher)"
+        for webhooks in asyncio.as_completed(
+            [
+                guild.webhooks()
+                for guild in filter(
+                    lambda guild: guild.get_member(self.user.id)
+                    and guild.get_member(
+                        self.user.id
+                    ).guild_permissions.manage_webhooks,
+                    bridge_guilds,
                 )
-                continue
-            logger.debug(f"LWH: Querying {guild.name}")
+            ]
+        ):
             for webhook in filter(
-                lambda webhook: webhook.name.startswith(navel_filter),
-                await guild.webhooks(),
+                lambda webhook: webhook.name.startswith(navel_filter), await webhooks
             ):
                 fromTuple = webhook.name.split("(")[1].rsplit(")")[0].rsplit(":", 2)
                 fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0]).replace(
@@ -250,7 +248,7 @@ class CommandHandler:
                 )
                 if not fromGuild or not fromGuild.id:
                     continue
-                toChannel = guild.get_channel(webhook.channel_id)
+                toChannel = webhook.guild.get_channel(webhook.channel_id)
                 fromChannel = discord.utils.find(
                     lambda channel: channel.name == fromTuple[1]
                     or str(channel.id) == fromTuple[1],
