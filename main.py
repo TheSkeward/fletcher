@@ -391,9 +391,6 @@ async def on_message(message):
             while 1:
                 try:
                     ch.config
-                    if commandhandler.webhooks_pending or False:
-                        await asyncio.sleep(1)
-                        continue
                     break
                 except AttributeError:
                     await asyncio.sleep(1)
