@@ -46,7 +46,7 @@ logger = logging.getLogger("fletcher")
 
 regex_cache = {}
 webhooks_cache = {}
-webhooks_pending: bool = True
+webhooks_loaded: bool = False
 remote_command_runner = None
 Ans = None
 config = cast(load_config.FletcherConfig, None)
@@ -201,8 +201,8 @@ class CommandHandler:
         self.pinged_users: defaultdict[int, list[int]] = defaultdict(list)
 
     async def load_webhooks(self):
-        global webhooks_pending
-        webhooks_pending = True
+        global webhooks_loaded
+        webhooks_loaded = False
         webhook_sync_registry: Dict[str, Bridge] = {}
         navel_filter = f"{self.config.get(section='discord', key='botNavel')} ("
         bridge_guilds = list(
@@ -265,7 +265,7 @@ class CommandHandler:
                 bridge.append(toChannel, webhook)
                 await asyncio.sleep(0)
         self.webhook_sync_registry = webhook_sync_registry
-        webhooks_pending = False
+        webhooks_loaded = True
         logger.debug("Webhooks loaded:")
         logger.debug(
             "\n".join(
@@ -2488,14 +2488,14 @@ class CommandHandler:
         await ctx.response.send_message("Not Implemented")
 
     async def bridge_registry(self, key: str):
-        global webhooks_pending
+        global webhooks_loaded
         synchronize = self.config.get(
             "synchronize",
             guild=discord.utils.get(self.client.guilds, name=key.split(":")[0]),
             default=False,
         )
         while 1:
-            if not webhooks_pending:
+            if webhooks_loaded:
                 return self.webhook_sync_registry.get(key)
             if not synchronize:
                 return self.webhook_sync_registry.get(key)

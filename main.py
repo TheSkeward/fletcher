@@ -672,7 +672,7 @@ async def on_voice_state_update(member, before, after):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -706,7 +706,7 @@ async def on_member_join(member):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -723,7 +723,7 @@ async def on_member_remove(member):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -740,7 +740,7 @@ async def on_guild_channel_update(before, after):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -789,7 +789,7 @@ async def on_invite_create(invite):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -807,7 +807,7 @@ async def on_invite_delete(invite):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -825,7 +825,7 @@ async def on_guild_join(guild):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -841,7 +841,7 @@ async def on_thread_join(thread):
     while 1:
         try:
             ch.config
-            if commandhandler.webhooks_pending or False:
+            if not commandhandler.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
