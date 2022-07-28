@@ -4137,7 +4137,10 @@ async def sholo_room(message, client, args):
 async def ping_function(message: discord.Message, client, args):
     now = datetime.utcnow()
     created_at = message.created_at.replace(tzinfo=pytz.utc)
-    times = f"Message was sent at {created_at}, received at {args[-1]} ({args[-1]-created_at}), reply sent at {now} ({now-args[-1]}). Pong!"
+    try:
+        times = f"Message was sent at {created_at}, received at {args[-1]} ({args[-1]-created_at}), reply sent at {now} ({now-args[-1]}). Pong!"
+    except TypeError:
+        times = f"Message was sent at {created_at}, received at {args[-1]}, reply sent at {now}. Pong!"
     await messagefuncs.sendWrappedMessage(times, message.channel)
 
 
