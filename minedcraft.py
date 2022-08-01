@@ -404,7 +404,8 @@ async def minecraft_send_say_function(message, client, args):
 
 
 async def autounload(ch):
-    pass
+    global linode_api
+    asyncio.create_task(linode_api.session.close())
 
 
 def autoload(ch):
