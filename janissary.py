@@ -2015,6 +2015,12 @@ async def self_service_channel_function(
         ):
             confirm = get_warnlist(author.id, message.guild.id)[args[1].id]
         if len(args) == 3 and type(args[1]) is discord.Member:
+            if args[1] == author:
+                await messagefuncs.sendWrappedMessage(
+                    "Declining to operate on the author of the message to avoid issues. If you wanted to leave this channel as the author of the message, then delete this message and `!part` the channel instead.",
+                    author,
+                )
+                return
             if args[2] == "add":
                 try:
                     if confirm:
