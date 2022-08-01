@@ -860,7 +860,10 @@ async def rss_checker():
             [],
         )
         for hottuple in cur:
-            feed = atoma.parse_rss_bytes(data)
+            try:
+                feed = atoma.parse_rss_bytes(data)
+            except atoma.exceptions.FeedXMLError:
+                continue
             last = ch.user_config(
                 hottuple[0],
                 hottuple[1],
