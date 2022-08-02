@@ -79,6 +79,9 @@ class Bridge:
         self.thread_ids: List[Optional[discord.abc.Snowflake]] = []
         self.rate_limit = AsyncLimiter(1, 10)
 
+    def __name__(self):
+        return f"Bridge to: {[c.name for c in self.channels]}"
+
     async def typing(self, except_for: Optional[discord.TextChannel] = None):
         if self.rate_limit.has_capacity():
             async with self.rate_limit:
@@ -459,7 +462,7 @@ class CommandHandler:
                 continue
             content = message.content[len(prefix) :]
             attachments = []
-            if len(message.attachments) > 0:
+            if message.attachments:
                 for attachment in message.attachments:
                     logger.debug("Syncing " + attachment.filename)
                     attachment_blob = BytesIO()
@@ -496,7 +499,7 @@ class CommandHandler:
                         user,
                     )
                     continue
-                if len(webhooks) > 0:
+                if webhooks:
                     webhook = discord.utils.get(
                         webhooks, name=config.get(section="discord", key="botNavel")
                     )
@@ -636,7 +639,7 @@ class CommandHandler:
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             if TYPE_CHECKING:
                 assert hub is not None
-            with hub.configure_scope() as scope:  # type: ignore
+            with hub.configure_scope() as scope, hub.start_transaction(op="reaction_handler", name=str(reaction.emoji)):  # type: ignore
                 try:
                     global config
                     messageContent = str(reaction.emoji)
@@ -935,7 +938,7 @@ class CommandHandler:
 
     async def reaction_remove_handler(self, reaction):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope:  # type: ignore
+            with hub.configure_scope() as scope, hub.start_transaction(op="reaction_remove_handler", name=str(reaction.emoji)):  # type: ignore
                 try:
                     global config
                     messageContent = str(reaction.emoji)
@@ -1036,7 +1039,9 @@ class CommandHandler:
     async def remove_handler(self, user):
         global config
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope:
+            with hub.configure_scope() as scope, hub.start_transaction(
+                op="member_remove_handler", name=str(user)
+            ):
                 scope.user = {"id": user.id, "username": str(user)}
                 scope.set_tag("guild", user.guild.name)
                 member_remove_actions = config.get(
@@ -1054,7 +1059,7 @@ class CommandHandler:
 
     async def join_handler(self, user):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope:  # type: ignore
+            with hub.configure_scope() as scope, hub.start_transaction(op="member_join_handler", name=str(user)):  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
                 scope.set_tag("guild", user.guild.name)
                 member_join_actions = cast(
@@ -1206,9 +1211,8 @@ class CommandHandler:
             if not message.guild:
                 return
             bridge_key = f"{message.guild.name}:{message.channel.id}"
-            if self.config.get(guild=message.guild, key="synchronize"):
-                bridge = await self.bridge_registry(bridge_key)
-            else:
+            bridge = await self.bridge_registry(bridge_key)
+            if not bridge:
                 return
         except AttributeError:
             return
@@ -1225,7 +1229,8 @@ class CommandHandler:
                 if webhook.name and not webhook.name.startswith(
                     cast(str, self.config.get(section="discord", key="botNavel"))
                 ):
-                    logger.debug("Webhook isn't whitelisted for bridging")
+                    # logger.debug("Webhook isn't whitelisted for bridging")
+                    pass
                 return
         spoilers = cast(
             list,
@@ -1259,6 +1264,8 @@ class CommandHandler:
         ):
             return
         if isinstance(bridge, Bridge):
+            if "sync" in message.channel.name:
+                logger.debug(f"ignores: {bridge=}")
             for i in range(len(bridge.webhooks)):
                 attachments = []
                 for attachment in message.attachments:
@@ -1777,9 +1784,8 @@ class CommandHandler:
                     },
                 )
                 if (
-                    guild_config.get("sent-com-score-threshold")
-                    and sent_com_score
-                    <= float(guild_config["sent-com-score-threshold"])
+                    sent_com_score
+                    <= float(guild_config.get("sent-com-score-threshold", -100000000))
                     and message.webhook_id is None
                     and message.guild.name
                     in config.get(section="moderation", key="guilds")
@@ -2096,7 +2102,7 @@ class CommandHandler:
         if (message.content or "").startswith("!ping"):
             args.append(received_at)
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
-            with hub.configure_scope() as scope:  # type: ignore
+            with hub.configure_scope() as scope, hub.start_transaction(op="run_command", name=str(user)):  # type: ignore
                 scope.user = {"id": user.id, "username": str(user)}
                 guild = None
                 if ctx and ctx.guild_id:
@@ -3633,8 +3639,9 @@ async def run_web_api(config, ch):
 
 
 async def reaction_list_function(message, client, args, ctx):
+    global ch
     bridge_key = f"{message.guild.name}:{message.channel.id}"
-    if message.guild and client.config.get(guild=message.guild, key="synchronize"):
+    if message.guild and ch.config.get(guild=message.guild, key="synchronize"):
         bridge = await ch.bridge_registry(bridge_key)
     else:
         bridge = None
