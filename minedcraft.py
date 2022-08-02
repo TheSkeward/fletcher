@@ -405,7 +405,11 @@ async def minecraft_send_say_function(message, client, args):
 
 async def autounload(ch):
     global linode_api
-    asyncio.create_task(linode_api.session.close())
+    try:
+        if linode_api.session:
+            asyncio.create_task(linode_api.session.close())
+    except:
+        pass
 
 
 def autoload(ch):
