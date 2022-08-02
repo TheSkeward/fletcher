@@ -3546,6 +3546,10 @@ async def glowfic_search_function(message, client, args):
             content = f"{q}\nis from {link}\nfound via {searched[-1]} in {query_time} seconds."
         else:
             content = f"{q}\nattribution was not found, searched {len(glowfic_search_databases)} databases ({', '.join(searched)}) in {query_time} seconds."
+            await messagefuncs.sendWrappedMessage(
+                f"Someone tried to search for your quote in {message.jump_url} and I was unable to find it for them - help them out?",
+                message.author,
+            )
         await messagefuncs.sendWrappedMessage(
             content,
             args[1],
