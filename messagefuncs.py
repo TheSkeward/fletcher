@@ -1677,7 +1677,8 @@ def autoload(ch):
     global session
     try:
         session
-    except NameError:
+        assert not session.closed
+    except (NameError, AssertionError):
         session = aiohttp.ClientSession(
             headers={
                 "User-Agent": "Fletcher/0.1 (operator@noblejury.com)",
