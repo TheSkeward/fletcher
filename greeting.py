@@ -398,7 +398,7 @@ async def alphabetize_channels(guild, client, config):
                 if category_tuple[0] and category_tuple[0].name.lower() in config.get(
                     "azsort-exclude", ""
                 ).lower().split(","):
-                    position += len(channels)
+                    position += len(channels) + 1
                     continue
                 channels = list(
                     filter(
@@ -418,7 +418,7 @@ async def alphabetize_channels(guild, client, config):
                     )
                     if channel.position != position:
                         moves += 1
-                        if not moves % 10:
+                        if moves % 10 == 0:
                             await asyncio.sleep(60)
                         runagain = True
                         logger.info(
