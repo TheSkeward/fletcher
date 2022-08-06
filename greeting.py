@@ -411,12 +411,14 @@ async def alphabetize_channels(guild, client, config):
                     extra={"FLETCHER_MODULE": "alphabetize_channels"},
                 )
                 moves = 0
+                position = sorted([c.position for c in az_channels])[0]
                 for channel in az_channels:
                     logger.debug(
                         f"#{channel.name} {channel.position} -> {position}",
                         extra={"FLETCHER_MODULE": "alphabetize_channels"},
                     )
                     if channel.position != position:
+                        last_position = position
                         moves += 1
                         if moves % 10 == 0:
                             await asyncio.sleep(60)
