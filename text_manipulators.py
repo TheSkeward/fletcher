@@ -4133,7 +4133,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["!watchword"],
+            "trigger": ["!watchword", "!unwatchword"],
             "function": watchword_function,
             "async": False,
             "args_num": 0,
