@@ -467,29 +467,31 @@ async def table_exec_function():
                         timeout=10,
                     ) as resp:
                         data = await resp.read()
-                        feed = atoma.parse_atom_bytes(data)
+                        feed = atoma.parse_rss_bytes(data)
                         last = ch.user_config(
                             hottuple[0],
                             hottuple[1],
                             f"rss-subscribe-{channel_id}-last",
                         )
+                        titles = []
                         links = []
-                        for item in feed.entries:
-                            if item.links[0].href == last:
+                        for item in feed.items:
+                            if not last or item.link == last:
                                 break
-                            links.insert(0, item.links[0].href)
+                            titles.insert(0, item.title)
+                            links.insert(0, item.link)
                         channel = client.get_channel(int(channel_id))
-                        for link in links:
+                        for link, title in zip(links, titles):
                             try:
                                 await messagefuncs.sendWrappedMessage(
-                                    link,
+                                    f"**{title}**\n{link}",
                                     channel,
-                                    current_user_id=hottuple[0],
+                                    current_user_id=int(hottuple[0]),
                                 )
                             except discord.Forbidden as e:
                                 await messagefuncs.sendWrappedMessage(
                                     f"Tried to send a message to {channel.mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
-                                    client.get_user(int(hottuple[0])),
+                                    ch.client.get_user(int(hottuple[0])),
                                     current_user_id=int(hottuple[0]),
                                 )
                         if len(links):
@@ -500,7 +502,7 @@ async def table_exec_function():
                                 hottuple[0],
                                 hottuple[1],
                                 f"rss-subscribe-{channel_id}-last",
-                                feed.entries[0].links[0].href,
+                                links[-1],
                             )
                 except asyncio.TimeoutError:
                     traceback.format_exc()
