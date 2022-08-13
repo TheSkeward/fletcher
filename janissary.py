@@ -348,13 +348,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -2248,6 +2251,11 @@ async def login_function(message, client, args):
     elif args[0] == "complice":
         return await messagefuncs.sendWrappedMessage(
             f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret={ch.config.get(section='complice', key='client_secret')}&redirect_uri={ch.config.get(section='complice', key='redirect_uri')}&state={message.author.id}",
+            message.channel,
+        )
+    elif args[0] == "twitch":
+        return await messagefuncs.sendWrappedMessage(
+            f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={ch.config.get(section='twitch', key='client_key')}&redirect_uri={ch.config.get(section='twitch', key='redirect_uri')}&state={message.author.id}&scope=chat%3Aread+chat&3Aedit",
             message.channel,
         )
     elif args[0] == "thingiverse":
