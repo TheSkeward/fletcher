@@ -2256,7 +2256,7 @@ async def login_function(message, client, args):
         )
     elif args[0] == "twitch":
         return await messagefuncs.sendWrappedMessage(
-            f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={ch.config.get(section='twitch', key='client_key')}&redirect_uri={quote(ch.config.get(section='twitch', key='redirect_uri'))}&state={message.author.id}&scope=chat%3Aread+chat&3Aedit",
+            f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={ch.config.get(section='twitch', key='client_key')}&redirect_uri={quote(ch.config.get(section='twitch', key='redirect_uri'))}&state={message.author.id}&scope={quote('chat:read chat:edit channel:moderate')}",
             message.channel,
         )
     elif args[0] == "thingiverse":
