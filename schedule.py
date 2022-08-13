@@ -456,6 +456,59 @@ async def table_exec_function():
             )
         cur = conn.cursor()
         cur.execute(
+            "SELECT user_id, guild_id, value, key FROM user_preferences WHERE key = 'rss-subscribe' AND guild_id != 0;"
+        )
+        for hottuple in cur:
+            try:
+                channel_id, url = hottuple[2].split(":", 1)
+                try:
+                    async with session.get(
+                        url,
+                        timeout=10,
+                    ) as resp:
+                        data = await resp.read()
+                        feed = atoma.parse_atom_bytes(data)
+                        last = ch.user_config(
+                            hottuple[0],
+                            hottuple[1],
+                            f"rss-subscribe-{channel_id}-last",
+                        )
+                        links = []
+                        for item in feed.entries:
+                            if item.links[0].href == last:
+                                break
+                            links.insert(0, item.links[0].href)
+                        channel = client.get_channel(int(channel_id))
+                        for link in links:
+                            try:
+                                await messagefuncs.sendWrappedMessage(
+                                    link,
+                                    channel,
+                                    current_user_id=hottuple[0],
+                                )
+                            except discord.Forbidden as e:
+                                await messagefuncs.sendWrappedMessage(
+                                    f"Tried to send a message to {channel.mention} with the content {links} but recieved a Forbidden error for Discord. Please adjust permissions and try again.",
+                                    client.get_user(int(hottuple[0])),
+                                    current_user_id=int(hottuple[0]),
+                                )
+                        if len(links):
+                            logger.debug(
+                                f"Setting rss-subscribe-{channel_id}-last to {links[-1]}"
+                            )
+                            ch.user_config(
+                                hottuple[0],
+                                hottuple[1],
+                                f"rss-subscribe-{channel_id}-last",
+                                feed.entries[0].links[0].href,
+                            )
+                except asyncio.TimeoutError:
+                    traceback.format_exc()
+                    logger.debug(f"Timed out retrieving {url}, skipping")
+            except Exception as e:
+                logger.error(f"{e}")
+                pass
+        cur.execute(
             "SELECT user_id, guild_id, value, key FROM user_preferences WHERE (key LIKE 'twubscribe%' AND NOT key LIKE 'twubscribe-%-last') AND guild_id != 0;"
         )
         for hottuple in cur:
