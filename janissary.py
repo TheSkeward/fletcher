@@ -9,6 +9,7 @@ import asyncio
 import commandhandler
 import dateparser.search
 import Levenshtein
+from urllib.parse import quote
 import discord
 import exceptions
 import load_config
@@ -2250,27 +2251,27 @@ async def login_function(message, client, args):
                 )
     elif args[0] == "complice":
         return await messagefuncs.sendWrappedMessage(
-            f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret={ch.config.get(section='complice', key='client_secret')}&redirect_uri={ch.config.get(section='complice', key='redirect_uri')}&state={message.author.id}",
+            f"https://complice.co/oauth/authorize?response_type=code&client_id={ch.config.get(section='complice', key='client_key')}&client_secret={ch.config.get(section='complice', key='client_secret')}&redirect_uri={quote(ch.config.get(section='complice', key='redirect_uri'))}&state={message.author.id}",
             message.channel,
         )
     elif args[0] == "twitch":
         return await messagefuncs.sendWrappedMessage(
-            f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={ch.config.get(section='twitch', key='client_key')}&redirect_uri={ch.config.get(section='twitch', key='redirect_uri')}&state={message.author.id}&scope=chat%3Aread+chat&3Aedit",
+            f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={ch.config.get(section='twitch', key='client_key')}&redirect_uri={quote(ch.config.get(section='twitch', key='redirect_uri'))}&state={message.author.id}&scope=chat%3Aread+chat&3Aedit",
             message.channel,
         )
     elif args[0] == "thingiverse":
         return await messagefuncs.sendWrappedMessage(
-            f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={ch.config.get(section='thingiverse', key='redirect_uri')}&state={message.author.id}",
+            f"https://www.thingiverse.com/login/oauth/authorize?response_type=code&client_id={ch.config.get(section='thingiverse', key='client_key')}&redirect_uri={quote(ch.config.get(section='thingiverse', key='redirect_uri'))}&state={message.author.id}",
             message.channel,
         )
     elif args[0] == "trello":
         return await messagefuncs.sendWrappedMessage(
-            f"https://trello.com/1/authorize?return_url={ch.config.get(section='trello', key='redirect_uri')}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='trello', key='client_key')}",
+            f"https://trello.com/1/authorize?return_url={quote(ch.config.get(section='trello', key='redirect_uri'))}%26state={message.author.id}&response_type=postMessage&expiration=never&name={client.user.name}&scope=read,write&response_type=token&key={ch.config.get(section='trello', key='client_key')}",
             message.channel,
         )
     elif args[0] == "glowfic":
         return await messagefuncs.sendWrappedMessage(
-            f"http://gabriel.noblejury.com:3002/oauth/authorize?response_type=code&client_id={ch.config.get(section='glowfic', key='client_key')}&redirect_uri={ch.config.get(section='glowfic', key='redirect_uri')}&state={message.author.id}",
+            f"http://gabriel.noblejury.com:3002/oauth/authorize?response_type=code&client_id={ch.config.get(section='glowfic', key='client_key')}&redirect_uri={quote(ch.config.get(section='glowfic', key='redirect_uri'))}&state={message.author.id}",
             message.channel,
         )
     else:
