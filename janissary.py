@@ -2336,17 +2336,35 @@ async def nick_change_function(message, client, args):
     try:
         if not message.guild:
             return
-        if message.author.guild_permissions.manage_nicknames or (
-            message.guild.get_role(
-                int(ch.config.get(guild=message.guild, key="nick-changeadmin-role"))
+        if message.mentions:
+            target = message.mentions[0]
+        else:
+            target = message.author
+        if (
+            target == message.author
+            or message.author.guild_permissions.manage_nicknames
+            or (
+                message.guild.get_role(
+                    int(
+                        ch.config.get(
+                            guild=message.guild, key="nick-changeadmin-role", default=0
+                        )
+                    )
+                )
+                in message.author.roles
+                and (
+                    message.message.guild.get_role(
+                        int(
+                            ch.config.get(
+                                guild=message.guild, key="nick-changeme-role", default=0
+                            )
+                        )
+                    )
+                    in target.roles
+                )
             )
-            in message.author.roles
-            and message.guild.get_role(
-                int(ch.config.get(guild=message.guild, key="nick-changeme-role"))
-            )
-            in message.mentions[0].roles
         ):
-            await message.mentions[0].edit(
+            await target.edit(
                 nick=" ".join(args[1:]), reason=f"On behalf of {message.author}"
             )
             await message.add_reaction("✅")
