@@ -462,6 +462,7 @@ async def table_exec_function():
             try:
                 channel_id, url = hottuple[2].split(":", 1)
                 try:
+                    logger.debug(f"RSS fetch {url}")
                     async with session.get(
                         url,
                         timeout=10,
@@ -696,7 +697,21 @@ async def reminder_function(message, client, args):
                 return await messagefuncs.sendWrappedMessage(
                     f"Setting a reminder {target}\n> {content}",
                     message.channel,
-                    delete_after=30,
+                    **(
+                        dict()
+                        if ch.config.normalize(
+                            str(
+                                ch.user_config(
+                                    message.author.id,
+                                    message.guild.id if message.guild else 0,
+                                    key="very_verbose_reminders",
+                                    default="False",
+                                    allow_global_substitute=True,
+                                )
+                            )
+                        )
+                        else dict(delete_after=30)
+                    ),
                     allowed_mentions=None,
                 )
         except psycopg2.Error:
