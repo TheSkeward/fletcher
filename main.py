@@ -576,6 +576,7 @@ async def on_raw_message_delete(message):
                     )
                     return
                 toMessage = None
+                tries = 0
                 while not toMessage:
                     try:
                         toMessage = await toChannel.fetch_message(metuple[2])
@@ -589,7 +590,9 @@ async def on_raw_message_delete(message):
                         )
                         toMessage = None
                         await asyncio.sleep(1)
-                        pass
+                        tries += 1
+                        if tries < 10:
+                            pass
                 logger.debug(
                     f"ORMD: Deleting synced message {metuple[0]}:{metuple[1]}:{metuple[2]}"
                 )
