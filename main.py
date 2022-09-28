@@ -331,6 +331,8 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(commandhandler, ch)
         if not len(ch.webhook_sync_registry):
             await ch.load_webhooks()
+        else:
+            ch.webhooks_loaded = True
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         if message:
