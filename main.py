@@ -329,7 +329,8 @@ async def reload_function(message=None, client=client, args=[]):
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
         await autoload(commandhandler, ch)
-        await ch.load_webhooks()
+        if not len(ch.webhook_sync_registry):
+            await ch.load_webhooks()
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         if message:
