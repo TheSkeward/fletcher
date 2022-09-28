@@ -204,6 +204,7 @@ class CommandHandler:
         self.pinged_users: defaultdict[int, list[int]] = defaultdict(list)
 
     async def load_webhooks(self):
+        logger.debug("Loading webhooks")
         global webhooks_loaded
         webhooks_loaded = False
         webhook_sync_registry: Dict[str, Bridge] = {}
