@@ -329,7 +329,9 @@ async def reload_function(message=None, client=client, args=[]):
         await ch.reload_handler()
         # FIXME there should be some way to defer this, or maybe autoload another time
         await autoload(commandhandler, ch)
-        if not len(ch.webhook_sync_registry):
+        if not hasattr(ch, "webhook_sync_registry") or not len(
+            ch.webhook_sync_registry
+        ):
             await ch.load_webhooks()
         else:
             ch.webhooks_loaded = True
