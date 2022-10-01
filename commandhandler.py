@@ -5,6 +5,7 @@ from io import BytesIO
 from aiohttp import web, ClientSession
 from aiohttp.web import AppRunner, Application
 from psycopg2._psycopg import connection
+from psycopg2.errors import UniqueViolation
 from dataclasses import asdict, dataclass, field
 
 import discord
@@ -2361,7 +2362,7 @@ class CommandHandler:
             if value is None:
                 value = default
             return value
-        except psycopg2.errors.UniqueViolation:
+        except UniqueViolation:
             conn.rollback()
             return "Invalid duplicate key"
 
