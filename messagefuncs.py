@@ -2,10 +2,11 @@ from sys import exc_info
 from html import unescape
 import commandhandler
 import asyncio
+from aiolimiter import AsyncLimiter
 import aiohttp
 import netcode
 import discord
-from tenacity import retry
+from tenacity import retry, stop_after_delay
 import exceptions
 import shortuuid
 import io
@@ -117,7 +118,10 @@ def xchannel(targetChannel, currentGuild):
     return toChannel
 
 
-@retry
+message_send_throttler = AsyncLimiter(30, 1)
+
+
+@retry(reraise=True, stop=stop_after_delay(10))
 async def sendWrappedMessage(
     msg=None,
     target=None,
@@ -179,12 +183,13 @@ async def sendWrappedMessage(
                 last_chunk = ""
             for chunk in msg_chunks:
                 # TODO(nova): send to multiple targets ;)
-                sent_message = await target.send(
-                    content=chunk,
-                    delete_after=delete_after,
-                    allowed_mentions=allowed_mentions,
-                    **kwargs,
-                )
+                async with message_send_throttler:
+                    sent_message = await target.send(
+                        content=chunk,
+                        delete_after=delete_after,
+                        allowed_mentions=allowed_mentions,
+                        **kwargs,
+                    )
                 cur.execute(
                     "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     [
@@ -238,14 +243,15 @@ async def sendWrappedMessage(
             msg_chunks = textwrap.wrap(msg, 1024, replace_whitespace=False)
             for hunk in msg_chunks:
                 embed.add_field(name="\u1160", value=hunk, inline=False)
-        sent_message = await target.send(
-            last_chunk,
-            **({"files": files} if files else {}),
-            **({"embed": embed} if embed else {}),
-            delete_after=delete_after,
-            allowed_mentions=allowed_mentions,
-            **kwargs,
-        )
+        async with message_send_throttler:
+            sent_message = await target.send(
+                last_chunk,
+                **({"files": files} if files else {}),
+                **({"embed": embed} if embed else {}),
+                delete_after=delete_after,
+                allowed_mentions=allowed_mentions,
+                **kwargs,
+            )
         cur.execute(
             "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
             [
@@ -1094,7 +1100,7 @@ async def archive_function(message, client, args):
                 logger.debug(f"Archiving {url}")
                 async with session.get(f"https://web.archive.org/save/{url}") as resp:
                     await sendWrappedMessage(
-                        f"Archived URL <{url}> at <{resp.links['memento']['url']}>",
+                        f"Archived URL <{url}> at <{resp.links.get('memento', {}).get('url', resp)}>",
                         args[1],
                     )
             return await message.add_reaction("✅")
@@ -1467,6 +1473,19 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["string"],
             "description": "Create a link to the message with ID `!message XXXXXX`",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["🔭"],
+            "function": preview_messagelink_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 0,
+            "long_run": True,
+            "args_name": ["string"],
+            "admin": "channel",
+            "description": "Retrieve message body by link (used internally to unwrap message links in chat)",
         }
     )
     ch.add_command(

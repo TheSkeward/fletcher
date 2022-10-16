@@ -151,6 +151,7 @@ client = discord.Client(
     intents=intents,
     chunk_guilds_at_startup=False,
     member_cache_flags=discord.MemberCacheFlags.all(),
+    assume_unsync_clock=True,
 )
 
 # token from https://discordapp.com/developers
