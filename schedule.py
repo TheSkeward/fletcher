@@ -804,10 +804,10 @@ async def table_function(message, client, args):
 
 
 async def ical_enable_function(message, client, args):
-    value = f"{message.author.id}-uuid.uuid4()"
+    value = f"{message.author.id}-{uuid.uuid4()}"
     ch.user_config(message.author.id, 0, key="external_ics_secret", value=value)
     await messagefuncs.sendWrappedMessage(
-        f"Your unique Fletcher Reminders URL is https://fletcher.fun/reminders.php?uid={value}&. Do not share this URL with anyone you do not trust. You can generate a new URL at any time by running `!ical_enable` again.",
+        f"Your unique Fletcher Reminders URL is https://fletcher.fun/reminders.php?uid={value} . Do not share this URL with anyone you do not trust. You can generate a new URL at any time by running `!ical_enable` again.",
         message.author,
     )
 
