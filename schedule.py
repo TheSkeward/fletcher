@@ -9,6 +9,7 @@ import messagefuncs
 import datetime
 import dateparser
 import dateparser.search
+import uuid
 import pytz
 import psycopg2
 from typing import Dict
@@ -802,6 +803,15 @@ async def table_function(message, client, args):
         logger.error("TF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+async def ical_enable_function(message, client, args):
+    value = f"{message.author.id}-uuid.uuid4()"
+    ch.user_config(message.author.id, 0, key="external_ics_secret", value=value)
+    await messagefuncs.sendWrappedMessage(
+        f"Your unique Fletcher Reminders URL is https://fletcher.fun/reminders.php?uid={value}&. Do not share this URL with anyone you do not trust. You can generate a new URL at any time by running `!ical_enable` again.",
+        message.author.id,
+    )
+
+
 async def eightyk_jobs_subscribe(message, client, args):
     ch.user_config(
         message.author.id,
@@ -826,6 +836,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "Table a discussion for later.",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!ical_enable"],
+            "function": ical_enable_function,
+            "async": True,
+            "args_num": 0,
+            "hidden": False,
+            "args_name": [],
+            "description": "Generates a fresh iCal URL for use in Google Calendar or iCal with your Fletcher reminders in it. NB some Every rules are not supported.",
         }
     )
     ch.add_command(
