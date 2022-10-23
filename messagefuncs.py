@@ -629,22 +629,25 @@ async def preview_messagelink_function(message, client, args):
                 content = "TikTok Preview"
                 with message.channel.typing():
                     try:
-                        attachments = [
-                            await asyncio.wait_for(
-                                swag.tiktok_function(
-                                    message,
-                                    client,
-                                    [previewable_parts[0], "INTPROC"],
-                                ),
-                                timeout=10.0,
-                            )
-                        ]
+                        for _ in range(1, 3):
+                            attachments = [
+                                await asyncio.wait_for(
+                                    swag.tiktok_function(
+                                        message,
+                                        client,
+                                        [previewable_parts[0], "INTPROC"],
+                                    ),
+                                    timeout=10.0,
+                                )
+                            ]
+                            if attachments[0].fp.getbuffer().nbytes:
+                                try:
+                                    await message.edit(suppress=True)
+                                except:
+                                    pass
+                                break
                     except asyncio.TimeoutError:
                         return
-                    try:
-                        await message.edit(suppress=True)
-                    except:
-                        pass
             elif "arxiv.org" in previewable_parts[0]:
                 async with session.get(
                     previewable_parts[0].replace("pdf", "abs", 1).strip(".pdf")
