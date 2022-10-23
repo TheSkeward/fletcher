@@ -637,10 +637,10 @@ async def preview_messagelink_function(message, client, args):
                                         client,
                                         [previewable_parts[0], "INTPROC"],
                                     ),
-                                    timeout=10.0,
+                                    timeout=15.0,
                                 )
                             ]
-                            if attachments[0].fp.getbuffer().nbytes:
+                            if attachments[0] and attachments[0].fp.getbuffer().nbytes:
                                 try:
                                     await message.edit(suppress=True)
                                 except:
