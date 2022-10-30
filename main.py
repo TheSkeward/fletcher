@@ -13,6 +13,7 @@ import math
 import os
 import psycopg2
 import re
+from nio import AsyncClient as MatrixAsyncClient, RoomMessageText
 from asyncache import cached
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
@@ -362,7 +363,9 @@ async def on_ready():
     try:
         global doissetep_omega
         global client
+        global matrix_client
         global ch
+        global config
         # print bot information
         # await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
         logger.info(
@@ -379,9 +382,17 @@ async def on_ready():
         loop.add_signal_handler(
             signal.SIGINT, lambda: asyncio.ensure_future(shutdown_function())
         )
+
+        matrix_client = MatrixAsyncClient(
+            config["matrix"]["url"], config["matrix"]["user"]
+        )
+        matrix_client.add_event_callback(on_matrix_message, RoomMessageText)
+        await matrix_client.login(config["matrix"]["password"])
+
         for guild in client.guilds:
             await guild.chunk()
         await reload_function()
+        await matrix_client.sync_forever(timeout=30000)
     except Exception as e:
         logger.exception(e)
 
@@ -393,6 +404,34 @@ async def shutdown_function():
         status=discord.Status.do_not_disturb,
     )
     sys.exit(0)
+
+
+async def on_matrix_message(room, message):
+    global config
+    with sentry_sdk.configure_scope() as scope:
+        user = message.author
+        scope.user = {"id": user.id, "username": str(user)}
+        scope.set_tag("message", str(message.id))
+        scope.set_tag("room", str(room.id))
+        try:
+            # try to evaluate with the command handler
+            while ch is None:
+                await asyncio.sleep(1)
+            while 1:
+                try:
+                    ch.config
+                    break
+                except AttributeError:
+                    await asyncio.sleep(1)
+            await ch.matrix_command_handler(room, message)
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = exc_info()
+            logger.debug(traceback.format_exc())
+            logger.error(
+                f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}",
+                extra={"MESSAGE_ID": str(message.id)},
+            )
 
 
 # on new message

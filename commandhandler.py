@@ -1216,7 +1216,10 @@ class CommandHandler:
             bridge = await self.bridge_registry(bridge_key)
             if not bridge:
                 return
-        except AttributeError:
+        except AttributeError as e:
+            _, _, exc_tb = exc_info()
+            assert exc_tb is not None
+            logger.info(f"BM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             return
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
@@ -1264,6 +1267,7 @@ class CommandHandler:
             and len(ignores)
             and message.content.startswith(tuple(ignores))
         ):
+            logger.info("Not bridging due to ignores")
             return
         if isinstance(bridge, Bridge):
             if "sync" in message.channel.name:
@@ -1365,6 +1369,10 @@ class CommandHandler:
                 else:
                     embeds = reply_embed
                 try:
+                    if "sync" in message.channel.name:
+                        logger.debug(
+                            f"sending to {bridge.webhooks[i]=} {bridge.webhooks[i].url}"
+                        )
                     syncMessage = await messagefuncs.sendWrappedMessage(
                         target=bridge.webhooks[i],
                         msg=content,
@@ -1384,7 +1392,12 @@ class CommandHandler:
                             users=user_mentions, roles=False, everyone=False
                         ),
                     )
+                    if "sync" in message.channel.name:
+                        logger.debug(f"sent {syncMessage=} to {bridge.webhooks[i]=}")
                 except discord.HTTPException as e:
+                    if "sync" in message.channel.name:
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
                     if attachments:
                         content += f"\n {len(message.attachments)} file{'s' if len(message.attachments) > 1 else ''} attached (too large to bridge)."
                         for attachment in message.attachments:
@@ -1402,6 +1415,14 @@ class CommandHandler:
                                 users=user_mentions, roles=False, everyone=False
                             ),
                         )
+                    else:
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                except Exception as e:
+                    if "sync" in message.channel.name:
+                        exc_type, exc_obj, exc_tb = exc_info()
+                        logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+                    raise e
                 if syncMessage:
                     try:
                         cur = conn.cursor()
@@ -1694,6 +1715,9 @@ class CommandHandler:
             exc_type, exc_obj, exc_tb = exc_info()
             logger.error(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             logger.debug(traceback.format_exc())
+
+    async def matrix_command_handler(self, room, message):
+        logger.debug(f"[MCH] {room} {message}")
 
     async def command_handler(self, message):
         received = datetime.utcnow()
@@ -2509,7 +2533,11 @@ class CommandHandler:
                 return self.webhook_sync_registry.get(key)
             if isinstance((bridge := self.webhook_sync_registry.get(key)), Bridge):
                 return bridge
+
             await asyncio.sleep(1)
+            logger.info(
+                f"Awaiting {key} ready, {webhooks_loaded=}, {not synchronize=}, {self.webhook_sync_registry.get(key)=}, {type(self.webhook_sync_registry.get(key))=}"
+            )
 
     def allowCommand(self, command, message, user=None):
         global config
