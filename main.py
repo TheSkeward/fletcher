@@ -13,7 +13,7 @@ import math
 import os
 import psycopg2
 import re
-from nio import AsyncClient as MatrixAsyncClient, RoomMessageText
+from nio import MatrixRoom, AsyncClient as MatrixAsyncClient, RoomMessageText
 from asyncache import cached
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
@@ -270,18 +270,18 @@ async def reload_function(message=None, client=client, args=[]):
         await animate_startup("⌨", message)
         try:
             wsr = ch.webhook_sync_registry
-        except:
+        except NameError:
             pass
         ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
         try:
             commandhandler.matrix_client = matrix_client
-        except:
+        except NameError:
             pass
         try:
             ch.webhook_sync_registry = wsr
-        except:
+        except NameError:
             pass
         await autoload(versionutils, ch)
         versioninfo = versionutils.VersionInfo()
@@ -411,12 +411,12 @@ async def shutdown_function():
     sys.exit(0)
 
 
-async def on_matrix_message(room, message):
+async def on_matrix_message(room: MatrixRoom, message: RoomMessageText):
     global config
     with sentry_sdk.configure_scope() as scope:
         scope.user = {"id": message.sender_key, "username": message.sender}
-        scope.set_tag("message", str(message.event_id))
-        scope.set_tag("room", str(room.id))
+        scope.set_tag("message", message.event_id)
+        scope.set_tag("room", room.canonical_alias)
         try:
             # try to evaluate with the command handler
             while ch is None:
@@ -434,7 +434,7 @@ async def on_matrix_message(room, message):
             logger.debug(traceback.format_exc())
             logger.error(
                 f"OM[{exc_tb.tb_lineno}]: {type(e).__name__} {e}",
-                extra={"MESSAGE_ID": str(message.id)},
+                extra={"MESSAGE_ID": message.event_id},
             )
 
 
