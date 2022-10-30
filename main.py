@@ -244,6 +244,7 @@ async def reload_function(message=None, client=client, args=[]):
     global sid
     global versioninfo
     global doissetep_omega
+    global matrix_client
     now = datetime.utcnow()
     try:
         # await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
@@ -274,6 +275,7 @@ async def reload_function(message=None, client=client, args=[]):
         ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
+        commandhandler.matrix_client = matrix_client
         try:
             ch.webhook_sync_registry = wsr
         except:
@@ -409,9 +411,8 @@ async def shutdown_function():
 async def on_matrix_message(room, message):
     global config
     with sentry_sdk.configure_scope() as scope:
-        user = message.author
-        scope.user = {"id": user.id, "username": str(user)}
-        scope.set_tag("message", str(message.id))
+        scope.user = {"id": message.sender_key, "username": message.sender}
+        scope.set_tag("message", str(message.event_id))
         scope.set_tag("room", str(room.id))
         try:
             # try to evaluate with the command handler

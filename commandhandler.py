@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass, field
 
 import discord
 from aiolimiter import AsyncLimiter
+from nio import AsyncClient as MatrixAsyncClient, RoomMessageText
 import logging
 import messagefuncs
 import itertools
@@ -52,6 +53,7 @@ remote_command_runner = None
 Ans = None
 config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
+matrix_client = cast(MatrixAsyncClient, None)
 
 
 def list_append(lst: List, item) -> List:
@@ -1716,7 +1718,7 @@ class CommandHandler:
             logger.error(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             logger.debug(traceback.format_exc())
 
-    async def matrix_command_handler(self, room, message):
+    async def matrix_command_handler(self, room, message: RoomMessageText):
         logger.debug(f"[MCH] {room} {message}")
 
     async def command_handler(self, message):
