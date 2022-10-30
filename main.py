@@ -275,7 +275,8 @@ async def reload_function(message=None, client=client, args=[]):
         ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
-        commandhandler.matrix_client = matrix_client
+        if matrix_client:
+            commandhandler.matrix_client = matrix_client
         try:
             ch.webhook_sync_registry = wsr
         except:
