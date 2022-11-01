@@ -3488,7 +3488,7 @@ async def glowfic_search_function(message, client, args):
         searched = []
         search_dbs = glowfic_search_databases[:]
         if message.guild:
-            search_dbs[2:2] = [
+            search_dbs[3:2] = [
                 {
                     "function": partial(cse_search_call, cx=engine[1]),
                     "name": engine[0],
@@ -3514,7 +3514,7 @@ async def glowfic_search_function(message, client, args):
                 "glowfic-password",
                 allow_global_substitute=True,
             ):
-                search_dbs[0] = {
+                search_dbs[1] = {
                     "function": partial(
                         glowfic_search_call,
                         exact=True,
@@ -3529,7 +3529,7 @@ async def glowfic_search_function(message, client, args):
             ) and ch.config.get(
                 guild=message.guild.id, key="glowfic-password", default=None
             ):
-                search_dbs[0] = {
+                search_dbs[1] = {
                     "function": partial(
                         glowfic_search_call,
                         exact=True,
