@@ -3441,13 +3441,16 @@ async def glowfic_session(
 async def glowfic_post_search(subj_content, exact=False, username=None, password=None):
     global conn
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, content FROM glowfic_posts WHERE content LIKE %s;",
-        ["%" + subj_content + "%"],
-    )
-    quote = cur.fetchone()
-    conn.commit()
-    return quote
+    try:
+        cur.execute(
+            "SELECT id, content FROM glowfic_posts WHERE content LIKE %s;",
+            ["%" + subj_content + "%"],
+        )
+        quote = cur.fetchone()
+        conn.commit()
+        return quote
+    except:
+        conn.rollback()
 
 
 @asynccached(TTLCache(1024, 600))
