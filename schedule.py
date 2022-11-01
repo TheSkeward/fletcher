@@ -353,7 +353,7 @@ async def table_exec_function():
         cur = conn.cursor()
         try:
             cur.execute("SELECT NOW();")
-        except psycopg2.error.InFailedSqlTransaction:
+        except psycopg2.errors.InFailedSqlTransaction:
             conn.rollback()
             cur.execute("SELECT NOW();")
         now = cur.fetchone()[0]
