@@ -3438,6 +3438,18 @@ async def glowfic_session(
     return session
 
 
+async def glowfic_post_search(subj_content, exact=False, username=None, password=None):
+    global conn
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, content FROM glowfic_posts WHERE content LIKE LIKE '%%s%';",
+        [subj_content],
+    )
+    quote = cur.fetchone()
+    conn.commit()
+    return quote
+
+
 @asynccached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
     session = await glowfic_session(username, password)
@@ -4535,7 +4547,14 @@ def autoload(ch):
     )
     ch.add_command(
         {
-            "trigger": ["!thank you", "!ty", "!love you", "!ilu", "!i love you"],
+            "trigger": [
+                "!thank you",
+                "!ty",
+                "!also love",
+                "!love you",
+                "!ilu",
+                "!i love you",
+            ],
             "function": lambda message, client, args: messagefuncs.add_reaction(
                 message, random.choice(uwu_responses["reaction"])
             ),
@@ -4982,6 +5001,11 @@ def autoload(ch):
             .list
         )
     glowfic_search_databases = [
+        {
+            "function": partial(glowfic_post_search, exact=True),
+            "name": "Constellation Top Posts (public posts only, update every 30 minutes)",
+            "type": "native",
+        },
         {
             "function": partial(glowfic_search_call, exact=True),
             "name": "Constellation (https://glowfic.com/posts/search)",
