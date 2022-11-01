@@ -351,7 +351,11 @@ async def table_exec_function():
         client = ch.client
         global conn
         cur = conn.cursor()
-        cur.execute("SELECT NOW();")
+        try:
+            cur.execute("SELECT NOW();")
+        except psycopg2.error.InFailedSqlTransaction:
+            conn.rollback()
+            cur.execute("SELECT NOW();")
         now = cur.fetchone()[0]
         cur.execute(
             "SELECT userid, guild, channel, message, content, created, trigger_type, ctid FROM reminders WHERE %s > scheduled;",
