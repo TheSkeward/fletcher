@@ -3442,8 +3442,8 @@ async def glowfic_post_search(subj_content, exact=False, username=None, password
     global conn
     cur = conn.cursor()
     cur.execute(
-        "SELECT id, content FROM glowfic_posts WHERE content LIKE '%%%s%%';",
-        [subj_content],
+        "SELECT id, content FROM glowfic_posts WHERE content LIKE '%s';",
+        ["%" + subj_content + "%"],
     )
     quote = cur.fetchone()
     conn.commit()
