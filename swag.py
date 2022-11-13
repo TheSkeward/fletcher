@@ -4701,6 +4701,17 @@ def autoload(ch):
     )
     ch.add_command(
         {
+            "trigger": ["!inspite"],
+            "function": lambda message, client, args: "In spite of my rage, I'm still just a rat in a cage! (did you mean `!inspire`?)",
+            "async": False,
+            "hidden": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Generates an inspiring message.",
+        }
+    )
+    ch.add_command(
+        {
             "trigger": ["!inspire"],
             "function": inspirobot_function,
             "async": True,
