@@ -411,7 +411,11 @@ async def alphabetize_channels(guild, client, config):
                     extra={"FLETCHER_MODULE": "alphabetize_channels"},
                 )
                 moves = 0
-                position = sorted([c.position for c in az_channels])[0]
+                try:
+                    position = sorted([c.position for c in az_channels])[0]
+                except IndexError:
+                    runagain = 0
+                    break
                 for channel in az_channels:
                     logger.debug(
                         f"#{channel.name} {channel.position} -> {position}",
