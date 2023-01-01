@@ -514,6 +514,7 @@ async def table_exec_function():
                     traceback.format_exc()
                     logger.debug(f"Timed out retrieving {url}, skipping")
             except Exception as e:
+                traceback.format_exc()
                 logger.error(f"{e}")
                 pass
         cur.execute(
@@ -583,6 +584,7 @@ async def table_exec_function():
                     traceback.format_exc()
                     logger.debug(f"Timed out retrieving @{username}, skipping")
             except Exception as e:
+                traceback.format_exc()
                 logger.error(f"{e}")
                 pass
     except asyncio.CancelledError:
