@@ -590,21 +590,24 @@ async def lockout_user_function(message, client, args):
                     + str(member.guild)
                 )
                 logger.debug("LUF: " + logMessage)
-                log = log + "\n" + logMessage
-                if mode == "reset":
-                    await category.set_permissions(
-                        member,
-                        overwrite=None,
-                        reason="Admin reset lockout obo " + message.author.name,
-                    )
-                else:
-                    await category.set_permissions(
-                        member,
-                        read_messages=False,
-                        read_message_history=False,
-                        send_messages=False,
-                        reason="Admin requested lockout obo " + message.author.name,
-                    )
+                try:
+                    if mode == "reset":
+                        await category.set_permissions(
+                            member,
+                            overwrite=None,
+                            reason="Admin reset lockout obo " + message.author.name,
+                        )
+                    else:
+                        await category.set_permissions(
+                            member,
+                            read_messages=False,
+                            read_message_history=False,
+                            send_messages=False,
+                            reason="Admin requested lockout obo " + message.author.name,
+                        )
+                    log = log + "\n" + logMessage
+                except (discord.NotFound, discord.Forbidden):
+                    pass
             if (category is None) or (
                 thorough
                 and category is not None
