@@ -3456,6 +3456,8 @@ async def glowfic_post_search(subj_content, exact=False, username=None, password
 @asynccached(TTLCache(1024, 600))
 async def glowfic_search_call(subj_content, exact=False, username=None, password=None):
     session = await glowfic_session(username, password)
+    if "||" in subj_content:
+        subj_content = subj_content.split("||")[1].strip()
     params = {
         "utf8": "✓",
         "commit": "Search",
