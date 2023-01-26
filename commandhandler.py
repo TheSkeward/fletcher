@@ -6,11 +6,11 @@ from aiohttp import web, ClientSession
 from aiohttp.web import AppRunner, Application
 from psycopg2._psycopg import connection
 from psycopg2.errors import UniqueViolation
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 
-import discord
+import discord, discord.utils
 from aiolimiter import AsyncLimiter
-from nio import AsyncClient as MatrixAsyncClient, RoomMessageText
+from nio import MatrixRoom, AsyncClient as MatrixAsyncClient, RoomMessageText
 import logging
 import messagefuncs
 import itertools
@@ -24,7 +24,7 @@ import pytz
 from sys import exc_info
 import traceback
 import ujson
-from functools import lru_cache, partial
+from functools import partial
 import sentry_sdk
 from asyncache import cached
 from cachetools import TTLCache
@@ -53,6 +53,7 @@ remote_command_runner = None
 Ans = None
 config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
+client = cast(discord.Client, None)
 matrix_client = cast(MatrixAsyncClient, None)
 
 
@@ -234,18 +235,15 @@ class CommandHandler:
         for webhooks in asyncio.as_completed(
             [
                 guild.webhooks()
-                for guild in filter(
-                    lambda guild: guild.get_member(self.user.id)
-                    and guild.get_member(
-                        self.user.id
-                    ).guild_permissions.manage_webhooks,
-                    bridge_guilds,
-                )
+                for guild in bridge_guilds
+                if (member := guild.get_member(self.user.id))
+                and member.guild_permissions.manage_webhooks
             ]
         ):
             for webhook in filter(
                 lambda webhook: webhook.name.startswith(navel_filter), await webhooks
             ):
+                assert webhook
                 fromTuple = webhook.name.split("(")[1].rsplit(")")[0].rsplit(":", 2)
                 fromTuple[0] = messagefuncs.expand_guild_name(fromTuple[0]).replace(
                     ":", ""
@@ -253,7 +251,7 @@ class CommandHandler:
                 fromGuild = discord.utils.get(
                     self.client.guilds, name=fromTuple[0].replace("_", " ")
                 )
-                if not fromGuild or not fromGuild.id:
+                if not fromGuild or not fromGuild.id or not webhook.guild:
                     continue
                 toChannel = webhook.guild.get_channel(webhook.channel_id)
                 fromChannel = discord.utils.find(
@@ -297,7 +295,13 @@ class CommandHandler:
         ):
             command["guild_command_ids"] = {}
         self.commands.append(command)
-        if command.get("message_command") and len(command.get("whitelist_guild", [])):
+        if (
+            command.get("message_command")
+            and self.config.get(
+                section="discord", key="enable_message_commands", default=False
+            )
+            and len(command.get("whitelist_guild", []))
+        ):
             for guild_id in command.get("whitelist_guild"):
                 asyncio.get_event_loop().create_task(
                     self._add_message_command(
@@ -309,7 +313,13 @@ class CommandHandler:
                         len(self.commands) - 1,
                     )
                 )
-        if command.get("slash_command") and len(command.get("whitelist_guild", [])):
+        if (
+            command.get("slash_command")
+            and self.config.get(
+                section="discord", key="enable_slash_commands", default=False
+            )
+            and len(command.get("whitelist_guild", []))
+        ):
             for guild_id in command.get("whitelist_guild"):
                 asyncio.get_event_loop().create_task(
                     self._add_slash_command(
@@ -802,6 +812,7 @@ class CommandHandler:
                                     assert fromGuild is not None
                                 except AssertionError:
                                     logger.error(f"RXH: {metuple} fromGuild not found")
+                                    cur.fetchone()
                                     continue
                                 fromChannel = fromGuild.get_channel(metuple[1])
                                 try:
@@ -1170,7 +1181,9 @@ class CommandHandler:
             for guild in self.client.guilds:
                 member = guild.get_member(self.user.id)
                 assert member is not None
-                if member.guild_permissions.manage_guild:
+                if member.guild_permissions.manage_guild and self.config.get(
+                    section="discord", key="load_guild_invites", default=False
+                ):
                     loop.create_task(self.load_guild_invites(guild))
                 reload_actions = cast(
                     Iterable,
@@ -1718,7 +1731,7 @@ class CommandHandler:
             logger.error(f"CEF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
             logger.debug(traceback.format_exc())
 
-    async def matrix_command_handler(self, room, message: RoomMessageText):
+    async def matrix_command_handler(self, room: MatrixRoom, message: RoomMessageText):
         logger.debug(f"[MCH] {room} {message}")
 
     async def command_handler(self, message):
@@ -2994,6 +3007,9 @@ class CommandHandler:
             logger.error(f"LUHF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+ch = cast(CommandHandler, None)
+
+
 async def help_function(message, client, args):
     global ch
     try:
@@ -3436,7 +3452,7 @@ async def user_config_menu_function(
         key = args.pop()
         user = message.author
         guild = message.guild
-    elif ctx:
+    elif ctx and ctx.guild_id:
         key = args[0]["key"]
         user = ctx.user
         guild = client.get_guild(ctx.guild_id)
@@ -3493,7 +3509,7 @@ async def user_config_menu_function(
 
 
 def preference_function(
-    message: Optional[discord.Message],
+    message: discord.Message,
     client: discord.Client,
     args: List,
 ):
@@ -3525,7 +3541,7 @@ def preference_function(
 
 
 async def dumptasks_function(message, client, args):
-    tasks = asyncio.Task.all_tasks(client.loop)
+    tasks = asyncio.all_tasks(client.loop)
     await messagefuncs.sendWrappedMessage(tasks, message.author)
 
 
