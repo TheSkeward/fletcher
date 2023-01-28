@@ -813,6 +813,8 @@ class CommandHandler:
                                 except AssertionError:
                                     logger.error(f"RXH: {metuple} fromGuild not found")
                                     cur.fetchone()
+                                    conn.rollback()
+                                    return
                                     continue
                                 fromChannel = fromGuild.get_channel(metuple[1])
                                 try:
