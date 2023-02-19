@@ -158,8 +158,6 @@ class Command:
 
 
 class CommandHandler:
-
-    # constructor
     def __init__(self, client: discord.Client, config):
         self.client = client
         self.commands = []
@@ -1231,8 +1229,6 @@ class CommandHandler:
                 return
             bridge_key = f"{message.guild.name}:{message.channel.id}"
             bridge = await self.bridge_registry(bridge_key)
-            if not bridge:
-                return
         except AttributeError as e:
             _, _, exc_tb = exc_info()
             assert exc_tb is not None
@@ -1460,6 +1456,17 @@ class CommandHandler:
                             conn.rollback()
                         exc_type, exc_obj, exc_tb = exc_info()
                         logger.error(f"B[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
+        if "sync" in message.channel.name:
+            logger.debug(
+                str(
+                    self.config.get(
+                        guild=message.guild.id,
+                        channel=message.channel.id,
+                        key="bridge_function",
+                        use_category_as_channel_fallback=False,
+                    )
+                )
+            )
         if (
             self.config.get(
                 guild=message.guild.id,
