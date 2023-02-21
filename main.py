@@ -626,8 +626,9 @@ async def on_raw_message_delete(message):
                     return
                 toMessage = None
                 tries = 0
-                while not toMessage:
+                while not toMessage and tries < 10:
                     try:
+                        tries += 1
                         toMessage = await toChannel.fetch_message(metuple[2])
                     except discord.NotFound as e:
                         exc_type, exc_obj, exc_tb = exc_info()
@@ -639,7 +640,6 @@ async def on_raw_message_delete(message):
                         )
                         toMessage = None
                         await asyncio.sleep(1)
-                        tries += 1
                         if tries < 10:
                             pass
                 logger.debug(
