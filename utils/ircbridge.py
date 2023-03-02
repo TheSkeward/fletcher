@@ -27,6 +27,7 @@ servers = [
 
 intents = discord.Intents.all()
 intents.presences = False
+intents.typing = False
 client = discord.Client(intents=intents, chunk_guilds_at_startup=False)
 
 # token from https://discordapp.com/developers
