@@ -3584,13 +3584,13 @@ async def glowfic_search_function(message, client, args):
 async def o_scott(message, client, args):
     try:
         link = cse_search_call(
-            exactTerms=" ".join(args), cx="6e327be4ba653f142", phrase=True
+            exactTerms=" ".join(args), cx="2befc5589b259ca98", phrase=True
         )
         if len(link.get("items", [])):
             link = link["items"][0]["link"]
         else:
             link = cse_search_call(
-                exactTerms=" ".join(args), cx="6e327be4ba653f142", phrase=False
+                exactTerms=" ".join(args), cx="2befc5589b259ca98", phrase=False
             )
             if len(link.get("items", [])):
                 link = link["items"][0]["link"]
