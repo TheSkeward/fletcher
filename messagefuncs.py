@@ -45,6 +45,7 @@ def expand_guild_name(
             "D": "Doissetep",
             "bocu": "Book of Creation Undone",
             "abcal": "Abandoned Castle",
+            "kmc": "Knife_Moth Court",
         },
     )
     new_guild = guild
@@ -57,15 +58,21 @@ def expand_guild_name(
             logger.debug(f"Replacement found {k} -> {v}")
             if ":" in new_guild:
                 new_guild = new_guild.split(":", 1)
-                return new_guild[0].replace("_", " ") + ":" + new_guild[1]
+                if "_" in new_guild[0] and " " not in new_guild[0]:
+                    new_guild[0] = new_guild[0].replace("_", " ")
+                return new_guild[0] + ":" + new_guild[1]
             else:
                 return new_guild.replace("_", " ")
     if ":" in new_guild:
         new_guild = new_guild.split(":", 1)
-        return new_guild[0].replace("_", " ") + ":" + new_guild[1]
+        if "_" in new_guild[0] and " " not in new_guild[0]:
+            new_guild[0] = new_guild[0].replace("_", " ")
+        return new_guild[0] + ":" + new_guild[1]
 
     else:
-        return new_guild.replace("_", " ")
+        if "_" in new_guild and " " not in new_guild:
+            new_guild = new_guild.replace("_", " ")
+        return new_guild
 
 
 def xchannel(targetChannel, currentGuild):
