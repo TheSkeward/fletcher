@@ -349,13 +349,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -1515,6 +1518,61 @@ async def delete_my_message_function(message, client, args):
             except discord.Forbidden as e:
                 logger.warning("DMMF: Forbidden to delete self-message")
                 pass
+            if isinstance(
+                message.channel, discord.TextChannel
+            ) and ch.webhook_sync_registry.get(
+                f"{message.guild.name}:{message.channel.id}"
+            ):
+                # Give messages time to be added to the database
+                await asyncio.sleep(1)
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
+                    [message.guild_id, message.channel_id, message.message_id],
+                )
+                metuple = cur.fetchone()
+                if metuple is not None:
+                    cur.execute(
+                        "DELETE FROM messageMap WHERE fromGuild = %s AND fromChannel = %s AND fromMessage = %s",
+                        [message.guild.id, message.channel.id, message.message_id],
+                    )
+                conn.commit()
+                if metuple is not None:
+                    toGuild = client.get_guild(metuple[0])
+                    toChannel = toGuild.get_channel(metuple[1])
+                    if not ch.config.get(
+                        key="sync-deletions", guild=toGuild, channel=toChannel
+                    ):
+                        logger.debug(
+                            f"DMMF: Demurring to delete edited message at client guild request"
+                        )
+                        return
+                    toMessage = None
+                    tries = 0
+                    while not toMessage and tries < 10:
+                        try:
+                            tries += 1
+                            toMessage = await toChannel.fetch_message(metuple[2])
+                        except discord.NotFound as e:
+                            exc_type, exc_obj, exc_tb = exc_info()
+                            logger.error(
+                                f"DMMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}"
+                            )
+                            logger.error(
+                                f"DMMF[{exc_tb.tb_lineno}]: {metuple[0]}:{metuple[1]}:{metuple[2]}"
+                            )
+                            toMessage = None
+                            await asyncio.sleep(1)
+                            if tries < 10:
+                                pass
+                    logger.debug(
+                        f"DMMF: Deleting synced message {metuple[0]}:{metuple[1]}:{metuple[2]}"
+                    )
+                    try:
+                        await toMessage.delete()
+                    except discord.Forbidden as e:
+                        logger.warning("DMMF: Forbidden to delete self-message")
+                        pass
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"DMMF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
