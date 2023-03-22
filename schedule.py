@@ -74,6 +74,7 @@ class ScheduleFunctions:
             )
             conn.commit()
         except Exception as e:
+            logger.info(traceback.format_exc())
             logger.error(e)
             conn.rollback()
             if target_message:
@@ -440,7 +441,7 @@ async def table_exec_function():
         cur.execute("DELETE FROM reminders WHERE %s > scheduled;", [now])
         conn.commit()
         global reminder_timerhandle
-        await asyncio.sleep(16)
+        await asyncio.sleep(11)
         reminder_timerhandle = asyncio.create_task(table_exec_function())
         global last_ran_fetch
         if (
@@ -514,11 +515,11 @@ async def table_exec_function():
                     traceback.format_exc()
                     logger.debug(f"Timed out retrieving {url}, skipping")
             except Exception as e:
-                traceback.format_exc()
+                logger.info(traceback.format_exc())
                 logger.error(f"{e}")
                 pass
         cur.execute(
-            "SELECT user_id, guild_id, value, key FROM user_preferences WHERE (key LIKE 'twubscribe%' AND NOT key LIKE 'twubscribe-%-last') AND guild_id != 0;"
+            "SELECT user_id, guild_id, value, key, ctid FROM user_preferences WHERE (key LIKE 'twubscribe%' AND NOT key LIKE 'twubscribe-%-last') AND guild_id != 0;"
         )
         for hottuple in cur:
             try:
@@ -584,7 +585,9 @@ async def table_exec_function():
                     traceback.format_exc()
                     logger.debug(f"Timed out retrieving @{username}, skipping")
             except Exception as e:
-                traceback.format_exc()
+                if len(hottuple) == 5:
+                    logger.info(f"CTID: {hottuple[4]}")
+                logger.info(traceback.format_exc())
                 logger.error(f"{e}")
                 pass
     except asyncio.CancelledError:

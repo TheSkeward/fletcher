@@ -3434,7 +3434,7 @@ async def glowfic_session(
                 "password": password,
             },
         ) as resp:
-            assert resp.status == 200
+            assert resp.status in (200, 302)
     return session
 
 
