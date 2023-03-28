@@ -230,12 +230,16 @@ class CommandHandler:
                 "whitelist_guild": [guild.id for guild in bridge_guilds],
             }
         )
+        total = len(bridge_guilds)
+        n = 0
         for webhooks in (
-            await guild.webhooks()
+            guild.webhooks()
             for guild in bridge_guilds
             if (member := guild.get_member(self.user.id))
             and member.guild_permissions.manage_webhooks
         ):
+            n += 1
+            logger.debug(f"Loading guild {n}/{total}")
             for webhook in filter(
                 lambda webhook: webhook.name.startswith(navel_filter), await webhooks
             ):
