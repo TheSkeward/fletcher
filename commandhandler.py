@@ -230,13 +230,11 @@ class CommandHandler:
                 "whitelist_guild": [guild.id for guild in bridge_guilds],
             }
         )
-        for webhooks in asyncio.as_completed(
-            [
-                guild.webhooks()
-                for guild in bridge_guilds
-                if (member := guild.get_member(self.user.id))
-                and member.guild_permissions.manage_webhooks
-            ]
+        for webhooks in (
+            await guild.webhooks()
+            for guild in bridge_guilds
+            if (member := guild.get_member(self.user.id))
+            and member.guild_permissions.manage_webhooks
         ):
             for webhook in filter(
                 lambda webhook: webhook.name.startswith(navel_filter), await webhooks
