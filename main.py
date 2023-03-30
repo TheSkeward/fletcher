@@ -270,7 +270,7 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(commandhandler, None, config)
         await animate_startup("⌨", message)
         try:
-            wsr = copy.deepcopy(ch.webhook_sync_registry)
+            wsr = copy.deepcopy(commandhandler.ch.webhook_sync_registry)
         except NameError:
             pass
         ch = commandhandler.CommandHandler(client, config=config)
