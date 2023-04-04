@@ -1036,6 +1036,29 @@ async def retrowave_function(message, client, args):
         await message.add_reaction("🚫")
 
 
+async def sign_function(message, client, args):
+    try:
+        async with session.post(
+            f"https://observatory.db.erau.edu/generators/signs/generate.php",
+            data="template=notice&selected-text1=W018.png&selected-text2=NONE&message=&submit=Random",
+        ) as resp:
+            buffer = io.BytesIO(await resp.read())
+            try:
+                return await messagefuncs.sendWrappedMessage(
+                    f"A sign for you.",
+                    files=[discord.File(buffer, "out3.png")],
+                    target=message.channel,
+                )
+            except discord.HTTPException:
+                return await messagefuncs.sendWrappedMessage(
+                    "File too big", target=message.channel, delete_after=30
+                )
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = exc_info()
+        logger.error("RSF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        await message.add_reaction("🚫")
+
+
 async def wiki_otd_function(message, client, args):
     try:
         url = "https://en.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/All"
@@ -5114,6 +5137,20 @@ def autoload(ch):
             "args_num": 0,
             "args_name": ["lat,long"],
             "description": "Get weather.gov 48 hour outlook for a location",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!sign",
+            ],
+            "function": sign_function,
+            "async": True,
+            "hidden": True,
+            "args_num": 0,
+            "args_name": [],
+            "long_run": "channel",
+            "description": "Get a sign.",
         }
     )
     ch.add_command(
