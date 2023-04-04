@@ -1038,9 +1038,10 @@ async def retrowave_function(message, client, args):
 
 async def sign_function(message, client, args):
     try:
+        # curl 'https://observatory.db.erau.edu/generators/signs/generate.php' -X POST -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/111.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: en-US,en;q=0.5' -H 'Accept-Encoding: gzip, deflate, br' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Origin: https://observatory.db.erau.edu' -H 'Connection: keep-alive' -H 'Referer: https://observatory.db.erau.edu/generators/signs/' -H 'Upgrade-Insecure-Requests: 1' -H 'Sec-Fetch-Dest: document' -H 'Sec-Fetch-Mode: navigate' -H 'Sec-Fetch-Site: same-origin' -H 'Sec-Fetch-User: ?1' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' --data-raw 'template=notice&selected-text1=W018.png&selected-text2=NONE&message=&submit=Random'
         async with session.post(
             f"https://observatory.db.erau.edu/generators/signs/generate.php",
-            data="template=notice&selected-text1=W018.png&selected-text2=NONE&message=&submit=Random",
+            data=dict(submit="Random"),
         ) as resp:
             buffer = io.BytesIO(await resp.read())
             try:
