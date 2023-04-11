@@ -4201,13 +4201,14 @@ async def ping_function(message: discord.Message, client, args):
 
 async def glowfic_random_function(message, client, args):
     for _ in range(50):
+        reply_id = random.randint(0, await last_glowfic_reply())
         async with session.get(
-            f"https://glowfic.com/replies/{random.randint(0,await last_glowfic_reply())}",
+            f"https://glowfic.com/replies/{reply_id}",
             allow_redirects=False,
         ) as response:
             if not response.headers.get("Location"):
                 return await messagefuncs.sendWrappedMessage(
-                    str(response.url), message.channel
+                    f"{response.url}#reply-{reply_id}", message.channel
                 )
 
 
