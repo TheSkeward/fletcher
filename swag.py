@@ -4207,7 +4207,7 @@ async def glowfic_random_function(message, client, args):
         ) as response:
             if not response.headers.get("Location"):
                 return await messagefuncs.sendWrappedMessage(
-                    message.channel, str(response.url)
+                    str(response.url), message.channel
                 )
 
 
