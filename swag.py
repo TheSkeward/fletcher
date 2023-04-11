@@ -4200,7 +4200,7 @@ async def ping_function(message: discord.Message, client, args):
 
 
 async def glowfic_random_function(message, client, args):
-    for _ in range(10):
+    for _ in range(50):
         async with session.get(
             f"https://glowfic.com/replies/{random.randint(0,await last_glowfic_reply())}",
             allow_redirects=False,
