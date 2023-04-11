@@ -1453,6 +1453,18 @@ async def append_google_sheet(message, client, args):
 
 
 @asynccached(TTLCache(1024, 6000))
+async def last_glowfic_reply() -> int:
+    async with session.get(
+        "https://glowfic.com/replies/search?board_id=&author_id=&template_id=&character_id=&subj_content=&sort=created_new&condensed=on&commit=Search"
+    ) as response:
+        return int(
+            (await response.text())
+            .split("box'>\n<a href=\"/replies/", 1)[1]
+            .split("#", 1)[0]
+        )
+
+
+@asynccached(TTLCache(1024, 6000))
 async def get_google_sheet(sheetId, sheetName, skip=0, cellRange=None, query=None):
     params = {"tqx": "out:csv", "sheet": str(sheetName)}
     if not isinstance(skip, int):
@@ -4187,6 +4199,18 @@ async def ping_function(message: discord.Message, client, args):
     await messagefuncs.sendWrappedMessage(times, message.channel)
 
 
+async def glowfic_random_function(message, client, args):
+    for _ in range(10):
+        async with session.get(
+            f"https://glowfic.com/replies/{random.randint(0,await last_glowfic_reply())}",
+            allow_redirects=False,
+        ) as response:
+            if not response.headers.get("Location"):
+                return await messagefuncs.sendWrappedMessage(
+                    message.channel, str(response.url)
+                )
+
+
 async def pongo(message, client, args, ctx):
     logger.debug(f"Pongo time {args}")
     await ctx.response.send_message("Pong!", ephemeral=True)
@@ -4233,6 +4257,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": [],
             "description": "Tells Right From Wrong.",
+            "hidden": True,
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!lucky_reply"],
+            "function": glowfic_random_function,
+            "async": True,
+            "long_run": True,
+            "args_num": 0,
+            "args_name": [],
+            "description": "Picks a random glowfic reply that exists and is public.",
             "hidden": True,
         }
     )
