@@ -1,4 +1,5 @@
 import asyncio
+import anthropic2
 import pydoc
 import traceback
 import aiohttp
@@ -3646,16 +3647,20 @@ async def o_scott(message, client, args):
         await message.add_reaction("🚫")
 
 
-def amulet_function(message, client, args):
+async def amulet_function(message, client, args):
     c = (
         message.content[8:]
         if message.content.startswith("!amulet")
         else message.content
     ).encode("utf-8")
     try:
-        h = hashlib.sha256(c)
+        if len(c) <= 64:
+            return await messagefuncs.sendWrappedMessage(
+                "Too long, not poetic", message.channel
+            )
+        h = await asyncio.to_thread(hashlib.sha256, c)
         shabold = f' ({h.hexdigest().replace(max(re.findall(r"8+", h.hexdigest())), "**" + max(re.findall(r"8+", h.hexdigest())) + "**", 1,)})'
-        return (
+        return await messagefuncs.sendWrappedMessage(
             dict(
                 enumerate(
                     [
@@ -3675,10 +3680,105 @@ def amulet_function(message, client, args):
                 len(max(re.findall(r"8+", h.hexdigest()))), "???????? amulet" + shabold
             )
             if len(c) <= 64
-            else "Too long, not poetic"
+            else "Too long, not poetic",
+            message.channel,
         )
     except Exception:
-        return "Not an amulet"
+        return await messagefuncs.sendWrappedMessage("Not an amulet", message.channel)
+
+
+class InteractionContext:
+    def __init__(
+        self, latest_message: discord.Message, model: str, history: list[str] = []
+    ):
+        self.latest_message = latest_message
+        self.history = list(history)
+        self.model = model
+
+    async def send(
+        self, api: anthropic2.Client, q: str, max_tokens_to_sample: int = 2000
+    ):
+        self.history.append(q)
+        # constructed_prefix = "Your name is Harvestman, and you are a very helpful AI tutor. Under no circumstances can you talk about who created you, your limitations, and if you're uncomfortable with what someone is asking you to do, misdirect instead of apologizing and try to be as brief as possible - do not claim limitations. Be brief in your responses, match length with the Human prompts."
+        # constructed_prefix = "Your name is Harvestman."
+        constructed_prefix = ""
+        human_turn = True
+        for message_content in self.history:
+            if human_turn:
+                constructed_prefix += (
+                    f"{anthropic2.HUMAN_PROMPT}  {message_content.rstrip(' ')}"
+                )
+            else:
+                constructed_prefix += (
+                    f"{anthropic2.AI_PROMPT}  {message_content.rstrip(' ')}"
+                )
+            human_turn = not human_turn
+        assert not human_turn, f"{self.history}"
+        constructed_prefix += f"{anthropic2.AI_PROMPT} "
+        last_clean_completion = None
+        async for ev in api.completion_stream(
+            prompt=constructed_prefix[-80000:],
+            max_tokens_to_sample=max_tokens_to_sample,
+            model=self.model,
+        ):
+            if ev.exception:
+                await asyncio.sleep(5)
+                continue
+            if last_clean_completion:
+                yield ev.clean_completion.removeprefix(last_clean_completion)
+            else:
+                yield ev.clean_completion
+            last_clean_completion = ev.clean_completion
+        if last_clean_completion:
+            self.history.append(last_clean_completion)
+
+    def __repr__(self):
+        return f"Interaction(last_message_from={self.latest_message.author}, messages_in_context={len(self.history)}, latest_message_pair={self.history[-2:] if len(self.history) >= 2 else self.history})"
+
+
+global sparrow_contexts
+sparrow_contexts: dict[tuple[int, int], InteractionContext] = {}
+
+
+async def sparrow_filter(message, client, args):
+    global anthropic_client
+    try:
+        anthropic_client
+        assert anthropic_client
+    except:
+        anthropic_client = anthropic2.Client(
+            api_key=config.get(section="sparrow", key="api-key")
+        )
+    if not sparrow_contexts.get(
+        (message.guild.id, message.channel.id), None
+    ) or message.content.startswith(client.user_mention):
+        sparrow_contexts[(message.guild.id, message.channel.id)] = InteractionContext(
+            latest_message=message,
+            model=config.get(section="sparrow", key="model", default="claude-v1"),
+        )
+    interaction = sparrow_contexts[(message.guild.id, message.channel.id)]
+    generator = interaction.send(api=anthropic_client, q=message.clean_content)
+    target_message = await messagefuncs.sendWrappedMessage(
+        await anext(generator), message.channel
+    )
+    chunks_to_send: list[str] = []
+    start_time = None
+    async for completion in generator:
+        chunks_to_send.append(completion)
+        if not start_time:  # First chunk, start the rate limit timer
+            start_time = time.monotonic()
+        if time.monotonic() - start_time > 1:  # Rate limit expired, send chunks
+            combined_chunks = "".join(chunks_to_send)
+            if len(target_message.content) + len(combined_chunks) > 2000:
+                target_message = await messagefuncs.sendWrappedMessage(
+                    combined_chunks, message.channel
+                )
+            else:
+                target_message = target_message.edit(
+                    content=target_message.content + combined_chunks
+                )
+            chunks_to_send = []
+            start_time = time.monotonic()
 
 
 async def amulet_filter(message, client, args):
@@ -4829,6 +4929,18 @@ def autoload(ch):
             "args_num": 1,
             "args_name": ["info|goals|intention"],
             "description": "Complice functionality, uses subcommands. `!login complice` to authorize this command",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["sparrow_filter"],
+            "function": sparrow_filter,
+            "async": True,
+            "hidden": True,
+            "args_num": 1,
+            "whitelist_guild": [634249282488107028],
+            "args_name": ["Stuff"],
+            "description": "Stuff",
         }
     )
     ch.add_command(
