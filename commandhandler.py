@@ -1284,7 +1284,7 @@ class CommandHandler:
         ):
             logger.info("Not bridging due to ignores")
             return
-        if isinstance(bridge, Bridge):
+        if "Bridge" in str(type(bridge)):
             if "sync" in message.channel.name:
                 logger.debug(f"ignores: {bridge=}")
             for i in range(len(bridge.webhooks)):
@@ -2543,7 +2543,9 @@ class CommandHandler:
                     ctx.user,
                     ctx,
                 )
-        await ctx.response.send_message("Not Implemented")
+        await ctx.response.send_message(
+            "Not Implemented (or couldn't find command)", ephemeral=True
+        )
 
     async def bridge_registry(self, key: str):
         global webhooks_loaded
