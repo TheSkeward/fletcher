@@ -3742,6 +3742,8 @@ sparrow_contexts: dict[tuple[int, int], InteractionContext] = {}
 
 async def sparrow_filter(message, client, args):
     global anthropic_client
+    if message.author.bot:
+        return
     try:
         anthropic_client
         assert anthropic_client
