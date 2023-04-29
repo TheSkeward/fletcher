@@ -3706,15 +3706,15 @@ class InteractionContext:
         for message_content in self.history:
             if human_turn:
                 constructed_prefix += (
-                    f"{anthropic2.HUMAN_PROMPT}  {message_content.rstrip(' ')}"
+                    f"{anthropic2.HUMAN_PROMPT}{message_content.rstrip(' ')}"
                 )
             else:
                 constructed_prefix += (
-                    f"{anthropic2.AI_PROMPT}  {message_content.rstrip(' ')}"
+                    f"{anthropic2.AI_PROMPT}{message_content.rstrip(' ')}"
                 )
             human_turn = not human_turn
         assert not human_turn, f"{self.history}"
-        constructed_prefix += f"{anthropic2.AI_PROMPT} "
+        constructed_prefix += f"{anthropic2.AI_PROMPT}"
         last_clean_completion = None
         async for ev in api.completion_stream(
             prompt=constructed_prefix[-80000:],
