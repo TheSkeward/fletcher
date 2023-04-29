@@ -6,7 +6,6 @@ from systemd import journal
 import asyncio
 import cProfile
 import discord
-import copy
 import importlib
 import io
 import logging
@@ -270,18 +269,20 @@ async def reload_function(message=None, client=client, args=[]):
         await autoload(commandhandler, None, config)
         await animate_startup("⌨", message)
         try:
-            wsr = copy.deepcopy(commandhandler.ch.webhook_sync_registry)
-        except NameError:
-            pass
+            wsr = commandhandler.ch.webhook_sync_registry
+        except (NameError, AttributeError) as e:
+            logger.debug(f"[RELOAD]: {e}")
         ch = commandhandler.CommandHandler(client, config=config)
         commandhandler.ch = ch
         ch.config = config
         try:
             commandhandler.matrix_client = matrix_client
-        except NameError:
-            pass
+        except (NameError, AttributeError) as e:
+            logger.debug(f"[RELOAD]: {e}")
         try:
-            ch.webhook_sync_registry = copy.deepcopy(wsr)
+            ch.webhook_sync_registry = wsr
+            commandhandler.ch.webhook_sync_registry = wsr
+            commandhandler.webhook_sync_registry = wsr
         except NameError:
             pass
         await autoload(versionutils, ch)
@@ -342,7 +343,8 @@ async def reload_function(message=None, client=client, args=[]):
         ):
             await ch.load_webhooks()
         else:
-            ch.webhooks_loaded = True
+            commandhandler.webhooks_loaded = True
+            commandhandler.ch.webhooks_loaded = True
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         if message:
