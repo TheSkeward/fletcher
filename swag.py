@@ -3784,6 +3784,7 @@ async def sparrow_filter(message, client, args):
 
 
 async def amulet_filter(message, client, args):
+    return
     is_am = amulet_function(message, client, args)
     if is_am not in ["Not an amulet", "Too long, not poetic"]:
         await messagefuncs.sendWrappedMessage(
