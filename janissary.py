@@ -979,8 +979,12 @@ async def role_message_function(message, client, args, remove=False):
             role = message.guild.get_role(role)
         else:
             role = discord.utils.get(message.guild.roles, name=role)
-        if not role and ch.config.get(
-            key="role-message-role-autocreate", default=True, guild=message.guild
+        if (
+            not role
+            and not (role == "0")
+            and ch.config.get(
+                key="role-message-role-autocreate", default=True, guild=message.guild
+            )
         ):
             role = await message.guild.create_role(
                 name=role_str, reason="Auto-created message role"
