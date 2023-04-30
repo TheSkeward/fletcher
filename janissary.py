@@ -349,13 +349,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -976,6 +979,15 @@ async def role_message_function(message, client, args, remove=False):
             role = message.guild.get_role(role)
         else:
             role = discord.utils.get(message.guild.roles, name=role)
+        if not role and ch.config.get(
+            key="role-message-role-autocreate", default=True, guild=message.guild
+        ):
+            role = await message.guild.create_role(
+                name=role_str, reason="Auto-created message role"
+            )
+            await messagefuncs.sendWrappedMessage(
+                f"Automatically created missing role {role_str}", message.guild.owner
+            )
         if not role:
             error_message = f"Matching role {role_str} not found for reaction `role-message-{reaction_name}` to https://discord.com/channels/{message.guild.id if message.guild else '@me'}/{message.channel.id}/{message.id}"
             raise exceptions.MisconfigurationException(error_message)
