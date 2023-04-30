@@ -3799,10 +3799,10 @@ async def amulet_filter(message, client, args):
             dict(
                 enumerate(
                     [
-                        "Not an amulet",
-                        "Not an amulet",
-                        "Not an amulet",
-                        "Not an amulet",
+                        None,
+                        None,
+                        None,
+                        None,
                         "Common amulet" + shabold,
                         "Uncommon amulet" + shabold,
                         "Rare amulet" + shabold,
