@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import anthropic2
 import pydoc
 import traceback
@@ -3722,6 +3723,7 @@ class InteractionContext:
             model=self.model,
         ):
             if ev.exception:
+                logger.debug(repr(ev))
                 await asyncio.sleep(5)
                 continue
             if last_clean_completion:
@@ -3746,14 +3748,13 @@ async def sparrow_filter(message, client, args):
         return
     try:
         anthropic_client
-        assert anthropic_client
     except:
         anthropic_client = anthropic2.Client(
             api_key=config.get(section="sparrow", key="api-key")
         )
     if not sparrow_contexts.get(
         (message.guild.id, message.channel.id), None
-    ) or message.content.startswith(client.user_mention):
+    ) or message.content.startswith(client.user.mention):
         sparrow_contexts[(message.guild.id, message.channel.id)] = InteractionContext(
             latest_message=message,
             model=config.get(section="sparrow", key="model", default="claude-v1"),
@@ -3776,11 +3777,21 @@ async def sparrow_filter(message, client, args):
                     combined_chunks, message.channel
                 )
             else:
-                target_message = target_message.edit(
+                target_message = await target_message.edit(
                     content=target_message.content + combined_chunks
                 )
             chunks_to_send = []
             start_time = time.monotonic()
+        combined_chunks = "".join(chunks_to_send)
+        if combined_chunks:
+            if len(target_message.content) + len(combined_chunks) > 2000:
+                target_message = await messagefuncs.sendWrappedMessage(
+                    combined_chunks, message.channel
+                )
+            else:
+                target_message = await target_message.edit(
+                    content=target_message.content + combined_chunks
+                )
 
 
 async def amulet_filter(message, client, args):
