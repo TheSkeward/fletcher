@@ -3782,16 +3782,16 @@ async def sparrow_filter(message, client, args):
                 )
             chunks_to_send = []
             start_time = time.monotonic()
-        combined_chunks = "".join(chunks_to_send)
-        if combined_chunks:
-            if len(target_message.content) + len(combined_chunks) > 2000:
-                target_message = await messagefuncs.sendWrappedMessage(
-                    combined_chunks, message.channel
-                )
-            else:
-                target_message = await target_message.edit(
-                    content=target_message.content + combined_chunks
-                )
+    combined_chunks = "".join(chunks_to_send)
+    if combined_chunks:
+        if len(target_message.content) + len(combined_chunks) > 2000:
+            target_message = await messagefuncs.sendWrappedMessage(
+                combined_chunks, message.channel
+            )
+        else:
+            target_message = await target_message.edit(
+                content=target_message.content + combined_chunks
+            )
 
 
 async def amulet_filter(message, client, args):
