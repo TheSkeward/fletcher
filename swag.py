@@ -3654,7 +3654,7 @@ async def amulet_function(message, client, args):
         else message.content
     ).encode("utf-8")
     try:
-        if len(c) <= 64:
+        if len(c) > 64:
             return await messagefuncs.sendWrappedMessage(
                 "Too long, not poetic", message.channel
             )
@@ -3784,12 +3784,41 @@ async def sparrow_filter(message, client, args):
 
 
 async def amulet_filter(message, client, args):
-    return
-    is_am = amulet_function(message, client, args)
-    if is_am not in ["Not an amulet", "Too long, not poetic"]:
-        await messagefuncs.sendWrappedMessage(
-            is_am, message.channel, reference=message.to_reference()
+    c = (
+        message.content[8:]
+        if message.content.startswith("!amulet")
+        else message.content
+    ).encode("utf-8")
+    try:
+        if len(c) > 64:
+            return
+        h = await asyncio.to_thread(lambda c: hashlib.sha256(c).hexdigest(), c)
+        eight = max(re.findall(r"8+", h))
+        shabold = f' ({h.replace(eight, "**" + eight + "**", 1,)})'
+        return await messagefuncs.sendWrappedMessage(
+            dict(
+                enumerate(
+                    [
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Not an amulet",
+                        "Common amulet" + shabold,
+                        "Uncommon amulet" + shabold,
+                        "Rare amulet" + shabold,
+                        "Epic amulet" + shabold,
+                        "Legendary amulet" + shabold,
+                        "Mythic amulet" + shabold,
+                    ]
+                )
+            ).get(len(eight), "???????? amulet" + shabold)
+            if len(c) <= 64
+            else "Too long, not poetic",
+            message.channel,
+            reference=message.to_reference(),
         )
+    except Exception:
+        return
 
 
 stat_names = [
