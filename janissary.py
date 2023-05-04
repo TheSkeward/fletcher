@@ -969,6 +969,21 @@ async def role_message_function(message, client, args, remove=False):
             role = ch.config.get(
                 key=f"role-message-{reaction_name}", default=0, guild=message.guild
             )
+        if role == 0 and ch.config.get(
+            key="experimental-role-menu-autocreate", default=True, guild=message.guild
+        ):
+            role = (
+                next(
+                    (
+                        line
+                        for line in message.content.splitlines()
+                        if reaction_name in line
+                    ),
+                    "0",
+                )
+                .strip(reaction_name)
+                .strip()
+            )
         audit_channel = ch.config.get(
             key="audit-channel", default=0, guild=message.guild
         )
