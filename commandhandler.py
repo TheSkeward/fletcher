@@ -1729,7 +1729,15 @@ class CommandHandler:
             )
             if channel_config.get("regex", None) and not (
                 channel_config.get("regex-tyranny", False)
-                and message.channel.permissions_for(fromMessage.author).manage_messages
+                and (
+                    (
+                        isinstance(fromMessage.author, discord.Member)
+                        and message.channel.permissions_for(
+                            fromMessage.author
+                        ).manage_messages
+                    )
+                    or not isinstance(fromMessage.author, discord.Member)
+                )
             ):
                 continue_flag = await greeting.regex_filter(
                     message, self.client, channel_config
@@ -2888,7 +2896,7 @@ class CommandHandler:
         max_args=99999,
         user=None,
     ):
-        if insensitive:
+        if insensitive and target_trigger:
             target_trigger = target_trigger.lower()
         if message:
             accessible_commands = ch.accessible_commands(message, user=user)
