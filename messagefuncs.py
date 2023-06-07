@@ -470,6 +470,7 @@ async def preview_messagelink_function(message, client, args):
         except AttributeError:
             previewable_parts = []
         attachments = []
+        spoilered = False
         embed = None
         content = None
         if len(urlParts) == 3:
@@ -666,10 +667,6 @@ async def preview_messagelink_function(message, client, args):
                                     await message.edit(suppress=True)
                                 except:
                                     pass
-                                if spoilered:
-                                    attachments[
-                                        0
-                                    ].filename = f"SPOILER_{attachments[0].filename}"
                                 break
                     except asyncio.TimeoutError:
                         return
@@ -742,6 +739,9 @@ __{unescape(re.search(r'name="citation_title" content="([^"]*?)"', text).group(1
                 [type(attachment) is discord.File for attachment in attachments]
             ):
                 return
+            if spoilered:
+                for a in attachments:
+                    a.filename = f"SPOILER_{attachments[0].filename}"
             try:
                 outMessage = await sendWrappedMessage(
                     content,
