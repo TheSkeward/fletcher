@@ -575,6 +575,20 @@ async def preview_messagelink_function(message, client, args):
                         + f"\nSource: https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
                     )
         elif len(previewable_parts):
+            spoiler_splits = message.content.split("||")
+            spoilered = (
+                spoiler_splits
+                and next(
+                    (
+                        i
+                        for i, x in enumerate(spoiler_splits)
+                        if previewable_parts[0] in x
+                    ),
+                    0,
+                )
+                % 2
+                == 1
+            )
             if "flightrising" in previewable_parts[0]:
                 import swag
 
@@ -652,6 +666,10 @@ async def preview_messagelink_function(message, client, args):
                                     await message.edit(suppress=True)
                                 except:
                                     pass
+                                if spoilered:
+                                    attachments[
+                                        0
+                                    ].filename = f"SPOILER_{attachments[0].filename}"
                                 break
                     except asyncio.TimeoutError:
                         return
