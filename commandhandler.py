@@ -540,6 +540,7 @@ class CommandHandler:
                 wait=True,
                 **({"thread": thread} if thread else {}),
             )
+            await self.bridge_message(sent_message, allow_webhook_checks=False)
             cur = conn.cursor()
             cur.execute(
                 "INSERT INTO attributions (author_id, from_message, from_channel, from_guild, message, channel, guild) VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
@@ -1224,7 +1225,7 @@ class CommandHandler:
             )
         return webhook
 
-    async def bridge_message(self, message):
+    async def bridge_message(self, message, allow_webhook_checks: bool = True):
         global conn
         try:
             if not message.guild:
@@ -1238,8 +1239,10 @@ class CommandHandler:
             return
         user = message.author
         # if the message is from the bot itself or sent via webhook, which is usually done by a bot, ignore it if not in whitelist
-        if message.webhook_id and self.config.get(
-            section="sync", key="whitelist-webhooks"
+        if (
+            message.webhook_id
+            and allow_webhook_checks
+            and self.config.get(section="sync", key="whitelist-webhooks")
         ):
             try:
                 webhook = await self.fetch_webhook_cached(message.webhook_id)
@@ -1254,8 +1257,10 @@ class CommandHandler:
                     # logger.debug("Webhook isn't whitelisted for bridging")
                     pass
                 return
-        elif message.webhook_id and self.config.get(
-            section="sync", key="denylist-webhooks"
+        elif (
+            message.webhook_id
+            and allow_webhook_checks
+            and self.config.get(section="sync", key="denylist-webhooks")
         ):
             try:
                 webhook = await self.fetch_webhook_cached(message.webhook_id)
