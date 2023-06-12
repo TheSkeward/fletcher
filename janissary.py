@@ -349,16 +349,13 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if (
-                ch.user_config(
-                    message.author.id,
-                    message.guild.id,
-                    "snappy",
-                    default=False,
-                    allow_global_substitute=True,
-                )
-                or ch.config.get(key="snappy", guild=message.guild.id)
-            ):
+            if ch.user_config(
+                message.author.id,
+                message.guild.id,
+                "snappy",
+                default=False,
+                allow_global_substitute=True,
+            ) or ch.config.get(key="snappy", guild=message.guild.id):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -2085,24 +2082,15 @@ async def self_service_channel_function(
             return await messagefuncs.sendWrappedMessage(
                 f"Error: {author=}, {type(author)=}", args[0]
             )
-        if not len(message.channel_mentions) or len(message.raw_channel_mentions):
+        if not len(message.channel_mentions):
             await messagefuncs.sendWrappedMessage(
                 "Could not link reactions, no channel mention found in message.",
                 message.author,
             )
             return
-        channel = (
-            message.channel_mentions[0]
-            if message.channel_mentions
-            else message.guild.get_channel_or_thread(message.raw_channel_mentions[0])
-        )
-        admin = ch.is_admin(
-            channel,
-            author,
-        )
-        if not admin["channel"]:
+        if not ch.is_admin(message.channel_mentions[0], author)["channel"]:
             await messagefuncs.sendWrappedMessage(
-                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions (debugging info: ||fletcher thinks you have admin bits {admin} on {channel} as {author} from permission set {dict(channel.permissions_for(author))}||).",
+                f"You don't have permission to set up a self-service channel reaction function via {message.jump_url} because you don't have channel admin permissions (debugging info: ||fletcher thinks you have admin {ch.is_admin(message.channel_mentions[0], author)} on {message.channel_mentions[0]} for {author} from permission set {dict(message.channel_mentions[0].permissions_for(author))}||).",
                 author,
             )
             return
@@ -2128,7 +2116,7 @@ async def self_service_channel_function(
             if args[2] == "add":
                 try:
                     if confirm:
-                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{channel.name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
+                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, to confirm entry react with a checkmark. If you do not wish to grant entry, no further action is required."
                         if isinstance(confirm, str):
                             confirmMessage += "\n"
                             confirmMessage += f"Heads up! Your warnlist has triggered a confirmation before adding this user with the message '{confirm}'"
@@ -2152,10 +2140,12 @@ async def self_service_channel_function(
                             )
                             await confirmMessage.remove_reaction("✅", client.user)
                             return
-                    while not channel.permissions_for(
-                        message.guild.get_member(client.user.id)
-                    ).manage_permissions:
-                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{channel.name}__, but I don't think I have permission to add them. When you've granted me View Channel and Manage Permissions on the channel, react with a checkmark to proceed. If you do not wish to grant entry, no further action is required."
+                    while (
+                        not message.channel_mentions[0]
+                        .permissions_for(message.guild.get_member(client.user.id))
+                        .manage_permissions
+                    ):
+                        confirmMessage = f"{args[1]} ({args[1].mention}, {str(args[0].emoji)}) requests entry to channel __#{message.channel_mentions[0].name}__, but I don't think I have permission to add them. When you've granted me View Channel and Manage Permissions on the channel, react with a checkmark to proceed. If you do not wish to grant entry, no further action is required."
                         confirmMessage = await messagefuncs.sendWrappedMessage(
                             confirmMessage,
                             author,
@@ -2177,7 +2167,7 @@ async def self_service_channel_function(
                             await confirmMessage.remove_reaction("✅", client.user)
                             return
 
-                    await channel.set_permissions(
+                    await message.channel_mentions[0].set_permissions(
                         args[1],
                         read_messages=True,
                         send_messages=True,
@@ -2185,7 +2175,7 @@ async def self_service_channel_function(
                     )
                     voice_channel = discord.utils.get(
                         message.guild.voice_channels,
-                        name=channel.name,
+                        name=message.channel_mentions[0].name,
                     )
                     if voice_channel and "+voice" in message.content:
                         await voice_channel.set_permissions(
@@ -2195,11 +2185,11 @@ async def self_service_channel_function(
                         )
                     if not autoclose:
                         await messagefuncs.sendWrappedMessage(
-                            f"Added {args[1]} ({str(args[0].emoji)}) to channel __#{channel.name}__",
+                            f"Added {args[1]} ({str(args[0].emoji)}) to channel __#{message.channel_mentions[0].name}__",
                             author,
                         )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{channel.name}__ ({channel.mention}) by your own request (reacted with {str(args[0].emoji)} to <{message.jump_url}>).",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__ ({message.channel_mentions[0].mention}) by your own request (reacted with {str(args[0].emoji)} to <{message.jump_url}>).",
                             args[1],
                         )
                     else:
@@ -2219,28 +2209,30 @@ async def self_service_channel_function(
                             )
                         ):
                             await messagefuncs.sendWrappedMessage(
-                                f"Added {args[1]} to channel __#{channel.name}__, and removed {args[1]} from channel __#{message.channel.name}__",
+                                f"Added {args[1]} to channel __#{message.channel_mentions[0].name}__, and removed {args[1]} from channel __#{message.channel.name}__",
                                 author,
                             )
                         await messagefuncs.sendWrappedMessage(
-                            f"Added you to channel __#{channel.name}__, and removed you from channel __#{message.channel.name}__ by your own request (reacted to <{message.jump_url}>)",
+                            f"Added you to channel __#{message.channel_mentions[0].name}__, and removed you from channel __#{message.channel.name}__ by your own request (reacted to <{message.jump_url}>)",
                             args[1],
                         )
                 except discord.Forbidden as e:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members (Manage Permissions) on __#{channel.name}__, and {args[1]} requested an add\n{e}.",
+                        f"I don't have permission to manage members (Manage Permissions) on __#{message.channel_mentions[0].name}__, and {args[1]} requested an add\n{e}.",
                         author,
                     )
             elif args[2] != "add" and args[1].id != author.id:
                 try:
-                    currentPermissions = channel.permissions_for(args[1])
+                    currentPermissions = message.channel_mentions[0].permissions_for(
+                        args[1]
+                    )
                     if not (
                         currentPermissions.read_messages
                         or currentPermissions.send_messages
                         or currentPermissions.read_message_history
                     ):
                         return
-                    await channel.set_permissions(
+                    await message.channel_mentions[0].set_permissions(
                         args[1],
                         read_messages=False,
                         send_messages=False,
@@ -2248,7 +2240,7 @@ async def self_service_channel_function(
                     )
                     voice_channel = discord.utils.get(
                         message.guild.voice_channels,
-                        name=channel.name,
+                        name=message.channel_mentions[0].name,
                     )
                     if voice_channel and "+voice" in message.content:
                         await voice_channel.set_permissions(
@@ -2257,16 +2249,16 @@ async def self_service_channel_function(
                             speak=False,
                         )
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed {args[1]} from channel __#{channel.name}__",
+                        f"Removed {args[1]} from channel __#{message.channel_mentions[0].name}__",
                         author,
                     )
                     await messagefuncs.sendWrappedMessage(
-                        f"Removed you from channel __#{channel.name}__ by your own request (removed reaction from {message.jump_url})",
+                        f"Removed you from channel __#{message.channel_mentions[0].name}__ by your own request (removed reaction from {message.jump_url})",
                         args[1],
                     )
                 except discord.Forbidden:
                     await messagefuncs.sendWrappedMessage(
-                        f"I don't have permission to manage members of __#{channel.name}__, and {args[1]} requested removal.",
+                        f"I don't have permission to manage members of __#{message.channel_mentions[0].name}__, and {args[1]} requested removal.",
                         author,
                     )
         else:
@@ -2307,15 +2299,17 @@ async def self_service_channel_function(
             )
             await message.add_reaction("🚪")
             await messagefuncs.sendWrappedMessage(
-                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{channel.name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not channel.permissions_for(message.guild.get_member(client.user.id)).manage_permissions else ''}",
+                f"Linked reactions on https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id} to channel read/write/read history {'with confirmation ' if confirm else ''}on #{message.channel_mentions[0].name}{'. I do not have Manage Permissions on your channel though, please do add that or users will not be successfully added/removed from the channel.' if not message.channel_mentions[0].permissions_for(message.guild.get_member(client.user.id)).manage_permissions else ''}",
                 author,
             )
             err = (
-                f"[{message.guild.name}] {author.name} attempted to link reactions for #{channel.name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
+                f"[{message.guild.name}] {author.name} attempted to link reactions for #{message.channel_mentions[0].name} to a catcher but I don't have Manage Permissions in there. This may cause issues.",
             )
-            if not channel.permissions_for(
-                message.guild.get_member(client.user.id)
-            ).manage_permissions:
+            if (
+                not message.channel_mentions[0]
+                .permissions_for(message.guild.get_member(client.user.id))
+                .manage_permissions
+            ):
                 await error_report_function(err, message.guild, client)
     except Exception as e:
         if "cur" in locals() and "conn" in locals():
