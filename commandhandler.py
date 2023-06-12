@@ -1275,6 +1275,7 @@ class CommandHandler:
                         Iterable,
                         self.config.get(section="sync", key="denylist-webhooks"),
                     )
+                    if isinstance(webhook.name, str)
                 )
             ):
                 return
