@@ -10,6 +10,7 @@ import commandhandler
 import dateparser.search
 import Levenshtein
 from urllib.parse import quote
+from aiolimiter import AsyncLimiter
 import discord
 import exceptions
 import load_config
@@ -349,13 +350,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -1064,6 +1068,7 @@ async def chanlog_function(message, client, args):
     try:
         await message.add_reaction("🔜")
         content = f"Log for {message.guild.name}:{message.channel.name}"
+        progress_edit_ratelimit = AsyncLimiter(1, 3)
         if "short" in args:
 
             async def log_message(message, last_created_at=None, last_author_name=None):
@@ -1113,6 +1118,10 @@ async def chanlog_function(message, client, args):
 
         last_created_at = None
         last_author_name = None
+        progress_message = await messagefuncs.sendWrappedMessage(
+            "Your log download is being prepared, and may take a while to prepare. Please be patient.",
+            message.author,
+        )
         if len(args) > 2 and args[2] == "reverse":
             if before:
                 content += await log_message(before)
@@ -1126,6 +1135,11 @@ async def chanlog_function(message, client, args):
                 )
                 last_created_at = historical_message.created_at
                 last_author_name = historical_message.author.display_name
+                if progress_edit_ratelimit.has_capacity():
+                    async with progress_edit_ratelimit:
+                        await progress_message.edit(
+                            f"Your log download is being prepared, and may take a while to prepare. Please be patient.\nLast message retrieved: {historical_message.created_at}"
+                        )
             if after:
                 content += await log_message(after, last_created_at, last_author_name)
         else:
@@ -1141,6 +1155,11 @@ async def chanlog_function(message, client, args):
                 )
                 last_created_at = historical_message.created_at
                 last_author_name = historical_message.author.display_name
+                if progress_edit_ratelimit.has_capacity():
+                    async with progress_edit_ratelimit:
+                        await progress_message.edit(
+                            f"Your log download is being prepared, and may take a while to prepare. Please be patient.\nLast message retrieved: {historical_message.created_at}"
+                        )
             if before:
                 content += await log_message(before, last_created_at, last_author_name)
         link = text_manipulators.fiche_function(content, message.id)
