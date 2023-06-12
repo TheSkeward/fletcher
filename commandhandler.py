@@ -1254,6 +1254,23 @@ class CommandHandler:
                     # logger.debug("Webhook isn't whitelisted for bridging")
                     pass
                 return
+        elif message.webhook_id and self.config.get(
+            section="sync", key="denylist-webhooks"
+        ):
+            try:
+                webhook = await self.fetch_webhook_cached(message.webhook_id)
+            except discord.NotFound:
+                return
+            if any(
+                (
+                    webhook.name.startswith(hook)
+                    for hook in cast(
+                        Iterable,
+                        self.config.get(section="sync", key="denylist-webhooks"),
+                    )
+                )
+            ):
+                return
         spoilers = cast(
             list,
             self.config.get(section="sync", key=f"spoilerlist-{message.guild.id}")
