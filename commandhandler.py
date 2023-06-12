@@ -55,6 +55,7 @@ config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
 client = cast(discord.Client, None)
 matrix_client = cast(MatrixAsyncClient, None)
+message_handler_rate_limit = AsyncLimiter(1, 1)
 
 
 def list_append(lst: List, item) -> List:
@@ -366,9 +367,10 @@ class CommandHandler:
             return
         payload["type"] = 3
         try:
-            response = await self.client.http.upsert_guild_command(
-                self.user.id, guild_id, payload
-            )
+            async with message_handler_rate_limit:
+                response = await self.client.http.upsert_guild_command(
+                    self.user.id, guild_id, payload
+                )
         except discord.Forbidden:
             logger.info(
                 f"Disable guild commands on {guild_id} ({client.get_guild(guild_id).name})"
@@ -3705,6 +3707,25 @@ def autoload(ch):
         if len(ch.commands) > 5:
             load_guild_config(ch)
             ch.client.loop.create_task(run_web_api(config, ch))
+        bridge_guilds = list(
+            filter(
+                lambda guild: config.get(guild=guild, key="synchronize"),
+                ch.client.guilds,
+            )
+        )
+        ch.add_command(
+            {
+                "trigger": ["!reaction_list"],
+                "function": reaction_list_function,
+                "async": True,
+                "hidden": True,
+                "args_num": 0,
+                "args_name": [""],
+                "description": "List reactions",
+                "message_command": True,
+                "whitelist_guild": [guild.id for guild in bridge_guilds],
+            }
+        )
     logging.getLogger("discord.voice_client").setLevel("CRITICAL")
 
 
