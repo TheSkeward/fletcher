@@ -23,7 +23,7 @@ async def on_ready():
         "<ul>"
         + "".join(
             [
-                f"<li><img src='{emoji.url_as()}' style='height:2em; width:2em' loading='lazy' />{emoji.name}</li>"
+                f"<li><img src='{emoji.url}' style='height:2em; width:2em' loading='lazy' />{emoji.name}</li>"
                 for emoji in client.emojis
                 if emoji.is_usable()
             ]
