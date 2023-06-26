@@ -949,6 +949,10 @@ async def sudo_function(message, client, args):
             role, reason="Sudo deescalation (timeout)", atomic=False
         )
     except Exception as e:
+        if "role" in locals():
+            await message.author.remove_roles(
+                role, reason="Sudo deescalation", atomic=False
+            )
         exc_type, exc_obj, exc_tb = exc_info()
         logger.error(f"SUDOF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
