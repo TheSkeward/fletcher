@@ -446,7 +446,7 @@ async def teleport_function(message, client, args):
 
 extract_links = re.compile("(?<!<)((https?|ftp):\/\/|www\.)(\w.+\w\W?)", re.IGNORECASE)
 extract_previewable_link = re.compile(
-    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://www.tiktok.com/(?:@[^ ]*/)?(?:video|t)/[a-zA-Z0-9]*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+|https://static.wikia.nocookie.net/.*?/images/d/dc/[^/]+\.[^/]+/|https://sci-hub.*)",
+    r"(?<!<)(https?://www1.flightrising.com/(?:dragon/\d+|dgen/preview/dragon|dgen/dressing-room/scry|scrying/predict)(?:\?[^ ]+)?|https?://todo.sr.ht/~nova/fletcher/\d+|https?://vine.co/v/\w+|https?://www.azlyrics.com/lyrics/.*.html|https?://www.scpwiki.com[^ ]*|https?://(?:m|www).(?:fx|vx)?twitter.com/[^/]*/[0-9]*|https?://www.tiktok.com/(?:@[^ ]*/)?(?:video|t)/[a-zA-Z0-9]*|https?://vm.tiktok.com/[^ ]*|https?://www.instagram.com/p/[^/]*/|https?://arxiv.org/(?:pdf|abs)/[0-9.]*[0-9](?:.pdf)?|https://www.oyez.org/cases/\d+/\d+-\d+|http://bash.org/\?\d+|https://static.wikia.nocookie.net/.*?/images/d/dc/[^/]+\.[^/]+/|https://sci-hub.*)",
     re.IGNORECASE,
 )
 
@@ -603,6 +603,11 @@ async def preview_messagelink_function(message, client, args):
 
                 content = await swag.bash_preview(
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
+                )
+            elif "twitter" in previewable_parts[0]:
+                content = (
+                    "https://platform.twitter.com/embed/Tweet.html?id="
+                    + previewable_parts[0].split("/")[-1]
                 )
             elif "wikia" in previewable_parts[0]:
                 content = "Higher resolution link: " + previewable_parts[0][:-1]
