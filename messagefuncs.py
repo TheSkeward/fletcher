@@ -613,7 +613,7 @@ async def preview_messagelink_function(message, client, args):
                         title="Twitter preview", description=data["text"]
                     )
                     if data["photos"]:
-                        embed.set_image(url=data["photos"][0]["media_url_https"])
+                        embed.set_image(url=data["photos"][0]["url"])
                         if len(data["photos"]) > 1:
                             embed.add_field(
                                 name="Photos shown", value=f'1/{len(data["photos"])}'
