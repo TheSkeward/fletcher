@@ -612,7 +612,7 @@ async def preview_messagelink_function(message, client, args):
                     embed = discord.Embed(
                         title="Twitter preview", description=data["text"]
                     )
-                    if data["photos"]:
+                    if hasattr(data, "photos"):
                         embed.set_image(url=data["photos"][0]["url"])
                         if len(data["photos"]) > 1:
                             embed.add_field(
