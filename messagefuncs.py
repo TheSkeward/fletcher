@@ -605,8 +605,25 @@ async def preview_messagelink_function(message, client, args):
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
                 )
             elif "twitter" in previewable_parts[0]:
+                async with session.get(
+                    f"https://cdn.syndication.twimg.com/tweet-result?id={previewable_parts[0].split('/')[-1]}&lang=en"
+                ) as resp:
+                    data = await resp.json()
+                    embed = discord.Embed(
+                        title="Twitter preview", description=data["text"]
+                    )
+                    if data["photos"]:
+                        embed.set_image(url=data["photos"][0]["media_url_https"])
+                        if len(data["photos"]) > 1:
+                            embed.add_field(
+                                name="Photos shown", value=f'1/{len(data["photos"])}'
+                            )
+                    embed.set_author(
+                        name=f'{data["user"]["name"]} (@{data["user"]["screen_name"]})',
+                        icon_url=data["user"]["profile_image_url_https"],
+                    )
                 content = (
-                    "https://platform.twitter.com/embed/Tweet.html?id="
+                    "Tweet retrieved from https://platform.twitter.com/embed/Tweet.html?id="
                     + previewable_parts[0].split("/")[-1]
                 )
             elif "wikia" in previewable_parts[0]:
