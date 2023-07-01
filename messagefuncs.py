@@ -608,11 +608,11 @@ async def preview_messagelink_function(message, client, args):
                 async with session.get(
                     f"https://cdn.syndication.twimg.com/tweet-result?id={previewable_parts[0].split('/')[-1]}&lang=en"
                 ) as resp:
-                    data = await resp.json()
+                    data: dict = await resp.json()
                     embed = discord.Embed(
                         title="Twitter preview", description=data["text"]
                     )
-                    if hasattr(data, "photos"):
+                    if "photos" in data.keys():
                         embed.set_image(url=data["photos"][0]["url"])
                         if len(data["photos"]) > 1:
                             embed.add_field(
