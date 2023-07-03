@@ -616,7 +616,9 @@ class CommandHandler:
                     await messagefuncs.sendWrappedMessage(json["message"], channel)
                     return web.Response(status=200)
             try:
-                messageParts = re.search(r"> <([^>]*)> (.*)", json["message"])
+                messageParts = re.search(
+                    r"> (?:\[Not Secure\] )?<([^>]*)> (.*)", json["message"]
+                )
                 member = None
                 if messageParts:
                     display_name, content = messageParts.groups()
