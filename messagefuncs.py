@@ -1329,13 +1329,14 @@ async def getalong_filter(message, client, args):
         conn.commit()
 
 
-@asynccached(TTLCache(1024, 6000))
 @tenacity.retry()
+@asynccached(TTLCache(1024, 6000))
 async def twitter_get(tweet_id: int):
     async with session.get(
         f"https://cdn.syndication.twimg.com/tweet-result?id={tweet_id}&lang=en"
     ) as resp:
         data: dict = await resp.json()
+        logger.debug(data)
         embed = discord.Embed(title="Twitter preview", description=data["text"])
         if "photos" in data.keys():
             embed.set_image(url=data["photos"][0]["url"])
