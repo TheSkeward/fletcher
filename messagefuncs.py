@@ -3,7 +3,10 @@ from html import unescape
 import commandhandler
 import asyncio
 from aiolimiter import AsyncLimiter
+import tenacity
 import aiohttp
+from cachetools import TTLCache
+from asyncache import cached as asynccached
 import netcode
 import discord
 from tenacity import retry, stop_after_delay
@@ -605,23 +608,7 @@ async def preview_messagelink_function(message, client, args):
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
                 )
             elif "twitter" in previewable_parts[0]:
-                async with session.get(
-                    f"https://cdn.syndication.twimg.com/tweet-result?id={previewable_parts[0].split('/')[-1]}&lang=en"
-                ) as resp:
-                    data: dict = await resp.json()
-                    embed = discord.Embed(
-                        title="Twitter preview", description=data["text"]
-                    )
-                    if "photos" in data.keys():
-                        embed.set_image(url=data["photos"][0]["url"])
-                        if len(data["photos"]) > 1:
-                            embed.add_field(
-                                name="Photos shown", value=f'1/{len(data["photos"])}'
-                            )
-                    embed.set_author(
-                        name=f'{data["user"]["name"]} (@{data["user"]["screen_name"]})',
-                        icon_url=data["user"]["profile_image_url_https"],
-                    )
+                embed = await twitter_get(int(previewable_parts[0].split("/")[-1]))
                 content = (
                     "Tweet retrieved from https://platform.twitter.com/embed/Tweet.html?id="
                     + previewable_parts[0].split("/")[-1]
@@ -1340,6 +1327,25 @@ async def getalong_filter(message, client, args):
                 ],
             )
         conn.commit()
+
+
+@asynccached(TTLCache(1024, 6000))
+@tenacity.retry()
+async def twitter_get(tweet_id: int):
+    async with session.get(
+        f"https://cdn.syndication.twimg.com/tweet-result?id={tweet_id}&lang=en"
+    ) as resp:
+        data: dict = await resp.json()
+        embed = discord.Embed(title="Twitter preview", description=data["text"])
+        if "photos" in data.keys():
+            embed.set_image(url=data["photos"][0]["url"])
+            if len(data["photos"]) > 1:
+                embed.add_field(name="Photos shown", value=f'1/{len(data["photos"])}')
+        embed.set_author(
+            name=f'{data["user"]["name"]} (@{data["user"]["screen_name"]})',
+            icon_url=data["user"]["profile_image_url_https"],
+        )
+        return embed
 
 
 async def edit_message_function(message, client, args):
