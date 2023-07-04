@@ -3618,7 +3618,10 @@ async def reaction_request_function(message, client, args):
                 # Create a new gif from the flipped frames
                 output_image_blob = io.BytesIO()
                 imageio.mimsave(
-                    output_image_blob, output_frames, fps=image.info["duration"]
+                    output_image_blob,
+                    output_frames,
+                    fps=image.info["duration"],
+                    optimize=True,
                 )
             else:
                 # For PNGs, just flip the single image
