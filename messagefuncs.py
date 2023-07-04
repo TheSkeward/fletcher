@@ -1280,7 +1280,7 @@ async def emoji_image_function(message, client, args):
             buffer = await netcode.simple_get_image(emoji.url)
         image = discord.File(
             buffer,
-            f"emoji.{'gif' if emoji and emoji.animated else 'png'}",
+            f"emoji.{'gif' if (emoji and emoji.animated) or 'a:' in args[0] else 'png'}",
         )
         return await sendWrappedMessage(files=[image], target=message.channel)
     except Exception as e:
