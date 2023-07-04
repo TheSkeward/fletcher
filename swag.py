@@ -4114,10 +4114,6 @@ async def sparrow_filter(message, client, args):
         api=anthropic_client, q=message.clean_content, max_tokens_to_sample=6000
     )
     initial_contents = await anext(generator)
-    try:
-        initial_contents = await anext(generator)
-    except StopIteration:
-        pass
     target_message = await messagefuncs.sendWrappedMessage(
         initial_contents, message.channel
     )
