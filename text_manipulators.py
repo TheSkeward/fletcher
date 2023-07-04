@@ -3599,7 +3599,7 @@ async def reaction_request_function(message, client, args):
             image_blob = await netcode.simple_get_image(emoji.url)
             image_blob.seek(0)
             image = Image.open(image_blob)
-            if image.format == "GIF":
+            if emoji.url.endswith("gif"):
                 # For GIFs, get the frames and flip each frame
                 frames = [frame for frame in ImageSequence.Iterator(image)]
                 flipped_frames = [
