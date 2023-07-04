@@ -4116,8 +4116,6 @@ async def sparrow_filter(message, client, args):
     initial_contents = await anext(generator)
     try:
         initial_contents = await anext(generator)
-        initial_contents = await anext(generator)
-        initial_contents = await anext(generator)
     except StopIteration:
         pass
     target_message = await messagefuncs.sendWrappedMessage(
