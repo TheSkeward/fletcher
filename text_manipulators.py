@@ -3545,7 +3545,7 @@ async def reaction_request_function(message, client, args):
             except Exception as e:
                 logger.debug("404 Image Not Found")
                 await messagefuncs.sendWrappedMessage(
-                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    f"XRF: Tried retrieving the emoji {parts[1]} by url and failed - did you specify the target link or ID after the emoji name?",
                     message.author,
                 )
                 await message.add_reaction("🚫")
@@ -3578,7 +3578,7 @@ async def reaction_request_function(message, client, args):
             except Exception as e:
                 logger.debug("404 Image Not Found")
                 await messagefuncs.sendWrappedMessage(
-                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    f"XRF: Tried retrieving the emoji {hex(ord(emoji_query))[2:]=} by url and failed - did you specify the target link or ID after the emoji name?",
                     message.author,
                 )
                 await message.add_reaction("🚫")
