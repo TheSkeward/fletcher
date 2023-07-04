@@ -3620,7 +3620,6 @@ async def reaction_request_function(message, client, args):
                 imageio.mimsave(
                     output_image_blob,
                     output_frames,
-                    fps=image.info["duration"],
                     optimize=True,
                 )
             else:
