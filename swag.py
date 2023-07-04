@@ -4719,9 +4719,7 @@ def fight_crime(message, client, args):
     for clause in clauses:
         sentence.append(random.choice(clause))
 
-    return "\"He's {} She's {}\"".format(
-        " ".join(sentence[0:4]), " ".join(sentence[4:8])
-    )
+    return "He's {} She's {}".format(" ".join(sentence[0:4]), " ".join(sentence[4:9]))
 
 
 async def pongo(message, client, args, ctx):
