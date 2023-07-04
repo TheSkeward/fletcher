@@ -1350,7 +1350,7 @@ async def twitter_get(tweet_id: int):
         data: dict = await resp.json()
         logger.debug(data)
         embed = discord.Embed(title="Twitter preview", description=data["text"])
-        if "photos" in data.keys():
+        if "photos" in data.keys() and len(data["photos"]):
             embed.set_image(url=data["photos"][0]["url"])
             if len(data["photos"]) > 1:
                 embed.add_field(name="Photos shown", value=f'1/{len(data["photos"])}')
