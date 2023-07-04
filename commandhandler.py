@@ -1979,7 +1979,7 @@ class CommandHandler:
             message.content
         ) or messagefuncs.extract_previewable_link.search(message.content)
         blacklisted_preview_command = message.content.startswith(
-            ("!preview", "!blockquote", "!xreact")
+            ("!preview", "!blockquote", "!xreact", "!tcaerx")
         )
         should_preview_guild = type(message.channel) == discord.DMChannel or config.get(
             guild=None if not message.guild else message.guild.id,
