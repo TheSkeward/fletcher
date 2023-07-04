@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import imageio
+import numpy as np
 from PIL import Image, ImageOps, ImageSequence
 from sys import exc_info
 import traceback
@@ -3613,7 +3614,9 @@ async def reaction_request_function(message, client, args):
                     output_frame = io.BytesIO()
                     frame.save(output_frame, format="GIF", optimize=True)
                     output_frame.seek(0)
-                    output_frames.append(output_frame)
+                    output_frames.append(
+                        np.asarray(bytearray(output_frame.read()), dtype=np.uint8)
+                    )
 
                 # Create a new gif from the flipped frames
                 output_image_blob = io.BytesIO()
