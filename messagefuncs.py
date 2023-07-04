@@ -1341,7 +1341,7 @@ async def getalong_filter(message, client, args):
         conn.commit()
 
 
-@tenacity.retry()
+@tenacity.retry(stop=tenacity.stop_after_attempt(7))
 @asynccached(TTLCache(1024, 6000))
 async def twitter_get(tweet_id: int):
     async with session.get(
