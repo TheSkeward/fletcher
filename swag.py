@@ -1237,7 +1237,6 @@ she4 = [
 
 close = ["They fight crime!"]
 
-sentence = []
 clauses = [he1, he2, he3, he4, she1, she2, she3, she4, close]
 
 uwu_responses = {
@@ -4716,6 +4715,7 @@ async def glowfic_random_function(message, client, args):
 
 
 def fight_crime(message, client, args):
+    sentence = []
     for clause in clauses:
         sentence.append(random.choice(clause))
 
