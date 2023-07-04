@@ -3466,6 +3466,10 @@ async def reaction_request_function(message, client, args):
                 )
                 return
             if not target:
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Couldn't find message at specified link.",
+                    message.author,
+                )
                 return
         elif urlParts:
             # Invalid URL
