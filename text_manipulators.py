@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from PIL import Image, ImageOps
+import imageio
+from PIL import Image, ImageOps, ImageSequence
 from sys import exc_info
 import traceback
 import asyncio
@@ -3599,13 +3600,31 @@ async def reaction_request_function(message, client, args):
             image_blob = await netcode.simple_get_image(emoji.url)
             image_blob.seek(0)
             image = Image.open(image_blob)
-            flip_image = ImageOps.mirror(ImageOps.flip(image))
-            output_image_blob = io.BytesIO()
-            flip_image.save(
-                output_image_blob,
-                format="GIF" if emoji.animated else "PNG",
-                optimize=True,
-            )
+            if image.format == "GIF":
+                # For GIFs, get the frames and flip each frame
+                frames = [frame for frame in ImageSequence.Iterator(image)]
+                flipped_frames = [
+                    ImageOps.mirror(ImageOps.flip(frame)) for frame in frames
+                ]
+
+                # Save the flipped GIF frames
+                output_frames = []
+                for frame in flipped_frames:
+                    output_frame = io.BytesIO()
+                    frame.save(output_frame, format="GIF", optimize=True)
+                    output_frame.seek(0)
+                    output_frames.append(output_frame)
+
+                # Create a new gif from the flipped frames
+                output_image_blob = io.BytesIO()
+                imageio.mimsave(
+                    output_image_blob, output_frames, fps=image.info["duration"]
+                )
+            else:
+                # For PNGs, just flip the single image
+                flip_image = ImageOps.mirror(ImageOps.flip(image))
+                output_image_blob = io.BytesIO()
+                flip_image.save(output_image_blob, format="PNG", optimize=True)
             output_image_blob.seek(0)
             emoji = await create_custom_emoji_persistent(
                 client, config, emoji.name[::-1], output_image_blob
