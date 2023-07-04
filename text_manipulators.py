@@ -3537,7 +3537,7 @@ async def reaction_request_function(message, client, args):
             )
         elif len(args) >= 1 and args[0].startswith("<") and args[0].endswith(">"):
             parts = args[0][2:-1].split(":")
-            emoji_name = parts[0]
+            emoji_name = parts[-2]
             emoji = None
             url = f"https://cdn.discordapp.com/emojis/{parts[-1]}.{'gif' if '<a:' in args[0] else 'png'}"
             try:
