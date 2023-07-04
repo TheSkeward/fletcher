@@ -1258,6 +1258,18 @@ async def emoji_image_function(message, client, args):
                 )
             except Exception as e:
                 logger.debug("404 Image Not Found")
+                try:
+                    buffer = await netcode.simple_get_image(
+                        f"https://cdn.discordapp.com/emojis/{args[0].split(':')[-2]}.gif?v=1"
+                    )
+                except Exception as e:
+                    logger.debug("404 Image Not Found")
+                    try:
+                        buffer = await netcode.simple_get_image(
+                            f"https://cdn.discordapp.com/emojis/{args[0].split(':')[-2]}.png?v=1"
+                        )
+                    except Exception as e:
+                        logger.debug("404 Image Not Found")
         if not emoji and not buffer:
             return await sendWrappedMessage(
                 "No emoji found with the given name",
