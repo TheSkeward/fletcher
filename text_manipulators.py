@@ -4,6 +4,8 @@ from sys import exc_info
 import traceback
 import asyncio
 import codecs
+
+import tenacity
 import discord
 import hashlib
 import io
@@ -3453,6 +3455,27 @@ async def esteem_function(message, client, args):
         logger.error("XRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
 
 
+@tenacity.retry(stop=tenacity.stop_after_attempt(10))
+async def create_custom_emoji_persistent(client, config, emoji_name, image_blob):
+    emoteServer = client.get_guild(
+        config.get(section="discord", key="emoteServer", default=0)
+    )
+    try:
+        image_blob.seek(0)
+        emoji = await emoteServer.create_custom_emoji(
+            name=emoji_name,
+            image=image_blob.read(),
+            reason="xreact custom copier",
+        )
+        return emoji
+    except discord.Forbidden:
+        logger.error("discord.emoteServer misconfigured!")
+    except discord.HTTPException:
+        image_blob.seek(0)
+        [await emoji.delete() for emoji in random.sample(emoteServer.emojis, 2)]
+        raise Exception("retry")
+
+
 async def reaction_request_function(message, client, args):
     global config
     try:
@@ -3483,6 +3506,8 @@ async def reaction_request_function(message, client, args):
                     message.author,
                 )
                 return
+            if args[0].startswith("https://"):
+                args.pop(0)
         elif urlParts:
             # Invalid URL
             return
@@ -3550,25 +3575,9 @@ async def reaction_request_function(message, client, args):
                 )
                 await message.add_reaction("🚫")
                 return
-            emoteServer = client.get_guild(
-                config.get(section="discord", key="emoteServer", default=0)
+            emoji = await create_custom_emoji_persistent(
+                client, config, emoji_name, image_blob
             )
-            try:
-                emoji = await emoteServer.create_custom_emoji(
-                    name=emoji_name,
-                    image=image_blob.read(),
-                    reason="xreact custom copier",
-                )
-            except discord.Forbidden:
-                logger.error("discord.emoteServer misconfigured!")
-            except discord.HTTPException:
-                image_blob.seek(0)
-                await random.choice(emoteServer.emojis).delete()
-                emoji = await emoteServer.create_custom_emoji(
-                    name=emoji_name,
-                    image=image_blob.read(),
-                    reason="xreact custom copier",
-                )
         else:
             emoji_query = emoji_query[0]
             try:
@@ -3583,54 +3592,24 @@ async def reaction_request_function(message, client, args):
                 )
                 await message.add_reaction("🚫")
                 return
-            image_blob.seek(0)
-            emoteServer = client.get_guild(
-                config.get(section="discord", key="emoteServer", default=0)
+            emoji = await create_custom_emoji_persistent(
+                client, config, hex(ord(emoji_query))[2:], image_blob
             )
-            try:
-                emoji = await emoteServer.create_custom_emoji(
-                    name=hex(ord(emoji_query))[2:],
-                    image=image_blob.read(),
-                    reason="xreact custom copier",
-                )
-            except discord.Forbidden:
-                logger.error("discord.emoteServer misconfigured!")
-            except discord.HTTPException:
-                image_blob.seek(0)
-                await random.choice(emoteServer.emojis).delete()
-                emoji = await emoteServer.create_custom_emoji(
-                    name=hex(ord(emoji_query))[2:],
-                    image=image_blob.read(),
-                    reason="xreact custom copier",
-                )
-        if flip:
+        if flip and emoji:
             image_blob = await netcode.simple_get_image(emoji.url)
             image_blob.seek(0)
             image = Image.open(image_blob)
             flip_image = ImageOps.mirror(ImageOps.flip(image))
             output_image_blob = io.BytesIO()
-            flip_image.save(output_image_blob, format="PNG", optimize=True)
-            output_image_blob.seek(0)
-            emoteServer = client.get_guild(
-                config.get(section="discord", key="emoteServer", default=0)
+            flip_image.save(
+                output_image_blob,
+                format="GIF" if emoji.animated else "PNG",
+                optimize=True,
             )
-            try:
-                processed_emoji = await emoteServer.create_custom_emoji(
-                    name=emoji.name[::-1],
-                    image=output_image_blob.read(),
-                    reason="xreact flip-o-matic",
-                )
-            except discord.Forbidden:
-                logger.error("discord.emoteServer misconfigured!")
-            except discord.HTTPException:
-                output_image_blob.seek(0)
-                await random.choice(emoteServer.emojis).delete()
-                processed_emoji = await emoteServer.create_custom_emoji(
-                    name=emoji.name[::-1],
-                    image=output_image_blob.read(),
-                    reason="xreact flip-o-matic",
-                )
-            emoji = processed_emoji
+            output_image_blob.seek(0)
+            emoji = await create_custom_emoji_persistent(
+                client, config, emoji.name[::-1], output_image_blob
+            )
         try:
             await target.add_reaction(emoji)
         except AttributeError:
