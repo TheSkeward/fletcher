@@ -3246,6 +3246,10 @@ async def esteem_function(message, client, args):
                 )
                 return
             if not target:
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    message.author,
+                )
                 return
         elif urlParts:
             # Invalid URL
@@ -3307,6 +3311,10 @@ async def esteem_function(message, client, args):
                 image_blob = await netcode.simple_get_image(url)
             except Exception as e:
                 logger.debug("404 Image Not Found")
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    message.author,
+                )
                 await message.add_reaction("🚫")
                 return
             emoteServer = client.get_guild(
@@ -3336,6 +3344,10 @@ async def esteem_function(message, client, args):
                 )
             except Exception as e:
                 logger.debug("404 Image Not Found")
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    message.author,
+                )
                 await message.add_reaction("🚫")
                 return
             image_blob.seek(0)
@@ -3565,6 +3577,10 @@ async def reaction_request_function(message, client, args):
                 )
             except Exception as e:
                 logger.debug("404 Image Not Found")
+                await messagefuncs.sendWrappedMessage(
+                    f"XRF: Tried retrieving the emoji by url and failed - did you specify the target link or ID after the emoji name?",
+                    message.author,
+                )
                 await message.add_reaction("🚫")
                 return
             image_blob.seek(0)
