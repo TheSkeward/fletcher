@@ -3539,7 +3539,7 @@ async def reaction_request_function(message, client, args):
             parts = args[0][2:-1].split(":")
             emoji_name = parts[0]
             emoji = None
-            url = f"https://cdn.discordapp.com/emojis/{parts[1]}.png"
+            url = f"https://cdn.discordapp.com/emojis/{parts[-1]}.{'gif' if '<a:' in args[0] else 'png'}"
             try:
                 image_blob = await netcode.simple_get_image(url)
             except Exception as e:
