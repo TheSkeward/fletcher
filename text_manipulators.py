@@ -3481,7 +3481,7 @@ async def reaction_request_function(message, client, args):
     try:
         if not message.channel.permissions_for(message.author).external_emojis:
             return False
-        flip = message.content.startswith(("!tcaerx", "!flip_react"))
+        flip = message.content.startswith(("!tcaerx", "!flip"))
         emoji = None
         urlParts = messagefuncs.extract_identifiers_messagelink.search(message.content)
         target = None
