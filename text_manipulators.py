@@ -3481,7 +3481,7 @@ async def reaction_request_function(message, client, args):
     try:
         if not message.channel.permissions_for(message.author).external_emojis:
             return False
-        flip = message.content.startswith("!tcaerx")
+        flip = message.content.startswith(("!tcaerx", "!flip_react"))
         emoji = None
         urlParts = messagefuncs.extract_identifiers_messagelink.search(message.content)
         target = None
@@ -3601,22 +3601,29 @@ async def reaction_request_function(message, client, args):
             image = Image.open(image_blob)
             if emoji.url.endswith("gif"):
                 # For GIFs, get the frames and flip each frame
-                frames = [frame for frame in ImageSequence.Iterator(image)]
-                flipped_frames = [
-                    ImageOps.mirror(ImageOps.flip(frame)) for frame in frames
+                flipped_images = [
+                    ImageOps.mirror(ImageOps.flip(frame))
+                    for frame in ImageSequence.Iterator(image)
                 ]
-
+                flipped_frames = []
+                for frame in flipped_images:
+                    b = io.BytesIO()
+                    frame.save(b, format="GIF")
+                    frame = Image.open(b)
+                    flipped_frames.append(frame)
                 # Create a new gif from the flipped frames
                 output_image_blob = io.BytesIO()
                 flipped_frames[0].save(
                     output_image_blob,
                     save_all=True,
                     append_images=flipped_frames[1:],
-                    format="GIF",
+                    format=image.format,
                     duration=image.info["duration"],
-                    loop=image.info["loop"],
-                    optimize=True,
+                    optimize=False,
+                    loop=0,
+                    disposal=2,
                 )
+
             else:
                 # For PNGs, just flip the single image
                 flip_image = ImageOps.mirror(ImageOps.flip(image))
@@ -4107,7 +4114,7 @@ def autoload(ch):
 
     ch.add_command(
         {
-            "trigger": ["!xreact", "!tcaerx"],
+            "trigger": ["!xreact", "!tcaerx", "!react", "!flip"],
             "function": reaction_request_function,
             "async": True,
             "long_run": "author",
