@@ -607,7 +607,11 @@ async def preview_messagelink_function(message, client, args):
                 content = await swag.bash_preview(
                     message, client, [previewable_parts[0].split("?")[1], "INTPROC"]
                 )
-            elif "twitter" in previewable_parts[0] and not message.embeds:
+            elif (
+                "twitter" in previewable_parts[0]
+                and not message.embeds
+                and config.get("preview", default=False, section="twitter")
+            ):
                 embed = await twitter_get(int(previewable_parts[0].split("/")[-1]))
                 content = (
                     "Tweet retrieved from https://platform.twitter.com/embed/Tweet.html?id="
