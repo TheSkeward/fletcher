@@ -81,7 +81,7 @@ class Bridge:
     def __init__(self):
         self.channels: List[discord.TextChannel] = []
         self.webhooks: List[discord.Webhook] = []
-        self.thread_ids: List[Optional[discord.abc.Snowflake]] = []
+        self.threads: List[Optional[discord.Thread]] = []
         self.rate_limit = AsyncLimiter(1, 10)
 
     def __name__(self):
@@ -105,19 +105,20 @@ class Bridge:
         self,
         channel: discord.TextChannel,
         webhook: discord.Webhook,
-        thread_id: Optional[discord.abc.Snowflake] = None,
+        thread: Optional[discord.Thread] = None,
     ):
         self.channels.append(channel)
         self.webhooks.append(webhook)
-        self.thread_ids.append(thread_id)
+        self.threads.append(thread)
 
     async def send(self, **kwargs) -> Awaitable:
+        """
+        Surprise! This isn't actually used by bridge_message. Maybe do that. Eventually.
+        """
         tasks: List[Coroutine] = []
-        for webhook, thread_id in zip(self.webhooks, self.thread_ids):
+        for webhook, thread in zip(self.webhooks, self.threads):
             tasks.append(
-                messagefuncs.sendWrappedMessage(
-                    target=webhook, thread=thread_id, **kwargs
-                )
+                messagefuncs.sendWrappedMessage(target=webhook, thread=thread, **kwargs)
             )
         return asyncio.gather(*tasks)
 
@@ -268,15 +269,20 @@ class CommandHandler:
                 if not isinstance(webhook_sync_registry.get(fromChannelName), Bridge):
                     webhook_sync_registry[fromChannelName] = Bridge()
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
+                thread_id = self.config.get(
+                    "bridge_target_thread",
+                    channel=toChannel,
+                    guild=toChannel.guild,
+                    default=None,
+                )
+                if thread_id:
+                    thread = toChannel.guild.get_channel_or_thread(thread_id)
+                else:
+                    thread = None
                 bridge.append(
                     toChannel,
                     webhook,
-                    self.config.get(
-                        "bridge_target_thread",
-                        channel=toChannel,
-                        guild=toChannel.guild,
-                        default=None,
-                    ),
+                    thread,
                 )
                 await asyncio.sleep(0)
         self.webhook_sync_registry = webhook_sync_registry
@@ -1323,6 +1329,7 @@ class CommandHandler:
             logger.info("Not bridging due to ignores")
             return
         if "Bridge" in str(type(bridge)):
+            bridge = cast(Bridge, bridge)
             if "sync" in message.channel.name:
                 logger.debug(f"ignores: {bridge=}")
             for i in range(len(bridge.webhooks)):
@@ -1444,6 +1451,7 @@ class CommandHandler:
                         allowed_mentions=discord.AllowedMentions(
                             users=user_mentions, roles=False, everyone=False
                         ),
+                        **({"thread": bridge.threads[i]} if bridge.threads[i] else {}),
                     )
                     if "sync" in message.channel.name:
                         logger.debug(f"sent {syncMessage=} to {bridge.webhooks[i]=}")
@@ -1467,6 +1475,7 @@ class CommandHandler:
                             allowed_mentions=discord.AllowedMentions(
                                 users=user_mentions, roles=False, everyone=False
                             ),
+                            thread=bridge.thread_ids[i],
                         )
                     else:
                         exc_type, exc_obj, exc_tb = exc_info()
