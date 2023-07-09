@@ -1249,7 +1249,23 @@ class CommandHandler:
         try:
             if not message.guild:
                 return
-            bridge_key = f"{message.guild.name}:{message.channel.id}"
+            if isinstance(message.channel, discord.TextChannel):
+                bridge_key = f"{message.guild.name}:{message.channel.id}"
+            elif isinstance(message.channel, discord.Thread):
+                thread_id = self.config.get(
+                    "bridge_target_thread",
+                    channel=message.channel.parent,
+                    guild=message.channel.guild,
+                    default=None,
+                )
+                if thread_id == message.channel.id:
+                    bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
+                else:
+                    bridge_key = ""
+            else:
+                raise AttributeError(
+                    f"Unregistered {type(message.channel)=} in bridge_key"
+                )
             bridge = await self.bridge_registry(bridge_key)
         except AttributeError as e:
             _, _, exc_tb = exc_info()
@@ -1364,6 +1380,7 @@ class CommandHandler:
                 except AttributeError:
                     # Skipping substitution
                     pass
+                # TODO support thread here maybe
                 content = content.replace(
                     message.channel.mention, bridge.channels[i].mention
                 )
