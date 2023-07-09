@@ -268,7 +268,16 @@ class CommandHandler:
                 if not isinstance(webhook_sync_registry.get(fromChannelName), Bridge):
                     webhook_sync_registry[fromChannelName] = Bridge()
                 bridge = cast(Bridge, webhook_sync_registry[fromChannelName])
-                bridge.append(toChannel, webhook)
+                bridge.append(
+                    toChannel,
+                    webhook,
+                    self.config.get(
+                        "bridge_target_thread",
+                        channel=toChannel,
+                        guild=toChannel.guild,
+                        default=None,
+                    ),
+                )
                 await asyncio.sleep(0)
         self.webhook_sync_registry = webhook_sync_registry
         webhooks_loaded = True
