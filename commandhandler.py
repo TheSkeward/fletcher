@@ -3033,6 +3033,14 @@ class CommandHandler:
                         except (ValueError, KeyError) as e:
                             logger.error(f"Parsing {word} for {user_id} failed: {e}")
                             continue
+                        except re.error as e:
+                            ch.client.loop.create_task(
+                                messagefuncs.sendWrappedMessage(
+                                    f"Error loading your hotwords for {guild.name}: ``json\n{hotword_json}``` contains an invalid regular expression (error during re.compile ({e}). Please either disable or fix this hotword.",
+                                    ch.client.get_user(user_id),
+                                )
+                            )
+                            continue
                         except AttributeError as e:
                             logger.debug(traceback.format_exc())
                             logger.info(
