@@ -1671,7 +1671,9 @@ class CommandHandler:
                 cur = conn.cursor()
                 query_params = [
                     fromGuild.id,
-                    fromChannel.parent.id if fromChannel.parent else fromChannel.id,
+                    fromChannel.parent.id
+                    if hasattr(fromChannel, "parent")
+                    else fromChannel.id,
                     message.id,
                 ]
                 cur.execute(
