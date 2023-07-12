@@ -1638,14 +1638,42 @@ class CommandHandler:
             else:
                 # Currently, we don't log empty or image-only messages
                 pass
+            # FIXME empire of dirt
+            if fromGuild:
+                if isinstance(fromMessage.channel, discord.TextChannel):
+                    bridge_key = f"{fromMessage.guild.name}:{fromMessage.channel.id}"
+                elif isinstance(fromMessage.channel, discord.Thread):
+                    thread_id = self.config.get(
+                        "bridge_target_thread",
+                        channel=fromMessage.channel.parent,
+                        guild=fromMessage.channel.guild,
+                        default=None,
+                    )
+                    if thread_id == fromMessage.channel.id:
+                        bridge_key = (
+                            f"{fromMessage.guild.name}:{fromMessage.channel.parent.id}"
+                        )
+                    else:
+                        bridge_key = ""
+                else:
+                    logger.debug(
+                        f"Unregistered {type(fromMessage.channel)=} in bridge_key"
+                    )
+                    bridge_key = ""
+            else:
+                bridge_key = ""
             if (
                 fromGuild
                 and self.config.get(guild=fromGuild, key="synchronize")
-                and await self.bridge_registry(f"{fromGuild.name}:{fromChannel.id}")
+                and await self.bridge_registry(bridge_key)
             ):
                 await asyncio.sleep(1)
                 cur = conn.cursor()
-                query_params = [fromGuild.id, fromChannel.id, message.id]
+                query_params = [
+                    fromGuild.id,
+                    fromChannel.parent.id if fromChannel.parent else fromChannel.id,
+                    message.id,
+                ]
                 cur.execute(
                     "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                     query_params,
@@ -1728,12 +1756,9 @@ class CommandHandler:
                             attachments.append(
                                 discord.File(attachment_blob, attachment.filename)
                             )
+                # Why
                 webhook = discord.utils.get(
-                    (
-                        await self.bridge_registry(
-                            f"{fromMessage.guild.name}:{fromMessage.channel.id}"
-                        )
-                    ).webhooks,
+                    (await self.bridge_registry(bridge_key)).webhooks,
                     channel__id=toChannel.id,
                 )
                 assert webhook is not None
@@ -1746,6 +1771,7 @@ class CommandHandler:
                         users=False, roles=False, everyone=False
                     ),
                     message_id=toMessage.id,
+                    **({} if self.config.get() else {}),
                 )
             if message.guild:
                 for hotword in filter(
@@ -3207,6 +3233,7 @@ async def help_function(message, client, args):
                 await message.add_reaction("🚫")
     except Exception as e:
         exc_type, exc_obj, exc_tb = exc_info()
+        logger.debug(traceback.format_exc())
         logger.error(f"HF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
         await message.add_reaction("🚫")
 
@@ -3228,6 +3255,10 @@ def dumpconfig_function(message, client, args):
         return "```json\n" + ujson.dumps(config, ensure_ascii=False, indent=4) + "```"
 
 
+async def add_emoji(message, client, args, intended_target_emoji):
+    await message.add_reaction(intended_target_emoji)
+
+
 class Hotword:
     def __init__(self, ch, word, hotword, owner):
         self.owner = owner
@@ -3247,18 +3278,16 @@ class Hotword:
                     )
                 if intended_target_emoji:
 
-                    async def add_emoji(message, client, args):
-                        await message.add_reaction(intended_target_emoji)
-
-                    self.target = [add_emoji]
+                    self.target = [
+                        partial(add_emoji, intended_target_emoji=intended_target_emoji)
+                    ]
                 else:
                     raise ValueError("Target emoji not found")
             else:
 
-                async def add_emoji(message, client, args):
-                    await message.add_reaction(hotword["target_emoji"])
-
-                self.target = [add_emoji]
+                self.target = [
+                    partial(add_emoji, intended_target_emoji=hotword["target_emoji"])
+                ]
         elif hotword.get("dm_me") or hotword.get("dm-me"):
 
             async def dm_me(owner, message, client, args):
