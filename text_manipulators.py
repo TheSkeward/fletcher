@@ -3665,12 +3665,14 @@ async def reaction_request_function(message, client, args):
                 and reaction
                 and ch.user_config(
                     reaction.user_id,
-                    message.guild.id,
+                    message.guild.id if message.guild else 0,
                     "snappy",
                     default=False,
                     allow_global_substitute=True,
                 )
-                or ch.config.get(key="snappy", guild=message.guild.id)
+                or ch.config.get(
+                    key="snappy", guild=message.guild.id if message.guild else 0
+                )
             ):
                 await message.delete()
         except discord.Forbidden:
