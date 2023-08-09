@@ -5634,11 +5634,11 @@ def autoload(ch):
                 )
             ]
         ],
-        {
-            "function": partial(arxiv_search_call, exact=True),
-            "name": "arXiv Full Text Search",
-            "type": "native",
-        },
+        # {
+        #     "function": partial(arxiv_search_call, exact=True),
+        #     "name": "arXiv Full Text Search",
+        #     "type": "native",
+        # },
     ]
     if not twilioClient:
         twilioClient = Client(
