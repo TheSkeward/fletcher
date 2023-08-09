@@ -1252,7 +1252,7 @@ class CommandHandler:
             if isinstance(message.channel, discord.TextChannel):
                 thread_id = self.config.get(
                     "bridge_target_thread",
-                    channel=message.channel.parent,
+                    channel=message.channel,
                     guild=message.channel.guild,
                     default=None,
                 )
