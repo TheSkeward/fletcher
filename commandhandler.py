@@ -1250,7 +1250,16 @@ class CommandHandler:
             if not message.guild:
                 return
             if isinstance(message.channel, discord.TextChannel):
-                bridge_key = f"{message.guild.name}:{message.channel.id}"
+                thread_id = self.config.get(
+                    "bridge_target_thread",
+                    channel=message.channel.parent,
+                    guild=message.channel.guild,
+                    default=None,
+                )
+                if not thread_id:
+                    bridge_key = f"{message.guild.name}:{message.channel.id}"
+                else:
+                    bridge_key = ""
             elif isinstance(message.channel, discord.Thread):
                 thread_id = self.config.get(
                     "bridge_target_thread",
