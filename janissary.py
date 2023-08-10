@@ -921,6 +921,7 @@ async def sudo_function(message, client, args):
                 + str(message.guild)
             )
         now = datetime.utcnow()
+        now = now.replace(tzinfo=timezone.utc)
         role = message.guild.get_role(int(guild_config["wheel-role"]))
         if not role:
             raise Exception("Wheel role not found")
