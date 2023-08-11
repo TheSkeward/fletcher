@@ -843,6 +843,7 @@ class CommandHandler:
                                     logger.error(
                                         f"RXH: {metuple} tried to bridge {type(fromChannel)}"
                                     )
+                                    metuple = cur.fetchone()
                                     continue
                                 fromMessage = await fromChannel.fetch_message(
                                     metuple[2]
