@@ -4,6 +4,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sys import exc_info
 from systemd import journal
 import asyncio
+import uvloop
 import cProfile
 import discord
 import importlib
@@ -379,7 +380,7 @@ async def on_ready():
         logger.info(
             f"Discord.py Version {discord.__version__}, connected as {client.user.name} ({client.user.id})"
         )
-        loop = asyncio.get_running_loop()
+        loop = asyncio.get_event_loop()
         loop.remove_signal_handler(signal.SIGHUP)
         loop.add_signal_handler(signal.SIGHUP, lambda: print("Ignoring excess SIGHUP"))
         await reload_function()
@@ -919,5 +920,5 @@ async def on_interaction(ctx):
 
 
 # start bot
-loop = asyncio.get_event_loop()
-loop.run_until_complete(client.start(token))
+uvloop.install()
+asyncio.get_event_loop().run_until_complete(client.start(token))
