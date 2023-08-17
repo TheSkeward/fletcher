@@ -153,7 +153,7 @@ logger.setLevel(logging.DEBUG)
 
 intents = discord.Intents.all()
 intents.presences = False
-client = discord.Client(
+client = discord.AutoShardedClient(
     intents=intents,
     chunk_guilds_at_startup=False,
     member_cache_flags=discord.MemberCacheFlags.all(),
