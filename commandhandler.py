@@ -739,7 +739,9 @@ class CommandHandler:
                             },
                         )
                     elif isinstance(channel, discord.DMChannel):
-                        assert channel.recipient is not None
+                        if channel.recipient is None:
+                            channel = client.get_channel(channel.id)
+                            assert channel.recipient is not None
                         logger.info(
                             f"{message.id} @{channel.recipient.name} <{user.name if user else 'Unkown User'}:{reaction.user_id}> reacting with {messageContent}",
                             extra={
@@ -1037,7 +1039,9 @@ class CommandHandler:
                             },
                         )
                     elif type(channel) is discord.DMChannel:
-                        assert channel.recipient is not None
+                        if channel.recipient is None:
+                            channel = client.get_channel(channel.id)
+                            assert channel.recipient is not None
                         logger.info(
                             f"{message.id} @{channel.recipient.name} <{user.name}:{user.id}> unreacting with {messageContent}",
                             extra={
@@ -1631,7 +1635,9 @@ class CommandHandler:
                         },
                     )
                 elif isinstance(fromChannel, discord.DMChannel):
-                    assert fromChannel.recipient is not None
+                    if fromChannel.recipient is None:
+                        fromChannel = self.client.get_channel(fromChannel.id)
+                        assert fromChannel.recipient is not None
                     logger.info(
                         f"{message.id} @{fromChannel.recipient.name} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
                         extra={
@@ -1896,6 +1902,8 @@ class CommandHandler:
         if user == self.user:
             channel = message.channel
             assert message.channel is not None
+            if type(channel) is discord.DMChannel and channel.recipient is None:
+                channel = self.client.get_channel(channel.id)
             logger.info(
                 f"{message.id} #{channel.guild.name if isinstance(channel, (discord.TextChannel, discord.Thread)) else 'DM'}:{channel.name if isinstance(channel, (discord.TextChannel, discord.Thread)) else (channel.recipient.name if channel.recipient else 'Unknown Recipient')} <{user.name}:{user.id}> {message.system_content}",
                 extra={
@@ -1975,6 +1983,9 @@ class CommandHandler:
                         },
                     )
                 elif type(message.channel) is discord.DMChannel:
+                    if message.channel.recipient is None:
+                        message.channel = self.client.get_channel(message.channel.id)
+                        assert message.channel.recipient is not None
                     logger.info(
                         f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                         extra={
@@ -2002,6 +2013,9 @@ class CommandHandler:
                     },
                 )
             elif type(message.channel) is discord.DMChannel:
+                if message.channel.recipient is None:
+                    message.channel = self.client.get_channel(message.channel.id)
+                    assert message.channel.recipient is not None
                 logger.info(
                     f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                     extra={
