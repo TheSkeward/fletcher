@@ -11,7 +11,8 @@ from dataclasses import dataclass, field
 import discord, discord.utils
 from aiolimiter import AsyncLimiter
 from nio import MatrixRoom, AsyncClient as MatrixAsyncClient, RoomMessageText
-import logging
+from aiologger import Logger
+
 import messagefuncs
 import itertools
 import netcode
@@ -44,7 +45,7 @@ from typing import (
     Optional,
 )
 
-logger = logging.getLogger("fletcher")
+logger = Logger.with_default_handlers(name="fletcher")
 
 regex_cache = {}
 webhooks_cache = {}
@@ -1984,7 +1985,9 @@ class CommandHandler:
                     )
                 elif type(message.channel) is discord.DMChannel:
                     if message.channel.recipient is None:
-                        message.channel = self.client.fetch_channel(message.channel.id)
+                        message.channel = await self.client.fetch_channel(
+                            message.channel.id
+                        )
                         assert message.channel.recipient is not None
                     logger.info(
                         f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
@@ -2014,7 +2017,9 @@ class CommandHandler:
                 )
             elif type(message.channel) is discord.DMChannel:
                 if message.channel.recipient is None:
-                    message.channel = self.client.fetch_channel(message.channel.id)
+                    message.channel = await self.client.fetch_channel(
+                        message.channel.id
+                    )
                     assert message.channel.recipient is not None
                 logger.info(
                     f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
