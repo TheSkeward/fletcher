@@ -951,7 +951,9 @@ async def rss_checker():
             )
         async with session.get(
             f"https://huginn.nova.anticlack.com/users/1/web_requests/190/80k-jobs.xml",
-            timeout=10,
+            timeout=10
+            if ch.config.get(section="huginn", key="enabled", default=False)
+            else 0.01,
         ) as resp:
             data = await resp.read()
         cur = conn.cursor()

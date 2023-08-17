@@ -5,6 +5,10 @@ from sys import exc_info
 from systemd import journal
 import asyncio
 import uvloop
+import perpetuo
+
+uvloop.install()
+perpetuo.dwim()
 import cProfile
 import discord
 import importlib
@@ -920,5 +924,4 @@ async def on_interaction(ctx):
 
 
 # start bot
-uvloop.install()
 asyncio.get_event_loop().run_until_complete(client.start(token))
