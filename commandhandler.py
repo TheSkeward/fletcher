@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import discord, discord.utils
 from aiolimiter import AsyncLimiter
 from nio import MatrixRoom, AsyncClient as MatrixAsyncClient, RoomMessageText
-from aiologger import Logger
+import logging
 
 import messagefuncs
 import itertools
@@ -45,7 +45,7 @@ from typing import (
     Optional,
 )
 
-logger = Logger.with_default_handlers(name="fletcher")
+logger = logging.getLogger("fletcher")
 
 regex_cache = {}
 webhooks_cache = {}
