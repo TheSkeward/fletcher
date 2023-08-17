@@ -1984,7 +1984,7 @@ class CommandHandler:
                     )
                 elif type(message.channel) is discord.DMChannel:
                     if message.channel.recipient is None:
-                        message.channel = self.client.get_channel(message.channel.id)
+                        message.channel = self.client.fetch_channel(message.channel.id)
                         assert message.channel.recipient is not None
                     logger.info(
                         f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
@@ -2014,7 +2014,7 @@ class CommandHandler:
                 )
             elif type(message.channel) is discord.DMChannel:
                 if message.channel.recipient is None:
-                    message.channel = self.client.get_channel(message.channel.id)
+                    message.channel = self.client.fetch_channel(message.channel.id)
                     assert message.channel.recipient is not None
                 logger.info(
                     f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
