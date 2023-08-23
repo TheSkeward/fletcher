@@ -1988,6 +1988,7 @@ class CommandHandler:
                         message.channel = await self.client.fetch_channel(
                             message.channel.id
                         )
+                        logger.debug(f"{message.channel.recipients=}")
                         assert message.channel.recipient is not None
                     logger.info(
                         f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
