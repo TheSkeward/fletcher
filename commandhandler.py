@@ -236,15 +236,26 @@ class CommandHandler:
         total = len(bridge_guilds)
         n = 0
         for webhooks in (
-            guild.webhooks()
+            guild
             for guild in bridge_guilds
             if (member := guild.get_member(self.user.id))
             and member.guild_permissions.manage_webhooks
         ):
             n += 1
             logger.debug(f"Loading guild {n}/{total}")
+            try:
+                webhooks_iter = await webhooks.webhooks()
+            except discord.errors.DiscordServerError:
+                await asyncio.sleep(1)
+                webhooks_iter = []
+                for channel in webhooks.text_channels:
+                    try:
+                        webhooks_iter.extend(await channel.webhooks())
+                    except:
+                        logger.warning(f"Might have missed webhooks in {channel}")
             for webhook in filter(
-                lambda webhook: webhook.name.startswith(navel_filter), await webhooks
+                lambda webhook: webhook.name.startswith(navel_filter),
+                webhooks_iter,
             ):
                 assert webhook
                 fromTuple = webhook.name.split("(")[1].rsplit(")")[0].rsplit(":", 2)
@@ -285,7 +296,7 @@ class CommandHandler:
                     webhook,
                     thread,
                 )
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.1)
         self.webhook_sync_registry = webhook_sync_registry
         webhooks_loaded = True
         logger.debug("Webhooks loaded:")
@@ -742,12 +753,13 @@ class CommandHandler:
                     elif isinstance(channel, discord.DMChannel):
                         if channel.recipient is None:
                             channel = client.get_channel(channel.id)
-                            assert channel.recipient is not None
                         logger.info(
-                            f"{message.id} @{channel.recipient.name} <{user.name if user else 'Unkown User'}:{reaction.user_id}> reacting with {messageContent}",
+                            f"{message.id} @{channel.recipient.name if channel.recipient else channel.id} <{user.name if user else 'Unknown User'}:{reaction.user_id}> reacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": "@",
-                                "CHANNEL_IDENTIFIER": channel.recipient.name,
+                                "CHANNEL_IDENTIFIER": channel.recipient.name
+                                if channel.recipient
+                                else channel.id,
                                 "SENDER_NAME": user.name if user else "Unkown User",
                                 "SENDER_ID": reaction.user_id,
                                 "MESSAGE_ID": str(message.id),
@@ -1042,12 +1054,13 @@ class CommandHandler:
                     elif type(channel) is discord.DMChannel:
                         if channel.recipient is None:
                             channel = client.get_channel(channel.id)
-                            assert channel.recipient is not None
                         logger.info(
-                            f"{message.id} @{channel.recipient.name} <{user.name}:{user.id}> unreacting with {messageContent}",
+                            f"{message.id} @{channel.recipient.name if channel.recipient else channel.id} <{user.name}:{user.id}> unreacting with {messageContent}",
                             extra={
                                 "GUILD_IDENTIFIER": "@",
-                                "CHANNEL_IDENTIFIER": channel.recipient.name,
+                                "CHANNEL_IDENTIFIER": channel.recipient.name
+                                if channel.recipient
+                                else channel.id,
                                 "SENDER_NAME": user.name,
                                 "SENDER_ID": user.id,
                                 "MESSAGE_ID": str(message.id),
@@ -1638,12 +1651,13 @@ class CommandHandler:
                 elif isinstance(fromChannel, discord.DMChannel):
                     if fromChannel.recipient is None:
                         fromChannel = self.client.get_channel(fromChannel.id)
-                        assert fromChannel.recipient is not None
                     logger.info(
-                        f"{message.id} @{fromChannel.recipient.name} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
+                        f"{message.id} @{fromChannel.recipient.name if fromChannel.recipient else fromChannel.id} <{fromMessage.author.name}:+{fromMessage.author.id}> [Edit] {fromMessage.content}",
                         extra={
                             "GUILD_IDENTIFIER": "@",
-                            "CHANNEL_IDENTIFIER": fromChannel.recipient,
+                            "CHANNEL_IDENTIFIER": fromChannel.recipient.name
+                            if fromChannel.recipient
+                            else fromChannel.id,
                             "SENDER_NAME": fromMessage.author.name,
                             "SENDER_ID": fromMessage.author.id,
                             "MESSAGE_ID": str(fromMessage.id),
@@ -1988,14 +2002,13 @@ class CommandHandler:
                         message.channel = await self.client.fetch_channel(
                             message.channel.id
                         )
-                        logger.debug(f"{message.channel.recipients=}")
-                        assert message.channel.recipient is not None
                     logger.info(
-                        f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
+                        f"{message.id} @{message.channel.recipient.name if message.channel.recipient else message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                         extra={
                             "GUILD_IDENTIFIER": "@",
                             "CHANNEL_IDENTIFIER": message.channel.recipient.name
-                            or message.channel.id,
+                            if message.channel.recipient
+                            else message.channel.id,
                             "SENDER_NAME": user.name,
                             "SENDER_ID": user.id,
                             "MESSAGE_ID": str(message.id),
@@ -2023,11 +2036,12 @@ class CommandHandler:
                     )
                     assert message.channel.recipient is not None
                 logger.info(
-                    f"{message.id} @{message.channel.recipient.name or message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
+                    f"{message.id} @{message.channel.recipient.name if message.channel.recipient else message.channel.id} <{user.name}:{user.id}> [Nil] {message.system_content}",
                     extra={
                         "GUILD_IDENTIFIER": "@",
                         "CHANNEL_IDENTIFIER": message.channel.recipient.name
-                        or message.channel.id,
+                        if message.channel.recipient
+                        else message.channel.id,
                         "SENDER_NAME": user.name,
                         "SENDER_ID": user.id,
                         "MESSAGE_ID": str(message.id),
@@ -2044,6 +2058,15 @@ class CommandHandler:
             and message.channel.message_count < 4
         ):
             await self.thread_add(message.channel)
+        if (
+            message.author.id == 876482013287292948
+            and message.channel.id == 1141826255214354462
+        ):
+            command = self.get_command(
+                message.content, message, mode="keyword_trie", max_args=0
+            )[0]
+            await self.run_command(command, message, [], user, received_at=received)
+            return
         if not message.webhook_id and message.author.bot:
             if message.author.id not in self.config.get(
                 key="whitelist-bots", section="sync", default=[]
