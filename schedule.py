@@ -1,25 +1,26 @@
 import asyncio
-import aiohttp
-import chronos
-import commandhandler
-import atoma
-import discord
-import logging
-import messagefuncs
 import datetime
+import logging
+import random
+import re
+import traceback
+import uuid
+from sys import exc_info
+from typing import Dict, Optional, Union
+
+import aiohttp
+import atoma
 import dateparser
 import dateparser.search
-import uuid
-import pytz
+import discord
 import psycopg2
-import random
-from typing import Dict
-from sentry_sdk import configure_scope
-from typing import Optional, Union
-import traceback
-import re
-from sys import exc_info
+import pytz
 import ujson
+from sentry_sdk import configure_scope
+
+import chronos
+import commandhandler
+import messagefuncs
 
 # global conn set by reload_function
 
@@ -28,6 +29,7 @@ logger = logging.getLogger("fletcher")
 schedule_extract_channelmention = re.compile(r"(?:<#)(\d+)")
 last_ran_fetch = None
 remind_chance_re = re.compile(r"p=((0?\.\d+)|((\d+)/(\d+)))")
+
 
 class ScheduleFunctions:
     @staticmethod
@@ -160,12 +162,18 @@ class ScheduleFunctions:
         if target_message is None:
             return None
         if remind_chance_re.search(reminder_body):
-            try: # try not to divide by zero
-                grps = remind_chance_re.search(reminder_body).groups()       # ([All], [decimal], [frac], [toppy], [bot])
-                p = float(grps[3])/float(grps[4]) if grps[2] else float(grps[1]) # float(toppy)/float(bot) if frac else float(decimal)
+            try:  # try not to divide by zero
+                grps = remind_chance_re.search(
+                    reminder_body
+                ).groups()  # ([All], [decimal], [frac], [toppy], [bot])
+                p = (
+                    float(grps[3]) / float(grps[4]) if grps[2] else float(grps[1])
+                )  # float(toppy)/float(bot) if frac else float(decimal)
                 if p < random.random():
-                    return None # better luck next time! (or congrats on missing)
-                reminder_body = remind_chance_re.sub("", reminder_body) # prune the probability
+                    return None  # better luck next time! (or congrats on missing)
+                reminder_body = remind_chance_re.sub(
+                    "", reminder_body
+                )  # prune the probability
             except Exception as e:
                 logger.debug(e)
         link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}"
@@ -528,7 +536,6 @@ async def table_exec_function():
             except Exception as e:
                 logger.info(traceback.format_exc())
                 logger.error(f"{e}")
-                pass
         cur.execute(
             "SELECT user_id, guild_id, value, key, ctid FROM user_preferences WHERE (key LIKE 'twubscribe%' AND NOT key LIKE 'twubscribe-%-last') AND guild_id != 0;"
         )
@@ -600,7 +607,6 @@ async def table_exec_function():
                     logger.info(f"CTID: {hottuple[4]}")
                 logger.info(traceback.format_exc())
                 logger.error(f"{e}")
-                pass
     except asyncio.CancelledError:
         logger.debug("TXF: Interrupted, bailing out")
         raise
@@ -746,7 +752,7 @@ async def reminder_function(message, client, args):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("RDRF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error(f"RDRF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def glowfic_tag_batch_notify_function(message, client, args):
@@ -775,7 +781,7 @@ async def glowfic_tag_batch_notify_function(message, client, args):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("GTBNF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error(f"GTBNF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def table_function(message, client, args):
@@ -820,7 +826,7 @@ async def table_function(message, client, args):
         if "cur" in locals() and "conn" in locals():
             conn.rollback()
         exc_type, exc_obj, exc_tb = exc_info()
-        logger.error("TF[{}]: {} {}".format(exc_tb.tb_lineno, type(e).__name__, e))
+        logger.error(f"TF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
 async def ical_enable_function(message, client, args):
@@ -942,7 +948,6 @@ def autoload(ch):
             todo += f"(user1 = {luckytuple[0]} AND user2 = {luckytuple[1]}) OR "
         except Exception as e:
             logger.debug(f"{e}")
-            pass
         luckytuple = cur.fetchone()
     for to, send in toSend.items():
         asyncio.create_task(messagefuncs.sendWrappedMessage(send[1], send[0]))
