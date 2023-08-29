@@ -12,6 +12,7 @@ import dateparser.search
 import uuid
 import pytz
 import psycopg2
+import random
 from typing import Dict
 from sentry_sdk import configure_scope
 from typing import Optional, Union
@@ -26,7 +27,7 @@ logger = logging.getLogger("fletcher")
 
 schedule_extract_channelmention = re.compile(r"(?:<#)(\d+)")
 last_ran_fetch = None
-
+remind_chance_re = re.compile(r"p=((0?\.\d+)|((\d+)/(\d+)))")
 
 class ScheduleFunctions:
     @staticmethod
@@ -125,6 +126,7 @@ class ScheduleFunctions:
         created_at: datetime,
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
+        reminder_body = cached_content
         if (
             "every " in cached_content.lower()
             and target_message
@@ -147,26 +149,35 @@ class ScheduleFunctions:
                     ],
                 )
                 conn.commit()
-                # cached_content = (
-                #     chronos.parse_every.sub("", cached_content)
-                #     .strip()
-                #     .replace("every ", "", 1)
-                # )
+                reminder_body = (
+                    chronos.parse_every.sub("", cached_content)
+                    .strip()
+                    .replace("every ", "", 1)
+                )
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
         if target_message is None:
             return None
+        if remind_chance_re.search(reminder_body):
+            try: # try not to divide by zero
+                grps = remind_chance_re.search(reminder_body).groups()       # ([All], [decimal], [frac], [toppy], [bot])
+                p = float(grps[3])/float(grps[4]) if grps[2] else float(grps[1]) # float(toppy)/float(bot) if frac else float(decimal)
+                if p < random.random():
+                    return None # better luck next time! (or congrats on missing)
+                reminder_body = remind_chance_re.sub("", reminder_body) # prune the probability
+            except Exception as e:
+                logger.debug(e)
         link = f"https://discord.com/channels/{target_message.guild.id if target_message.guild else '@me'}/{target_message.channel.id}/{target_message.id}"
         if (
             len(target_message.mentions)
             and ("remindme" not in target_message.content)
             and ("remind me" not in target_message.content)
         ):
-            reminder_content = f"Reminder from {link}\n> {cached_content}"
+            reminder_content = f"Reminder from {link}\n> {reminder_body}"
         else:
             reminder_content = (
-                f"Reminder for {user.mention} from {link}\n> {cached_content}"
+                f"Reminder for {user.mention} from {link}\n> {reminder_body}"
             )
         return [
             reminder_content,
