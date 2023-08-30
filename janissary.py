@@ -350,13 +350,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -1567,15 +1570,23 @@ async def delete_my_message_function(message, client, args):
                 # Give messages time to be added to the database
                 await asyncio.sleep(1)
                 cur = conn.cursor()
+                if hasattr(message, "channel_id"):
+                    guild_id = message.guild_id
+                    channel_id = message.channel_id
+                    message_id = message.message_id
+                else:
+                    guild_id = message.guild.id if message.guild else None
+                    channel_id = message.channel.id if message.channel else None
+                    message_id = message.id
                 cur.execute(
                     "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s LIMIT 1;",
-                    [message.guild_id, message.channel_id, message.message_id],
+                    [guild_id, channel_id, message_id],
                 )
                 metuple = cur.fetchone()
                 if metuple is not None:
                     cur.execute(
                         "DELETE FROM messageMap WHERE fromGuild = %s AND fromChannel = %s AND fromMessage = %s",
-                        [message.guild.id, message.channel.id, message.message_id],
+                        [guild_id, channel_id, message_id],
                     )
                 conn.commit()
                 if metuple is not None:
