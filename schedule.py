@@ -128,14 +128,16 @@ class ScheduleFunctions:
         created_at: datetime,
         from_channel: Union[discord.DMChannel, discord.TextChannel],
     ):
+        if target_message is None:  # short circuit if deleted
+            return None
         reminder_body = cached_content
-        if (
-            "every " in cached_content.lower()
-            and target_message
-            and chronos.parse_every.search(cached_content)
+        if "every " in target_message.content.lower() and chronos.parse_every.search(  # arguably not needed but it's faster than applying the regex
+            target_message.content
         ):
-            every = chronos.parse_every.search(cached_content).groups(default=1)
+            every = chronos.parse_every.search(target_message.content).groups(default=1)
             try:
+                # TODO(blue girl): remove this, steal code from reminder_function to prune !remindme <args>
+                cached_content = "every " + target_message.content.split("every ")[1]
                 cur = conn.cursor()
                 target = (
                     f"NOW() + '{every[0]} {every[1]}'::interval - '1 seconds'::interval"
@@ -151,16 +153,10 @@ class ScheduleFunctions:
                     ],
                 )
                 conn.commit()
-                reminder_body = (
-                    chronos.parse_every.sub("", cached_content)
-                    .strip()
-                    .replace("every ", "", 1)
-                )
+                reminder_body = chronos.parse_every.sub("", cached_content, 1).strip()
             except Exception as e:
                 logger.debug(e)
                 conn.rollback()
-        if target_message is None:
-            return None
         if remind_chance_re.search(reminder_body):
             try:  # try not to divide by zero
                 grps = remind_chance_re.search(
