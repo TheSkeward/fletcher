@@ -404,12 +404,16 @@ async def expand_target_list(targets, guild):
                         guild.get_member(int(target))
                         or await guild.fetch_member(int(target))
                     )
-                except ValueError:
+                except (ValueError, discord.NotFound):
                     logger.info(f"Misconfiguration: could not expand {target}")
         else:
-            # ID asssumed to be targets
-            targets.add(
-                guild.get_member(int(target)) or await guild.fetch_member(int(target))
-            )
+            try:
+                # ID asssumed to be targets
+                targets.add(
+                    guild.get_member(int(target))
+                    or await guild.fetch_member(int(target))
+                )
+            except (ValueError, discord.NotFound):
+                logger.info(f"Misconfiguration: could not expand {target}")
     targets.discard(None)
     return targets
