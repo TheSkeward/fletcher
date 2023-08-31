@@ -415,10 +415,15 @@ async def modreport_function(message, client, args):
             users = scoped_config.get("manual-mod-userslist", [message.guild.owner.id])
         users = list(await load_config.expand_target_list(users, message.guild))
         for target in users:
-            modmail = await messagefuncs.sendWrappedMessage(report_content, target)
-            if message.channel.is_nsfw():
-                await modmail.add_reaction("🕜")
-    except discord.Forbidden:
+            try:
+                modmail = await messagefuncs.sendWrappedMessage(report_content, target)
+                if message.channel.is_nsfw():
+                    await modmail.add_reaction("🕜")
+            except discord.Forbidden as e:
+                await messagefuncs.sendWrappedMessage(
+                    f"Unable to send modreport to {target}: {e}", message.guild.owner
+                )
+    except discord.Forbidden as e:
         await messagefuncs.sendWrappedMessage(
             f"Unable to send modreport: {e}", message.guild.owner
         )
