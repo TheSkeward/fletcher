@@ -751,6 +751,11 @@ class CommandHandler:
                             )
                     else:
                         bridge_key = ""
+                    if message.guild_id == 429373449803399169:
+                        logger.debug(
+                            f"{bridge_key=}",
+                            extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
+                        )
                     if isinstance(
                         fromChannel, (discord.Thread, discord.TextChannel)
                     ) and ch.webhook_sync_registry.get(bridge_key):
@@ -761,6 +766,11 @@ class CommandHandler:
                             "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                             [message.guild_id, message.channel_id, message.message_id],
                         )
+                        if message.guild_id == 429373449803399169:
+                            logger.debug(
+                                f"{[message.guild_id, message.channel_id, message.message_id]=}",
+                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
+                            )
                         metuples = cur.fetchall()
                         if not metuples:
                             cur.execute(
@@ -1106,11 +1116,6 @@ class CommandHandler:
                                 assert isinstance(
                                     toChannel, (discord.TextChannel, discord.Thread)
                                 )
-                                if reaction.guild_id == 429373449803399169:
-                                    logger.debug(
-                                        f"{metuple=}",
-                                        extra={"GUILD_IDENTIFIER": channel.guild.name},
-                                    )
                                 try:
                                     toMessage = await toChannel.fetch_message(
                                         metuple[2]
