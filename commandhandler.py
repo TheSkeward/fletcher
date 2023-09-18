@@ -870,12 +870,6 @@ class CommandHandler:
                                 [channel.guild.id, channel.id, message.id],
                             )
                             metuple = cur.fetchone()
-                            if metuple is None:
-                                cur.execute(
-                                    "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tomessage = %s;",
-                                    [channel.guild.id, message.id],
-                                )
-                                metuple = cur.fetchone()
                             while metuple is not None:
                                 fromGuild = self.client.get_guild(metuple[0])
                                 try:
@@ -889,9 +883,14 @@ class CommandHandler:
                                     conn.rollback()
                                     return
                                     continue
-                                fromChannel = fromGuild.get_channel(metuple[1])
+                                fromChannel = fromGuild.get_channel_or_thread(
+                                    metuple[1]
+                                )
                                 try:
-                                    assert isinstance(fromChannel, discord.TextChannel)
+                                    assert isinstance(
+                                        fromChannel,
+                                        (discord.TextChannel, discord.Thread),
+                                    )
                                 except AssertionError:
                                     logger.error(
                                         f"RXH: {metuple} tried to bridge {type(fromChannel)}",
@@ -956,8 +955,10 @@ class CommandHandler:
                             while metuple is not None:
                                 toGuild = self.client.get_guild(metuple[0])
                                 assert toGuild is not None
-                                toChannel = toGuild.get_channel(metuple[1])
-                                assert isinstance(toChannel, discord.TextChannel)
+                                toChannel = toGuild.get_channel_or_thread(metuple[1])
+                                assert isinstance(
+                                    toChannel, (discord.TextChannel, discord.Thread)
+                                )
                                 try:
                                     toMessage = await toChannel.fetch_message(
                                         metuple[2]
