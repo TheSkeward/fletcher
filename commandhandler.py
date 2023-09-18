@@ -870,6 +870,12 @@ class CommandHandler:
                                 [channel.guild.id, channel.id, message.id],
                             )
                             metuple = cur.fetchone()
+                            if metuple is None:
+                                cur.execute(
+                                    "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tomessage = %s;",
+                                    [channel.guild.id, message.id],
+                                )
+                                metuple = cur.fetchone()
                             while metuple is not None:
                                 fromGuild = self.client.get_guild(metuple[0])
                                 try:
