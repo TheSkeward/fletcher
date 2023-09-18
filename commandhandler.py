@@ -1713,7 +1713,10 @@ class CommandHandler:
                 )
                 metuples = cur.fetchall()
                 conn.commit()
-                logger.debug(f"[Bridge] {query_params} -> {metuples}")
+                logger.debug(
+                    f"[Bridge] {query_params} -> {metuples}",
+                    extra={"GUILD_IDENTIFIER": fromGuild.name},
+                )
             else:
                 metuples = []
             for metuple in metuples:
@@ -1733,7 +1736,8 @@ class CommandHandler:
                     use_category_as_channel_fallback=False,
                 ):
                     logger.debug(
-                        f"ORMU: Demurring to edit message at client guild request"
+                        f"ORMU: Demurring to edit message at client guild request",
+                        extra={"GUILD_IDENTIFIER": fromGuild.name},
                     )
                     return
                 if self.config.get(
@@ -1749,7 +1753,8 @@ class CommandHandler:
                         return
                     except discord.Forbidden:
                         logger.info(
-                            f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that."
+                            f"Unable to remove original message for bridge in {message.channel}! I need the manage messages permission to do that.",
+                            extra={"GUILD_IDENTIFIER": fromGuild.name},
                         )
                 reply_embed = []
                 if fromMessage.reference:
@@ -1783,7 +1788,10 @@ class CommandHandler:
                             content = f"{content}\n• <{attachment.url}>"
                     else:
                         for attachment in fromMessage.attachments:
-                            logger.debug(f"Syncing {attachment.filename}")
+                            logger.debug(
+                                f"Syncing {attachment.filename}",
+                                extra={"GUILD_IDENTIFIER": fromGuild.name},
+                            )
                             attachment_blob = BytesIO()
                             await attachment.save(attachment_blob)
                             attachments.append(
