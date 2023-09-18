@@ -964,6 +964,11 @@ class CommandHandler:
                                 assert isinstance(
                                     toChannel, (discord.TextChannel, discord.Thread)
                                 )
+                                if reaction.guild_id == 429373449803399169:
+                                    logger.debug(
+                                        f"{metuple=}",
+                                        extra={"GUILD_IDENTIFIER": channel.guild.name},
+                                    )
                                 try:
                                     toMessage = await toChannel.fetch_message(
                                         metuple[2]
@@ -971,13 +976,6 @@ class CommandHandler:
                                 except discord.Forbidden:
                                     return
                                 except discord.NotFound:
-                                    if reaction.guild_id == 429373449803399169:
-                                        logger.debug(
-                                            f"{metuple=}",
-                                            extra={
-                                                "GUILD_IDENTIFIER": channel.guild.name
-                                            },
-                                        )
                                     return
                                 if not toMessage:
                                     return
