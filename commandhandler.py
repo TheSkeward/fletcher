@@ -960,6 +960,13 @@ class CommandHandler:
                                     toChannel, (discord.TextChannel, discord.Thread)
                                 )
                                 try:
+                                    if toGuild == 429373449803399169:
+                                        logger.debug(
+                                            f"{toChannel=} {toGuild=} {metuple=}",
+                                            extra={
+                                                "GUILD_IDENTIFIER": 429373449803399169
+                                            },
+                                        )
                                     toMessage = await toChannel.fetch_message(
                                         metuple[2]
                                     )
