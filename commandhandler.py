@@ -772,15 +772,27 @@ class CommandHandler:
                                 extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
                             )
                         metuples = cur.fetchall()
+                        if metuples:
+                            for i in range(len(metuples)):
+                                thread_id = self.config.get(
+                                    "bridge_target_thread",
+                                    channel=metuples[i][2],
+                                    guild=metuples[i][1],
+                                    default=None,
+                                )
+                                if thread_id:
+                                    metuples[i] = (
+                                        metuples[0],
+                                        metuples[1],
+                                        thread_id,
+                                        metuples[3],
+                                    )
                         if not metuples:
                             cur.execute(
                                 "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND frommessage = %s;",
                                 [message.guild_id, message.message_id],
                             )
                             metuples = cur.fetchall()
-                        import copy
-
-                        metuples = copy.deepcopy(metuples)
                         for metuple in metuples:
                             cur.execute(
                                 "DELETE FROM messageMap WHERE ctid = %s AND fromguild = %s AND frommessage = %s",
@@ -790,6 +802,19 @@ class CommandHandler:
                         for metuple in metuples:
                             toGuild = client.get_guild(metuple[1])
                             toChannel = toGuild.get_channel_or_thread(metuple[2])
+                            thread_id = self.config.get(
+                                "bridge_target_thread",
+                                channel=toChannel,
+                                guild=toguild,
+                                default=None,
+                            )
+                            if thread_id:
+                                toChannel = toChannel.get_thread(thread_id)
+                            if not toChannel:
+                                logger.debug(
+                                    "Lookup issue for toChannel in this metuple"
+                                )
+                                continue
                             if not self.config.get(
                                 key="sync-deletions", guild=toGuild, channel=toChannel
                             ):
