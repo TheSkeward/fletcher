@@ -689,7 +689,7 @@ class CommandHandler:
                 try:
                     global config
                     messageContent = str(reaction.emoji)
-                    channel = self.client.get_channel(reaction.channel_id)
+                    channel = self.client.get_channel_or_thread(reaction.channel_id)
                     if channel is None:
                         logger.info("Channel does not exist")
                         return
