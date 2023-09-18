@@ -778,6 +778,9 @@ class CommandHandler:
                                 [message.guild_id, message.message_id],
                             )
                             metuples = cur.fetchall()
+                        import copy
+
+                        metuples = copy.deepcopy(metuples)
                         for metuple in metuples:
                             cur.execute(
                                 "DELETE FROM messageMap WHERE ctid = %s AND fromguild = %s AND frommessage = %s",
