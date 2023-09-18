@@ -832,7 +832,7 @@ class CommandHandler:
                         else:
                             bridge_key = ""
                         if isinstance(
-                            channel, discord.TextChannel
+                            channel, (discord.Thread, discord.TextChannel)
                         ) and await self.bridge_registry(bridge_key):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
@@ -886,7 +886,6 @@ class CommandHandler:
                                     )
                                     cur.fetchone()
                                     conn.rollback()
-                                    return
                                     continue
                                 fromChannel = fromGuild.get_channel_or_thread(
                                     metuple[1]
@@ -932,7 +931,8 @@ class CommandHandler:
                                     and already_sent is not None
                                 ):
                                     if already_sent.me:
-                                        return
+                                        metuple = cur.fetchone()
+                                        continue
                                 logger.debug(
                                     f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})",
                                     extra={"GUILD_IDENTIFIER": fromGuild.name},
