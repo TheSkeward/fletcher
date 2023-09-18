@@ -795,18 +795,16 @@ class CommandHandler:
                     ):
                         scoped_command = channel_handler
                     try:
-                        if message.guild:
+                        if channel.guild:
                             if isinstance(message.channel, discord.TextChannel):
                                 thread_id = self.config.get(
                                     "bridge_target_thread",
-                                    channel=message.channel,
-                                    guild=message.channel.guild,
+                                    channel=channel,
+                                    guild=channel.guild,
                                     default=None,
                                 )
                                 if not thread_id:
-                                    bridge_key = (
-                                        f"{message.guild.name}:{message.channel.id}"
-                                    )
+                                    bridge_key = f"{channel.guild.name}:{channel.id}"
                                 else:
                                     bridge_key = ""
                             elif isinstance(message.channel, discord.Thread):
@@ -817,7 +815,9 @@ class CommandHandler:
                                     default=None,
                                 )
                                 if thread_id == message.channel.id:
-                                    bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
+                                    bridge_key = (
+                                        f"{channel.guild.name}:{channel.parent.id}"
+                                    )
                                 else:
                                     bridge_key = ""
                             else:
