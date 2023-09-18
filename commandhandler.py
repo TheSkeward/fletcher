@@ -801,7 +801,7 @@ class CommandHandler:
                         scoped_command = channel_handler
                     try:
                         if channel.guild:
-                            if isinstance(message.channel, discord.TextChannel):
+                            if isinstance(channel, discord.TextChannel):
                                 thread_id = self.config.get(
                                     "bridge_target_thread",
                                     channel=channel,
@@ -812,14 +812,14 @@ class CommandHandler:
                                     bridge_key = f"{channel.guild.name}:{channel.id}"
                                 else:
                                     bridge_key = ""
-                            elif isinstance(message.channel, discord.Thread):
+                            elif isinstance(channel, discord.Thread):
                                 thread_id = self.config.get(
                                     "bridge_target_thread",
-                                    channel=message.channel.parent,
-                                    guild=message.channel.guild,
+                                    channel=channel.parent,
+                                    guild=channel.guild,
                                     default=None,
                                 )
-                                if thread_id == message.channel.id:
+                                if thread_id == channel.id:
                                     bridge_key = (
                                         f"{channel.guild.name}:{channel.parent.id}"
                                     )
@@ -827,10 +827,15 @@ class CommandHandler:
                                     bridge_key = ""
                             else:
                                 raise AttributeError(
-                                    f"Unregistered {type(message.channel)=} in bridge_key"
+                                    f"Unregistered {type(channel)=} in bridge_key"
                                 )
                         else:
                             bridge_key = ""
+                        if reaction.guild_id == 429373449803399169:
+                            logger.debug(
+                                f"{bridge_key=}",
+                                extra={"GUILD_IDENTIFIER": 429373449803399169},
+                            )
                         if isinstance(
                             channel, discord.TextChannel
                         ) and await self.bridge_registry(bridge_key):
@@ -965,13 +970,6 @@ class CommandHandler:
                                     toChannel, (discord.TextChannel, discord.Thread)
                                 )
                                 try:
-                                    if toGuild == 429373449803399169:
-                                        logger.debug(
-                                            f"{toChannel=} {toGuild=} {metuple=}",
-                                            extra={
-                                                "GUILD_IDENTIFIER": 429373449803399169
-                                            },
-                                        )
                                     toMessage = await toChannel.fetch_message(
                                         metuple[2]
                                     )
