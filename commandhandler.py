@@ -772,10 +772,10 @@ class CommandHandler:
                                 )
                                 if thread_id:
                                     metuples[i] = (
-                                        metuples[0],
-                                        metuples[1],
+                                        metuples[i][0],
+                                        metuples[i][1],
                                         thread_id,
-                                        metuples[3],
+                                        metuples[i][3],
                                     )
                         else:
                             cur.execute(
