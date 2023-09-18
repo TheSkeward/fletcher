@@ -776,7 +776,7 @@ class CommandHandler:
                         conn.commit()
                         for metuple in metuples:
                             toGuild = client.get_guild(metuple[1])
-                            toChannel = toGuild.get_channel(metuple[2])
+                            toChannel = toGuild.get_channel_or_thread(metuple[2])
                             if not self.config.get(
                                 key="sync-deletions", guild=toGuild, channel=toChannel
                             ):
