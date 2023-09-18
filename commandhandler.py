@@ -685,7 +685,7 @@ class CommandHandler:
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             if TYPE_CHECKING:
                 assert hub is not None
-            with hub.configure_scope() as scope, hub.start_transaction(op="deletion_handler", message_id=str(message.message_id)):  # type: ignore
+            with hub.configure_scope() as scope, hub.start_transaction(op="deletion_handler", name=str(message.message_id)):  # type: ignore
                 try:
                     fromGuild = client.get_guild(message.guild_id)
                     fromChannel = fromGuild.get_channel_or_thread(message.channel_id)
