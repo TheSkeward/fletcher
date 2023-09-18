@@ -795,11 +795,40 @@ class CommandHandler:
                     ):
                         scoped_command = channel_handler
                     try:
+                        if message.guild:
+                            if isinstance(message.channel, discord.TextChannel):
+                                thread_id = self.config.get(
+                                    "bridge_target_thread",
+                                    channel=message.channel,
+                                    guild=message.channel.guild,
+                                    default=None,
+                                )
+                                if not thread_id:
+                                    bridge_key = (
+                                        f"{message.guild.name}:{message.channel.id}"
+                                    )
+                                else:
+                                    bridge_key = ""
+                            elif isinstance(message.channel, discord.Thread):
+                                thread_id = self.config.get(
+                                    "bridge_target_thread",
+                                    channel=message.channel.parent,
+                                    guild=message.channel.guild,
+                                    default=None,
+                                )
+                                if thread_id == message.channel.id:
+                                    bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
+                                else:
+                                    bridge_key = ""
+                            else:
+                                raise AttributeError(
+                                    f"Unregistered {type(message.channel)=} in bridge_key"
+                                )
+                        else:
+                            bridge_key = ""
                         if isinstance(
                             channel, discord.TextChannel
-                        ) and await self.bridge_registry(
-                            f"{channel.guild.name}:{channel.id}"
-                        ):
+                        ) and await self.bridge_registry(bridge_key):
                             if reaction.emoji.is_custom_emoji():
                                 processed_emoji = self.client.get_emoji(
                                     reaction.emoji.id
@@ -846,7 +875,10 @@ class CommandHandler:
                                 try:
                                     assert fromGuild is not None
                                 except AssertionError:
-                                    logger.error(f"RXH: {metuple} fromGuild not found")
+                                    logger.error(
+                                        f"RXH: {metuple} fromGuild not found",
+                                        extra={"GUILD_IDENTIFIER": fromGuild.name},
+                                    )
                                     cur.fetchone()
                                     conn.rollback()
                                     return
@@ -856,7 +888,8 @@ class CommandHandler:
                                     assert isinstance(fromChannel, discord.TextChannel)
                                 except AssertionError:
                                     logger.error(
-                                        f"RXH: {metuple} tried to bridge {type(fromChannel)}"
+                                        f"RXH: {metuple} tried to bridge {type(fromChannel)}",
+                                        extra={"GUILD_IDENTIFIER": fromGuild.name},
                                     )
                                     metuple = cur.fetchone()
                                     continue
@@ -872,7 +905,8 @@ class CommandHandler:
                                     ),
                                 ):
                                     logger.debug(
-                                        "Demurring to bridge reaction to message of users on the blacklist"
+                                        "Demurring to bridge reaction to message of users on the blacklist",
+                                        extra={"GUILD_IDENTIFIER": fromGuild.name},
                                     )
                                     return
                                 already_sent = next(
@@ -890,7 +924,8 @@ class CommandHandler:
                                     if already_sent.me:
                                         return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})"
+                                    f"RXH: {processed_emoji} -> {fromMessage.id} ({fromGuild.name})",
+                                    extra={"GUILD_IDENTIFIER": fromGuild.name},
                                 )
                                 await fromMessage.add_reaction(processed_emoji)
                                 metuple = cur.fetchone()
@@ -936,11 +971,13 @@ class CommandHandler:
                                     ),
                                 ):
                                     logger.debug(
-                                        "Demurring to bridge reaction to message of users on the blacklist"
+                                        "Demurring to bridge reaction to message of users on the blacklist",
+                                        extra={"GUILD_IDENTIFIER": message.guild.name},
                                     )
                                     return
                                 logger.debug(
-                                    f"RXH: {processed_emoji} -> {toMessage.id} ({toGuild.name})"
+                                    f"RXH: {processed_emoji} -> {toMessage.id} ({toGuild.name})",
+                                    extra={"GUILD_IDENTIFIER": message.guild.name},
                                 )
                                 await toMessage.add_reaction(processed_emoji)
                                 metuple = cur.fetchone()
@@ -1669,7 +1706,6 @@ class CommandHandler:
             else:
                 # Currently, we don't log empty or image-only messages
                 pass
-            # FIXME empire of dirt
             if fromGuild:
                 if isinstance(fromMessage.channel, discord.TextChannel):
                     bridge_key = f"{fromMessage.guild.name}:{fromMessage.channel.id}"
