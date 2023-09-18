@@ -751,11 +751,6 @@ class CommandHandler:
                             )
                     else:
                         bridge_key = ""
-                    if message.guild_id == 429373449803399169:
-                        logger.debug(
-                            f"{bridge_key=}",
-                            extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
-                        )
                     if isinstance(
                         fromChannel, (discord.Thread, discord.TextChannel)
                     ) and ch.webhook_sync_registry.get(bridge_key):
@@ -766,11 +761,6 @@ class CommandHandler:
                             "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
                             [message.guild_id, message.channel_id, message.message_id],
                         )
-                        if message.guild_id == 429373449803399169:
-                            logger.debug(
-                                f"{[message.guild_id, message.channel_id, message.message_id]=}",
-                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
-                            )
                         metuples = cur.fetchall()
                         if metuples:
                             for i in range(len(metuples)):
@@ -787,39 +777,43 @@ class CommandHandler:
                                         thread_id,
                                         metuples[3],
                                     )
-                        if not metuples:
+                        else:
                             cur.execute(
                                 "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND frommessage = %s;",
                                 [message.guild_id, message.message_id],
                             )
                             metuples = cur.fetchall()
+                        if message.guild_id == 429373449803399169:
+                            logger.debug(
+                                f"{len(metuples)=}",
+                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
+                            )
                         for metuple in metuples:
                             cur.execute(
                                 "DELETE FROM messageMap WHERE ctid = %s AND fromguild = %s AND frommessage = %s",
                                 [metuple[0], message.guild_id, message.message_id],
                             )
                         conn.commit()
+                        if message.guild_id == 429373449803399169:
+                            logger.debug(
+                                f"{len(metuples)=}",
+                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
+                            )
                         for metuple in metuples:
                             toGuild = client.get_guild(metuple[1])
                             toChannel = toGuild.get_channel_or_thread(metuple[2])
-                            thread_id = self.config.get(
-                                "bridge_target_thread",
-                                channel=toChannel,
-                                guild=toguild,
-                                default=None,
-                            )
-                            if thread_id:
-                                toChannel = toChannel.get_thread(thread_id)
                             if not toChannel:
                                 logger.debug(
-                                    "Lookup issue for toChannel in this metuple"
+                                    "Lookup issue for toChannel in this metuple",
+                                    extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
                                 )
                                 continue
                             if not self.config.get(
                                 key="sync-deletions", guild=toGuild, channel=toChannel
                             ):
                                 logger.debug(
-                                    f"ORMD: Demurring to delete edited message ctid={metuple[0]} at client guild request"
+                                    f"ORMD: Demurring to delete edited message ctid={metuple[0]} at client guild request",
+                                    extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
                                 )
                                 return
                             toMessage = None
