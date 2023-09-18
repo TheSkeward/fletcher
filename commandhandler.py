@@ -681,6 +681,148 @@ class CommandHandler:
             return web.Response(status=200)
         return web.Response(status=400)
 
+    async def deletion_handler(self, message: discord.RawReactionActionEvent):
+        with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
+            if TYPE_CHECKING:
+                assert hub is not None
+            with hub.configure_scope() as scope, hub.start_transaction(op="deletion_handler", message_id=str(message.message_id)):  # type: ignore
+                try:
+                    fromGuild = client.get_guild(message.guild_id)
+                    fromChannel = fromGuild.get_channel_or_thread(message.channel_id)
+                    if isinstance(fromChannel, (discord.Thread, discord.TextChannel)):
+                        logger.info(
+                            str(message.message_id)
+                            + " #"
+                            + fromGuild.name
+                            + ":"
+                            + fromChannel.name
+                            + " [Deleted]",
+                            extra={
+                                "GUILD_IDENTIFIER": fromGuild.name,
+                                "CHANNEL_IDENTIFIER": fromChannel.name,
+                                "MESSAGE_ID": str(message.message_id),
+                            },
+                        )
+                    elif type(fromChannel) is discord.DMChannel:
+                        logger.info(
+                            str(message.message_id)
+                            + " @"
+                            + fromChannel.recipient.name
+                            + " [Deleted]",
+                            extra={
+                                "GUILD_IDENTIFIER": "@",
+                                "CHANNEL_IDENTIFIER": fromChannel.name,
+                                "MESSAGE_ID": str(message.message_id),
+                            },
+                        )
+                    else:
+                        # Group Channels don't support bots so neither will we
+                        pass
+                    if fromGuild:
+                        if isinstance(fromChannel, discord.TextChannel):
+                            thread_id = self.config.get(
+                                "bridge_target_thread",
+                                channel=fromChannel,
+                                guild=fromChannel.guild,
+                                default=None,
+                            )
+                            if not thread_id:
+                                bridge_key = (
+                                    f"{fromChannel.guild.name}:{fromChannel.id}"
+                                )
+                            else:
+                                bridge_key = ""
+                        elif isinstance(fromChannel, discord.Thread):
+                            thread_id = self.config.get(
+                                "bridge_target_thread",
+                                channel=fromChannel.parent,
+                                guild=fromChannel.guild,
+                                default=None,
+                            )
+                            if thread_id == fromChannel.id:
+                                bridge_key = (
+                                    f"{fromChannel.guild.name}:{fromChannel.parent.id}"
+                                )
+                            else:
+                                bridge_key = ""
+                        else:
+                            raise AttributeError(
+                                f"Unregistered {type(fromChannel)=} in bridge_key"
+                            )
+                    else:
+                        bridge_key = ""
+                    if isinstance(
+                        fromChannel, (discord.Thread, discord.TextChannel)
+                    ) and ch.webhook_sync_registry.get(bridge_key):
+                        # Give messages time to be added to the database
+                        await asyncio.sleep(1)
+                        cur = conn.cursor()
+                        cur.execute(
+                            "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s;",
+                            [message.guild_id, message.channel_id, message.message_id],
+                        )
+                        metuples = cur.fetchall()
+                        if not metuples:
+                            cur.execute(
+                                "SELECT ctid, toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND frommessage = %s;",
+                                [message.guild_id, message.message_id],
+                            )
+                            metuples = cur.fetchall()
+                        for metuple in metuples:
+                            cur.execute(
+                                "DELETE FROM messageMap WHERE ctid = %s AND fromguild = %s AND frommessage = %s",
+                                [metuple[0], message.guild_id, message.message_id],
+                            )
+                        conn.commit()
+                        for metuple in metuples:
+                            toGuild = client.get_guild(metuple[1])
+                            toChannel = toGuild.get_channel(metuple[2])
+                            if not self.config.get(
+                                key="sync-deletions", guild=toGuild, channel=toChannel
+                            ):
+                                logger.debug(
+                                    f"ORMD: Demurring to delete edited message ctid={metuple[0]} at client guild request"
+                                )
+                                return
+                            toMessage = None
+                            tries = 0
+                            while not toMessage and tries < 10:
+                                try:
+                                    tries += 1
+                                    toMessage = await toChannel.fetch_message(
+                                        metuple[3]
+                                    )
+                                except discord.NotFound as e:
+                                    exc_type, exc_obj, exc_tb = exc_info()
+                                    logger.error(
+                                        f"ORMD[{exc_tb.tb_lineno}]: {type(e).__name__} {e}"
+                                    )
+                                    logger.error(
+                                        f"ORMD[{exc_tb.tb_lineno}]: {metuple[0]}:{metuple[1]}:{metuple[2]}"
+                                    )
+                                    toMessage = None
+                                    await asyncio.sleep(2 * tries)
+                                    if tries < 10:
+                                        pass
+                            logger.debug(
+                                f"ORMD: Deleting synced message {metuple[0]}:{metuple[1]}:{metuple[2]}"
+                            )
+                            await toMessage.delete()
+                except discord.Forbidden as e:
+                    logger.error(
+                        f"Forbidden to delete synced message from {fromGuild.name}:{fromChannel.name}"
+                    )
+                except KeyError as e:
+                    # Eat keyerrors from non-synced channels
+                    pass
+                except AttributeError as e:
+                    # Eat from PMs
+                    pass
+                except Exception as e:
+                    if "cur" in locals() and "conn" in locals():
+                        conn.rollback()
+                    raise e
+
     async def reaction_handler(self, reaction):
         with sentry_sdk.Hub(sentry_sdk.Hub.current) as hub:
             if TYPE_CHECKING:
