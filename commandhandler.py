@@ -831,11 +831,6 @@ class CommandHandler:
                                 )
                         else:
                             bridge_key = ""
-                        if reaction.guild_id == 429373449803399169:
-                            logger.debug(
-                                f"{bridge_key=}",
-                                extra={"GUILD_IDENTIFIER": 429373449803399169},
-                            )
                         if isinstance(
                             channel, discord.TextChannel
                         ) and await self.bridge_registry(bridge_key):
@@ -976,6 +971,13 @@ class CommandHandler:
                                 except discord.Forbidden:
                                     return
                                 except discord.NotFound:
+                                    if reaction.guild_id == 429373449803399169:
+                                        logger.debug(
+                                            f"{metuple=}",
+                                            extra={
+                                                "GUILD_IDENTIFIER": channel.guild.name
+                                            },
+                                        )
                                     return
                                 if not toMessage:
                                     return
