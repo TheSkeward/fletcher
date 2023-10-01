@@ -3867,13 +3867,38 @@ def cse_search_call(exactTerms, cx, phrase=True):
     return cseClient(q=f'"{exactTerms}"' if phrase else exactTerms, cx=cx).execute()
 
 
+def split_string_md_quotes(text):
+
+    lines = text.split("\n")
+    blocks = []
+    block = ""
+    in_quote = False
+
+    for line in lines:
+        if re.match(r"^> ", line):
+            if in_quote:
+                block += "\n"
+            else:
+                block = ""
+            block += line[2:]
+            in_quote = True
+        elif in_quote:
+            block += line
+            blocks.append(block)
+            block = ""
+            in_quote = False
+
+    if in_quote:
+        blocks.append(block)
+
+    return blocks
+
+
 async def glowfic_search_function(message, client, args):
     try:
         try:
-            q = filter(
-                lambda line: line.startswith(">"), message.content.split("\n")
-            ).__next__()
-        except StopIteration:
+            q = split_string_md_quotes(message.content)[0]
+        except IndexError:
             q = message.content.split("\n")[0]
         start = datetime.now()
         search_q = q.lstrip(">")
