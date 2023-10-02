@@ -47,7 +47,7 @@ async def posts_search_function(message, client, args):
             tags += " -loli -shota -toddlercon"
         else:
             # Implies the above
-            tags += " rating:safe"
+            tags += " rating:g"
 
         post_count = await count_search_function(tags)
         if not post_count or post_count == 0:
