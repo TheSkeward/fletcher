@@ -783,22 +783,12 @@ class CommandHandler:
                                 [message.guild_id, message.message_id],
                             )
                             metuples = cur.fetchall()
-                        if message.guild_id == 429373449803399169:
-                            logger.debug(
-                                f"{len(metuples)=}",
-                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
-                            )
                         for metuple in metuples:
                             cur.execute(
                                 "DELETE FROM messageMap WHERE ctid = %s AND fromguild = %s AND frommessage = %s",
                                 [metuple[0], message.guild_id, message.message_id],
                             )
                         conn.commit()
-                        if message.guild_id == 429373449803399169:
-                            logger.debug(
-                                f"{len(metuples)=}",
-                                extra={"GUILD_IDENTIFIER": fromChannel.guild.name},
-                            )
                         for metuple in metuples:
                             toGuild = client.get_guild(metuple[1])
                             toChannel = toGuild.get_channel_or_thread(metuple[2])
@@ -2107,6 +2097,7 @@ class CommandHandler:
     async def command_handler(self, message):
         received = datetime.utcnow()
         global config
+        global regex_cache
         global sid
 
         user = message.author
