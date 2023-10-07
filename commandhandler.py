@@ -3643,6 +3643,16 @@ class Hotword:
         self.regex = hotword["regex"]
         self.compiled_regex = re.compile(hotword["regex"], flags)
 
+    def __str__(self):
+        return ujson.dumps(
+            {
+                "regex": self.regex,
+                "owner": self.owner,
+                "user_restriction": self.user_restriction,
+                "target": self.target,
+            }
+        )
+
     def __iter__(self):
         return {
             "regex": self.regex,
