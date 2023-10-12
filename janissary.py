@@ -350,13 +350,16 @@ async def modping_function(message, client, args):
             )
             if not lay_mentionable:
                 await role.edit(mentionable=False)
-            if ch.user_config(
-                message.author.id,
-                message.guild.id,
-                "snappy",
-                default=False,
-                allow_global_substitute=True,
-            ) or ch.config.get(key="snappy", guild=message.guild.id):
+            if (
+                ch.user_config(
+                    message.author.id,
+                    message.guild.id,
+                    "snappy",
+                    default=False,
+                    allow_global_substitute=True,
+                )
+                or ch.config.get(key="snappy", guild=message.guild.id)
+            ):
                 mentionPing.delete()
             logger.debug(f"MPF: pinged {mentionPing.id} for guild {message.guild.name}")
     except Exception as e:
@@ -2452,6 +2455,11 @@ async def toggle_mute_role_function(message, client, args):
         logger.error(f"TMCF[{exc_tb.tb_lineno}]: {type(e).__name__} {e}")
 
 
+async def kick_clyde_function(message, client, args):
+    await message.guild.get_member(1081004946872352958).kick(reason="bozo")
+    await message.add_reaction("✅")
+
+
 async def nick_change_function(message, client, args):
     try:
         if not message.guild:
@@ -2592,6 +2600,17 @@ def autoload(ch):
             "args_num": 0,
             "args_name": [],
             "description": "List all available users and time of last message (Admin)",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": ["!kickclyde"],
+            "function": kick_clyde_function,
+            "async": True,
+            "admin": "server",
+            "args_num": 0,
+            "args_name": [],
+            "description": "Removes Clyde from this server.",
         }
     )
     ch.add_command(
