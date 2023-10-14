@@ -44,13 +44,16 @@ async def on_ready():
             last_live_update_body = ""
             print("Stream Time")
             async for live_update in stream.updates(skip_existing=True):
-                if live_update.body == last_live_update_body:
+                live_update_body = live_update.body.replace(
+                    "/twitter", "/fxtwitter"
+                ).replace("/x.", "/fixupx.")
+                if live_update_body == last_live_update_body:
                     next
                 else:
-                    last_live_update_body = live_update.body
+                    last_live_update_body = live_update_body
                 if not live_update.body:
                     next
-                print(live_update)
+                print(live_update, thread)
                 cur.execute(
                     "SELECT value, user_id FROM user_preferences WHERE key = %s;",
                     [thread],
@@ -62,7 +65,7 @@ async def on_ready():
                             int(row[0])
                         ) or await client.fetch_channel(int(row[0]))
                         await messagefuncs.sendWrappedMessage(
-                            f"u/{live_update.author.name} via <https://www.redditmedia.com/live/{thread}/>\n> {live_update.body}",
+                            f"u/{live_update.author.name} via <https://www.redditmedia.com/live/{thread}/>\n> {live_update_body}",
                             channel,
                             current_user_id=row[1],
                         )
