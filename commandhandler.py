@@ -964,7 +964,7 @@ class CommandHandler:
                     ):
                         scoped_command = channel_handler
                     try:
-                        if channel.guild:
+                        if not isinstance(channel, discord.DMChannel) and channel.guild:
                             if isinstance(channel, discord.TextChannel):
                                 thread_id = self.config.get(
                                     "bridge_target_thread",
