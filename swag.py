@@ -4075,7 +4075,8 @@ class InteractionContext:
                     f"{anthropic2.AI_PROMPT}{message_content.rstrip(' ')}"
                 )
             human_turn = not human_turn
-        assert not human_turn, f"{self.history}"
+        if not human_turn:
+            yield False
         constructed_prefix += f"{anthropic2.AI_PROMPT}"
         last_clean_completion = None
         async for ev in api.completion_stream(
@@ -4125,6 +4126,8 @@ async def sparrow_filter(message, client, args):
         api=anthropic_client, q=message.clean_content, max_tokens_to_sample=6000
     )
     initial_contents = await anext(generator)
+    if not initial_contents:
+        return
     target_message = await messagefuncs.sendWrappedMessage(
         initial_contents, message.channel
     )
