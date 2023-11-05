@@ -5389,7 +5389,7 @@ def autoload(ch):
         {
             "trigger": ["!amulet"],
             "function": amulet_function,
-            "async": False,
+            "async": True,
             "hidden": False,
             "args_num": 1,
             "args_name": ["Poem"],
