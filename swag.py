@@ -3869,18 +3869,19 @@ def cse_search_call(exactTerms, cx, phrase=True):
 
 async def glowfic_search_function(message, client, args):
     try:
+        target_message = message if len(args) > 1 else args[0]
         try:
             q = filter(
-                lambda line: line.startswith(">"), message.content.split("\n")
+                lambda line: line.startswith(">"), target_message.content.split("\n")
             ).__next__()
         except StopIteration:
-            q = message.content.split("\n")[0]
+            q = target_message.content.split("\n")[0]
         start = datetime.now()
         search_q = q.lstrip(">")
         link = None
         searched = []
         search_dbs = glowfic_search_databases[:]
-        if message.guild:
+        if target_message.guild:
             search_dbs[3:2] = [
                 {
                     "function": partial(cse_search_call, cx=engine[1]),
@@ -3892,7 +3893,7 @@ async def glowfic_search_function(message, client, args):
                     for engine in ch.config.get(
                         key="quotesearch-extra-cse-list",
                         default=[],
-                        guild=message.guild.id,
+                        guild=target_message.guild.id,
                     )
                 ]
             ]
@@ -3919,19 +3920,23 @@ async def glowfic_search_function(message, client, args):
                     "type": "native",
                 }
             elif ch.config.get(
-                guild=message.guild.id, key="glowfic-username", default=None
+                guild=target_message.guild.id, key="glowfic-username", default=None
             ) and ch.config.get(
-                guild=message.guild.id, key="glowfic-password", default=None
+                guild=target_message.guild.id, key="glowfic-password", default=None
             ):
                 search_dbs[1] = {
                     "function": partial(
                         glowfic_search_call,
                         exact=True,
                         username=ch.config.get(
-                            guild=message.guild.id, key="glowfic-username", default=None
+                            guild=target_message.guild.id,
+                            key="glowfic-username",
+                            default=None,
                         ),
                         password=ch.config.get(
-                            guild=message.guild.id, key="glowfic-password", default=None
+                            guild=target_message.guild.id,
+                            key="glowfic-password",
+                            default=None,
                         ),
                     ),
                     "name": "Constellation (searching as server account)",
@@ -3953,18 +3958,18 @@ async def glowfic_search_function(message, client, args):
         else:
             content = f"{q}\nattribution was not found, searched {len(glowfic_search_databases)} databases ({', '.join(searched)}) in {query_time} seconds."
             if not ch.user_config(
-                message.author.id,
-                message.guild.id,
-                f"search-failure-once-{message.jump_url}",
+                target_message.author.id,
+                target_message.guild.id,
+                f"search-failure-once-{target_message.jump_url}",
             ):
                 once = await messagefuncs.sendWrappedMessage(
-                    f"Someone tried to search for your quote in {message.jump_url} and I was unable to find it for them - help them out?",
-                    message.author,
+                    f"Someone tried to search for your quote in {target_message.jump_url} and I was unable to find it for them - help them out?",
+                    target_message.author,
                 )
                 ch.user_config(
-                    message.author.id,
-                    message.guild.id,
-                    f"search-failure-once-{message.jump_url}",
+                    target_message.author.id,
+                    target_message.guild.id,
+                    f"search-failure-once-{target_message.jump_url}",
                     value=str(once.id),
                 )
         await messagefuncs.sendWrappedMessage(
