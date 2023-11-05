@@ -3896,7 +3896,7 @@ async def glowfic_search_function(message, client, args):
                     )
                 ]
             ]
-            who = args[1].id if len(args) > 1 else message.author.id
+            who = args[1] if len(args) > 1 else message.author
             if ch.user_config(
                 who,
                 None,
