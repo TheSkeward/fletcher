@@ -3896,13 +3896,14 @@ async def glowfic_search_function(message, client, args):
                     )
                 ]
             ]
+            who = args[1].id if len(args) > 1 else message.author.id
             if ch.user_config(
-                args[1].id,
+                who,
                 None,
                 "glowfic-username",
                 allow_global_substitute=True,
             ) and ch.user_config(
-                args[1].id,
+                who,
                 None,
                 "glowfic-password",
                 allow_global_substitute=True,
@@ -3911,8 +3912,8 @@ async def glowfic_search_function(message, client, args):
                     "function": partial(
                         glowfic_search_call,
                         exact=True,
-                        username=ch.user_config(args[1].id, None, "glowfic-username"),
-                        password=ch.user_config(args[1].id, None, "glowfic-password"),
+                        username=ch.user_config(who, None, "glowfic-username"),
+                        password=ch.user_config(who, None, "glowfic-password"),
                     ),
                     "name": "Constellation (searching as user account)",
                     "type": "native",
@@ -3968,7 +3969,7 @@ async def glowfic_search_function(message, client, args):
                 )
         await messagefuncs.sendWrappedMessage(
             content,
-            args[1],
+            who,
         )
     except (StopIteration) as e:
         exc_type, exc_obj, exc_tb = exc_info()
