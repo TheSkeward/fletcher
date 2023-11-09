@@ -3260,6 +3260,7 @@ class CommandHandler:
         max_args=99999,
         user=None,
     ):
+        target_trigger = str(target_trigger)
         if insensitive and target_trigger:
             target_trigger = target_trigger.lower()
         if message:
