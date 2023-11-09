@@ -3898,12 +3898,12 @@ async def glowfic_search_function(message, client, args):
             ]
             who = args[1] if len(args) > 1 else message.author
             if ch.user_config(
-                who,
+                who.id,
                 None,
                 "glowfic-username",
                 allow_global_substitute=True,
             ) and ch.user_config(
-                who,
+                who.id,
                 None,
                 "glowfic-password",
                 allow_global_substitute=True,
