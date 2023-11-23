@@ -4459,7 +4459,7 @@ async def todo_channel_function(message: discord.Message, client, args):
             filter(lambda rxn: rxn.emoji == "✅", message.reactions)
         ):
             todo.append(Todo(content=message.content, message_id=message.id))
-    if todo:
+    if not todo:
         return
     ungrouped = '<list>\n\t<group title="Ungrouped">\n'
     for do in todo:
