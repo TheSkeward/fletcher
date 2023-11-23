@@ -4444,12 +4444,12 @@ async def oregon_generator(message, client, args):
 
 @command
 async def todo_channel_function(message: discord.Message, client, args):
-    todo = []
+    todo: list[str] = []
     async for message in message.channel.history(oldest_first=False, limit=500):
-        if re.match(r"^[a-zA-Z )(-]+$", message.content) and any(
+        if re.match(r"^[a-zA-Z )(-]+$", message.content) and not any(
             filter(lambda rxn: rxn.emoji == "✅", message.reactions)
         ):
-            todo.append(message.content)
+            todo.append(f"- {message.content}")
     await messagefuncs.sendWrappedMessage("\n".join(todo), message.channel)
     await message.add_reaction("✅")
 
