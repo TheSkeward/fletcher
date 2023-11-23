@@ -4465,7 +4465,7 @@ async def todo_channel_function(message: discord.Message, client, args):
     for do in todo:
         ungrouped += f'\t\t<item id="{do.message_id}">{do.content}</item>\n'
     ungrouped += "</list>\n"
-    todo_prompt = f'{anthropic.HUMAN_PROMPT} {ungrouped}Group this list by type.{anthropic.AI_PROMPT} <list><group title="'
+    todo_prompt = f'{anthropic.HUMAN_PROMPT} {ungrouped}Group this list by type, dropping any items that look like comments, clarifications or other non-todolist items.{anthropic.AI_PROMPT} <list><group title="'
     global anthropic_official_client
     try:
         anthropic_official_client
