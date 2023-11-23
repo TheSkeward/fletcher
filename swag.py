@@ -1,7 +1,9 @@
 import asyncio
 import importlib
 import anthropic2
+import anthropic
 from commandhandler import command
+from dataclasses import dataclass
 import pydoc
 import traceback
 import aiohttp
@@ -41,6 +43,7 @@ from datetime import datetime, timedelta
 from markdownify import markdownify
 from functools import partial, lru_cache
 import periodictable
+import xml.etree.ElementTree as ET
 import yt_dlp
 from typing import List
 
@@ -4442,15 +4445,51 @@ async def oregon_generator(message, client, args):
         await message.add_reaction("🚫")
 
 
+@dataclass(kw_only=True)
+class Todo:
+    content: str
+    message_id: int
+
+
 @command
 async def todo_channel_function(message: discord.Message, client, args):
-    todo: list[str] = []
+    todo: list[Todo] = []
     async for message in message.channel.history(oldest_first=False, limit=500):
         if re.match(r"^[a-zA-Z )(-]+$", message.content) and not any(
             filter(lambda rxn: rxn.emoji == "✅", message.reactions)
         ):
-            todo.append(f"- {message.content}")
-    await messagefuncs.sendWrappedMessage("\n".join(todo), message.channel)
+            todo.append(Todo(content=message.content, message_id=message.id))
+    if todo:
+        return
+    ungrouped = '<list>\n\t<group title="Ungrouped">\n'
+    for do in todo:
+        ungrouped += f'\t\t<item id="{do.message_id}">{do.content}</item>\n'
+    ungrouped += "</list>\n"
+    todo_prompt = f'{anthropic.HUMAN_PROMPT} {ungrouped}Group this list by type.{anthropic.AI_PROMPT} <list><group title="'
+    global anthropic_official_client
+    try:
+        anthropic_official_client
+    except:
+        anthropic_official_client = anthropic.Anthropic(
+            api_key=ch.config.get(section="sparrow", key="api-key")
+        )
+    grouped = (
+        '<list><group title="'
+        + anthropic_official_client.completions.create(
+            model="claude-instant-1.2",
+            max_tokens_to_sample=anthropic_official_client.count_tokens(ungrouped) + 3,
+            prompt=todo_prompt,
+            stop_sequences=["</list>"],
+        ).completion
+        + "</list>"
+    )
+    root = ET.fromstring(grouped)
+    output = ""
+    for group in root:
+        output += f"__{group.attrib['title']}__\n"
+        for it in group:
+            output += f"- [{it.text}](<https://discord.com/channels/{message.guild.id}/{message.channel.id}/{it.attrib['id']}>)\n"
+    await messagefuncs.sendWrappedMessage(output, message.channel)
     await message.add_reaction("✅")
 
 
