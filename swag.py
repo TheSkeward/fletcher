@@ -5771,7 +5771,7 @@ def autoload(ch):
     ch.add_command(
         {
             "trigger": [
-                "!todo_list",
+                "!checklist",
             ],
             "function": todo_channel_function,
             "async": True,
