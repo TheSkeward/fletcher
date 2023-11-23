@@ -4473,18 +4473,25 @@ async def todo_channel_function(message: discord.Message, client, args):
         anthropic_official_client = anthropic.Anthropic(
             api_key=ch.config.get(section="sparrow", key="api-key")
         )
-    grouped = (
-        '<list><group title="'
-        + anthropic_official_client.completions.create(
-            model="claude-instant-1.2",
-            max_tokens_to_sample=anthropic_official_client.count_tokens(ungrouped) + 3,
-            prompt=todo_prompt,
-            stop_sequences=["</list>"],
-        ).completion
-        + "</list>"
-    )
-    logger.debug(grouped)
-    root = ET.fromstring(grouped)
+    while True:
+        try:
+            grouped = (
+                '<list><group title="'
+                + anthropic_official_client.completions.create(
+                    model="claude-instant-1.2",
+                    max_tokens_to_sample=anthropic_official_client.count_tokens(
+                        ungrouped
+                    )
+                    + 3,
+                    prompt=todo_prompt,
+                    stop_sequences=["</list>"],
+                ).completion
+                + "</list>"
+            )
+            root = ET.fromstring(grouped)
+            break
+        except ET.ParseError:
+            pass
     output = ""
     for group in root:
         output += f"__{group.attrib['title']}__\n"
