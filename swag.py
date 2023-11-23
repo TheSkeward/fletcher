@@ -4483,6 +4483,7 @@ async def todo_channel_function(message: discord.Message, client, args):
         ).completion
         + "</list>"
     )
+    logger.debug(grouped)
     root = ET.fromstring(grouped)
     output = ""
     for group in root:
