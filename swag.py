@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import anthropic2
+from commandhandler import command
 import pydoc
 import traceback
 import aiohttp
@@ -4441,6 +4442,18 @@ async def oregon_generator(message, client, args):
         await message.add_reaction("🚫")
 
 
+@command
+async def todo_channel_function(message: discord.Message, client, args):
+    todo = []
+    async for message in message.channel.history(oldest_first=False, limit=500):
+        if re.match(r"^[a-zA-Z )(-]+$", message.content) and any(
+            filter(lambda rxn: rxn.emoji == "✅", message.reactions)
+        ):
+            todo.append(message.content)
+    await messagefuncs.sendWrappedMessage("\n".join(todo), message.channel)
+    await message.add_reaction("✅")
+
+
 async def pexels_search(message, client, args):
     try:
         query = message.content.split(" ", 1)[1]
@@ -5753,5 +5766,20 @@ def autoload(ch):
             "args_name": ["search query"],
             "long_run": "channel",
             "description": "Query (start with user:username to filter on username) Pexels for images",
+        }
+    )
+    ch.add_command(
+        {
+            "trigger": [
+                "!todos",
+            ],
+            "function": todo_channel_function,
+            "async": True,
+            "admin": "global",
+            "hidden": True,
+            "args_num": 0,
+            "args_name": [],
+            "long_run": "channel",
+            "description": "List all unchecked messages in a channel",
         }
     )

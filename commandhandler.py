@@ -4089,6 +4089,38 @@ def autoload(ch):
     logging.getLogger("discord.voice_client").setLevel("CRITICAL")
 
 
+def command(f):
+    if inspect.iscoroutinefunction(f):
+
+        async def wrapper(message, client, args, *extra_args, **kwargs):
+            try:
+                return await f(message, client, args, *extra_args, **kwargs)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.error(
+                    "{}[{}]: {} {}".format(
+                        f.__name__, exc_tb.tb_lineno, type(e).__name__, e
+                    )
+                )
+                await message.add_reaction("🚫")
+
+    else:
+
+        def wrapper(message, client, args, *extra_args, **kwargs):
+            try:
+                return f(message, client, args, *extra_args, **kwargs)
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = exc_info()
+                logger.error(
+                    "{}[{}]: {} {}".format(
+                        f.__name__, exc_tb.tb_lineno, type(e).__name__, e
+                    )
+                )
+                ch.client.loop.create_task(message.add_reaction, "🚫")
+
+    return wrapper
+
+
 async def run_web_api(config, ch):
     app = Application()
     ch.app = app
