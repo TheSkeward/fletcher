@@ -3051,7 +3051,7 @@ class CommandHandler:
             if bridge:
                 new_threads = []
                 await asyncio.sleep(1)
-                for bridge_channel in bridge["toChannelObject"]:
+                for bridge_channel in bridge.channels:
                     query_params = [
                         thread.guild.id,
                         thread.parent_id,
