@@ -1502,6 +1502,25 @@ class CommandHandler:
                 if thread_id == message.channel.id:
                     bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
                 else:
+                    #                     try:
+                    #                         cur = conn.cursor()
+                    #                         cur.execute(
+                    #                             "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
+                    #                             [str(thread_id), str(thread_id)],
+                    #                         )
+                    #                         possible_target_threads = []
+                    #                         for record in cur:
+                    #                             possible_target_threads.append(record[0])
+                    #                             possible_target_threads.extend(record[1])
+                    #                         if possible_target_threads:
+                    #                             bridge_key = (
+                    #                                 f"{message.guild.name}:{message.channel.parent.id}"
+                    #                             )
+                    #                         else:
+                    #                             bridge_key = ""
+                    #                     except Exception as e:
+                    #                         if "cur" in locals() and "conn" in locals():
+                    #                             conn.rollback()
                     bridge_key = ""
             else:
                 raise AttributeError(
@@ -3084,23 +3103,25 @@ class CommandHandler:
                             metuple = cur.fetchone()
                             conn.commit()
                     if metuple[1] != thread.parent_id and metuple:
-                        new_threads.append(
-                            await (
-                                await self.client.get_channel(metuple[1]).fetch_message(
-                                    int(metuple[2])
-                                )
-                            ).create_thread(name=thread.name)
-                        )
-                try:
-                    cur = conn.cursor()
-                    cur.execute(
-                        "INSERT INTO threads (source, target) VALUES (%s, %s);",
-                        [thread.id, [thread.id for thread in new_threads]],
-                    )
-                    conn.commit()
-                except Exception as e:
-                    if "cur" in locals() and "conn" in locals():
-                        conn.rollback()
+                        pass
+                #                         new_threads.append(
+                #                             await (
+                #                                 await self.client.get_channel(metuple[1]).fetch_message(
+                #                                     int(metuple[2])
+                #                                 )
+                #                             ).create_thread(name=thread.name)
+                #                         )
+
+    #                 try:
+    #                     cur = conn.cursor()
+    #                     cur.execute(
+    #                         "INSERT INTO threads (source, target) VALUES (%s, %s);",
+    #                         [thread.id, [thread.id for thread in new_threads]],
+    #                     )
+    #                     conn.commit()
+    #                 except Exception as e:
+    #                     if "cur" in locals() and "conn" in locals():
+    #                         conn.rollback()
 
     async def guild_add(self, guild):
         await guild.chunk()
