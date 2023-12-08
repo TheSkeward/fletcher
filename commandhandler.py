@@ -3646,6 +3646,10 @@ class Hotword:
                     await messagefuncs.preview_messagelink_function(
                         response_message, client, None
                     )
+                except discord.Forbidden:
+                    logger.debug(
+                        f"Couldn't send message because owner has blocked Fletcher or something {owner.id}"
+                    )
                 except AttributeError:
                     logger.debug(
                         f"Couldn't send message because owner couln't be dereferenced for {word} in {message.guild}"
