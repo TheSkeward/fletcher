@@ -1507,7 +1507,7 @@ class CommandHandler:
                 )
                 if thread_id == message.channel.id:
                     bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
-                else:
+                elif message.guild and message.guild.id == 429373449803399169:
                     async with aconn.cursor() as cur:
                         async with aconn.transaction():
                             await cur.execute(
