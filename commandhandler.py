@@ -3066,6 +3066,7 @@ class CommandHandler:
                     logger.debug(f"Adding {user} to thread {thread.name} ({thread.id})")
                     await thread.add_user(user)
             global conn
+            global aconn
             bridge_key = f"{thread.guild.name}:{thread.parent_id}"
             if thread.guild and self.config.get(guild=thread.guild, key="synchronize"):
                 bridge = await self.bridge_registry(bridge_key)
@@ -3074,58 +3075,47 @@ class CommandHandler:
             if bridge:
                 new_threads = []
                 await asyncio.sleep(1)
-                for bridge_channel in bridge.channels:
-                    query_params = [
-                        thread.guild.id,
-                        thread.parent_id,
-                        thread.id,
-                        bridge_channel.guild.id,
-                    ]
-                    metuple = None
-                    if metuple is None:
-                        cur = conn.cursor()
-                        cur.execute(
-                            "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                            query_params,
-                        )
-                        metuple = cur.fetchone()
-                        conn.commit()
-                    if metuple is None:
-                        cur = conn.cursor()
-                        cur.execute(
-                            "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
-                            query_params[:3],
-                        )
-                        metuple = cur.fetchone()
-                        conn.commit()
-                        if metuple[0] != bridge_channel.guild.id:
-                            cur = conn.cursor()
-                            cur.execute(
-                                "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
-                                [*metuple, bridge_channel.guild.id],
-                            )
-                            metuple = cur.fetchone()
-                            conn.commit()
-                    if metuple[1] != thread.parent_id and metuple:
-                        pass
-                #                         new_threads.append(
-                #                             await (
-                #                                 await self.client.get_channel(metuple[1]).fetch_message(
-                #                                     int(metuple[2])
-                #                                 )
-                #                             ).create_thread(name=thread.name)
-                #                         )
+                async with aconn.cursor() as cur:
+                    async with aconn.transaction():
+                        for bridge_channel in bridge.channels:
+                            query_params = [
+                                thread.guild.id,
+                                thread.parent_id,
+                                thread.id,
+                                bridge_channel.guild.id,
+                            ]
+                            metuple = None
+                            if metuple is None:
+                                cur.execute(
+                                    "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                                    query_params,
+                                )
+                                metuple = await cur.fetchone()
+                            if metuple is None:
+                                cur.execute(
+                                    "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
+                                    query_params[:3],
+                                )
+                                metuple = cur.fetchone()
+                                if metuple[0] != bridge_channel.guild.id:
+                                    cur.execute(
+                                        "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
+                                        [*metuple, bridge_channel.guild.id],
+                                    )
+                                    metuple = cur.fetchone()
+                            if metuple[1] != thread.parent_id and metuple:
+                                new_threads.append(
+                                    await (
+                                        await self.client.get_channel(
+                                            metuple[1]
+                                        ).fetch_message(int(metuple[2]))
+                                    ).create_thread(name=thread.name)
+                                )
 
-    #                 try:
-    #                     cur = conn.cursor()
-    #                     cur.execute(
-    #                         "INSERT INTO threads (source, target) VALUES (%s, %s);",
-    #                         [thread.id, [thread.id for thread in new_threads]],
-    #                     )
-    #                     conn.commit()
-    #                 except Exception as e:
-    #                     if "cur" in locals() and "conn" in locals():
-    #                         conn.rollback()
+                        cur.execute(
+                            "INSERT INTO threads (source, target) VALUES (%s, %s);",
+                            [thread.id, [thread.id for thread in new_threads]],
+                        )
 
     async def guild_add(self, guild):
         await guild.chunk()
