@@ -3936,7 +3936,7 @@ def watchword_function(message, client, args):
                 allow_global_substitute=True,
             )
             ch.load_hotwords(force_reload=True)
-            ret += f"Added {watchword} to your hot words.\n"
+            ret += f"Added {watchword} to your ({message.guild}) hot words.\n"
         else:
             hotwords.pop(watchword, None)
             ch.user_config(
