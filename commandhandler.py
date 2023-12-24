@@ -1515,7 +1515,7 @@ class CommandHandler:
                                 [thread_id, thread_id],
                             )
                             possible_target_threads = []
-                            for record in cur:
+                            async for record in cur:
                                 possible_target_threads.append(record[0])
                                 possible_target_threads.extend(record[1])
                             if possible_target_threads:
