@@ -1524,6 +1524,7 @@ class CommandHandler:
                                 )
                             else:
                                 bridge_key = ""
+                else:
                     bridge_key = ""
             else:
                 raise AttributeError(
