@@ -3902,7 +3902,7 @@ def watchword_function(message, client, args):
     hotwords = ujson.loads(
         ch.user_config(
             message.author.id,
-            message.guild.id if message.guild else 0,
+            message.guild,
             "hotwords",
             default="{}",
             allow_global_substitute=True,
@@ -3916,7 +3916,7 @@ def watchword_function(message, client, args):
         hotwords = ujson.loads(
             ch.user_config(
                 message.author.id,
-                message.guild.id if message.guild else 0,
+                message.guild,
                 "hotwords",
                 default="{}",
                 allow_global_substitute=True,
@@ -3930,7 +3930,7 @@ def watchword_function(message, client, args):
             }
             ch.user_config(
                 message.author.id,
-                message.guild.id if message.guild else 0,
+                message.guild,
                 "hotwords",
                 ujson.dumps(hotwords),
                 allow_global_substitute=True,
@@ -3941,7 +3941,7 @@ def watchword_function(message, client, args):
             hotwords.pop(watchword, None)
             ch.user_config(
                 message.author.id,
-                message.guild.id if message.guild else 0,
+                message.guild,
                 "hotwords",
                 ujson.dumps(hotwords),
                 allow_global_substitute=True,
