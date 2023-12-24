@@ -16,6 +16,7 @@ import io
 import logging
 import math
 import os
+import psycopg
 import psycopg2
 import re
 from nio import MatrixRoom, AsyncClient as MatrixAsyncClient, RoomMessageText
@@ -165,9 +166,11 @@ token = config.get(section="discord", key="botToken")
 
 # globals for database handle and CommandHandler
 global conn
+global aconn
 global ch
 global pr
 conn = None
+aconn = None
 ch = None
 pr = None
 
@@ -223,6 +226,7 @@ async def autoload(module, choverride, config=None):
     else:
         module.config = config
     module.conn = conn
+    module.aconn = aconn
     module.sid = sid
     module.versioninfo = versioninfo
     try:
@@ -246,6 +250,7 @@ async def animate_startup(emote, message=None):
 async def reload_function(message=None, client=client, args=[]):
     global config
     global conn
+    global aconn
     global sid
     global versioninfo
     global doissetep_omega
@@ -264,6 +269,18 @@ async def reload_function(message=None, client=client, args=[]):
         config.client = client
         await animate_startup("📝", message)
         conn = psycopg2.connect(
+            host=config["database"]["host"],
+            database=config["database"]["tablespace"],
+            user=config["database"]["user"],
+            password=config["database"]["password"],
+        )
+        if aconn:
+            try:
+                aconn.close()
+            except:
+                # well at least we tried
+                pass
+        aconn = await psycopg.AsyncConnection.connect(
             host=config["database"]["host"],
             database=config["database"]["tablespace"],
             user=config["database"]["user"],

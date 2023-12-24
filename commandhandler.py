@@ -4,6 +4,7 @@ import asyncio
 from io import BytesIO
 from aiohttp import web, ClientSession
 from aiohttp.web import AppRunner, Application
+from psycopg import AsyncConnection as P3Connection
 from psycopg2._psycopg import connection
 from psycopg2.errors import UniqueViolation
 from dataclasses import dataclass, field
@@ -54,6 +55,7 @@ remote_command_runner = None
 Ans = None
 config = cast(load_config.FletcherConfig, None)
 conn = cast(connection, None)
+aconn = cast(P3Connection, None)
 client = cast(discord.Client, None)
 matrix_client = cast(MatrixAsyncClient, None)
 message_handler_rate_limit = AsyncLimiter(1, 1)
@@ -389,7 +391,7 @@ class CommandHandler:
 
     async def _add_message_command(
         self, guild_id: int, payload: dict, command_internal_id: int
-    ) -> Awaitable[None]:
+    ):
         if self.config.get(guild=guild_id, key="commands_disabled", default=False):
             return
         payload["type"] = 3
@@ -398,19 +400,21 @@ class CommandHandler:
                 response = await self.client.http.upsert_guild_command(
                     self.user.id, guild_id, payload
                 )
+            logger.debug(f"Respayload {payload} {response}")
+            logger.debug(
+                f"Registered {payload['name']} as {response['id']} in {guild_id}"
+            )
+            self.commands[command_internal_id]["guild_command_ids"][
+                response["id"]
+            ] = guild_id
         except discord.Forbidden:
             logger.info(
                 f"Disable guild commands on {guild_id} ({client.get_guild(guild_id).name})"
             )
-        logger.debug(f"Respayload {payload} {response}")
-        logger.debug(f"Registered {payload['name']} as {response['id']} in {guild_id}")
-        self.commands[command_internal_id]["guild_command_ids"][
-            response["id"]
-        ] = guild_id
 
     async def _add_slash_command(
         self, guild_id: int, payload: dict, command_internal_id: int
-    ) -> Awaitable[None]:
+    ):
         response = await self.client.http.upsert_guild_command(
             self.user.id, guild_id, payload
         )
@@ -690,6 +694,7 @@ class CommandHandler:
                     fromGuild = client.get_guild(message.guild_id)
                     fromChannel = fromGuild.get_channel_or_thread(message.channel_id)
                     if isinstance(fromChannel, (discord.Thread, discord.TextChannel)):
+                        scope.set_tag("channel", fromChannel.name)
                         logger.info(
                             str(message.message_id)
                             + " #"
@@ -1478,6 +1483,7 @@ class CommandHandler:
 
     async def bridge_message(self, message, allow_webhook_checks: bool = True):
         global conn
+        global aconn  # :) first use of async dbs
         try:
             if not message.guild:
                 return
@@ -1502,25 +1508,22 @@ class CommandHandler:
                 if thread_id == message.channel.id:
                     bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
                 else:
-                    #                     try:
-                    #                         cur = conn.cursor()
-                    #                         cur.execute(
-                    #                             "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
-                    #                             [str(thread_id), str(thread_id)],
-                    #                         )
-                    #                         possible_target_threads = []
-                    #                         for record in cur:
-                    #                             possible_target_threads.append(record[0])
-                    #                             possible_target_threads.extend(record[1])
-                    #                         if possible_target_threads:
-                    #                             bridge_key = (
-                    #                                 f"{message.guild.name}:{message.channel.parent.id}"
-                    #                             )
-                    #                         else:
-                    #                             bridge_key = ""
-                    #                     except Exception as e:
-                    #                         if "cur" in locals() and "conn" in locals():
-                    #                             conn.rollback()
+                    async with aconn.cursor() as cur:
+                        async with aconn.transaction():
+                            await cur.execute(
+                                "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
+                                [str(thread_id), str(thread_id)],
+                            )
+                            possible_target_threads = []
+                            for record in cur:
+                                possible_target_threads.append(record[0])
+                                possible_target_threads.extend(record[1])
+                            if possible_target_threads:
+                                bridge_key = (
+                                    f"{message.guild.name}:{message.channel.parent.id}"
+                                )
+                            else:
+                                bridge_key = ""
                     bridge_key = ""
             else:
                 raise AttributeError(
