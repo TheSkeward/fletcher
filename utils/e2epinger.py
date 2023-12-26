@@ -40,7 +40,7 @@ t0 = datetime.now()
 async def on_ready():
     global intended_channel
     global t0
-    intended_channel = await client.fetch_thread(1188600413503619175)
+    intended_channel = await client.fetch_channel(1188600413503619175)
     t0 = datetime.now()
     assert isinstance(intended_channel, discord.Thread)
     async with ping_throttler:
@@ -150,7 +150,7 @@ async def on_message(message: discord.Message):
             e2e_latency=e2e_latency,
         )
     )
-    assert isinstance(intended_channel, discord.TextChannel)
+    assert isinstance(intended_channel, discord.Thread)
     while True:
         async with ping_throttler:
             t0 = datetime.now()
