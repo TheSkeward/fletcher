@@ -4114,7 +4114,6 @@ def autoload(ch):
             }
         )
     logging.getLogger("discord.voice_client").setLevel("CRITICAL")
-    aconn.set_autocommit(True)
 
 
 def command(f):
