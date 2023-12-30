@@ -2155,6 +2155,8 @@ class CommandHandler:
         ):
             message.channel = self.client.get_channel(message.channel.id)
 
+        if "WITNESS ME" in message.contents:
+            logger.info(f"Witness: wotnessed {message.channel}")
         await self.bridge_message(message)
         if user == self.user:
             channel = message.channel
@@ -2299,6 +2301,7 @@ class CommandHandler:
             and not message.channel.is_private()
             and message.channel.message_count < 4
         ):
+            logger.info(f"Backfilling thread {message.channel}")
             await self.thread_add(message.channel)
         if (
             message.author.id == 876482013287292948
@@ -3003,6 +3006,7 @@ class CommandHandler:
             return False
 
     async def thread_add(self, thread):
+        logger.info("!!!!!!!!!!!!!!!THREAD!!!!!!!!!!!!!!!!!!!")
         if thread.message_count > 4:
             logger.debug("Not adding myself to a thread with a message_count > 4")
             return
