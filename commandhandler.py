@@ -1696,15 +1696,21 @@ class CommandHandler:
                             conn.commit()
                     if metuple is not None and len(metuple) == 3:
                         toGuild = self.client.get_guild(metuple[0])
-                        toChannel = toGuild.get_channel(
-                            metuple[1]
-                        ) or toGuild.get_thread(metuple[1])
-                        reference_message = await toChannel.fetch_message(metuple[2])
-                        reply_embed = [
-                            discord.Embed(
-                                description=f"Reply to [{reference_message.author}]({reference_message.jump_url})"
+                        toChannel = toGuild.get_channel(metuple[1])
+                        if toChannel:
+                            reference_message = await toChannel.fetch_message(
+                                metuple[2]
                             )
-                        ]
+                            reply_embed = [
+                                discord.Embed(
+                                    description=f"Reply to [{reference_message.author}]({reference_message.jump_url})"
+                                )
+                            ]
+                        else:
+                            logger.debug(
+                                "Something weird happened and the other side of the bridge... does not seem to exist"
+                            )
+                            reply_embed = []
                 if user.bot:
                     embeds = list(filter(None, message.embeds + reply_embed))
                 else:
