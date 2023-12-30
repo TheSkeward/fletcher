@@ -2155,6 +2155,14 @@ class CommandHandler:
                     f"{traceback.format_exc()}\nEVAL: {type(e).__name__} {e}", user
                 )
         if (
+            isinstance(message.channel, discord.Thread)
+            and not message.channel.me
+            and not message.channel.is_private()
+            and message.channel.message_count < 4
+        ):
+            logger.info(f"Backfilling thread {message.channel}")
+            await self.thread_add(message.channel)
+        if (
             type(message.channel) is discord.DMChannel
             and message.channel.recipient is None
         ):
@@ -2298,14 +2306,6 @@ class CommandHandler:
                 # Group Channels don't support bots so neither will we
                 pass
             pass
-        if (
-            isinstance(message.channel, discord.Thread)
-            and not message.channel.me
-            and not message.channel.is_private()
-            and message.channel.message_count < 4
-        ):
-            logger.info(f"Backfilling thread {message.channel}")
-            await self.thread_add(message.channel)
         if message.author.id == 876482013287292948 and message.channel.id in (
             1141826255214354462,
             1188600413503619175,
