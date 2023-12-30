@@ -3098,23 +3098,23 @@ class CommandHandler:
                             ]
                             metuple = None
                             if metuple is None:
-                                cur.execute(
+                                await cur.execute(
                                     "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
                                     query_params,
                                 )
                                 metuple = await cur.fetchone()
                             if metuple is None:
-                                cur.execute(
+                                await cur.execute(
                                     "SELECT fromguild, fromchannel, frommessage FROM messagemap WHERE toguild = %s AND tochannel = %s AND tomessage = %s LIMIT 1;",
                                     query_params[:3],
                                 )
-                                metuple = cur.fetchone()
+                                metuple = await cur.fetchone()
                                 if metuple[0] != bridge_channel.guild.id:
-                                    cur.execute(
+                                    await cur.execute(
                                         "SELECT toguild, tochannel, tomessage FROM messagemap WHERE fromguild = %s AND fromchannel = %s AND frommessage = %s AND toguild = %s LIMIT 1;",
                                         [*metuple, bridge_channel.guild.id],
                                     )
-                                    metuple = cur.fetchone()
+                                    metuple = await cur.fetchone()
                             if metuple[1] != thread.parent_id and metuple:
                                 new_threads.append(
                                     await (
@@ -3124,7 +3124,7 @@ class CommandHandler:
                                     ).create_thread(name=thread.name)
                                 )
 
-                        cur.execute(
+                        await cur.execute(
                             "INSERT INTO threads (source, target) VALUES (%s, %s);",
                             [thread.id, [thread.id for thread in new_threads]],
                         )
