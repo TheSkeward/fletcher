@@ -365,9 +365,13 @@ async def reload_function(message=None, client=client, args=[]):
             ch.webhook_sync_registry
         ):
             await ch.load_webhooks()
+            commandhandler.webhooks_loaded = True
+            commandhandler.ch.webhooks_loaded = True
+            ch.webhooks_loaded = True
         else:
             commandhandler.webhooks_loaded = True
             commandhandler.ch.webhooks_loaded = True
+            ch.webhooks_loaded = True
         await animate_startup("🔁", message)
         globals()["ch"] = ch
         if message:
@@ -722,12 +726,13 @@ async def on_member_remove(member):
 # on channel change
 @client.event
 async def on_guild_channel_update(before, after):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -771,12 +776,13 @@ async def doissetep_omega_autoconnect():
 
 @client.event
 async def on_invite_create(invite):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -789,12 +795,13 @@ async def on_invite_create(invite):
 
 @client.event
 async def on_invite_delete(invite):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -807,12 +814,13 @@ async def on_invite_delete(invite):
 
 @client.event
 async def on_guild_join(guild):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -823,12 +831,13 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_thread_create(thread):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
@@ -839,12 +848,13 @@ async def on_thread_create(thread):
 
 @client.event
 async def on_thread_join(thread):
+    global ch
     while ch is None:
         await asyncio.sleep(1)
     while 1:
         try:
             ch.config
-            if not commandhandler.webhooks_loaded:
+            if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
                 continue
             break
