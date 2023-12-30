@@ -2155,7 +2155,7 @@ class CommandHandler:
         ):
             message.channel = self.client.get_channel(message.channel.id)
 
-        if "WITNESS ME" in message.contents:
+        if "WITNESS ME" in message.system_content:
             logger.info(f"Witness: wotnessed {message.channel}")
         await self.bridge_message(message)
         if user == self.user:
@@ -2303,9 +2303,9 @@ class CommandHandler:
         ):
             logger.info(f"Backfilling thread {message.channel}")
             await self.thread_add(message.channel)
-        if (
-            message.author.id == 876482013287292948
-            and message.channel.id == 1141826255214354462
+        if message.author.id == 876482013287292948 and message.channel.id in (
+            1141826255214354462,
+            1188600413503619175,
         ):
             command = self.get_command(
                 message.content, message, mode="keyword_trie", max_args=0
@@ -3006,7 +3006,9 @@ class CommandHandler:
             return False
 
     async def thread_add(self, thread):
-        logger.info("!!!!!!!!!!!!!!!THREAD!!!!!!!!!!!!!!!!!!!")
+        logger.info(
+            f"!!!!!!!!!!!!!!!THREAD! ({inspect.currentframe().f_back.f_code.co_name})!!!!!!!!!!!!!!!!!!"
+        )
         if thread.message_count > 4:
             logger.debug("Not adding myself to a thread with a message_count > 4")
             return
