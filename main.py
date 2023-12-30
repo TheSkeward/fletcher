@@ -821,6 +821,22 @@ async def on_guild_join(guild):
 
 
 @client.event
+async def on_thread_create(thread):
+    while ch is None:
+        await asyncio.sleep(1)
+    while 1:
+        try:
+            ch.config
+            if not commandhandler.webhooks_loaded:
+                await asyncio.sleep(1)
+                continue
+            break
+        except AttributeError:
+            await asyncio.sleep(1)
+    await ch.thread_add(thread)
+
+
+@client.event
 async def on_thread_join(thread):
     while ch is None:
         await asyncio.sleep(1)
