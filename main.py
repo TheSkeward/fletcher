@@ -285,6 +285,7 @@ async def reload_function(message=None, client=client, args=[]):
             database=config["database"]["tablespace"],
             user=config["database"]["user"],
             password=config["database"]["password"],
+            autocommit=True,
         )
         await animate_startup("💾", message)
         # Command Handler (loaded twice to bootstrap)
