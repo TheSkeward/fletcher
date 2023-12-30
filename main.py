@@ -282,7 +282,7 @@ async def reload_function(message=None, client=client, args=[]):
                 pass
         aconn = await psycopg.AsyncConnection.connect(
             host=config["database"]["host"],
-            database=config["database"]["tablespace"],
+            dbname=config["database"]["tablespace"],
             user=config["database"]["user"],
             password=config["database"]["password"],
             autocommit=True,
