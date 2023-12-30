@@ -1508,7 +1508,7 @@ class CommandHandler:
                 )
                 if thread_id == message.channel.id:
                     bridge_key = f"{message.guild.name}:{message.channel.parent.id}"
-                elif message.guild and message.guild.id == 429373449803399169:
+                elif message.guild:
                     async with aconn.cursor() as cur:
                         await cur.execute(
                             "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
