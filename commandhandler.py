@@ -1511,7 +1511,7 @@ class CommandHandler:
                     async with aconn.cursor() as cur:
                         await cur.execute(
                             "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
-                            [thread_id, thread_id],
+                            [message.channel.id, message.channel.id],
                         )
                         possible_target_threads = []
                         async for record in cur:
