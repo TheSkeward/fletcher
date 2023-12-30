@@ -832,16 +832,34 @@ async def on_guild_join(guild):
 @client.event
 async def on_thread_create(thread):
     global ch
+    times_through_loop = 0
     while ch is None:
+        times_through_loop += 1
+        if times_through_loop > 300:
+            logger.error("What the fuck. nothing should take this long. Exiting")
+            return
         await asyncio.sleep(1)
+    times_through_loop = 0
     while 1:
         try:
             ch.config
             if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
+                times_through_loop += 1
+                if times_through_loop > 30:
+                    logger.error(
+                        "stalled in on_thread_create waiting for ch.webhooks_loaded, going for it anyways"
+                    )
+                    break
                 continue
             break
         except AttributeError:
+            times_through_loop += 1
+            if times_through_loop > 30:
+                logger.error(
+                    "stalled in on_thread_create waiting for ch.config, going for it anyways"
+                )
+                break
             await asyncio.sleep(1)
     await ch.thread_add(thread)
 
@@ -849,16 +867,34 @@ async def on_thread_create(thread):
 @client.event
 async def on_thread_join(thread):
     global ch
+    times_through_loop = 0
     while ch is None:
+        times_through_loop += 1
+        if times_through_loop > 300:
+            logger.error("What the fuck. nothing should take this long. Exiting")
+            return
         await asyncio.sleep(1)
+    times_through_loop = 0
     while 1:
         try:
             ch.config
             if not ch.webhooks_loaded:
                 await asyncio.sleep(1)
+                times_through_loop += 1
+                if times_through_loop > 30:
+                    logger.error(
+                        "stalled in on_thread_create waiting for ch.webhooks_loaded, going for it anyways"
+                    )
+                    break
                 continue
             break
         except AttributeError:
+            times_through_loop += 1
+            if times_through_loop > 30:
+                logger.error(
+                    "stalled in on_thread_create waiting for ch.config, going for it anyways"
+                )
+                break
             await asyncio.sleep(1)
     await ch.thread_add(thread)
 
