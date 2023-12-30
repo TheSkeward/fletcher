@@ -392,6 +392,7 @@ async def reload_function(message=None, client=client, args=[]):
         )
 
 
+HAS_READIED_UP = False
 # bot is ready
 @client.event
 async def on_ready():
@@ -401,6 +402,9 @@ async def on_ready():
         global matrix_client
         global ch
         global config
+        global HAS_READIED_UP
+        if HAS_READIED_UP:
+            return
         # print bot information
         # await client.change_presence(activity=discord.Game(name="Reloading: The Game"))
         logger.info(
@@ -428,6 +432,7 @@ async def on_ready():
             await guild.chunk()
         await reload_function()
         await matrix_client.sync_forever(timeout=30000)
+        HAS_READIED_UP = True
     except Exception as e:
         logger.exception(e)
 
