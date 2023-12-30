@@ -1487,6 +1487,7 @@ class CommandHandler:
         try:
             if not message.guild:
                 return
+            possible_target_threads = []
             if isinstance(message.channel, discord.TextChannel):
                 thread_id = self.config.get(
                     "bridge_target_thread",
@@ -1513,10 +1514,13 @@ class CommandHandler:
                             "SELECT * FROM threads WHERE source = %s OR %s = ANY(target)",
                             [message.channel.id, message.channel.id],
                         )
-                        possible_target_threads = []
                         async for record in cur:
-                            possible_target_threads.append(record[0])
-                            possible_target_threads.extend(record[1])
+                            possible_target_threads.extend(
+                                [
+                                    client.get_channel(record[0]),
+                                    *(client.get_channel(tid) for tid in record[1]),
+                                ]
+                            )
                         if possible_target_threads:
                             bridge_key = (
                                 f"{message.guild.name}:{message.channel.parent.id}"
@@ -1719,6 +1723,16 @@ class CommandHandler:
                         logger.debug(
                             f"sending to {bridge.webhooks[i]=} {bridge.webhooks[i].url}"
                         )
+                    thread_splat = {}
+                    if bridge.threads[i]:
+                        thread_splat = {"thread": bridge.threads[i]}
+                    elif possible_target_threads:
+                        thread_splat = {
+                            "thread": discord.utils.get(
+                                possible_target_threads,
+                                parent__id=bridge.channels[i].id,
+                            )
+                        }
                     syncMessage = await messagefuncs.sendWrappedMessage(
                         target=bridge.webhooks[i],
                         msg=content,
@@ -1737,7 +1751,7 @@ class CommandHandler:
                         allowed_mentions=discord.AllowedMentions(
                             users=user_mentions, roles=False, everyone=False
                         ),
-                        **({"thread": bridge.threads[i]} if bridge.threads[i] else {}),
+                        **thread_splat,
                     )
                     if "sync" in message.channel.name:
                         logger.debug(f"sent {syncMessage=} to {bridge.webhooks[i]=}")
@@ -1761,7 +1775,7 @@ class CommandHandler:
                             allowed_mentions=discord.AllowedMentions(
                                 users=user_mentions, roles=False, everyone=False
                             ),
-                            thread=bridge.thread_ids[i],
+                            **thread_splat,
                         )
                     else:
                         exc_type, exc_obj, exc_tb = exc_info()
