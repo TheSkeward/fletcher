@@ -145,12 +145,21 @@ import load_config
 config = load_config.FletcherConfig()
 
 # Enable logging to SystemD
+# TODO(nova): handler -> root logger, not fletcher
 logger.addHandler(
     journal.JournalHandler(
         SYSLOG_IDENTIFIER=config.get(section="discord", key="botLogName")
     )
 )
 logger.setLevel(logging.DEBUG)
+
+logging.getLogger("discord").addHandler(
+    journal.JournalHandler(
+        SYSLOG_IDENTIFIER=config.get(section="discord", key="botLogName")
+    )
+)
+
+logging.getLogger("discord").setLevel(logging.INFO)
 
 intents = discord.Intents.all()
 intents.presences = False
